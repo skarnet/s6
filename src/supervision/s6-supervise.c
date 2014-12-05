@@ -247,7 +247,7 @@ static void tryfinish (int wstat, int islast)
     char *cargv[4] = { "finish", fmt0, fmt1, 0 } ;
     selfpipe_finish() ;
     fmt0[uint_fmt(fmt0, WIFSIGNALED(wstat) ? 255 : WEXITSTATUS(wstat))] = 0 ;
-    fmt1[uint_fmt(fmt1, WIFSIGNALED(wstat))] = 0 ;
+    fmt1[uint_fmt(fmt1, WTERMSIG(wstat))] = 0 ;
     if (flagsetsid) setsid() ;
     execve("./finish", cargv, (char *const *)environ) ;
     _exit(111) ;
