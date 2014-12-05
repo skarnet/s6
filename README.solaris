@@ -1,0 +1,12 @@
+
+ This package assumes the existence of a POSIX shell in /bin/sh.
+ On Solaris, /bin/sh is not POSIX. Most versions of Solaris provide
+a POSIX shell in /usr/xpg4/bin/sh.
+
+ To compile this package on Solaris, you will need to run
+
+     ./patch-for-solaris
+
+ before you run ./configure. This script will change the #! invocation
+of the configure script and various tools so that a POSIX shell is used
+for the compilation process.

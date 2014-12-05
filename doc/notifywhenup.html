@@ -1,0 +1,75 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: service startup notifications</title>
+    <meta name="Description" content="s6: service startup notifications" />
+    <meta name="Keywords" content="s6 ftrig notification notifier writer libftrigw ftrigw startup U up svwait s6-svwait" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> Service startup notifications </h1>
+
+<p>
+ It is easy for a process supervision suite to know when a service that was <em>up</em>
+is now <em>down</em>: the long-lived process implementing the service is dead. The
+supervisor, running as the daemon's parent, is instantly notified via a SIGCHLD.
+When it happens, <a href="s6-supervise.html">s6-supervise</a> sends a 'd' event
+to its <tt>./event</tt> <a href="fifodir.html">fifodir</a>, so every subscriber
+knows that the service is down. All is well.
+</p>
+
+<p>
+ It is much trickier for a process supervision suite to know when a service
+that was <em>down</em> is now <em>up</em>. The supervisor forks and execs the
+daemon, and knows when the exec has succeeded; but after that point, it's all
+up to the daemon itself. Some daemons do a lot of initialization work before
+they're actually ready to serve, and it is impossible for the supervisor to
+know exactly <em>when</em> the service is really ready.
+<a href="s6-supervise.html">s6-supervise</a> sends a 'u' event to its
+<tt>./event</tt> <a href="fifodir.html">fifodir</a> when it successfully
+spawns the daemon, but any subscriber
+reacting to 'u' is subject to a race condition - the service provided by the
+daemon may not be ready yet.
+</p>
+
+<p>
+ Reliable startup notifications need support from the daemons themselves.
+Daemons should notify the outside world when the service they are providing
+is reliably up - because only they know when it is the case.
+</p>
+
+<p>
+ s6 provides two ways for daemons to perform startup notification.
+</p>
+
+<ol>
+ <li> Daemons can use the <tt>ftrigw_notify()</tt> function, provided in
+<a href="libftrigw.html">the ftrigw library</a>. This is extremely
+simple and efficient, but requires specific s6 support in the daemon. </li>
+ <li> Daemons can write something to a file descriptor of their choice,
+then close that file descriptor, when they're ready to serve. This is
+a generic mechanism that some daemons already implement, and does not
+require anything specific in the daemon's code. The administrator can
+then run the daemon under <a href="s6-notifywhenup.html">s6-notifywhenup</a>,
+which will properly catch the daemon's message and notify all the subscribers
+with a 'U' event, meaning that the service is now up with no possible race
+condition. </li>
+</ol>
+
+<p>
+ The second method should really be implemented in every long-running
+program providing a service. When it is not the case, it's impossible
+to provide race-free startup notifications, and subscribers should be
+content with the unreliable 'u' events provided by s6-supervise.
+</p>
+
+</body>
+</html>

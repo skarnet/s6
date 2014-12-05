@@ -1,0 +1,203 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: why another supervision suite</title>
+    <meta name="Description" content="s6: why another supervision suite" />
+    <meta name="Keywords" content="s6 supervision daemontools runit perp service svscan supervise" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> Why another supervision suite ? </h1>
+
+<p>
+ Supervision suites are becoming quite common. Today, we already have:
+</p>
+
+<ul>
+ <li> Good (?) old System V init, which can be made to supervise services if you perform <tt>/etc/inittab</tt> voodoo.
+BSD init can also be used the same way with the <tt>/etc/ttys</tt> file, but for some reason, nobody among BSD
+developers is using <tt>/etc/ttys</tt> to this purpose, so I won't consider BSD init here. </li>
+ <li> <a href="http://cr.yp.to/daemontools.html">daemontools</a>, the pioneer </li>
+ <li> <a href="http://untroubled.org/daemontools-encore/">daemontools-encore</a>, Bruce Guenter's upgrade to daemontools </li>
+ <li> <a href="http://smarden.org/runit/">runit</a>, Gerrit Pape's suite, well-integrated with Debian </li>
+ <li> <a href="http://b0llix.net/perp/">perp</a>, Wayne Marshall's take on supervision </li>
+ <li> Integrated init systems providing a lot of features, process supervision being one of them.
+For instance, <a href="http://upstart.ubuntu.com/">Upstart</a>, MacOS X's 
+<a href="http://developer.apple.com/library/mac/#documentation/Darwin/Reference/ManPages/man8/launchd.8.html">launchd</a>,
+and Fedora's <a href="http://freedesktop.org/wiki/Software/systemd">systemd</a>. </li>
+</ul>
+
+<p>
+ Why is s6 needed ? What does it do differently ? Here are the criteria I used.
+</p>
+
+
+<h2> Supervision suites should not wake up unless notified. </h2>
+
+<ul>
+ <li> System V init fails the test: it wakes up every 5 seconds, for the reason that
+<tt>/dev/initctl</tt> might have changed.
+<a href="http://demotivate.me/mediafiles/full/4162010103911AM_picard-no-facepalm.jpg"><tt>m(</tt></a> </li>
+ <li> daemontools fails the test: it wakes up every 5 seconds to check for new services. </li>
+ <li> daemontools-encore does the same. </li>
+ <li> the current version of runit fails the test: it wakes up every 14 seconds. But this is a workaround for a bug in some Linux kernels;
+there is no design flaw in runit that prevents it from passing the test. </li>
+ <li> perp works. </li>
+ <li> Upstart works. I have no idea what other integrated init systems do: it's much too difficult to strace them
+to see exactly where they're spending their time, and when it is possible, the trace output is so big that it's
+hard to extract any valuable information from it. </li>
+ <li> s6 works. By default, s6-svscan wakes up every 5 seconds, to emulate
+<a href="http://cr.yp.to/daemontools/svscan.html">svscan</a> behaviour; but it
+can be told not to do so. (<tt>s6-svscan -t0</tt>) </li>
+</ul>
+
+
+<h2> Supervision suites should provide a program that can run as process 1. </h2>
+
+<ul>
+ <li> System V init <em>is</em> process 1, so no problem here. </li>
+ <li> Integrated init systems, by definition, provide a process 1. </li>
+ <li> daemontools was not designed to take over init, although
+<a href="http://code.dogmap.org./svscan-1/">it can be made to work</a> with
+enough hacking skills. Same thing with daemontools-encore. </li>
+ <li> runit provides an <em>init</em> functionality, but the mechanism is
+separate from the supervision itself; the <tt>runit</tt> process, not the
+<tt>runsvdir</tt> process, runs as process 1. This lengthens the supervision
+chain. </li>
+ <li> perp was not designed to run as process 1. It probably could be made to work too
+without too much trouble. </li>
+ <li> s6-svscan was designed from the start to be run as process 1, although it
+does not have to. </li>
+</ul>
+
+
+<h2> Supervision suites should be bug-free, lightweight and easy to understand. </h2>
+
+<ul>
+ <li> daemontools, daemontools-encore, runit and perp all qualify. All of this is excellent quality
+code, <a href="http://skarnet.org/software/skalibs/djblegacy.html">unsurprisingly</a>. </li>
+ <li> System V init is understandable, and reasonably lightweight; but it is still
+too big for what it does - poorly. The <tt>/etc/inittab</tt> file needs to be parsed;
+that parser has to be in process 1. There is support in process 1 for the whole
+"runlevel" concept, which is a primitive form of service management. The same
+executable handles all 3 stages of the machine's lifetime and does not separate
+them properly. All in all, System V init does its job, but is showing its age
+and nowadays we know much better designs. </li>
+ <li> This is where integrated init systems fail, hard. By wanting to organize
+the way a the machine is operated - so, machine state management - in the
+<em>same package</em> as the init and process supervision system, they add
+incredible complexity where it does not belong.
+ <ul>
+  <li> Upstart uses <tt>ptrace</tt> to watch its children fork(), and links
+process 1 against libdbus. This is insane.
+Process 1 should be <em>absolutely stable</em>, it should be guaranteed
+to never crash, so the whole of its source code should be under control. At
+Upstart's level of complexity, those goals are outright impossible to achieve,
+so this approach is flawed by design. </li>
+ <li> launchd suffers from the same kind of problem. Regardless of how
+things are actually implemented inside (which I have no idea about), services
+running under launchd must be configured
+<a href="https://developer.apple.com/library/mac/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html">using
+XML</a>. That means there is an XML parser in process 1.
+<a href="https://software.intel.com/sites/default/files/race.jpg">What
+could possibly go wrong&nbsp;?</a> </li>
+ <li> systemd is much, much worse than the other ones, and a real danger
+for the future of GNU/Linux. I have a <a href="systemd.html">special page</a>
+dedicated to it. </li>
+ </ul>
+ What those systems fail to recognize is that process supervision, rooted in
+process 1, is a good thing, and machine management is also a good thing, but
+<strong>those are two different functions</strong>, and a good init system
+needs, and <strong>should</strong>, only provide process supervision, in
+order to keep such a crucial piece of code as easy to maintain as possible.
+Machine management can be added <em>on top of</em> a process supervision
+suite, in a different package, and it has nothing to do with process 1. </li>
+ <li> s6, which has been designed with embedded environments in mind, tries
+harder than anyone to pass this. It tries so hard that <tt>s6-svscan</tt>
+and <tt>s6-supervise</tt>, the two long-running programs that make the
+supervision chain, <em>do not even allocate heap memory</em>, and their main
+program source files are less than 500 lines long. </li>
+</ul>
+
+
+<h2> Supervision suites should provide a basis for high-level service management. </h2>
+
+<ul>
+ <li> Neither System V init, daemontools, runit or perp
+provides any hooks to wait for a service to go up or down. runit provides a
+waiting mechanism, but it's based on polling, and the <tt>./check</tt> script
+has to be manually written for every service. </li>
+ <li> daemontools-encore qualifies: the <em>notify script</em> can be used for
+inter-service communication. But it's just a hook: all the real notification
+work has to be done by the notify script itself, no notification framework is
+provided. </li>
+ <li> Integrated init systems provide high-level service management
+themselves. Again, this is not good design: service management has nothing
+to do with init or process supervision, and should be implemented on top
+of it, not as a part of it. </li>
+ <li> s6 comes with <a href="libftrig.html">libftrig</a>, an event notification
+library, and command-line tools based on this library, thus providing a simple
+API for future service management tools to build upon. </li>
+</ul>
+
+
+<h2> Artistic considerations </h2>
+
+<ul>
+ <li> <tt>s6-svscan</tt> and <tt>s6-supervise</tt> are <em>entirely asynchronous</em>.
+Even during trouble (full process table, for instance), they'll remain reactive
+and instantly respond to commands they may receive. <tt>s6-supervise</tt> has
+even been implemented as a full deterministic finite automaton, to ensure it
+always does the right thing under any circumstance. Other supervision suites
+do not achieve that for now. </li>
+ <li> daemontools' <a href="http://cr.yp.to/daemontools/svscan.html">svscan</a>
+maintains an open pipe between a daemon and its logger, so even if the daemon,
+the logger, <em>and</em> both
+<a href="http://cr.yp.to/daemontools/supervise.html">supervise</a> processes
+die, the pipe is still the same so <em>no logs are lost, ever</em>, unless
+svscan itself dies. </li>
+ <li> runit has only one supervisor, <a href="http://smarden.org/runit/runsv.8.html">runsv</a>,
+for both a daemon and its logger. The pipe is maintained by <tt>runsv</tt>.
+If the <tt>runsv</tt> process dies, the pipe disappears and logs are lost.
+So, runit does not offer as strong a guarantee as daemontools. </li>
+ <li> perp has only one process, <a href="http://b0llix.net/perp/site.cgi?page=perpd.8">perpd</a>,
+acting both as a "daemon and logger supervisor" (like <tt>runsv</tt>) and as a
+"service directory scanner" (like <tt>runsvdir</tt>). It maintains the pipes
+between the daemons and their respective loggers. If perpd dies, everything
+is lost. Since perpd cannot be run as process 1, this is a possible SPOF for
+a perp installation; however, perpd is well-written and has virtually no risk of
+dying, especially compared to process 1 behemoths provided by integrated
+init systems. </li>
+ <li> Besides, the <tt>runsv</tt> model, which has to handle both a daemon
+and its logger, is more complex than the <tt>supervise</tt> model (which
+only has to handle a daemon). Consequently, the <tt>runsvdir</tt> model is
+simpler than the <tt>svscan</tt> model, but there is only one <tt>svscan</tt>
+instance when there are several <tt>runsv</tt>s and <tt>supervise</tt>s.
+The <tt>perpd</tt> model is obviously the most complex; while very understandable,
+<tt>perpd</tt> is unarguably harder to maintain than the other two. </li>
+ <li> So, to achieve maximum simplicity and code reuse, and minimal memory
+footprint, s6's design is close to daemontools' one.
+And when <a href="s6-svscan-1.html">s6-svscan is run as process 1</a>,
+pipes between daemons and loggers are never lost. </li>
+</ul>
+
+
+<h2> Conclusion </h2>
+
+<p>
+ All in all, I believe that s6 offers the best overall implementation of a
+supervision suite <em>as it should be designed</em>. At worst, it's just another
+take on daemontools with a <a href="http://skarnet.org/software/skalibs/">reliable
+base library</a> and a few nifty features.
+</p>
+
+</body>
+</html>

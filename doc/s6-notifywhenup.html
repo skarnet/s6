@@ -1,0 +1,80 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-notifywhenup program</title>
+    <meta name="Description" content="s6: the s6-notifywhenup program" />
+    <meta name="Keywords" content="s6 command s6-notifywhenup fifodir notification event notifier send service daemon ready" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-notifywhenup program </h1>
+
+<p>
+s6-notifywhenup launches a daemon while listening to a file descriptor,
+and sends a 'U' event to a <a href="fifodir.html">fifodir</a> when it
+receives something on that file descriptor.
+</p>
+
+<p>
+<a href="notifywhenup.html">This page</a> explains why this program is
+needed.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-notifywhenup [ -d <em>fd</em> ] [ -e <em>fifodir</em> ] [ -f ] [ -t <em>timeout</em> ] <em>prog...</em>
+</pre>
+
+<ul>
+ <li> s6-notifywhenup forks and executes <em>prog...</em> as the
+parent, with a pipe from <em>prog...</em>'s stdout to the child. </li>
+ <li> The child waits for EOF on the pipe. When it gets it, if there
+have been other characters written before the EOF, it sends a 'U'
+event to the <tt>./event</tt> fifodir. </li>
+ <li> The child exits 0. </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-d&nbsp;<em>fd</em></tt>&nbsp;: listen to
+<em>prog</em>'s output on descriptor <em>fd</em>. The default is 1. </li>
+ <li> <tt>-e&nbsp;<em>fifodir</em></tt>&nbsp;: send a 'U' event to fifodir
+<em>fifodir</em>. Default is <tt>./event</tt>. </li>
+ <li> <tt>-f</tt>&nbsp;: simple fork. Normally, s6-notifywhenup doubleforks,
+in order to accommodate for a
+<em>prog</em> that does not expect to have a child and avoid a
+pending zombie. This option avoids the doublefork, but it should only be
+set if <em>prog</em> reaps even children it doesn't know it has. </li>
+ <li> <tt>-t&nbsp;<em>timeout</em></tt>&nbsp;: if no EOF has been received
+after <em>timeout</em> milliseconds, exit without sending the event.
+Default is 0, meaning infinite. </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> s6-notifywhenup executes <em>prog...</em> as the parent in order
+for <em>prog</em> to keep the same pid, which is vital for supervised
+processes. </li>
+ <li> s6-notifywhenup can be used, for instance, with
+<a href="http://skarnet.org/software/s6-networking/s6-tcpserver.html">s6-tcpserver</a>
+and its <tt>-1</tt> option, so that reliable startup notification is
+achieved. <tt>s6-notifywhenup -f s6-tcpserver -1 <em>args</em></tt> will
+send a 'U' event to <tt>./event</tt> when s6-tcpserver is actually
+listening to its network socket. </li>
+ <li> The <a href="s6-svwait.html">s6-svwait</a> program can be used
+to wait for 'U' events. </li>
+</ul>
+
+</body>
+</html>

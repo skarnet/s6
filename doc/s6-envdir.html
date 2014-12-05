@@ -1,0 +1,66 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-envdir program</title>
+    <meta name="Description" content="s6: the s6-envdir program" />
+    <meta name="Keywords" content="s6 command s6-envdir dir environment modification" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-envdir program </h1>
+
+<p>
+s6-envdir changes its environment, then executes into another program.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-envdir [ -I | -i ] [ -n ] [ -f ] [ -c <em>nullis</em> ] <em>dir</em> <em>prog...</em>
+</pre>
+
+<ul>
+ <li> s6-envdir reads files in <em>dir</em>. For every file <em>f</em> in <em>dir</em>,
+that does not begin with a dot and does not contain the '=' character: </li>
+ <li> If <em>f</em> is empty, remove a variable named <em>f</em> from the environment, if any. </li>
+ <li> Else add a variable named <em>f</em> to the environment (or replace <em>f</em> if it
+already exists) with the first line of the contents of file <em>f</em> as value.
+Spaces and tabs at the end of this line are removed;
+null characters in this line are changed to newlines in the environment variable.</li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-i</tt>&nbsp;: strict. If <em>dir</em> does not exist, exit 111 with an
+error message. This is the default. </li>
+ <li> <tt>-I</tt>&nbsp;: loose. If <em>dir</em> does not exit, exec into
+<em>prog</em> without modifying the environment first. </li>
+ <li> <tt>-f</tt>&nbsp;: verbatim mode. All the file is given as the value of the
+environment variable, including newlines (except the last one if the <tt>-n</tt>
+option is not given). Null characters are still translated. </li>
+ <li> <tt>-n</tt>&nbsp;: do not chomp. If the <tt>-f</tt> option is given and the
+file ends with a newline, keep that last newline in the value. If the <tt>-f</tt>
+option is not given, keep the trailing blanks at the end of the first line (but
+not the ending newline). </li>
+ <li> <tt>-c</tt>&nbsp;<em>nullis</em>&nbsp;: replace null characters with the
+first character of <em>nullis</em> instead of a newline. </li>
+</ul>
+
+<h2> Notes </h2>
+
+<p>
+ s6-envdir without options behaves exactly like
+<a href="http://cr.yp.to/daemontools/envdir.html">envdir</a>.
+</p>
+
+</body>
+</html>

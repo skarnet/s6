@@ -1,0 +1,88 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-ftrig-listen1 program</title>
+    <meta name="Description" content="s6: the s6-ftrig-listen1 program" />
+    <meta name="Keywords" content="s6 command s6-ftrig-listen1 fifodir notification event listener subscriber receive" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-ftrig-listen1 program </h1>
+
+<p>
+s6-ftrig-listen1 subscribes to a <a href="fifodir.html">fifodir</a>, then
+spawns a program, then waits for a pattern of events to occur on the fifodir.
+</p>
+
+<p>
+s6-ftrig-listen1 acts just as <a href="s6-ftrig-wait.html">s6-ftrig-wait</a>,
+except it can make sure that the process sending the notifications is actually
+started <em>after</em> there is a listener for those events.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-ftrig-listen1 [ -t <em>timeout</em> ] <em>fifodir</em> <em>regexp</em> <em>prog...</em>
+</pre>
+
+<ul>
+ <li> s6-ftrig-listen1 subscribes to <em>fifodir</em> </li>
+ <li> It then forks and exec <em>prog...</em> with all its arguments </li>
+ <li> It waits for the series of events received on <em>fifodir</em>
+to match <em>regexp</em>. <em>regexp</em> must be an
+<a href="http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap09.html#tag_09_04">extended
+regular expression</a>. </li>
+ <li> When the series of read events matches <em>regexp</em>,
+s6-ftrig-listen1 exits 0. </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-t <em>timeout</em></tt>&nbsp;: if the events on <em>fifodir</em> have not
+matched <em>regexp</em> after <em>timeout</em> milliseconds, print an error message on
+stderr and exit 1. By default, s6-ftrig-listen1 waits indefinitely for a matching series
+of events. </li>
+</ul>
+
+<h2> Usage example </h2>
+
+<p>
+ The following sequence of shell commands has a race condition:
+</p>
+
+<p> <em>In terminal 1:</em> </p>
+<pre>
+s6-mkfifodir /tmp/toto
+s6-ftrig-wait /tmp/toto "message"
+</pre>
+
+<p> <em>Then in terminal 2</em> </p>
+<pre>
+s6-ftrig-notify /tmp/toto message
+</pre>
+
+<p>
+ Depending on the operating system's scheduler, there is the possibility that
+the s6-ftrig-notify process starts sending "message" <em>before</em> the
+s6-ftrig-wait process has actually subscribed to <tt>/tmp/toto</tt>, in which
+case the notification will be missed. The following sequence of shell commands
+accomplishes the same goal in a reliable way, without the race condition:
+</p>
+
+<pre>
+s6-mkfifodir /tmp/toto
+s6-ftrig-listen1 /tmp/toto "message" s6-ftrig-notify /tmp/toto message
+</pre>
+
+</body>
+</html>

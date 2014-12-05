@@ -1,0 +1,184 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: libftrig</title>
+    <meta name="Description" content="s6 libftrig" />
+    <meta name="Keywords" content="s6 libftrig" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> libftrig </h1>
+
+<p>
+<t>libftrig</t> is a portable Unix C programming interface allowing a
+process (the <em>subscriber</em> or <em>listener</em>) to be instantly
+notified when another process (the <em>notifier</em> or <em>writer</em>)
+signals an event.
+</p>
+
+<a name="notification">
+<h2> What is notification&nbsp;? </h2>
+</a>
+
+<h3> Notification vs. polling </h3>
+
+<p>
+ Process A is <em>notified</em> of an event E when it gets a instant
+notice that event E has happened; the notice may disrupt A's execution
+flow. Notification is the opposite of <em>polling</em>, where A has to
+periodically (every T milliseconds) check whether E happened and has no
+other way to be informed of it.
+</p>
+
+<p>
+ Polling is generally considered bad practice - and is inferior to
+notification in practically every case - for three reasons:
+</p>
+
+<ul>
+ <li> Reaction time. When event E happens, process A does not know it
+instantly. It will only learn of E, and be able to react to it, when
+it explicitly checks for E; and if E happened right after A performed
+the check, this can take as long as T milliseconds (the <em>polling
+period</em>). Polling processes have reaction delays due to the polling
+periods. </li>
+ <li> Resource consumption. Even if <em>no</em> event ever happens, process A
+will still wake up needlessly every T milliseconds. This might not seem like
+a problem, but it is a serious one in energy-critical environments. Polling
+processes use more CPU time than is necessary and are not energy-friendly. </li>
+ <li> Conflict between the two above reasons. The longer the polling period,
+the more energy-friendly the process, but the longer the reaction time. The
+shorter the polling period, the shorter the reaction time, but the more
+resource-consuming the process. A delicate balance has to be found, and
+acceptable behaviour is different in every case, so there's no general rule
+of optimization. </li>
+</ul>
+
+<p>
+ Notification, on the other hand, is generally optimal: reaction time is
+zero, and resource consumption is minimal - a process can sleep as soon as
+it's not handling an event, and only wake up when needed.
+</p>
+
+<p>
+ Of course, the problem of notification is that it's often more difficult
+to implement. Notification frameworks are generally more complex, involving
+lots of asynchronism; polling is widely used
+<a href="http://lib.store.yahoo.net/lib/demotivators/mediocritydemotivationalposter.jpg">because
+it's easy.</a>
+</p>
+
+<h3> Notifications and Unix </h3>
+
+<p>
+ Unix provides several frameworks so that a process B (or the kernel) can
+notify process A.
+</p>
+
+<ul>
+ <li> Signals. The simplest Unix notification mechanism. Sending events amounts
+to a <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/kill.html">kill()</a>
+call, and receiving events amounts to installing a signal handler (preferrably
+using a <a href="http://skarnet.org/software/skalibs/libstddjb/selfpipe.html">self-pipe</a>
+if mixing signals with an event loop). Unfortunately, Unix signals, even the more
+recent and powerful real-time Posix signals, have important limitations when it's
+about generic notification:
+ <ul>
+  <li> non-root processes can only send signals to a very restricted and
+implementation-dependent set of processes (roughly, processes with the same UID). This is a problem when
+designing secure programs that make use of the Unix privilege separation. </li>
+  <li> you need to know the PID of a process to send it signals. This is generally
+impractical; process management systems that do not use supervisor processes have
+to do exactly that, and they resort to unreliable, ugly hacks (.pid files) to track
+down process PIDs. </li>
+ </ul> </li>
+ <li> BSD-style IPCs, i.e. file descriptors to perform select()/poll() system
+calls on, in an <em>asynchronous event loop</em>. This mechanism is very widely used,
+and rightly so, because it's extremely generic and works in every ordinary situation;
+you have to be doing <a href="http://www.kegel.com/c10k.html">very specific stuff</a>
+to reach its limits. If process A is reading on
+fd <em>f</em>, it is notified everytime another process makes <em>f</em> readable -
+for instance by writing a byte to the other end if <em>f</em> is the reading end
+of a pipe. And indeed, this is how libftrig works internally; but libftrig is needed
+because direct use of BSD-style IPCs also has limitations.
+ <ul>
+  <li> Anonymous pipes are the simplest and most common BSD-style IPC. If there is a
+pipe from process B to process A, then B can notify A by writing to the pipe. The
+limitation is that A and B must have a common ancestor that created the pipe; two
+unrelated processes cannot communicate this way. </li>
+ <li> Sockets are a good many-to-one notification system: once a server is up, it
+can be notified by any client, and notify all its clients. The limitation of sockets
+is that the server must be up before the client, which prevents us from using them
+in a general notification scheme. </li>
+ </ul> </li>
+ <li> System V IPCs, i.e. message queues and semaphores. The interfaces to those IPCs
+are quite specific and can't mix with select/poll loops, that's why nobody in their
+right mind uses them. </li>
+</ul>
+
+<h3> What we want </h3>
+
+<p>
+ We need a general framework to:
+</p>
+
+<ul>
+ <li> Allow an event-generating process to broadcast notifications to every process
+that asked for one, without having to know their PIDs </li>
+ <li> Allow a process to subscribe to a "notification channel" and be instantly,
+asynchronously notified when an event occurs on this channel. </li>
+</ul>
+
+<p>
+ This requires a many-to-many approach that Unix does not provide natively, and
+that is what libftrig does.
+</p>
+
+<a name="bus">
+<h2> That's what a bus is for. D-Bus already does all this. </h2>
+</a>
+
+<p>
+ Yes, a bus is a good many-to-many notification mechanism indeed. However,
+a Unix bus can only be implemented via a daemon - you need a long-running
+process, i.e. a <em>service</em>, to implement a bus. And s6 is a
+<em>supervision suite</em>, i.e. a set of programs designed to manage
+services; we would like to be able to use notifications in the supervision
+suite, to be able to wait for a service to be up or down... <em>without</em>
+relying on a particular service to be up. libftrig provides a notification
+mechanism that <em>does not need</em> a bus service to be up, that's its
+main advantage over a bus.
+</p>
+
+<p>
+ If you are not concerned with supervision and can depend on a bus service,
+though, then yes, by all means, use a bus for your notification needs.
+There is a <a href="http://skarnet.org/software/skabus/">skabus</a>
+project in the making, which aims to be simpler, smaller and more
+maintainable than D-Bus.
+</p>
+
+<h2> How to use libftrig </h2>
+
+<p>
+ <tt>libftrig</tt> is really a part of <tt>libs6</tt>: all the functions
+are implemented in the <tt>libs6.a</tt> archive, or the <tt>libs6.so</tt>
+dynamic shared object. However, the interfaces are different for notifiers
+and listeners:
+</p>
+
+<ul>
+<li> Notifiers use the <a href="libftrigw.html">libftrigw</a> interface. </li>
+<li> Listeners use the <a href="libftrigr.html">libftrigr</a> interface. </li>
+</ul>
+
+</body>
+</html>

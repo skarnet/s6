@@ -1,0 +1,123 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: fifodirs</title>
+    <meta name="Description" content="s6: fifodirs" />
+    <meta name="Keywords" content="s6 instant notification polling fifodir named pipe filesystem" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> Fifodirs </h1>
+
+<p>
+ A <em>fifodir</em> is a rendez-vous point between the <em>notifier</em>
+of certain events and its <em>listeners</em>. It is implemented via a
+directory in the filesystem. No data is stored; it is appropriate to
+create fifodirs in a RAM filesystem.
+</p>
+
+<h2> Manipulating fifodirs </h2>
+
+<h3> C API </h3>
+
+<ul>
+ <li> You can create fifodirs via the
+<tt>ftrigw_fifodir_create()</tt> function in
+<a href="libftrigw.html">libftrig</a>. </li>
+ <li> You can send an event to a fifodir via the
+<tt>ftrigw_notify()</tt> function in 
+<a href="libftrigw.html">libftrig</a>. </li>
+ <li> You can clean up a fifodir via the
+<tt>ftrigw_clean()</tt> function in
+<a href="libftrigw.html">libftrig</a>. </li>
+ <li> You can destroy fifodirs via the
+<tt>rm_rf()</tt> function in
+<a href="http://skarnet.org/software/skalibs/doc/libstddjb/djbunix.html">libstddjb</a>. </li>
+</ul>
+
+<h3> Unix API </h3>
+
+<ul>
+ <li> You can create fifodirs with the
+<a href="s6-mkfifodir.html">s6-mkfifodir</a> command. </li>
+ <li> You can send an event to a fifodir with the
+<a href="s6-ftrig-notify.html">s6-ftrig-notify</a> command. </li>
+ <li> You can clean up a fifodir with the
+<a href="s6-cleanfifodir.html">s6-cleanfifodir</a> command. </li>    
+ <li> You can destroy fifodirs with the <tt>rm -rf</tt> command. </li>
+</ul>  
+    
+<h2> Internals and Unix permissions </h2>
+
+<ul>
+ <li> Notifiers and listeners agree on a fifodir. </li>
+ <li> The fifodir directory is created by the notifier. It must be writable
+by listeners. </li>
+ <li> To subscribe, a listener atomically creates a named pipe (FIFO) in this
+directory and listens to the reading end. This named pipe must be writable
+by the notifier. </li>
+ <li> To send an event to listeners, the notifier writes the event byte to
+all the named pipes in the directory. Credit for this idea goes to Stefan
+Karrmann. </li>
+ <li> To unsubscribe, a listener unlinks his named pipe from the directory. </li>
+</ul>  
+
+<p>
+Fifodirs are created by, so they always originally have the same uid and gid as,
+their notifier. A notifier must be able to make his fifodir either publically
+accessible (anyone can subscribe) or restricted (only a given group can
+subscribe).
+</p> 
+
+<p>
+ A publically accessible fifodir must have rights 1733: 
+</p>
+
+<ul>
+ <li> Anyone can create a fifo in that fifodir </li>
+ <li> Only the notifier can see all the subscribers' fifos </li>
+ <li> A listener can only delete its own fifo </li>
+ <li> A notifier can delete any fifo for cleaning purposes </li> 
+</ul>
+
+<p>
+ A restricted fifodir must have the gid <em>g</em> of the group of allowed
+listeners and have rights 3730. Unless the notifier is root, it
+must be in the group of allowed listeners to be able to create
+such a fifodir.
+</p>
+
+<ul>
+ <li> Only members of <em>g</em> can create a fifo in that fifodir </li>
+ <li> Only the notifier can see all the subscribers' fifos </li>
+ <li> Fifos are always created with gid <em>g</em> </li>
+ <li> A listener can only delete its own fifo </li>
+ <li> A notifier can delete any fifo for cleaning purposes </li>
+</ul>
+
+<p>
+ A named pipe in a fifodir must always belong to its listener and have
+rights 0622:
+</p>
+
+<ul>
+ <li> Only this listener can read on the fifo </li>
+ <li> Anyone who has reading rights on the fifodir (i.e. only the notifier)
+can write to the fifo </li>
+</ul>
+
+<p>
+ The <a href="libftrig.html">libftrig<a/> interface takes care of all
+the subtleties.
+</p>
+
+</body>
+</html>

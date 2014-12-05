@@ -1,0 +1,187 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: service directories</title>
+    <meta name="Description" content="s6: service directory" />
+    <meta name="Keywords" content="s6 supervision supervise service directory run finish servicedir" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> Service directories </h1>
+
+<p>
+ A <em>service directory</em> is a directory containing all the information
+related to a <em>service</em>, i.e. a long-running process maintained and
+supervised by <a href="s6-supervise.html">s6-supervise</a>.
+</p>
+
+<p>
+ (Strictly speaking, a <em>service</em> is not always equivalent to a
+long-running process. Things like Ethernet interfaces fit the definition
+of <em>services</em> one may want to supervise; however, s6 does not
+provide <em>service supervision</em>; it provides <em>process supervision</em>,
+and it is impractical to use the s6 architecture as is to supervise
+services that are not equivalent to one long-running process. However,
+we still use the terms <em>service</em> and <em>service directory</em>
+for historical and compatibility reasons.)
+</p>
+
+<h2> Contents </h2>
+
+ A service directory <em>foo</em> may contain the following elements:
+
+<ul>
+ <li> An executable file named <tt>run</tt>. It can be any executable
+file (such as a binary file or a link to any other executable file),
+but most of the time it will be a script, called <em>run script</em>.
+This file is the most important one in your service directory: it
+contains the commands that will setup and run your <em>foo</em> service.
+It is forked and executed by <a href="s6-supervise.html">s6-supervise</a>
+every time the service must be started, i.e. normally when
+<a href="s6-supervise.html">s6-supervise</a> starts, and whenever
+the service goes down when it is supposed to be up. A run script
+should normally:
+ <ul>
+  <li> adjust redirections for stdin, stdout and stderr. For instance,
+if your service is logged, the run script should make sure that its
+stderr goes into the log pipe (which is on stdout by default), which
+is achieved by <tt><a href="http://skarnet.org/software/execline/fdmove.html">fdmove</a>
+-c 2 1</tt> in <a href="http://skarnet.org/software/execline/">execline</a>,
+and <tt>exec 2>&1</tt> in <a href="http://pubs.opengroup.org/onlinepubs/9699919799/utilities/sh.html">shell</a>.
+By default, in a normal supervision tree situation, a run script's stdin will
+be <tt>/dev/null</tt>, and its stdout and stderr will both be a pipe to a
+catch-all logging program. </li>
+<li> adjust the environment for your <em>foo</em> daemon. Normally the run script
+inherits its environment from <a href="s6-supervise.html">s6-supervise</a>,
+which normally inherits its environment from <a href="s6-svscan.html">s6-svscan</a>,
+which normally inherits a minimal environment from the boot scripts.
+Service-specific environment variables should be set in the run script. </li>
+ <li> adjust other parameters for the <em>foo</em> daemon, such as its
+uid and gid. Normally the supervision tree, i.e.
+<a href="s6-svscan.html">s6-svscan</a> and the various
+<a href="s6-supervise.html">s6-supervise</a> processes, is run as root, so
+run scripts are also run as root; however, for security purposes, services
+should not run as root if they don't need to. You can use the
+<a href="s6-setuidgid.html">s6-setuidgid</a> utility in <em>foo</em><tt>/run</tt>
+to lose privileges before executing into <em>foo</em>'s long-lived
+process; or the <a href="s6-envuidgid.html">s6-envuidgid</a> utility if
+your long-lived process needs root privileges at start time but can drop
+them afterwards. </li>
+ <li> execute into the long-lived process that is to be supervised by
+<a href="s6-supervise.html">s6-supervise</a>, i.e. the real <em>foo</em>
+daemon. That process must not "background itself": being run by a supervision
+tree already makes it a "background" task. </li>
+ </ul>
+ <li> An optional executable file named <tt>finish</tt>. Like <tt>run</tt>,
+it can be any executable file. This <em>finish script</em>, if present,
+is executed everytime the <tt>run</tt> script dies. Generally, its main
+purpose is to clean up non-volatile data such as the filesystem after the supervised
+process has been killed. If the <em>foo</em> service is supposed to be up,
+<em>foo</em><tt>/run</tt> is restarted
+after <em>foo</em><tt>/finish</tt> dies. A finish script must do its work and exit in less than                              
+3 seconds; if it takes more than that, it is killed. (The point is that the run
+script, not the finish script, should be running; the finish script should really
+be short-lived.) </li>
+ <li> A directory named <tt>supervise</tt>. It is automatically created by
+<a href="s6-supervise.html">s6-supervise</a> if it does not exist. This is where
+<a href="s6-supervise.html">s6-supervise</a> stores its information. The directory
+must be writable. </li>
+ <li> An optional, empty, regular file named <tt>down</tt>. If such a file exists,
+the default state of the service is considered down, not up: s6-supervise will not
+automatically start it until it receives a <tt>s6-svc -u</tt> command. If no
+<tt>down</tt> file exists, the default state of the service is up. </li>
+ <li> An optional, empty, regular file named <tt>nosetsid</tt>. If such a file exists,
+s6-supervise will not make the service a process group and session leader; the service
+will be run in the same process group as s6-supervise. If no <tt>nosetsid</tt> file
+exists, the service has its own process group and is started as a session leader. </li>
+ <li> A <a href="fifodir.html">fifodir</a> named <tt>event</tt>. It is automatically
+created by <a href="s6-supervise.html">s6-supervise</a> if it does not exist.
+<em>foo</em><tt>/event</tt>
+is the rendez-vous point for listeners, where <a href="s6-supervise.html">s6-supervise</a>
+will send notifications when the service goes up or down. </li>
+ <li> An optional service directory named <tt>log</tt>. If it exists and <em>foo</em>
+is in a <a href="scandir.html">scandir</a>, and <a href="s6-svscan.html">s6-svscan</a>
+runs on that scandir, then <em>two</em> services are monitored: <em>foo</em> and
+<em>foo</em><tt>/log</tt>. A pipe is open and maintained between <em>foo</em> and
+<em>foo</em><tt>/log</tt>, i.e. everything that <em>foo</em><tt>/run</tt>
+writes to its stdout will appear on <em>foo</em><tt>/log/run</tt>'s stdin. The <em>foo</em>
+service is said to be <em>logged</em>; the <em>foo</em><tt>/log</tt> service is called
+<em>foo</em>'s <em>logger</em>. A logger service cannot be logged: if
+<em>foo</em><tt>/log/log</tt> exists, nothing special happens. </li>
+</ul>
+
+<a name="where">
+ <h2> Where to store my service directories&nbsp;? </h2>
+</a>
+
+<p>
+ Service directories describe the way services are launched. Once they are
+designed, they have little reason to change on a given machine. They can
+theoretically reside on a read-only filesystem - for instance, the root
+filesystem, to avoid problems with mounting failures.
+</p>
+
+<p>
+ However, two subdirectories - namely <tt>supervise</tt> and <tt>event</tt> -
+of every service directory need to be writable. So it has to be a bit more
+complex. Here are a few possibilities.
+</p>
+
+<ul>
+ <li> The laziest option: you're not using <a href="s6-svscan.html">s6-svscan</a>
+as process 1, you're only using it to start a collection of services, and
+your booting process is already handled by another init system. Then you can
+just store your service directories and your <a href="scandir.html">scan
+directory</a> on some read-write filesystem such as <tt>/var</tt>; and you
+tell your init system to launch (and, if possible, maintain) s6-svscan on
+the scan directory after that filesystem is mounted. </li>
+ <li> The almost-as-lazy option: just have the service directories on the
+root filesystem. Then your service directory collection is for instance in
+<tt>/etc/services</tt> and you have a <tt>/service</tt>
+<a href="scandir.html">scan directory</a> containing symlinks to that
+collection. This is the easy setup, not requiring an external init system
+to mount your filesystems - however, it requires your root filesystem to be
+read-write, which is unacceptable if you are concerned with reliability - if
+you are, for instance, designing an embedded platform. </li>
+ <li> <a href="http://code.dogmap.org/">Some people</a> like to have
+their service directories in a read-only filesystem, with <tt>supervise</tt>
+symlinks pointing to various places in writable filesystems. This setup looks
+a bit complex to me: it requires careful handling of the writable
+filesystems, with not much room for error if the directory structure does not
+match the symlinks (which are then dangling). But it works. </li>
+ <li> Service directories are usually small; most daemons store their
+information elsewhere. Even a complete set of service directories often
+amounts to less than a megabyte of data - sometimes much less. Knowing this,
+it makes sense to have an image of your service directories in the
+(possibly read-only) root filesystem, and <em>copy it all</em>
+to a scan directory located on a RAM filesystem that is mounted at boot time.
+This is the setup I recommend. It has several advantages:
+ <ul>
+  <li> Your service directories reside on the root filesystem and are not
+modified during the lifetime of the system. If your root filesystem is
+read-only and you have a working set of service directories, you have the
+guarantee that a reboot will set your system in a working state. </li>
+ <li> Every boot system requires an early writeable filesystem, and many
+create it in RAM. You can take advantage of this to copy your service
+directories early and run s6-svscan early. </li>
+ <li> No dangling symlinks or potential problems with unmounted
+filesystems: this setup is robust. A simple <tt>/bin/cp -a</tt> or
+<tt>tar -x</tt> is all it takes to get a working service infrastructure. </li>
+ <li> You can make temporary modifications to your service directories
+without affecting the main ones, safely stored on the disk. Conversely,
+every boot ensures clean service directories - including freshly created
+<tt>supervise</tt> and <tt>event</tt> subdirectories. No stale files can
+make your system unstable. </li>
+ </ul> </li>
+</ul>
+
+</body>
+</html>

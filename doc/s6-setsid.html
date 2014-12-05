@@ -1,0 +1,47 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-setsid program</title>
+    <meta name="Description" content="s6: the s6-setsid program" />
+    <meta name="Keywords" content="s6 command s6-setsid session leader setting" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-setsid program </h1>
+
+<p>
+s6-setsid runs a program as session leader.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-setsid [ -I | -i ] <em>prog...</em>
+</pre>
+
+<ul>
+ <li> s6-setsid creates a new session if it is not a session leader, and becomes
+session leader of this new session. </li>
+ <li> It then executes into <em>prog...</em>. </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-i</tt>&nbsp;: strict. If s6-setsid is already a session leader, it will
+exit 111 with an error message. </li>
+ <li> <tt>-I</tt>&nbsp;: loose. If s6-setsid is already a session leader, it will
+print a warning message, but exec into <em>prog</em> nonetheless. This is the
+default. </li>
+</ul>
+
+</body>
+</html>

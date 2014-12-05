@@ -1,0 +1,51 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-ftrig-wait program</title>
+    <meta name="Description" content="s6: the s6-ftrig-wait program" />
+    <meta name="Keywords" content="s6 command s6-ftrig-wait fifodir notification event listener subscriber receive" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-ftrig-wait program </h1>
+
+<p>
+s6-ftrig-listen1 subscribes to a <a href="fifodir.html">fifodir</a> and
+waits for a pattern of events to occur on this fifodir.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-ftrig-wait [ -t <em>timeout</em> ] <em>fifodir</em> <em>regexp</em>
+</pre>
+
+<ul>
+ <li> s6-ftrig-wait subscribes to <em>fifodir</em> </li>
+ <li> It waits for the series of events received on <em>fifodir</em>
+to match <em>regexp</em>. <em>regexp</em> must be an
+<a href="http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap09.html#tag_09_04">extended
+regular expression</a>. </li>
+ <li> When the series of read events matches <em>regexp</em>,
+s6-ftrig-wait exits 0. </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-t <em>timeout</em></tt>&nbsp;: if the events on <em>fifodir</em> have not
+matched <em>regexp</em> after <em>timeout</em> milliseconds, print an error message on
+stderr and exit 1. By default, s6-ftrig-wait waits indefinitely for a matching series
+of events. </li>
+</ul>
+
+</body>
+</html>

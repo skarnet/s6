@@ -1,0 +1,138 @@
+Build Instructions
+------------------
+
+* Requirements
+  ------------
+
+  - A POSIX-compliant C development environment
+  - GNU make version 3.81 or later
+  - skalibs version 2.0.0.0 or later: http://skarnet.org/software/skalibs/
+  - execline version 2.0.0.0 or later: http://skarnet.org/software/execline/
+
+ This software will run on any operating system that implements
+POSIX.1-2008, available at:
+  http://pubs.opengroup.org/onlinepubs/9699919799/
+
+
+* Standard usage
+  --------------
+
+  ./configure && make && sudo make install
+
+ will work for most users.
+ It will install the binaries in /bin and the static libraries in
+/usr/lib/s6.
+
+ You can strip the binaries and libraries of their extra symbols via
+"make strip" before the "make install" phase. It will shave a few bytes
+off them.
+
+
+* Customization
+  -------------
+
+ You can customize paths via flags given to configure.
+ See ./configure --help for a list of all available configure options.
+
+
+* Environment variables
+  ---------------------
+
+ Controlling a build process via environment variables is a big and
+dangerous hammer. You should try and pass flags to configure instead;
+nevertheless, the standard environment variables are recognized.
+
+ The value of the CROSS_COMPILE environment variable will prefix the
+building tools' names. The --enable-cross option is preferred, see
+"Cross-compilation" below.
+ 
+ If the CC environment variable is set, its value will override compiler
+detection by configure.
+
+ The values of CFLAGS, CPPFLAGS and LDFLAGS will be appended to flags
+auto-detected by configure. To entirely override the flags set by
+configure, use make -e.
+
+ The value of LDLIBS will be appended by make to command lines that link
+an executable, even without the -e option.
+
+ The Makefile supports the DESTDIR convention for staging.
+
+
+* Shared libraries
+  ----------------
+
+ Software from skarnet.org is small enough that shared libraries are
+generally not worth using. Static linking is simpler and incurs less
+runtime overhead and less points of failure: so by default, shared
+libraries are not built and binaries are linked against the static
+versions of the skarnet.org libraries. Nevertheless, you can:
+  * build shared libraries: --enable-shared
+  * link binaries against shared libraries: --disable-allstatic
+
+
+* Static binaries
+  ---------------
+
+ By default, binaries are linked against static versions of all the
+libraries they depend on, except for the libc. You can enforce
+linking against the static libc with --enable-static-libc.
+
+ (If you are using a GNU/Linux system, be aware that the GNU libc
+behaves badly with static linking and produces huge executables,
+which is why it is not the default. Other libcs are better suited
+to static linking, for instance musl: http://musl-libc.org/)
+
+ s6 includes software running at a very low level, including a
+program that may run as process 1: to avoid run-time dependencies,
+it is recommended that you link the executables statically if you
+have a suitable libc.
+
+
+* Cross-compilation
+  -----------------
+
+ skarnet.org packages centralize all the difficulty of
+cross-compilation in one place: skalibs. Once you have
+cross-compiled skalibs, the rest is easy.
+
+ Use the --enable-cross=PREFIX option to configure, or simply
+--enable-cross if your default toolchain is a cross-compiling
+toolchain. And make sure to use the correct version of skalibs
+for your target, and the correct sysdeps directory, making use
+of the --with-include, --with-lib, --with-dynlib and --with-sysdeps
+options as necessary.
+ 
+
+* The slashpackage convention
+  ---------------------------
+
+ The slashpackage convention (http://cr.yp.to/slashpackage.html)
+is a package installation scheme that provides a few guarantees
+over other conventions such as the FHS, for instance fixed
+absolute pathnames. skarnet.org packages support it: use the
+--enable-slashpackage option to configure, or
+--enable-slashpackage=DIR for a prefixed DIR/package tree.
+This option will activate slashpackage support during the build
+and set slashpackage-compatible installation directories.
+Other options setting individual installation directories will be
+ignored.
+
+ When using slashpackage, two additional Makefile targets are
+available after "make install":
+ - "make update" changes the default version of the software to the
+freshly installed one. (This is useful when you have several installed
+versions of the same software, which slashpackage supports.)
+ - "make -L global-links" adds links from /command and /library.so to the
+default version of the binaries and shared libraries. The "-L" option to
+make is necessary because targets are symbolic links, and the default make
+behaviour is to check the pointed file's timestamp and not the symlink's
+timestamp.
+
+
+* Out-of-tree builds
+  ------------------
+
+ skarnet.org packages do not support out-of-tree builds. They
+are small, so it does not cost much to duplicate the entire
+source tree if parallel builds are needed.

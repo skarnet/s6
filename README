@@ -1,0 +1,23 @@
+s6 - a process supervision suite
+--------------------------------
+
+ s6 is a suite of programs designed to allow process
+supervision and management. It can also be used as the
+foundation for a complete init system.
+
+ See http://skarnet.org/software/s6/ for details.
+
+
+* Installation
+  ------------
+
+ See the INSTALL file.
+
+
+* Contact information
+  -------------------
+
+ Laurent Bercot <ska-skaware at skarnet.org>
+
+ Please use the <skaware at list.skarnet.org> mailing-list for
+questions about s6.

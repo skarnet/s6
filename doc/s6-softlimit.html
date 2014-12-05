@@ -1,0 +1,54 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-softlimit program</title>
+    <meta name="Description" content="s6: the s6-softlimit program" />
+    <meta name="Keywords" content="s6 command s6-softlimit process limits" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-softlimit program </h1>
+
+<p>
+s6-softlimit changes its process limits, then executes into another program.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-softlimit [ -a <em>allmem</em> ] [ -c <em>core</em> ] [ -d <em>data</em> ] [ -f <em>fsize</em> ] [ -l <em>lock</em> ] [ -m <em>mem</em> ] [ -o <em>ofiles</em> ] [ -p <em>proc</em> ] [ -r <em>res</em> ] [ -s <em>stack</em> ] [ -t <em>cpusecs</em> ] <em>prog...</em>
+</pre>
+
+<ul>
+ <li> s6-softlimit parses its options and sets process (soft) resource limits accordingly. </li>
+ <li> A value of '=' for any option means "set that limit to the hard limit". </li>
+ <li> Depending on your operating system, an option may do nothing. </li>
+ <li> When s6-softlimit has modified all the limits successfully, it executes into <em>prog...</em>. </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-a&nbsp;<em>allmem</em></tt>&nbsp;: limit the total available memory to <em>allmem</em> bytes. </li>
+ <li> <tt>-c&nbsp;<em>core</em></tt>&nbsp;: limit the core file size to <em>core</em> bytes. </li>
+ <li> <tt>-d&nbsp;<em>data</em></tt>&nbsp;: limit the available heap memory to <em>data</em> bytes. </li>
+ <li> <tt>-f&nbsp;<em>fsize</em></tt>&nbsp;: limit the file size to <em>fsize</em> bytes. </li>
+ <li> <tt>-l&nbsp;<em>lock</em></tt>&nbsp;: limit the available locked memory to <em>lock</em> bytes. </li>
+ <li> <tt>-m&nbsp;<em>mem</em></tt>&nbsp;: limit all types of memory to <em>mem</em> bytes. </li>
+ <li> <tt>-o&nbsp;<em>ofiles</em></tt>&nbsp;: limit the number of open fds to <em>ofiles</em>. </li>
+ <li> <tt>-p&nbsp;<em>proc</em></tt>&nbsp;: limit the number of processes to <em>proc</em> (per user). </li>
+ <li> <tt>-r&nbsp;<em>allmem</em></tt>&nbsp;: limit the available physical memory to <em>res</em> bytes. </li>
+ <li> <tt>-s&nbsp;<em>stack</em></tt>&nbsp;: limit the available stack memory to <em>stack</em> bytes. </li>
+ <li> <tt>-t&nbsp;<em>cpusecs</em></tt>&nbsp;: limit the available CPU time to <em>cpusecs</em> seconds. </li>
+</ul>
+
+</body>
+</html>

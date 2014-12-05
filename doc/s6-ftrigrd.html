@@ -1,0 +1,73 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-ftrigrd program</title>
+    <meta name="Description" content="s6: the s6-ftrigrd program" />
+    <meta name="Keywords" content="s6 command s6-ftrigrd program internal libexec fifodir regexp subscribe notification listener" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-ftrigrd program </h1>
+
+<p>
+s6-ftrigrd is a helper program that manages a set of subscriptions to fifodirs as well
+as regular expressions on events. It takes orders from its client program that controls
+it via the <a href="libftrigr.html">ftrigr library</a>, and notifies it when desired
+events happen.
+</p>
+
+<h2> Interface </h2>
+
+<p>
+ s6-ftrigrd is not meant to be called directly.
+</p>
+
+<ul>
+ <li> If the client program uses <tt>ftrigr_startf()</tt>, it spawns an instance of
+s6-ftrigrd as a child. s6-ftrigrd's stdin is a pipe reading from the client; its
+stdout is a pipe writing to the client; its stderr is the same as the client's; and
+there's an additional pipe from s6-ftrigrd to the client, used for asynchronous
+notifications. </li>
+ <li> If the client program uses <tt>ftrigr_start()</tt>, then it tries to connect
+to a Unix domain socket. A <em>ftrigrd service</em> should be listening to that
+socket, i.e. a Unix domain superserver such as
+<a href="http://www.skarnet.org/software/s6-networking/s6-ipcserver.html">s6-ipcserver</a>
+spawning a s6-ftrigrd program on every connection. Then a s6-ftrigrd instance is created
+for the client. </li>
+ <li> When the client uses <tt>ftrigr_end()</tt>, or closes s6-ftrigrd's stdin in
+any way, s6-ftrigrd exits 0. </li>
+</ul>
+
+<p>
+ s6-ftrigrd handles the grunt work of creating fifos in a
+<a href="fifodir.html">fifodir</a> for a subscriber. It also wakes up on every
+event, and compares the chain of events it received on a given fifodir with the
+client-provided regexp. If the chain of events matches the regexp, it notifies
+the client.
+</p>
+
+<h2> Notes </h2>
+
+<p>
+ The connection management between the client and s6-ftrigrd is entirely done
+by the <a href="http://www.skarnet.org/software/skalibs/libunixonacid/skaclient.html">skaclient</a>
+library.
+</p>
+
+<p>
+ s6-ftrigrd is entirely asynchronous. It stores unread notifications into heap
+memory; it can grow in size if there are a lot of events and the client fails
+to read them. To avoid uncontrolled growth, make sure your client calls
+<tt>ftrigr_update()</tt> as soon as <tt>ftrigr_fd()</tt> becomes readable.
+</p>
+
+</body>
+</html>

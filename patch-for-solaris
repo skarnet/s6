@@ -1,0 +1,17 @@
+#!/usr/xpg4/bin/sh
+
+patchit () {
+  echo '#!/usr/xpg4/bin/sh' > $1.tmp
+  tail -n +2 $1 >> $1.tmp
+  mv -f $1.tmp $1
+  chmod 755 $1
+}
+
+patchit ./configure
+patchit ./tools/install.sh
+patchit ./tools/gen-deps.sh
+
+echo 'SHELL := /usr/xpg4/bin/sh' > Makefile.tmp
+echo >> Makefile.tmp
+cat Makefile >> Makefile.tmp
+mv -f Makefile.tmp Makefile

@@ -1,0 +1,46 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-mkfifodir program</title>
+    <meta name="Description" content="s6: the s6-mkfifodir program" />
+    <meta name="Keywords" content="s6 command s6-mkfifodir fifodir notification creation" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-mkfifodir program </h1>
+
+<p>
+s6-mkfifodir creates a <a href="fifodir.html">fifodir</a>.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-mkfifodir [ -f ] [ -g <em>gid</em> ] <em>fifodir</em>
+</pre>
+
+<p>
+s6-mkfifodir creates <em>fifodir</em>, belonging to the current user.
+</p>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-f</tt>&nbsp;: force permissions. If <em>fifodir</em> already exists,
+change its permissions according to the <tt>-g</tt> options. By default, if
+<em>fifodir</em> exists, s6-mkfifodir does nothing. </li>
+ <li> <tt>-g <em>gid</em></tt>&nbsp;: make <em>fifodir</em> only listenable
+by members of group <em>gid</em>. If this option is not given, the fifodir is
+made publically listenable. </li>
+</ul>
+
+</body>
+</html>

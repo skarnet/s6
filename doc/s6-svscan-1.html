@@ -1,0 +1,374 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: How to run s6-svscan as process 1</title>
+    <meta name="Description" content="s6: s6-svscan as init" />
+    <meta name="Keywords" content="s6 supervision svscan s6-svscan init process boot 1" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> How to run s6-svscan as process 1 </h1>
+
+<p>
+ It is possible to run s6-svscan as process 1, i.e. the <tt>init</tt>
+process. However, that does not mean you can directly <em>boot</em>
+on s6-svscan; that little program cannot do everything
+your stock init does. Replacing the <tt>init</tt> process requires a
+bit of understanding of what is going on.
+</p>
+
+<a name="stages">
+<h2> The three stages of init </h2>
+</a>
+
+<p>
+ The life of a Unix machine has three stages:
+</p>
+
+<ol>
+ <li> The <em>early initialization</em> phase. It starts when the
+kernel launches the first userland process, traditionally called <tt>init</tt>.
+During this phase, init is the only lasting process; its duty is to
+prepare the machine for the start of <em>other</em> long-lived processes,
+i.e. services. Work such as mounting filesystems, setting the system clock,
+etc. can be done at this point. This phase ends when process 1 launches
+its first services. </li>
+ <li> The <em>cruising</em> phase. This is the "normal", stable state of an
+up and running Unix machine. Early work is done, and init launches and
+maintains <em>services</em>, i.e. long-lived processes such as gettys,
+the ssh server, and so on. During this phase, init's duties are to reap
+orphaned zombies and to supervise services - also allowing the administrator
+to add or remove services. This phase ends when the administrator
+requires a shutdown. </li>
+ <li> The <em>shutdown</em> phase. Everything is cleaned up, services are
+stopped, filesystems are unmounted, the machine is getting ready to be
+halted. During this phase, everything but the shutdown procedure gets
+killed - the only surefire way to kill everything is <tt>kill -9 -1</tt>,
+and only process 1 can survive it and keep working: it's only logical
+that the shutdown procedure, or at least the shutdown procedure from
+the <tt>kill -9 -1</tt> on and until the final poweroff or reboot
+command, is performed by process 1. </li>
+</ol>
+
+<p>
+ As you can see, process 1's duties are <em>radically different</em> from
+one stage to the next, and init has the most work when the machine
+is booting or shutting down, which means a normally negligible fraction
+of the time it is up. The only common thing is that at no point is process
+1 allowed to exit.
+</p>
+
+<p>
+ Still, all common init systems insist that the same <tt>init</tt>
+executable must handle these three stages. From System V init to launchd,
+via busybox init, you name it - one init program from bootup to shutdown.
+No wonder those programs, even basic ones, seem complex to write and
+complex to understand!
+</p>
+
+<p>
+Even the <a href="http://smarden.org/runit/runit.8.html">runit</a>
+program, designed with supervision in mind, remains as process 1 all the
+time; at least runit makes things simple by clearly separating the three
+stages and delegating every stage's work to a different script that is
+<em>not</em> run as process 1. (This requires very careful handling of the
+<tt>kill -9 -1</tt> part of stage 3, though.)
+</p>
+
+<p>
+ One init to rule them all?
+<a href="http://en.wikipedia.org/wiki/Porgy_and_Bess">It ain't necessarily so!</a>
+</p>
+
+<a name="stage2">
+<h2> The role of s6-svscan </h2>
+</a>
+
+<p>
+ init does not have the right to die, but fortunately, <em>it has the right
+to <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/execve.html">execve()</a>!</em>
+During stage 2, why use precious RAM, or at best, swap space, to store data
+that are only relevant to stages 1 or 3? It only makes sense to have an
+init process that handles stage 1, then executes into an init process that
+handles stage 2, and when told to shutdown, this "stage 2" init executes into
+a "stage 3" init which just performs shutdown. Just as runit does with the
+<tt>/etc/runit/[123]</tt> scripts, but exec'ing the scripts as process 1
+instead of forking them.
+</p>
+
+<p>
+It becomes clear now that
+<a href="s6-svscan.html">s6-svscan</a> is perfectly suited to
+exactly fulfill process 1's role <strong>during stage 2</strong>.
+</p>
+
+<ul>
+ <li> It does not die </li>
+ <li> The reaper takes care of every zombie on the system </li>
+ <li> The scanner maintains services alive </li>
+ <li> It can be sent commands via the <a href="s6-svscanctl.html">s6-svscanctl</a>
+interface </li>
+ <li> It execs into a given script when told to </li>
+</ul>
+
+<p>
+ However, an init process for stage 1 and another one for stage 3 are still
+needed. Fortunately, those processes are very easy to design! The only
+difficulty here is that they're heavily system-dependent, so it's not possible
+to provide a stage 1 init and a stage 3 init that will work everywhere.
+s6 was designed to be as portable as possible, and it should run on virtually
+every Unix platform; but outside of stage 2 is where portability stops, and
+the s6 package can't help you there.
+</p>
+
+<p>
+ Here are some tips though.
+</p>
+
+<a name="stage1">
+<h2> How to design a stage 1 init </h2>
+</a>
+
+<h3> What stage 1 init must do </h3>
+
+<ul>
+ <li> Prepare an initial <a href="scandir.html">scan directory</a>, say in
+<tt>/service</tt>, with a few vital services, such as s6-svscan's own logger,
+and an early getty (in case debugging is needed). That implies mounting a
+read-write filesystem, creating it in RAM if needed, if the root filesystem
+is read-only. </li>
+ <li> Either perform all the one-time initialization, as stage 1
+<a href="http://smarden.org/runit/">runit</a> does; </li>
+ <li> or fork a process that will perform most of the one-time initialization
+once s6-svscan is in charge. </li>
+ <li> Be extremely simple and not fail, because recovery is almost impossible
+here. </li>
+</ul>
+
+<p>
+ Unlike the <tt>/etc/runit/1</tt> script, an init-stage1 script running as
+process 1 has nothing to back it up, and if it fails and dies, the machine
+crashes. Does that mean the runit approach is better? It's certainly safer,
+but not necessarily better, because init-stage1 can be made <em>extremely
+small</em>, to the point it is practically failproof, and if it fails, it
+means something is so wrong that you
+would have had to reboot the machine with <tt>init=/bin/sh</tt> anyway.
+</p>
+
+<p>
+ To make init-stage1 as small as possible, only this realization is needed:
+you do not need to perform all of the one-time initialization tasks before
+launching s6-svscan. Actually, once init-stage1 has made it possible for
+s6-svscan to run, it can fork a background "init-stage2" process and exec
+into s6-svscan immediately! The "init-stage2" process can then pursue the
+one-time initialization, with a big advantage over the "init-stage1"
+process: s6-svscan is running, as well as a few vital services, and if
+something bad happens, there's a getty for the administrator to log on.
+No need to play fancy tricks with <tt>/dev/console</tt> anymore! Yes,
+the theoretical separation in 3 stages is a bit more supple in practice:
+the "stage 2" process 1 can be already running when a part of the
+"stage 1" one-time tasks are still being run.
+</p>
+
+<p>
+ Of course, that means that the scan directory is still incomplete when
+s6-svscan first starts, because most services can't yet be run, for
+lack of mounted filesystems, network etc. The "init-stage2" one-time
+initialization script must populate the scan directory when it has made
+it possible for all wanted services to run, and trigger the scanner.
+Once all the one-time tasks are done, the scan directory is fully
+populated and the scanner has been triggered, the machine is fully
+operational and in stage 2, and the "init-stage2" script can die.
+</p>
+
+<h3> Is it possible to write stage 1 init in a scripting language? </h3>
+
+<p>
+ It is very possible, and I even recommend it. If you are using
+s6-svscan as stage 2 init, stage 1 init should be simple enough
+that it can be written in any scripting language you want, just
+as <tt>/etc/runit/1</tt> is if you're using runit. And since it
+should be so small, the performance impact will be negligible,
+while maintainability is enhanced. Definitely make your stage 1
+init a script.
+</p>
+
+<p>
+ Of course, most people will use the <em>shell</em> as scripting
+language; however, I advocate the use of
+<a href="http://www.skarnet.org/software/execline/">execline</a>
+for this, and not only for the obvious reasons. Piping s6-svscan's
+stderr to a logging service before said service is even up requires
+some <a href="#log">tricky fifo handling</a> that execline can do
+and the shell cannot.
+</p>
+
+<a name="stage3">
+<h2> How to design a stage 3 init </h2>
+</a>
+
+<p>
+ If you're using s6-svscan as stage 2 init on <tt>/service</tt>, then
+stage 3 init is naturally the <tt>/service/.s6-svscan/finish</tt> program.
+Of course, <tt>/service/.s6-svscan/finish</tt> can be a symbolic link
+to anything else; just make sure it points to something in the root
+filesystem (unless your program is an execline script, in which case
+it is not even necessary).
+</p>
+
+<h3> What stage 3 init must do </h3>
+
+<ul>
+ <li> Destroy the supervision tree and stop all services </li>
+ <li> Kill all processes <em>save itself</em>, first gently, then harshly </li>
+ <li> Unmount all the filesystems </li>
+ <li> Halt or reboot the machine, depending on what root asked for </li>
+</ul>
+
+<p>
+ This is also very simple; even simpler than stage 1.
+ The only tricky part is the <tt>kill -9 -1</tt> phase: you must make sure
+that <em>process 1</em> regains control and keeps running after it, because
+it will be the only process left alive. But since we're running stage 3
+init directly, it's almost automatic! this is an advantage of running
+the shutdown procedure as process 1, as opposed to, for instance,
+<tt>/etc/runit/3</tt>.
+</p>
+
+<h3> Is it possible to write stage 3 init in a scripting language? </h3>
+
+<p>
+ You'd have to be a masochist, or have extremely specific needs, not to
+do so.
+</p>
+
+<a name="log">
+<h2> How to log the supervision tree's messages </h2>
+</a>
+
+<p>
+ When the Unix kernel launches your (stage 1) init process, it does it
+with descriptors 0, 1 and 2 open and reading from or writing to
+<tt>/dev/console</tt>. This is okay for the early boot: you actually
+want early error messages to be displayed to the system console. But
+this is not okay for stage 2: the system console should only be used
+to display extremely serious error messages such as kernel errors, or
+errors from the logging system itself; everything else should be
+handled by the logging system, following the
+<a href="s6-log.html#loggingchain">logging chain</a> mechanism. The
+supervision tree's messages should go to the catch-all logger instead
+of the system console. (And the console should never be read, so no
+program should run with <tt>/dev/console</tt> as stdin, but this is easy
+enough to fix: s6-svscan will be started with stdin redirected from
+<tt>/dev/null</tt>.)
+</p>
+
+<p>
+ The catch-all logger is a service, and we want <em>every</em>
+service to run under the supervision tree. Chicken and egg problem:
+before starting s6-svscan, we must redirect s6-svscan's output to
+the input of a program that will only be started once s6-svscan is
+running and can start services.
+</p>
+
+<p>
+ There are several solutions to this problem, but the simplest one is
+to use a FIFO, a.k.a. named pipe. s6-svscan's stdout and stderr can
+be redirected to a named pipe before s6-svscan is run, and the
+catch-all logger service can be made to read from this named pipe.
+Only two minor problems remain:
+</p>
+
+<ul>
+ <li> If s6-svscan or s6-supervise writes to the FIFO before there is
+a reader, i.e. before the catch-all logging service is started, the
+write will fail (and a SIGPIPE will be emitted). This is not a real issue
+for an s6 installation because s6-svscan and s6-supervise ignore SIGPIPE,
+and they only write
+to their stderr if an error occurs; and if an error occurs before they are
+able to start the catch-all logger, this means that the system is seriously
+damaged (as if an error occurs during stage 1) and the only solution is
+to reboot with <tt>init=/bin/sh</tt> anyway. </li>
+ <li> Normal Unix semantics <em>do not allow</em> a writer to open a
+FIFO before there is a reader: if there is no reader when the FIFO is
+opened for writing, the <tt>open()</tt> system call <em>blocks</em>
+until a reader appears. This is obviously not what we want: we want
+to be able to <em>actually start</em> s6-svscan with its stdout and
+stderr pointing to the logging FIFO, even without a reader process,
+and we want it to run normally so it can start the logging service
+that will provide such a reader process. </li>
+</ul>
+
+<p>
+ This second point cannot be solved in a shell script, and that is why
+you are discouraged to write your stage 1 init script in the shell
+language: you cannot properly set up a FIFO output for s6-svscan without
+resorting to horrible and unreliable hacks involving a temporary background
+FIFO reader process.
+</p>
+
+<p>
+ Instead, you are encouraged to use the
+<a href="http://skarnet.org/software/execline/">execline</a> language -
+or, at least,
+the <a href="http://skarnet.org/software/execline/redirfd.html">redirfd</a>
+command, which is part of the execline distribution. The
+<a href="http://www.skarnet.org/software/execline/redirfd.html">redirfd</a>
+command does just the right amount of trickery with FIFOs for you to be
+able to properly redirect process 1's stdout and stderr to the logging FIFO
+without blocking: <tt>redirfd -w 1 /service/s6-svscan-log/fifo</tt> blocks
+if there's no process reading on <tt>/service/s6-svscan-log/fifo</tt>, but
+<tt>redirfd -wnb 1 /service/s6-svscan-log/fifo</tt> <em>does not</em>.
+</p>
+
+<p>
+ This trick with FIFOs can even be used to avoid potential race conditions
+in the one-time initialization script that runs in stage 2. If forked from
+init-stage1 right before executing s6-svscan, depending on the scheduler
+mood, this script may actually run a long way before s6-svscan is actually
+executed and running the initial services - and may do dangerous things,
+such as writing messages to the logging FIFO before there's a reader, and
+eating a SIGPIPE and dying without completing the initialization. To avoid
+that and be sure that s6-svscan really runs and initial services are really
+started before the stage 2 init script is allowed to continue, it is possible
+to redirect the child script's output (stdout and/or stderr) <em>once again</em>
+to the logging FIFO, but in the normal way without redirfd trickery,  before
+it execs into the init-stage2 script. So, the child process blocks on the
+FIFO until a reader appears, while process 1 - which does not block - execs
+into s6-svscan and starts the logging service, which then opens the logging
+FIFO for reading and unblocks the child process, which then runs the
+initialization tasks with the guarantee that s6-svscan is running.
+</p>
+
+<p>
+ It really is simpler than it sounds. :-)
+</p>
+
+<h2> A working example </h2>
+
+<p>
+ This whole page may sound very theoretical, dry, wordy, and hard to
+grasp without a live example to try things on; unfortunately, s6 cannot provide
+live examples without becoming system-specific. However, it provides a whole
+set of script skeletons for you to edit and make your own working init.
+</p>
+
+<p>
+ The <tt>examples/ROOT</tt> subdirectory in the s6 distribution contains
+the relevant parts of a small root filesystem that works under Linux and follows
+all that has been explained here. In every directory, a <tt>README</tt> file
+has been added, to sum up what this directory does. You can copy those files
+and modify them to suit your needs; if you have the proper software installed,
+and the right configuration, some of them might even work verbatim.
+</p>
+
+</body>
+</html>

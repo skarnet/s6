@@ -1,0 +1,65 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-setlock program</title>
+    <meta name="Description" content="s6: the s6-setlock program" />
+    <meta name="Keywords" content="s6 command s6-setlock lock program" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-setlock program </h1>
+
+<p>
+s6-setlock takes a lock on a file, then executes into another program.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-setlock [ -n | -N | -t <em>timeout</em> ] [ -r | -w ] <em>file</em> <em>prog...</em>
+</pre>
+
+<ul>
+ <li> s6-setlock creates <em>file</em> if it does not exist and opens it for writing. </li>
+ <li> It locks <em>file</em>. If it cannot take the lock for any reason, it exits 1. </li>
+ <li> It executes into <em>prog...</em>. </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-n</tt>&nbsp;: nonblocking lock. If s6-setlock cannot acquire the lock, it will
+exit 1 immediately. </li>
+ <li> <tt>-N</tt>&nbsp;: blocking lock. s6-setlock will wait until it can acquire the lock.
+This is the default. </li>
+ <li> <tt>-t&nbsp;<em>timeout</em>&nbsp;: timed lock. If s6-setlock cannot acquire
+the lock after <em>timeout</em> milliseconds, it will exit 1. </li>
+ <li> <tt>-r</tt>&nbsp;: shared lock. Other shared locks on the same file will not prevent
+the lock from being acquired (but an exclusive lock will). </li>
+ <li> <tt>-w</tt>&nbsp;: exclusive lock. This is the default. </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> s6-setlock leaks an open file descriptor into the <em>prog</em>
+execution. This is intended: the fd holds the lock, which is released
+when <em>prog</em> exits. <em>prog</em> must not touch fds it does not
+know about. </li>
+ <li> If the timed lock option is chosen, s6-setlock does not acquire the lock
+itself. Instead, it spawns a <a href="libs6lock/s6lockd-helper.html">s6lockd-helper</a>
+process that acquires the lock while s6-setlock controls the timeout; the
+s6lockd-helper process then holds the lock and lives as long as
+<em>prog</em>. </li>
+</ul>
+
+</body>
+</html>

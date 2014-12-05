@@ -1,0 +1,44 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-ftrig-notify program</title>
+    <meta name="Description" content="s6: the s6-ftrig-notify program" />
+    <meta name="Keywords" content="s6 command s6-ftrig-notify fifodir notification event notifier send" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-ftrig-notify program </h1>
+
+<p>
+s6-ftrig-notify sends a series of events to a <a href="fifodir.html">fifodir</a>.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-ftrig-notify <em>fifodir</em> <em>message</em>
+</pre>
+
+<p>
+s6-ftrig-notify notifies all the current listeners in <em>fifodir</em>
+with all the characters in <em>message</em>, one by one.
+</p>
+
+<h2> Notes </h2>
+
+<p>
+s6-ftrig-notify cannot be used to send the null character (event 0x00).
+If you need to send the null character, use the C API:
+<a href="libftrigw.html">ftrigw_notify()</a>.
+</p>
+
+</body>
+</html>

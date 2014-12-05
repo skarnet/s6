@@ -1,0 +1,94 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the ucspilogd program</title>
+    <meta name="Description" content="s6: the ucspilogd program" />
+    <meta name="Keywords" content="s6 command ucspilogd log logging UCSPI" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="../">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>ucspilogd</tt> program </h1>
+
+<p>
+ <tt>ucspilogd</tt> acts as a filter, converting syslog facility
+numbers and alert levels into names.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     ucspilogd [ <em>var</em> ... ]
+</pre>
+
+<ul>
+ <li> ucspilogd reads a stream of syslog-like messages on stdin.
+Those messages can be newline-terminated or null-terminated. </li>
+ <li> For every line it reads: if it has been given <em>var</em>
+arguments, it writes the value of every <em>var</em> environment
+variable, followed by a colon and a space. </li>
+ <li> If the line begins with a syslog facility number and/or
+alert level in the syslog format, it converts them into a
+human-readable name in the syslogd fashion. </li>
+ <li> It then writes the processed line to stdout. </li>
+</ul>
+
+<h2> Common use </h2>
+
+<p>
+ You can emulate the whole <em>syslogd</em> behaviour by combining the following
+components:
+</p>
+
+<ul>
+ <li> A Unix stream super-server such as
+<a href="http://skarnet.org/software/s6-networking/s6-ipcserver.html">s6-ipcserver</a>
+listening to the Unix domain socket <tt>/dev/log</tt>, to connect to
+the kernel log-reading interface. </li>
+ <li> <tt>ucspilogd</tt> running under that super-server, to read the
+logs and perform adequate transformations. </li>
+ <li> A logger such as
+<a href="s6-log.html">s6-log</a>
+to store the logs into the filesystem. </li>
+ <li> A supervision mechanism such as s6,
+to ensure ease of use and reliability of the whole chain. </li>
+</ul>
+
+<p>
+ The resulting suite of programs is still smaller, and way more reliable,
+than a standard <em>syslogd</em>.
+</p>
+
+<p>
+ In the <tt>examples/ROOT/img/services-local/syslogd-linux</tt> subdirectory of the s6 package, you will
+find a suitable ucspilogd <a href="servicedir.html">service directory</a>.
+The run scripts are written in the
+<a href="http://skarnet.org/software/execline/">execline</a>
+language.
+</p>
+
+<h2> Using <tt>ucspilogd</tt> as a <em>klogd</em> replacement </h2>
+
+<p>
+ Certain Unix kernels offer a nice interface to the kernel logs.
+For instance, the Linux kernel provides the <tt>/proc/kmsg</tt> fake
+file, that can be opened and read like a normal file, excepts that
+it gives the kernel logs when they are available and blocks otherwise.
+You can use <tt>ucspilogd</tt> to process data from those interfaces.
+</p>
+
+<p>
+ The <tt>examples/ROOT/img/services-local/klogd-linux</tt> subdirectory of the s6 package
+is a <a href="servicedir.html">service directory</a> providing such a <em>klogd</em> service
+for Linux, using the <tt>/proc/kmsg</tt> interface.
+</p>
+
+</body>
+</html>

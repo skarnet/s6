@@ -1,0 +1,49 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-setuidgid program</title>
+    <meta name="Description" content="s6: the s6-setuidgid program" />
+    <meta name="Keywords" content="s6 command s6-setuidgid uid gid groups privilege dropping loss user change su" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-setuidgid program </h1>
+
+<p>
+s6-setuidgid executes a program as another user.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-setuidgid <em>account</em> <em>prog...</em>
+</pre>
+
+<ul>
+ <li> If <em>account</em> contains a colon, it is interpreted as <em>uid:gid</em>,
+else it is interpreted as a username and looked up by name in the account
+database. </li>
+ <li> If <em>account</em> is unknown, s6-setuidgid exits 1. </li>
+ <li> s6-setuidgid sets its (real and effective) uid and gid to those of <em>account</em>.
+It also sets the list of supplementary groups to the correct one for <em>account</em>
+according to the group database. </li>
+<li> Then it executes into <em>prog...</em>. </li>
+</ul>
+
+<h2> Notes </h2>
+
+<p>
+ s6-setuidgid can only be run as root. Its main use is to drop root privileges before
+starting a daemon.
+</p>
+
+</body>
+</html>

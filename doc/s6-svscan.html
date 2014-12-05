@@ -1,0 +1,176 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-svscan program</title>
+    <meta name="Description" content="s6: the s6-svscan program" />
+    <meta name="Keywords" content="s6 command s6-svscan scandir supervision supervise svscan monitoring collection" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">www.skarnet.org</a>
+</p>
+
+<h1> The s6-svscan program </h1>
+
+<p>
+s6-svscan starts and monitors a collection of <a href="s6-supervise.html">s6-supervise</a>
+processes, each of these processes monitoring a single service. It is designed to be either
+the root or a branch of a <em>supervision tree</em>.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-svscan [ -c max ] [ -t <em>rescan</em> ] [ <em>scandir</em> ]
+</pre>
+
+<ul>
+ <li> If given a <em>scandir</em> argument, s6-svscan switches to it. Else it uses
+its current directory as <a href="scandir.html">scan directory</a>. </li>
+ <li> It exits 100 if another s6-svscan process is already monitoring this
+<a href="scandir.html">scan directory</a>. </li>
+ <li> If the <tt>./.s6-svscan</tt> control directory does not exist,
+s6-svscan creates it. However, it is recommended to already have a <tt>.s6-svscan</tt>
+subdirectory in your scan directory, because s6-svscan may try and execute into the
+<tt>.s6-svscan/crash</tt> or <tt>.s6-svscan/finish</tt> files at some point - so those
+files should exist and be executable. </li>
+ <li> From this point on, s6-svscan never dies. It tries its best to keep
+control of what's happening. In case of a major system call failure, which means
+that the kernel or hardware is broken in some fashion, it executes into the
+<tt>.s6-svscan/crash</tt> program. (But if that execution fails, s6-svscan exits
+111.) </li>
+ <li> s6-svscan performs an initial <em>scan</em> of its scan directory. </li>
+ <li> s6-svscan then occasionally runs <em>scans</em> or <em>reaps</em>,
+see below. </li>
+ <li> s6-svscan runs until it is told to stop via <a href="s6-svscanctl.html">
+s6-svscanctl</a>, or a signal.
+Then it executes into the <tt>.s6-svscan/finish</tt> program. The program is
+given an argument that depends on the s6-svscanctl options that were used. </li>
+ <li> If that execution fails, s6-svscan falls back on a <tt>.s6-svscan/crash</tt>
+execution. </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-c&nbsp;<em>max</em></tt>&nbsp;: maintain services for up to <em>max</em>
+service directories. Default is 500. Lower limit is 2. There is no upper limit, but:
+ <ul>
+  <li> The higher <em>max</em> is, the more stack memory s6-svscan will use,
+approximately 50 bytes per service. </li>
+  <li> s6-svscan uses 2 file descriptors per logged service. </li>
+ </ul>
+ It is the admin's responsibility to make sure that s6-svscan has enough available
+descriptors to function properly and does not exceed its stack limit. The default
+of 500 is safe and provides enough room for every reasonable system. </li>
+ <li> <tt>-t&nbsp;<em>rescan</em></tt>&nbsp;: perform a scan every <em>rescan</em>
+milliseconds. If <em>rescan</em> is 0, automatic scans are never performed after
+the first one and s6-svscan will only detect new services when told to via a
+<a href="s6-svscanctl.html">s6-svscanctl -a</a> command. The default <em>rescan</em>
+value is 5000, for compatibility with daemontools'
+<a href="http://cr.yp.to/daemontools/svscan.html">svscan</a>, which performs a
+scan (and a reap) every 5 seconds. It is <em>strongly</em> discouraged to set
+<em>rescan</em> to a positive value under 500. </li>
+</ul>
+
+<h2> Signals </h2>
+
+<p>
+ s6-svscan reacts to the following signals:
+</p>
+
+<ul>
+ <li> SIGCHLD&nbsp;: triggers the reaper. </li>
+ <li> SIGALRM&nbsp;: triggers the scanner. </li>
+ <li> SIGTERM&nbsp;: acts as if a <tt>s6-svscanctl -t</tt> command had been received. </li>
+ <li> SIGHUP&nbsp;: acts as if a <tt>s6-svscanctl -h</tt> command had been received. </li>
+ <li> SIGQUIT&nbsp;: acts as if a <tt>s6-svscanctl -q</tt> command had been received. </li>
+ <li> SIGABRT&nbsp;: acts as if a <tt>s6-svscanctl -b</tt> command had been received. </li>
+ <li> SIGINT&nbsp;: acts as if a <tt>s6-svscanctl -i</tt> command had been received. </li>
+</ul>
+
+<h2> The reaper </h2>
+
+<p>
+ Upon receipt of a SIGCHLD, or a <a href="s6-svscanctl.html">s6-svscanctl -z</a>
+command, s6-svscan runs a <em>reaper</em> routine.
+</p>
+
+<p>
+The reaper acknowledges (via some
+<a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/wait.html">wait()</a>
+function), without blocking, every terminated child of s6-svscan, even ones it does not
+know it has. This is especially important when <a href="s6-svscan-1.html">s6-svscan is
+run as process 1</a>.
+</p>
+
+<p>
+ If the dead child is a <a href="s6-supervise.html">s6-supervise</a> process watched
+by s6-svscan, and the last scan flagged that process as active, then it is restarted
+one second later.
+</p>
+
+<h2> The scanner </h2>
+
+<p>
+ Every <em>rescan</em> milliseconds, or upon receipt of a SIGALRM or a
+<a href="s6-svscanctl.html">s6-svscanctl -a</a> command, s6-svscan runs a
+<em>scanner</em> routine.
+</p>
+
+<p>
+ The scanner scans the current directory for subdirectories (or symbolic links
+to directories), which must be <a href="servicedir.html">service directories</a>.
+It skips names starting with dots. It will not create services for more than
+<em>max</em> subdirectories.
+</p>
+
+<p>
+ For every new subdirectory <em>dir</em> it finds, the scanner spawns a
+<a href="s6-supervise.html">s6-supervise</a> process on it. If
+<em>dir</em><tt>/log</tt> exists, it spawns a s6-supervise process on
+both <em>dir</em> and <em>dir</em><tt>/log</tt>, and maintains a
+never-closing pipe from the service's stdout to the logger's stdin.
+This is <em>starting the service</em>, with or without a corresponding
+logger.
+Every service the scanner finds is flagged as "active".
+</p>
+
+<p>
+ The scanner remembers the services it found. If a service has been
+started in an earlier scan, but the current scan can't find the corresponding
+directory, the service is then flagged as inactive. No command is sent
+to stop inactive s6-supervise processes (unless the administrator
+uses <a href="s6-svscanctl.html">s6-svscanctl -n</a>), but inactive
+s6-supervise processes will not be restarted if they die.
+</p>
+
+<h2> Implementation notes </h2>
+
+<ul>
+ <li> s6-svscan is designed to run until the machine is shut down. It is
+also designed as a suitable candidate for
+<a href="s6-svscan-1.html">process 1</a>. So, it goes out of its way to
+stay alive, even in dire situations. When it encounters a fatal situation,
+something it really cannot handle, it executes into <tt>.s6-svscan/crash</tt>
+instead of dying; when it is told to exit, it executes into
+<tt>.s6-svscan/finish</tt>. Administrators should make sure to design
+appropriate <tt>crash</tt> and <tt>finish</tt> routines. </li>
+ <li> s6-svscan is a fully asynchronous state machine. It will read and
+process commands at any time, even when the computer is in trouble. </li>
+ <li> s6-svscan <em>does not use malloc()</em>. That means it will <em>never leak
+memory</em>. <small>However, s6-svscan uses opendir(), and most opendir()
+implementations internally use heap memory - so unfortunately, it's impossible
+to guarantee that s6-svscan does not use heap memory at all.</small> </li>
+ <li> When run with the <tt>-t0</tt> option, s6-svscan <em>never polls</em>,
+it only wakes up on notifications, just like s6-supervise. The s6 supervision
+tree can be used in energy-critical environments. </li>
+</ul>
+
+</body>
+</html>

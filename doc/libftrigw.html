@@ -1,0 +1,115 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the ftrigw library interface</title>
+    <meta name="Description" content="s6: the ftrigw library interface" />
+    <meta name="Keywords" content="s6 ftrig notification notifier writer libftrigw ftrigw library interface" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>ftrigw</tt> library interface </h1>
+
+<p>
+ The <tt>ftrigw</tt> library provides an API for notifiers, i.e.
+programs that want to regularly announce what they're doing.
+</p>
+
+<p>
+ Notifiers should create a fifodir in a hardcoded place in the
+filesystem, and document its location. Listeners will then be
+able to subscribe to that fifodir, and receive the events.
+</p>
+
+<h2> Compiling </h2>
+
+<ul>
+ <li> Make sure the s6 headers, as well as the skalibs headers,
+are visible in your header search path. </li>
+ <li> Use <tt>#include &lt;s6/ftrigw.h&gt;</tt> </li>
+</ul>
+
+<h2> Linking </h2>
+
+<ul>
+ <li> Make sure the s6 libraries, as well as the skalibs libraries,
+are visible in your library search path. </li>
+ <li> Link against <tt>-ls6</tt> and <tt>-lskarnet</tt>. </li>
+</ul>
+
+<h2> Programming </h2>
+
+<p>
+ Check the <tt>s6/ftrigw.h</tt> header for the
+exact function prototypes.
+</p>
+
+<h3> Creating a fifodir </h3>
+
+<pre>
+char const *path = "/var/lib/myservice/fifodir" ;
+int gid = -1 ;
+int forceperms = 0 ;
+int r = ftrigw_fifodir_make(path, gid, forceperms) ;
+</pre>
+
+<p>
+<tt>ftrigw_fifodir_make</tt> creates a fifodir at the <tt>path</tt> location.
+It returns 0, and sets errno, if an error occurs.
+It returns 1 if it succeeds. <br />
+If a fifodir, owned by the user, already exists at <tt>path</tt>, and
+<tt>forceperms</tt> is zero, then <tt>ftrigw_fifodir_make</tt> immediately
+returns a success. If <tt>forceperms</tt> is nonzero, then
+it tries to adjust <tt>path</tt>'s permissions before returning.
+</p>
+
+<p>
+If <tt>gid</tt> is negative, then <tt>path</tt> is created "public".
+Any listener will be able to subscribe to <tt>path</tt>.
+If <tt>gid</tt> is nonnegative, then <tt>path</tt> is created "private".
+Only processes belonging to group <tt>gid</tt> will be able to
+subscribe to <tt>path</tt>.
+</p>
+
+<h3> Sending an event </h3>
+
+<pre>
+char event = 'a' ;
+r = ftrigw_notify(path, event) ;
+</pre>
+
+<p>
+<tt>ftrigw_notify</tt> sends <tt>event</tt> to all the processes that are
+currently subscribed to <tt>path</tt>.
+It returns -1 if an error occurs, or the number of successfully notified
+processes.
+</p>
+
+<h3> Cleaning up </h3>
+
+<p>
+When stray KILL signals hit <a href="s6-ftrigrd.html">s6-ftrigrd</a> processes,
+1. it's a sign of incorrect system administration, 2. they can leave
+unused named pipes in the fifodir. It's the fifodir's owner's job, i.e.
+the notifier's job, to periodically do some housecleaning and take out
+the trash.
+</p>
+
+<pre>
+r = ftrigw_clean(path) ;
+</pre>
+
+<p>
+<tt>ftrigw_clean</tt> cleans <tt>path</tt>. It returns 0, and sets errno,
+if it encounters an error. It returns 1 if it succeeds.
+</p>
+
+</body>
+</html>

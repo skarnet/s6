@@ -1,0 +1,50 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-fghack program</title>
+    <meta name="Description" content="s6: the s6-fghack program" />
+    <meta name="Keywords" content="s6 command s6-fghack foreground program background hack anti-backgrounding tool" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-fghack program </h1>
+
+<p>
+s6-fghack is an anti-backgrounding tool.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-fghack <em>prog...</em>
+</pre>
+
+<ul>
+ <li> s6-fghack opens a lot of file descriptors (all writing to a single pipe). </li>
+ <li> Then it forks and executes <em>prog...</em>. </li>
+ <li> If something gets written on one of those descriptors, it's a bug in <em>prog</em>.
+s6-fghack then complains and exits 102. </li>
+ <li> Unless <em>prog...</em> goes out of its way to close descriptors it does know about,
+s6-fghack is able to detect when <em>prog...</em> exits. It exits with the same exit
+code (or 111 if <em>prog...</em> has crashed). </li>
+</ul>
+
+<h2> Notes </h2>
+
+<p>
+ s6-fghack is what it says: a hack. Ideally, you should never have to use it.
+It is only useful when you want to supervise a daemon that does not provide a
+"stay in the foreground" option; and even then, the right thing is to report
+this as a bug to the daemon author and have it fixed.
+</p>
+
+</body>
+</html>

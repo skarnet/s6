@@ -1,0 +1,140 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: How to run s6-svscan under another init process</title>
+    <meta name="Description" content="s6: s6-svscan as not-init" />
+    <meta name="Keywords" content="s6 supervision svscan s6-svscan init process boot" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> How to run s6-svscan under another init process </h1>
+
+<p>
+ You can have a reliable supervision tree even if s6-svscan is not your process 1.
+The supervision tree just has to be <em>rooted</em> in process 1: that means that
+your process 1 will have to supervise your s6-svscan process somehow. That way,
+if s6-svscan dies, it will be restarted, and your set of services will always
+be maintained.
+</p>
+
+<p>
+ Be aware, though, that pipes between services and loggers are maintained
+by the s6-svscan process; if this process dies, the pipes will be closed and
+some logs may be lost.
+</p>
+
+<a name="log">
+<h2> Logging the supervision tree's output </h2>
+</a>
+
+<p>
+ s6-svscan and the various s6-supervise processes might produce error or
+warning messages; those messages are written to s6-svscan's stderr (which
+is inherited by the s6-supervise processes). To log these messages:
+</p>
+
+<ul>
+ <li> You can use your init system's logging tools, and make your init
+system launch s6-svscan as is; its stderr should already be taken care
+of by the logging tools. </li>
+ <li> You can use a trick similar to the <a href="s6-svscan-1.html#log">process
+1 output logging trick</a> so the supervision tree's messages are logged via
+a service that's maintained by the supervision tree itself. Then your init
+system should not launch s6-svscan directly, but a wrapper script that performs
+the proper redirections. The
+<tt>examples/s6-svscanboot</tt> file in the s6 distribution gives an example of
+such a script. Make sure that your initial <a href="scandir.html">scan
+directory</a> contains a <a href="servicedir.html">service directory</a> for your
+initial logging service, that must read on the logging FIFO. </li>
+</ul>
+
+<p>
+ In the following examples, we'll assume that <tt>/command/s6-svscanboot</tt>
+is the name of the script you are using to start s6-svscan. Adjust this accordingly.
+</p>
+
+<a name="sysv">
+<h2> System V init </h2>
+</a>
+
+<p>
+ Put an appropriate line in your <tt>/etc/inittab</tt> file, then reload this
+config file with <tt>telinit q</tt>.
+</p>
+
+<h3> Example </h3>
+
+<pre> SV:123456:respawn:/command/s6-svscanboot </pre>
+
+
+<a name="upstart">
+<h2> Upstart </h2>
+</a>
+
+<p>
+ Put an appropriate configuration file in the <tt>/etc/init</tt> folder,
+for instance <tt>/etc/init/s6-svscan.conf</tt>, then start the service
+with <tt>start s6-svscan</tt>.
+</p>
+
+<h3>Example </h3>
+
+<pre># s6-svscan
+start on runlevel [2345]
+stop on runlevel [!2345]
+
+oom never
+respawn
+exec /command/s6-svscanboot
+</pre>
+
+<a name="systemd">
+<h2> systemd </h2>
+
+<p>
+ systemd has
+<a href="http://www.freedesktop.org/software/systemd/man/daemon.html">its
+own way</a> of supervising services. If you are a systemd user, chances
+are you do not need s6. If you are interested in using s6, I encourage
+you to also stop using systemd.
+</p>
+
+<p>
+
+</p>
+
+<a name="bsd">
+<h2> BSD init </h2>
+</a>
+
+<p>
+ Put an appropriate line in your <tt>/etc/ttys</tt> file, then reload this
+file with <tt>kill -s HUP 1</tt>.
+</p>
+
+<h3> Example </h3>
+
+<pre> sv /command/s6-svscanboot "" on </pre>
+
+<a name="launchd">
+<h2> MacOS X launchd </h2>
+</a>
+
+<p>
+ Like systemd, launchd comes with its own
+<a href="https://developer.apple.com/library/mac/documentation/macosx/conceptual/bpsystemstartup/chapters/CreatingLaunchdJobs.html">way
+of supervising services</a>; if you are a launchd user, you probably do
+not need s6.
+</p>
+
+
+</body>
+</html>

@@ -1,0 +1,108 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-svscanctl program</title>
+    <meta name="Description" content="s6: the s6-svscanctl program" />
+    <meta name="Keywords" content="s6 command s6-svscanctl svscan command service" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-svscanctl program </h1>
+
+<p>
+s6-svscanctl sends commands to a running <a href="s6-svscan.html">s6-svscan</a>
+process.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-svscanctl [ -phratszbnNiq0678 ] <em>svscandir</em>
+</pre>
+
+<p>
+s6-svscanctl sends the given series of commands to the
+<a href="s6-svscan.html">s6-svscan</a> process monitoring the
+<em>svscandir</em> directory, then exits 0. It exits 111 if it cannot send
+a command, or 100 if no s6-svscan process is running on <em>svscandir</em>.
+</p>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-p</tt>&nbsp;: poweroff mode. s6-svscan will exec into
+ <tt>./.s6-svscan/finish poweroff</tt> when it is told to terminate. </li>
+ <li> <tt>-h</tt>&nbsp;: Hangup. s6-svscan will send a SIGHUP to all the
+maintained s6-supervise processes, then run its finish procedure. </li>
+ <li> <tt>-r</tt>&nbsp;: reboot mode. s6-svscan will exec into
+ <tt>./.s6-svscan/finish reboot</tt> when it is told to terminate. This
+is s6-svscan's default mode.</li>
+ <li> <tt>-a</tt>&nbsp;: Alarm. s6-svscan will immediately perform a scan
+of <em>svscandir</em> to check for services. </li>
+ <li> <tt>-t</tt>&nbsp;: Terminate. s6-svscan will send a
+SIGTERM to all the s6-supervise processes supervising a service and a
+SIGHUP to all the s6-supervise processes supervising a logger, then run its
+finish procedure. </li>
+ <li> <tt>-s</tt>&nbsp;: halt mode. s6-svscan will exec into
+ <tt>./.s6-svscan/finish halt</tt> when it is told to terminate. </li>
+ <li> <tt>-z</tt>&nbsp;: destroy zombies. Immediately triggers s6-svscan's
+reaper mechanism. </li>
+ <li> <tt>-b</tt>&nbsp;: abort. s6-svscan will exec into its finishing
+procedure. It will not kill any of the maintained s6-supervise processes. </li>
+ <li> <tt>-n</tt>&nbsp;: nuke. s6-svscan will kill all the
+s6-supervise processes it has launched but that did not match a service
+directory last time <em>svscandir</em> was scanned, i.e. it prunes the
+supervision tree so that it matches exactly what was in <em>svscandir</em>
+at the time of the last scan. A SIGTERM is sent to the s6-supervise processes
+supervising services and a SIGHUP is sent to the s6-supervise processes
+supervising loggers. </li>
+ <li> <tt>-N</tt>&nbsp;: Really nuke. Does the same thing as <tt>-n</tt>,
+except that SIGTERM is sent to all the relevant s6-supervise processes, even
+if they are supervising loggers. That means that the logger processes will
+be killed with a SIGTERM instead of being allowed to exit at their own pace. </li>
+ <li> <tt>-i</tt>&nbsp;: Interrupt. Equivalent to <tt>-rt</tt>&nbsp;: s6-svscan
+will terminate in reboot mode. </li>
+ <li> <tt>-q</tt>&nbsp;: Quit. s6-svscan will send all its s6-supervise processes
+a SIGTERM, then exec into its finish procedure. </li>
+ <li> <tt>-0</tt>&nbsp;: Halt. Equivalent to <tt>-st</tt>&nbsp;: s6-svscan will
+terminate in halt mode. </li>
+ <li> <tt>-6</tt>&nbsp;: Reboot. Equivalent to <tt>-i</tt>. </li>
+ <li> <tt>-7</tt>&nbsp;: Poweroff. Equivalent to <tt>-pt</tt>: s6-svscan will
+terminate in poweroff mode. </li>
+ <li> <tt>-8</tt>&nbsp;: Other. s6-svscan will terminate in "other" mode. </li>
+</ul>
+
+<h2> Usage examples </h2>
+
+<pre> s6-svscanctl -an /service </pre>
+<p>
+ Updates the process supervision tree
+to exactly match the services listed in <tt>/service</tt>.
+</p>
+
+<pre> s6-svscanctl -6 /service </pre>
+<p>
+ Orders the s6-svscan process monitoring <tt>/service</tt> to exit in
+reboot mode: all the supervision tree at <tt>/service</tt> will be terminated,
+and s6-svscan will execute into the <tt>/service/.s6-svscan/finish</tt>
+script with the <tt>reboot</tt> argument.
+</p>
+
+<h2> Internals </h2>
+
+<p>
+s6-svscanctl writes control commands into the <tt><em>svscandir</em>/.s6-svscan/control</tt>
+FIFO. A s6-svscan process running on <em>svscandir</em> will be listening to this FIFO,
+and will read and interpret those commands.
+</p>
+
+</body>
+</html>

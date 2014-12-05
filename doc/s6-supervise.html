@@ -1,0 +1,125 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-supervise program</title>
+    <meta name="Description" content="s6: the s6-supervise program" />
+    <meta name="Keywords" content="s6 command s6-supervise servicedir supervision supervise" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-supervise program </h1>
+
+<p>
+s6-supervise monitors a long-lived process (or <em>service</em>), making sure it
+stays alive, sending notifications to registered processes when it dies, and
+providing an interface to control its state. s6-supervise is designed to be the
+last non-leaf branch of a <em>supervision tree</em>, the supervised process
+being a leaf.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-supervise <em>servicedir</em>
+</pre>
+
+<ul>
+ <li> s6-supervise switches to the <em>servicedir</em>
+<a href="servicedir.html">service directory</a>. </li>
+ <li> It exits 100 if another s6-supervise process is already monitoring this service. </li>
+ <li> If the <tt>./event</tt> <a href="fifodir.html">fifodir</a> does not exist,
+s6-supervise creates it and allows public subscriptions to it.
+If it already exists, it uses it as is, without modifying the subscription rights. </li>
+ <li> It <a href="libftrigw.html">sends</a> a <tt>'s'</tt> event to <tt>./event</tt>. </li>
+ <li> If the default service state is up, s6-supervise spawns <tt>./run</tt>. </li>
+ <li> s6-supervise sends a <tt>'u'</tt> event to <tt>./event</tt> whenever it
+successfully spawns <tt>./run</tt>. </li>
+ <li> When <tt>./run</tt> dies, s6-supervise sends a <tt>'d'</tt> event to <tt>./event</tt>. </li>
+ <li> When <tt>./run</tt> dies, s6-supervise spawns <tt>./finish</tt> if it exists. </li>
+ <li> <tt>./finish</tt> must exit in less than 5 seconds. If it takes more than that,
+s6-supervise kills it. </li>
+ <li> When <tt>./finish</tt> dies, s6-supervise restarts <tt>./run</tt> unless it has been
+told not to. </li>
+ <li> There is a minimum 1-second delay between two <tt>./run</tt> spawns, to avoid busylooping
+if <tt>./run</tt> exits too quickly. </li>
+ <li> When killed or asked to exit, it waits for the service to go down one last time, then
+sends a <tt>'x'</tt> event to <tt>./event</tt> before exiting 0. </li>
+</ul>
+
+<h2> Signals </h2>
+
+<p>
+ s6-supervise reacts to the following signals:
+</p>
+
+<ul>
+ <li> SIGTERM: bring down the service and exit, as if a
+<a href="s6-svc.html">s6-svc -xd</a> command had been received </li>
+ <li> SIGHUP: exit as soon as the service stops, as if a
+<a href="s6-svc.html">s6-svc -x</a> command had been received </li>
+ <li> SIGQUIT: currently like SIGTERM, but this might change in the future </li>
+</ul>
+
+<h2> Usage notes </h2>
+
+<ul>
+ <li> s6-supervise is a long-lived process. It normally runs forever, from the system's
+boot scripts, until shutdown time; it should not be killed or told to exit. If you have
+no use for a service, just turn it off; the s6-supervise process does not hurt. </li>
+ <li> Even in boot scripts, s6-supervise should normally not be run directly. It's
+better to have a collection of <a href="servicedir.html">service directories</a> in a
+single <a href="scandir.html">scan directory</a>, and just run
+<a href="s6-svscan.html">s6-svscan</a> on that scan directory. s6-svscan will spawn
+the necessary s6-supervise processes, and will also take care of logged services. </li>
+ <li> You can use <a href="s6-svc.html">s6-svc</a> to send commands to the s6-supervise
+process; mostly to change the service state and send signals to the monitored
+process. </li>
+ <li> You can use <a href="s6-svok.html">s6-svok</a> to check whether s6-supervise
+is successfully running. </li>
+ <li> You can use <a href="s6-svstat.html">s6-svstat</a> to check the status of a
+service. </li>
+ <li> s6-supervise maintains internal information inside the <tt>./supervise</tt>
+subdirectory of <em>servicedir</em>. <em>servicedir</em> itself can be read-only,
+but both <em>servicedir</em><tt>/supervise</tt> and <em>servicedir</em><tt>/event</tt>
+need to be read-write. </li>
+ <li> The <tt>./finish</tt> script is not guaranteed to have stdin and
+stdout pointing to the same locations as the <tt>./run</tt> script. More
+precisely: the stdin and stdout will be preserved for <tt>./finish</tt>
+until s6-supervise is asked to exit, but the last <tt>./finish</tt>
+execution will have its stdin and stdout redirected to <tt>/dev/null</tt>.
+(This is to avoid maintaining open descriptors when a service is down, which
+would prevent its logger from exiting cleanly.) </li>
+</ul>
+
+<h2> Implementation notes </h2>
+
+<ul>
+ <li> s6-supervise tries its best to stay alive and running despite possible
+system call failures. It will write to its standard error everytime it encounters a
+problem. However, unlike <a href="s6-svscan.html">s6-svscan</a>, it will not go out
+of its way to stay alive; if it encounters an unsolvable situation, it will just
+die. </li>
+ <li> Unlike other "supervise" implementations, s6-supervise is a fully asynchronous
+state machine. That means that it can read and process commands at any time, even
+when the machine is in trouble (full process table, for instance). </li>
+ <li> s6-supervise <em>does not use malloc()</em>. That means it will <em>never leak
+memory</em>. <small>However, s6-supervise uses opendir(), and most opendir()
+implementations internally use heap memory - so unfortunately, it's impossible to
+guarantee that s6-supervise does not use heap memory at all.</small> </li>
+ <li> s6-supervise has been carefully designed so every instance maintains as little
+data as possible, so it uses a very small
+amount of non-sharable memory. It is not a problem to have several
+dozens of s6-supervise processes, even on constrained systems: resource consumption
+will be negligible. </li>
+</ul>
+
+</body>
+</html>

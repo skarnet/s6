@@ -1,0 +1,145 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: scan directories</title>
+    <meta name="Description" content="s6: scan directory" />
+    <meta name="Keywords" content="s6 scandir supervision svscan s6-svscan scan directory servicedir" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> Scan directories </h1>
+
+<p>
+ A <em>scan directory</em> is a directory containing a list of
+<a href="servicedir.html">service directories</a>, or symbolic links
+pointing to service directories.
+</p>
+
+<p>
+ A scan directory represents a list of services that are supposed to
+be supervised. Running <a href="s6-svscan.html">s6-svscan</a> on this
+scan directory launches a <em>supervision tree</em>: every service
+listed in the scan directory will be supervised.
+</p>
+
+<p>
+ There is normally only one scan directory per system, although nothing
+prevents a system administrator from having more.
+<a href="http://cr.yp.to/daemontools.html">daemontools</a> traditionally
+uses <tt>/service</tt>, and <a href="http://smarden.org/runit/">runit</a>
+traditionally uses <tt>/etc/service</tt>. s6 does not care where your
+scan directory is, but I would advise <tt>/service</tt> for compatibility
+with daemontools. Depending on your installation, <tt>/service</tt> could
+be a symbolic link and point to a place either in a RAM filesystem or in
+<tt>/var</tt>.
+</p>
+
+<a name="where">
+<h2> Where and how to build a scan directory </h2>
+</a>
+
+<p>
+ Opinions and practices differ.
+</p>
+
+<p>
+ It is generally accepted that the place where you store all your
+service directories (your "service repository") should <em>not</em> be
+used as a scan directory - for a simple reason: you might want to have
+service directories for more services than what you want to start at
+any given time. In other words, your scan directory will be a <em>subset</em>
+of your service repository, so you cannot just run s6-svscan on every
+service you have a service directory for. So, the first thing is to
+separate your <em>service repository</em>, which is just a storage place
+for all the services you might want to manage someday, and your <em>scan
+directory</em>, which is a directory representing all the services that
+you are <em>currently</em> managing.
+</p>
+
+<h3> Service repository </h3>
+
+<p>
+ Where to store your service repository is purely a matter of personal
+preference. You just have to be aware that <a href="s6-supervise.html">
+s6-supervise</a> needs writable <tt>supervise</tt> and <tt>event</tt>
+subdirectories in a service directory it monitors.
+</p>
+
+<h3> Scan directory </h3>
+
+<p>
+ Where and how to build your scan directory depends heavily on your boot
+system - and on your personal preference too.
+</p>
+
+<p>
+ Standard <a href="http://cr.yp.to/daemontools.html">daemontools</a> and
+<a href="http://smarden.org/runit/">runit</a> installations like to have
+a fixed scan directory containing symlinks to service directories located
+in the service repository. In other words, the service repository contains
+the real <em>working copies</em> of the service directories. This works,
+as long as:
+</p>
+
+<ul>
+ <li> It is possible to create writable <tt>supervise</tt> and <tt>event</tt>
+subdirectories in every managed service directory. This can be achieved for
+instance via symlinks, or by having the service repository stored on a writable
+filesystem. </li>
+ <li> The scan program (<a href="s6-svscan.html">s6-svscan</a>,
+<a href="http://cr.yp.to/daemontools/svscan.html">svscan</a>,
+<a href="http://smarden.org/runit/runsvdir.8.html">runsvdir</a>...) is
+started late enough for all the necessary filesystems to be mounted. </li>
+</ul>
+
+<p>
+ My own recommendation would be to have working copies of the service
+directories <em>entirely separate</em> from the service repository. The
+service repository can be safely stored on the root filesystem, and the
+needed directories copied to a RAM filesystem at boot time. The scan
+directory can be either the place where the working copies are written,
+or another directory containing symlinks to those working copies. (The
+latter is useful if you are not using <tt>s6-svscan -t0</tt>: copying a
+directory is not atomic, but making a symlink is, so there is no risk
+of your scanner finding an incomplete directory.)
+</p>
+
+<p>
+ An example:
+</p>
+
+<ul>
+ <li> Have your service repository in <tt>/img/services</tt>, i.e. have
+service directories in <tt>/img/services/ftpd</tt>, <tt>/img/services/httpd</tt>,
+<tt>/img/services/sshd</tt>, etc. </li>
+ <li> When booting, make <tt>/tmp</tt> a RAM filesystem, and create the
+directories <tt>/tmp/services</tt> and <tt>/tmp/service</tt>. </li>
+ <li> Have s6-svscan run on <tt>/tmp/service</tt>, as early as possible in your
+boot sequence. This is possible whether you want to run s6-svscan
+<a href="s6-svscan-1.html">as process 1</a> or <a href="s6-svscan-not-1.html">not</a>. </li>
+ <li> During the boot sequence, populate <tt>/tmp/services</tt> with copies of the
+service directories you need: for instance,
+ <ul>
+  <li> <tt>cp -a /img/services/sshd /tmp/services/sshd</tt> </li>
+  <li> <tt>cp -a /img/services/ftpd /tmp/services/ftpd</tt> </li>
+  <li> etc. </li>
+ </ul> </li>
+ <li> When you are ready to start a service, make a symlink in the
+<tt>/tmp/service</tt> <em>scan directory</em> pointing to the working copy of
+the service directory you need in <tt>/tmp/services</tt>, then notify s6-svscan.
+For instance, to start ftpd and httpd together:
+<pre> ln -s ../services/ftpd /tmp/service
+ ln -s ../services/httpd /tmp/service
+ s6-svscanctl -a /tmp/service</pre> </li>
+</ul>
+
+</body>
+</html>

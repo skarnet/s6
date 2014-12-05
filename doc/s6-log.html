@@ -1,0 +1,508 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-log program</title>
+    <meta name="Description" content="s6: the s6-log program" />
+    <meta name="Keywords" content="s6 command s6-log log logger logging multilog" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-log program </h1>
+
+<p>
+s6-log is a reliable logging program with automated log rotation, similar to
+daemontools' <a href="http://cr.yp.to/daemontools/multilog.html">multilog</a>,
+with full POSIX regular expression support.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-log [ -q | -v ] [ -b ] [ -p ] [ -t ] [ -e ] <em>logging script</em>
+</pre>
+
+<p>
+s6-log reads and compiles <em>logging script</em> to an internal
+form. Then it reads its standard input, line by line, and performs actions
+on it, following the script it is given. It does its best to ensure there
+is <em>never any log loss</em>. It exits cleanly when stdin closes or when
+it receives SIGTERM.
+</p>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-b</tt>&nbsp;: blocking mode. With this option, s6-log stops
+reading its standard input while it has unflushed buffers. This ensures that
+every log line has been fully processed before reading the next one; this is also
+<a href="http://cr.yp.to/daemontools/multilog.html">multilog</a>'s behaviour.
+By default, s6-log keeps reading from stdin even if its buffers still
+contain data. <tt>-b</tt> is safer, but may slow down your service; the default
+is faster, but may lead to unbound memory use if you have a lot of output to
+write to a slow file system. </li>
+ <li> <tt>-p</tt>&nbsp;: protect. Do not exit on receipt of a SIGTERM; only
+exit when reading EOF on stdin. </li>
+ <li> <tt>-t</tt>&nbsp;: timestamp. Prepends every log line that is written to
+a logging directory with a
+<a href="http://skarnet.org/software/skalibs/libstddjb/tai.html">TAI64N</a>
+timestamp.  </li>
+ <li> <tt>-e</tt>&nbsp;: timestamp alerts. Prepends every "alert" line with a
+TAI64N timestamp. </li>
+ <li> <tt>-q | -v</tt>&nbsp;: quiet | verbose. Decreases | increases s6-log's
+verbosity, i.e. which messages are sent to stderr. The default verbosity is 1.
+Currently supported verbosity levels:
+  <ul>
+   <li> 0: only write alerts and fatal errors </li>
+   <li> 1: write alerts, warnings and fatal errors </li>
+  </ul> </li>
+</ul>
+
+<h2> Logdirs </h2>
+
+<p>
+A <em>logdir</em> (<em>logging directory</em>) is a place where logs are
+stored. s6-log can be scripted to write into one or more logdirs.
+</p>
+
+<p>
+ A logdir may contain the following files:
+</p>
+
+<ul>
+ <li> <tt>lock</tt>: this file is locked by s6-log at start,
+to make sure only one instance is running at the same time. </li>
+ <li> <tt>current</tt>: the file where selected log lines are appended.
+If <tt>current</tt> has the executable-by-user flag, it means that no
+s6-log process is currently writing to it and the previous
+s6-log process managed to cleanly finalize it. If it does not,
+either a s6-log process is writing to it or the previous one
+has been interrupted without finalizing it. </li>
+ <li> <tt>state</tt>: last processor's output, see below. </li>
+ <li> <tt>previous</tt>: a rotation is happening in that logdir. </li>
+ <li> <tt>processed</tt>, <tt>newstate</tt>: a rotation is happening
+in that logdir and the processor script is running. </li>
+ <li> timestamped files: those files are @<em>timestamp</em>.s or
+@<em>timestamp</em>.u and are old log files that have been processed
+and rotated (if they're ending in .s) or that were the <tt>current</tt>
+file when s6-log got interrupted (if they're ending in .u), in which
+case they have not been processed. </li>
+</ul>
+
+<h3> Rotation </h3>
+
+<p>
+ In a logdir, selected lines are appended to the <tt>current</tt> file.
+When <tt>current</tt> becomes too big, a <em>rotation</em> happens.
+The <tt>current</tt> file will be possibly <em>processed</em>, then
+it will become an <em>archived</em> log file named
+@<em>timestamp</em>.s, where <em>timestamp</em>, a
+<a href="http://www.skarnet.org/software/skalibs/libstddjb/tai.html">TAI64N</a>
+timestamp, is the absolute time of the rotation. If there are too
+many archived log files in the logdir, the older ones are then
+suppressed. Logging then resumes, to a brand new <tt>current</tt>
+file.
+</p>
+
+<p>
+ You can use this mechanism to ensure that your logs never fill up
+the available disk space, for instance: something that neither
+syslogd, nor syslog-ng, nor rsyslog offers.
+</p>
+
+<h3> Processors </h3>
+
+<p>
+ A <em>processor</em> script can be set for every logdir. When a rotation
+occurs, <tt>current</tt> (which has then been renamed <tt>previous</tt>) is
+fed to <em>processor</em>'s stdin, and <em>processor</em>'s stdout is saved
+and archived. <em>processor</em> can also read the <tt>state</tt> file
+on its fd 4; what it writes to its fd 5 will be saved as the next
+<tt>state</tt> file, for the next rotation.
+</p>
+
+<p>
+ Processors should not background themselves: s6-log considers the
+processing done when its <em>processor</em> direct child dies.
+Processors should exit 0 on success and nonzero on failure; if a
+processor fails, s6-log will try it again after some
+<em>cooldown</em> time.
+</p>
+
+<p>
+ Processors make s6-log Turing-complete by allowing you to use any
+external program to handle log files that are going to be archived.
+</p>
+
+<h2> Logging script syntax </h2>
+
+<p>
+ When starting up, s6-log reads its arguments one by one; this
+argument sequence, or <em>directive sequence</em>, forms a
+<em>logging script</em> which tells s6-log what to log, where, and how.
+</p>
+
+<p>
+ Every directive can be a <em>selection</em> directive, a <em>control</em>
+directive or an <em>action</em> directive. A valid logging script always
+contains at least one action directive; every action directive can be
+preceded by zero or more selection or control directives. s6-log will exit 100
+if the script is invalid. If it can process the script but the last directive
+is not an action directive, s6-log will emit a warning.
+</p>
+
+<h3> Selection directives </h3>
+
+<p>
+ These directives tell s6-log whether to select or deselect lines it reads
+from stdin; actions will only happen on selected lines. By default, every
+line is selected.
+</p>
+
+<ul>
+ <li> <strong>+<em>regexp</em></strong>: select yet-unselected lines that match <em>regexp</em>, which must be a
+<a href="http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap09.html#tag_09_04">POSIX
+Extended Regular Expression</a>. </li>
+ <li> <strong>-<em>regexp</em></strong>: deselect yet-selected lines that match <em>regexp</em>, which must be a
+POSIX Extended Regular Expression. </li>
+ <li> <strong>f</strong>: select exactly lines that have not yet been acted
+upon (i.e. that were always deselected when the script encountered an action
+directive). </li>
+</ul>
+
+<h3> Control directives </h3>
+
+<p>
+ These directives tune s6-log's behaviour for the next actions.
+</p>
+
+<ul>
+ <li> <strong>n<em>number</em></strong>: next logdirs will contain up to
+<em>number</em> archived log files. If there are more, the oldest archived
+log files will be suppressed, only the latest <em>number</em> will be kept.
+By default, <em>number</em> is 10. </li>
+ <li> <strong>s<em>filesize</em></strong>: next rotations will occur when
+<tt>current</tt> log files approach <em>filesize</em> bytes. By default,
+<em>filesize</em> is 99999; it cannot be set lower than 4096 or
+higher than 16777215. </li>
+ <li> <strong>S<em>totalsize</em></strong>: next logdirs will contain up
+to <em>totalsize</em> bytes of archived (and maybe processed) log files. If
+archived log files take more space than that, the older ones are suppressed
+until the total size fits. A <em>totalsize</em> of zero means no such limit;
+use <strong>n0</strong> instead if you don't want any archived log files. By
+default, <em>totalsize</em> is 0 (unlimited). </li>
+ <li> <strong>l<em>tolerance</em></strong>: next rotations will be triggered
+when the size of <tt>current</tt> goes higher than <em>filesize</em> minus
+<em>tolerance</em>. <em>tolerance</em> cannot be more than half of
+<em>filesize</em>. By default, <em>tolerance</em> is 2000. </li>
+ <li> <strong>r<em>cooldown</em></strong>: if an error occurs during operations
+on the next logdirs, retry every <em>cooldown</em> milliseconds. By default,
+<em>cooldown</em> is 2000; it's strongly discouraged to set it to a value
+under 50. </li>
+ <li> <strong>E<em>alertsize</em></strong>: only the first <em>alertsize</em>
+bytes of the selected lines will be used in the next alerts. An
+<em>alertsize</em> of 0 means no limit. By default, <em>alertsize</em> is
+200. </li>
+ <li> <strong>^<em>statussize</em></strong>: only the first <em>statussize</em>
+bytes of the selected lines will be used in the next status file updates.
+If a line is shorter than <em>statussize</em> bytes, the status file will be
+padded with newlines so it is always <em>statussize</em> bytes long. 0 means
+an unpadded, unlimited status file. By default, <em>statussize</em> is 1001. </li>
+ <li> <strong>!<em>processor</em></strong>: registers
+<tt>execlineb -Pc <em>processor</em></tt> as a processor for the next logdirs;
+<tt>execlineb</tt> must be found in s6-log's PATH.
+If <em>processor</em> is empty, no processor will be set for the next logdirs.
+By default, no processor is set. </li>
+</ul>
+
+<h3> Action directives </h3>
+
+<p>
+ These directives determine what s6-log actually <em>does</em> with the
+selected lines.
+</p>
+
+<ul>
+ <li> <strong>e</strong>: alert. s6-log will print "s6-log: alert: ",
+possibly prepended with a timestamp, followed by the first
+<em>alertsize</em> bytes of the line. </li>
+ <li> <strong>=<em>statusfile</em></strong>: status. s6-log will atomically
+update the <em>statusfile</em> file with the first <em>statussize</em>
+bytes of the line, and pad it with newlines. s6-log must have the right
+to write to <em>statusfile</em> and to <em>statusfile</em>'s directory. </li>
+ <li> <strong><em>dir</em></strong> (must start with '/' or '.'): logdir.
+s6-log will log the line into the logdir <em>dir</em>. s6-log must have
+the right to write to <em>dir</em>.</li>
+</ul>
+
+
+<h2> Signals </h2>
+
+<ul>
+ <li> SIGTERM: If s6-log has been run with the <tt>-p</tt> option, does nothing.
+Without this option, SIGTERM instructs s6-log to stop reading stdin after the
+next newline and exit after logging the last line. </li>
+ <li> SIGALRM: triggers a rotation on every logdir s6-log is monitoring,
+as if the <tt>current</tt> file in those logdirs had reached the size
+limit. </li>
+</ul>
+
+<h2> Examples </h2>
+
+<pre>
+     s6-log -bt n20 s1000000 /var/log/services/stuff
+</pre>
+
+<p>
+ Logs all of stdin, prepending every line with a timestamp, into the
+<tt>/var/log/services/stuff</tt> logdir, with a maximum archive of
+20 log files of 1 MB each; makes sure every line has been written
+before reading the next one.
+</p>
+
+<pre>
+     s6-log -t n30 E500 - +fatal: e - +^STAT =/var/log/foobard/status f s10000000 S15000000 !"gzip -nq9" /var/log/foobard
+</pre>
+
+<ul>
+ <li> Sends alerts to stderr with the 500 first bytes of lines containing "fatal:". </li>
+ <li> Maintains the <tt>/var/log/foobard/status</tt> file at 1001 bytes,
+updating it when it finds a log line starting with "STAT". </li>
+ <li> Logs all other lines to logdir <tt>/var/log/foobard</tt>. When <tt>current</tt>
+reaches at least 9998 kB (i.e. 10 MB filesise minus 2kB tolerance), pipe it
+through <tt>gzip -nq9</tt> and save the result into a timestamped archive file, with
+a maximum of 30 such files or a total of 15 MB of compressed archive files. </li>
+</ul>
+
+
+<h2> Why use execlineb to interpret the "processor" string ? </h2>
+
+<p>
+ Because it is <em>exactly</em> what
+<a href="http://skarnet.org/software/execline/execlineb.html">execlineb</a>
+is for.
+</p>
+
+<ul>
+ <li> Directly executing <em>processor</em> is not flexible enough. We want
+to be able to run a complete command line, with an executable name and its
+arguments. </li>
+ <li> We could interpret the <em>processor</em> string via <tt>/bin/sh</tt>.
+This is what <a href="http://cr.yp.to/daemontools/multilog.html">multilog</a>
+does. However, <tt>/bin/sh</tt>, despite being the traditional Unix interpreter,
+is overpowered for this. We don't need a complete shell script interpreter:
+most <em>processor</em> commands will be very simple, with only two or three
+words, and we only need a way to turn a string into an <em>argv</em>, i.e. a
+command line. </li>
+ <li> <a href="http://www.skarnet.org/software/execline/execlineb.html">execlineb</a>
+was designed just for this: to turn simple strings into command lines.
+It is a very fast and lightweight script launcher, that does not do any heavy
+startup initialization like <tt>/bin/sh</tt> does. It happens to be the perfect
+tool for the job. </li>
+ <li> Yes, I also did this on purpose so people have a reason to use the
+<a href="http://www.skarnet.org/software/execline/">execline</a> language. Do not
+look at me like that: it <em>really</em> is the perfect tool for the job. </li>
+</ul>
+
+<h2> Why have another logging mechanism ? </h2>
+
+<p>
+ Because the syslog mechanism and all its implementations (save one) suck.
+I'm not being judgmental; I'm just stating the obvious.
+</p>
+
+<a name="diesyslogdiedie"><h3> The syslog design is flawed from the start </h3></a>
+
+<p>
+<a href="http://blog.gerhards.net/2007/08/why-does-world-need-another-syslogd.html">When
+asked why he started rsyslog</a>, Rainer Gerhards came up with a lot of
+hand-waving and not a single word about technical points. There is a
+reason for that: rsyslog is forked from sysklogd! So, no matter how
+many bells and whistles are added to it, it still suffers from the same
+basic flaws.
+</p>
+
+<p>
+ The problem with syslogd does not come from such or such implementation.
+The problem comes from syslog's <em>design</em> in the first place.
+</p>
+
+<ul>
+ <li> syslog makes you send <em>all</em> your logs to the same place.
+The logs from a zillion processes are read by a single syslogd server.
+The server checks log lines against system-wide regular expressions
+to decide where to write them. This raises the following issues:
+ <ul>
+  <li> Unless the client explicitly mentions its name in every log
+line, there is no way for log readers to know what process generated a
+given line. Some syslogd implementations can log the pid of the client;
+big deal. </li>
+  <li> Log lines from every client have to run through the same regular
+expression matching. This requires huge regular expression sets, and an
+obvious performance impact, to do anything meaningful. And as a matter
+of fact, standard syslogd configurations don't do anything meaningful:
+they separate the logs into a few streams such as <tt>/var/log/messages</tt>,
+<tt>/var/log/auth.log</tt>, <tt>/var/log/daemon.log</tt> or
+<tt>/var/log/syslog</tt> with very vague semantics. All of syslogd's
+line processing power remains unused, because making real use of it would
+be too complex. </li>
+ </ul>
+ <li> syslogd logs to <em>files</em>. This is wrong, because files grow
+and disks fill up. Sure, there are utilities such as <tt>logrotate</tt>
+to perform cleaning up, but as long as logging and log rotation are
+kept separate, there is a race condition: a log file can grow and fill
+up a disk before a rotation occurs. I am all for separating tasks that
+can be separated, but there is no choice here: <em>logging and log
+rotation management must be done <strong>by the same tool</strong></em>.
+Only the Busybox implementation of syslogd does this, and that is a
+feature added by the Busybox developers who are aware of the problem
+but want to maintain compatibility with the historical syslogd.
+No other syslogd implementation I know of manages its log files: that's a
+flaw that no amount of external tools is going to fix. </li>
+ <li> syslogd is a complex process that runs as root. We all know what
+complex processes running as root mean: bugs turning into security holes. </li>
+ <li> syslog requires a syslogd service, and fails otherwise. A syslogd
+service may not be present, it may fail... or it may want to log stuff.
+Who's going to take care of syslogd's error messages ? </li>
+</ul>
+
+<p>
+ syslog is slow, it's unsafe, and it's incomplete. The only reason people
+use it is because it's historical, it exists, and there hasn't been any
+serious alternative yet, except maybe
+<a href="http://cr.yp.to/daemontools/multilog.html">multilog</a>, which
+s6-log improves upon.
+</p>
+
+<a name="loggingchain"><h3> A not-so-modest proposal: the logging chain </h3></a>
+
+<p>
+ Unix distributions already do this to some extent, but it's at best
+unclear where the logs go for any given program.
+</p>
+
+<ul>
+ <li> Every program, without exception, should send its logs (be it
+error messages, warning messages, or anything) to its <em>standard
+error descriptor</em>, i.e. fd 2. <em>This is why it's open for.</em> </li>
+ <li> When process 1 starts, the logging chain is rooted to the
+<em>machine console</em>: anything process 1 sends to its stderr
+appears, without modification, on the machine console, which should
+at any time remain the last resort place where logs are sent. </em>
+ <li> Process 1 should spawn and supervise a <em>catch-all logging
+mechanism</em> that handles logs from every service that does not
+take care of its own logging. Error messages from this logging
+mechanism naturally go to the machine console. </li>
+ <li> Process 1's own error messages can go to the machine console,
+or <a href="s6-svscan-1.html#log">dirty tricks can be used</a> so they
+go to the catch-all logging mechanism. </li>
+ <li> Services that are spawned by process 1 should come with their
+own logger service; the supervision mechanism offered by
+<a href="s6-svscan.html">s6-svscan</a> makes it easy. Error messages
+from the loggers themselves naturally go to the catch-all
+mechanism. </li>
+ <li> User login mechanisms such as <tt>getty</tt>, <tt>xdm</tt> or
+<tt>sshd</tt> are services: they should be started with their own
+loggers. Of course, when a user gets a terminal and a shell, the
+shell's stderr should be redirected to the terminal: interactive
+programs break the automatic logging chain and delegate responsibility
+to the user. </li>
+ <li> A syslogd service <em>may</em> exist, to catch logs sent via
+syslog() by legacy programs. But it is a normal service, and logs
+caught by this syslogd service are not part of the logging chain.
+ It is probably overkill to provide the syslogd service with its own
+logger; error messages from syslogd can default to the catch-all logger.
+ The s6 package, including the <a href="ucspilogd.html">ucspilogd</a> program,
+combined with the
+<a href="http://skarnet.org/software/s6-networking/">s6-networking</a>
+package, provides enough tools to easily implement
+a complete syslogd system, for a small fraction of the resource needs and
+the complexity of native syslogd implementations. </li>
+</ul>
+
+<p>
+ So, given a program, where are its logs sent&nbsp;?
+</p>
+
+<ul>
+ <li> Logs sent via syslog() will be handled by the syslogd service as
+usual. Smart administrators will make sure that those ones are as few as
+possible. The rest of this analysis is about logs sent to stderr. </li>
+ <li> If the program is descended from a user's interactive program,
+its logs are sent to the user's terminal or the user's choice redirection
+target. </li>
+ <li> If the program is descended from a logged service, its logs are
+naturally sent to the service's logger. </li>
+ <li> Else the logs are sent to the catch-all logger. </li>
+ <li> Only the catch-all logger's error messages, the kernel's fatal
+error messages, and maybe process 1's error messages, are sent to the
+system console. </li>
+</ul>
+
+<a name="#howtouse"><h3> What does s6-log have to do with all this ? </h3></a>
+
+<p>
+ In a <em>logging chain</em> situation, every service must have
+its own logger. To avoid syslogd's design mistakes, one logger process
+per service must be run. s6-log fits that role. Using s6-log as
+your one-stop logger offers the following benefits:
+</p>
+
+<ul>
+ <li> Every instance of s6-log can run as a different user, so it's
+easy to give different access rights to different logs. It is also
+more secure not to have any logger process running as root. </li>
+ <li> s6-log consumes very little memory per instance (unless it
+accumulates unflushed log lines, which you can avoid with the
+<tt>-b</tt> option). So, launching a lot of s6-log processes does
+not waste resources. </li>
+ <li> s6-log is vastly configurable via logging scripts; every instance
+is as powerful as a traditional syslogd. </li>
+ <li> s6-log can log to a RAM filesystem and thus is suitable as a
+catch-all logger. Clever tricks like Upstart's <em>logd</em> or daemontools'
+<a href="http://cr.yp.to/daemontools/readproctitle.html">readproctitle</a>
+are just that: tricks. s6-log gives a unified interface to all of
+your system's loggers. </li>
+</ul>
+
+
+<a name="#network"><h3> You're wrong about being as powerful as
+syslogd: s6-log does not do remote logging. </h3></a>
+
+<p>
+ You mean you want to send, <em>live</em>, every <em>log line</em>
+over the network via <em>UDP</em>&nbsp;? You can't be serious.
+</p>
+
+<p>
+ Do yourself a favor and use s6-log to write log lines to a logdir,
+with a processor script that sends files-being-archived to the
+network, possibly after compressing them. More reliability, less
+log lines lost, less network traffic, better engineering. If you
+have no disk to even write the <tt>current</tt> files to, write
+to a small RAM filesystem.
+</p>
+
+<p>
+ If you <em>have to</em> log stuff <em>live</em> via the network, you
+do not need any local logging software. You don't even need syslogd.
+Just filter your stderr via some <tt>grep</tt> that selects lines for
+you, then sends them to a network socket. A trivial shell script, or
+<a href="http://skarnet.org/software/execline/">execline</a>
+script, can do that for you.
+</p>
+
+<p>
+ Do not insist on using syslogd. It does nothing magical, and nothing
+that can't be done in a simpler way using simpler tools.
+</p>
+
+</body>
+</html>

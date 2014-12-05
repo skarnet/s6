@@ -1,0 +1,42 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-cleanfifodir program</title>
+    <meta name="Description" content="s6: the s6-cleanfifodir program" />
+    <meta name="Keywords" content="s6 command s6-cleanfifodir fifodir notification cleaning" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-cleanfifodir program </h1>
+
+<p>
+s6-cleanfifodir cleans up a <a href="fifodir.html">fifodir</a>.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-cleanfifodir <em>fifodir</em>
+</pre>
+
+<p>
+s6-cleanfifodir cleans up <em>fifodir</em>, that must belong to the current user.
+That means it removes all stale FIFOs in <em>fifodir</em>.
+</p>
+
+<p>
+ In normal use, it is not necessary to call s6-cleanfifodir. However, stale
+FIFOs can be left by <a href="s6-ftrigrd.html">s6-ftrigrd</a> processes that
+were violently killed, so it's good practice to regularly clean up fifodirs.
+</p>
+
+</body>
+</html>

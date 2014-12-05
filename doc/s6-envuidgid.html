@@ -1,0 +1,64 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-envuidgid program</title>
+    <meta name="Description" content="s6: the s6-envuidgid program" />
+    <meta name="Keywords" content="s6 command s6-envuidgid uid gid environment modification" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-envuidgid program </h1>
+
+<p>
+s6-envuidgid sets the UID, GID and GIDLIST environment variables,
+then executes into another program.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-envuidgid <em>account</em> <em>prog...</em>
+</pre>
+
+<ul>
+ <li> s6-envuidgid looks <em>account</em> up by name in the account database. </li>
+ <li> If <em>account</em> is unknown, it exits 1. </li>
+ <li> It sets the UID environment variable to <em>account</em>'s uid, and the GID
+environment variable to <em>account</em>'s gid. </li>
+ <li> It also sets the GIDLIST environment variable to a comma-separated list of
+supplementary group ids <em>account</em> is a member of according to the
+group database. (If <em>account</em> doesn't belong to any other group than its
+primary group, GIDLIST is still set, but empty.) </li>
+ <li> Then it executes into <em>prog...</em>. </li>
+</ul>
+
+<h2> Notes </h2>
+
+<p>
+ s6-envuidgid behaves like
+<a href="http://cr.yp.to/daemontools/envuidgid.html">envuidgid</a>, except that:
+</p>
+
+<ul>
+ <li> it also handles supplementary groups </li>
+ <li> It exits 1 if <em>account</em> does not exist. </li>
+</ul>
+
+<p>
+ s6-envuidgid is useful when running a program that must start as root but can
+drop its privileges later. Such a program can read its new uid/gid/groups info
+from the UID, GID and GIDLIST environment variables. Superservers such as
+<a href="http://skarnet.org/software/s6-networking/s6-tcpserver4.html">s6-tcpserver4</a>
+make use of this.
+</p>
+
+</body>
+</html>

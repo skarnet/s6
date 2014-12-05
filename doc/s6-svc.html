@@ -1,0 +1,104 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-svc program</title>
+    <meta name="Description" content="s6: the s6-svc program" />
+    <meta name="Keywords" content="s6 command s6-svc supervise command service" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-svc program </h1>
+
+<p>
+s6-svc sends commands to a running <a href="s6-supervise.html">s6-supervise</a>
+process. In other words, it's used to control a supervised process; among
+other benefits, it allows an administrator to send signals to daemons without
+knowing their PIDs, and without using horrible hacks such as .pid files.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-svc [ -abqhkti12fFpcoduxO ] <em>servicedir</em>
+</pre>
+
+<p>
+s6-svc sends the given series of commands to the
+<a href="s6-supervise.html">s6-supervise</a> process monitoring the
+<em>servicedir</em> directory, then exits 0. It exits 111 if it cannot send
+a command, or 100 if no s6-supervise process is running on <em>servicedir</em>.
+</p>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-a</tt>&nbsp;: send a SIGALRM to the supervised process </li>
+ <li> <tt>-b</tt>&nbsp;: send a SIGABRT to the supervised process </li>
+ <li> <tt>-q</tt>&nbsp;: send a SIGQUIT to the supervised process </li>
+ <li> <tt>-h</tt>&nbsp;: send a SIGHUP to the supervised process </li>
+ <li> <tt>-k</tt>&nbsp;: send a SIGKILL to the supervised process </li>
+ <li> <tt>-t</tt>&nbsp;: send a SIGTERM to the supervised process </li>
+ <li> <tt>-i</tt>&nbsp;: send a SIGINT to the supervised process </li>
+ <li> <tt>-1</tt>&nbsp;: send a SIGUSR1 to the supervised process </li>
+ <li> <tt>-2</tt>&nbsp;: send a SIGUSR2 to the supervised process </li>
+ <li> <tt>-p</tt>&nbsp;: send a SIGSTOP to the supervised process </li>
+ <li> <tt>-c</tt>&nbsp;: send a SIGCONT to the supervised process </li>
+ <li> <tt>-o</tt>&nbsp;: once. Equivalent to "-uO". </li>
+ <li> <tt>-d</tt>&nbsp;: down. If the supervised process is up, send it
+a SIGTERM and a SIGCONT. Do not restart it. </li>
+ <li> <tt>-u</tt>&nbsp;: up. If the supervised process is down, start it.
+Automatically restart it when it dies. </li>
+ <li> <tt>-x</tt>&nbsp;: exit. When the service is asked to be down and
+the supervised process dies, supervise will exit too. This command should
+normally never be used on a working system. </li>
+ <li> <tt>-O</tt>&nbsp;: Once at most. Do not restart the supervised process
+when it dies. If it is down when the command is received, do not even start
+it. </li>
+ <li> <tt>-f</tt>,&nbsp;<tt>-F</tt>&nbsp;: unused for now. </li>
+</ul>
+
+<h2> Usage examples </h2>
+
+<pre> s6-svc -h /service/httpd </pre>
+<p>
+ Send a SIGHUP to the process represented by the <tt>/service/httpd</tt>
+service directory. Traditionally, this makes web servers reload their
+configuration file.
+</p>
+
+<pre> s6-svc -t /service/sshd </pre>
+<p>
+ Kill (and automatically restart, if the wanted state of the service is up)
+the process represented by the <tt>/service/sshd</tt> service directory -
+typically the sshd server.
+</p>
+
+<pre> s6-svc -d /service/ftpd </pre>
+<p>
+ Take down the ftpd server.
+</p>
+
+<pre> s6-svc -a /service/httpd/log </pre>
+<p>
+ Send a SIGALRM to the logger process for the httpd server. If this logger
+process is <a href="s6-log.html">s6-log</a>, this triggers a log rotation.
+</p>
+
+<h2> Internals </h2>
+
+<p>
+s6-svc writes control commands into the <tt><em>servicedir</em>/supervise/control</tt>
+FIFO. A s6-supervise process running on <em>servicedir</em> will be listening to this FIFO,
+and will read and interpret those commands.
+</p>
+
+</body>
+</html>

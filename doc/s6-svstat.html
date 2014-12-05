@@ -1,0 +1,45 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-svstat program</title>
+    <meta name="Description" content="s6: the s6-svstat program" />
+    <meta name="Keywords" content="s6 command s6-svstat servicedir checking supervision s6-supervise" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-svstat program </h1>
+
+<p>
+s6-svstat prints a short, human-readable summary of the state of a supervised
+service.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-svstat <em>servicedir</em>
+</pre>
+
+<p>
+ s6-svstat gives the following information about the process being monitored
+at the <em>servicedir</em> <a href="servicedir.html">service directory</a>, then
+exits 0:
+</p>
+
+<ul>
+ <li> whether it is up or down </li>
+ <li> its pid, if it is up </li>
+ <li> what its default state is, if it is different from its current state </li>
+ <li> the number of seconds since it last changed states </li>
+</ul>
+
+</body>
+</html>

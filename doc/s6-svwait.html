@@ -1,0 +1,73 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-svwait program</title>
+    <meta name="Description" content="s6: the s6-svwait program" />
+    <meta name="Keywords" content="s6 command s6-svwait notification service waiting" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-svwait program </h1>
+
+<p>
+s6-svwait blocks until a collection of supervised services goes up, or down.
+</p>
+
+<p>
+s6-svwait only waits for notifications; it never polls.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-svwait [ -U | -u | -d ] [ -a | -o ] [ -t <em>timeout</em> ] <em>servicedir...</em>
+</pre>
+
+<p>
+s6-svwait monitors one or more <a href="servicedir.html">service
+directories</a> given as its arguments, waiting for a state (up or down) to
+happen. It exits 0 when the wanted condition becomes true.
+</p>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-u</tt>&nbsp;: up. s6-svwait will wait until the services are up, as
+reported by s6-supervise.
+This is the default; it is not reliable, but it does not depend on specific
+support in the service programs. See <a href="notifywhenup.html">this page</a>
+for details. </li>
+ <li> <tt>-U</tt>&nbsp;: really up. s6-svwait will wait until the services are
+up, as reported by the services themselves. This requires specific support in the
+service programs: see the explanation on <a href="notifywhenup.html">this page</a>. </li>
+ <li> <tt>-d</tt>&nbsp;: down. s6-svwait will wait until the services are down. </li>
+ <li> <tt>-o</tt>&nbsp;: or. s6-svwait will wait until <em>one</em> of the
+given services comes up or down. </li>
+ <li> <tt>-a</tt>&nbsp;: and. s6-svwait will wait until <em>all</em> of the
+given services come up or down. This is the default. </li>
+ <li> <tt>-t <em>timeout</em></tt>&nbsp;: if the requested events have not
+happened after <em>timeout</em> milliseconds, s6-svwait will print a message
+to stderr and exit 1. By default, <em>timeout</em> is 0, which means no time
+limit. </li>
+</ul>
+
+
+<h2> Internals </h2>
+
+<p>
+s6-svwait spawns a <a href="s6-ftrigrd.html">s6-ftrigrd</a> child to
+listen to notifications sent by <a href="s6-supervise.html">s6-supervise</a>.
+It also checks <tt>supervise/status</tt> files to get the current service
+states, so it is immune to race conditions.
+</p>
+
+</body>
+</html>

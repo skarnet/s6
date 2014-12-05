@@ -1,0 +1,73 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-ftrig-listen program</title>
+    <meta name="Description" content="s6: the s6-ftrig-listen program" />
+    <meta name="Keywords" content="s6 command s6-ftrig-listen fifodir notification event listener subscriber receive" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-ftrig-listen program </h1>
+
+<p>
+s6-ftrig-listen subscribes to several <a href="fifodir.html">fifodirs</a>, then
+spawns a program, then waits for pattern of events to occur on the fifodirs.
+</p>
+
+<h2> Interface </h2>
+
+<p>
+ In an <a href="http://skarnet.org/software/execline/execlineb.html">execlineb</a>
+script:
+</p>
+
+<pre>
+     s6-ftrig-listen [ -a | -o ] [ -t <em>timeout</em> ] { <em>fifodir1</em> <em>regexp1</em> <em>fifodir2</em> <em>regexp2</em> ... } <em>prog...</em>
+</pre>
+
+<ul>
+ <li> s6-ftrig-listen subscribes to <em>fifodir1</em> with the regexp <em>regexp1</em>,
+to <em>fifodir2</em> with the regexp <em>regexp2</em>, and so on. </li>
+ <li> It then forks and exec <em>prog...</em> with all its arguments </li>
+ <li> It waits for the series of events received on <em>fifodir-i</em>
+to match <em>regexp-i</em>,  The <em>regexp-i</em> must be
+<a href="http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap09.html#tag_09_04">extended
+regular expressions</a>. </li>
+ <li> When the series of read events matches the <em>regexp</em>s,
+s6-ftrig-listen exits 0. </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-t <em>timeout</em></tt>&nbsp;: if the events on the <em>fifodir</em>s have not
+matched the <em>regexp</em>s after <em>timeout</em> milliseconds, print an error message on
+stderr and exit 1. By default, s6-ftrig-listen1 waits indefinitely for a matching series
+of events. </li>
+ <li> <tt>-a</tt>&nbsp;: and (conjunction). s6-ftrig-listen will only exit when <em>all</em>
+the <em>fifodir-i</em> have been notified with events matching the corresponding <em>regexp-i</em>.
+This is the default. </li>
+ <li> <tt>-o</tt>&nbsp;: one (disjunction). s6-ftrig-listen will exit as soon as <em>one</em>
+of the <em>fifodir-i</em> has been notified with events matching its <em>regexp-i</em>. </li>
+</ul>
+
+<h2> Notes </h2>
+
+<p>
+ s6-ftrig-listen can be used outside of an execlineb script by using the
+internal argv syntax, but this syntax is an implementation detail and is
+not documented as stable. In a shell
+script, use <tt>execlineb -Pc 's6-ftrig-listen ...'</tt> to get the
+benefits of the execlineb brace syntax.
+</p>
+
+</body>
+</html>

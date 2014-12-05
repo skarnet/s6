@@ -1,0 +1,283 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the ftrigr library interface</title>
+    <meta name="Description" content="s6: the ftrigr library interface" />
+    <meta name="Keywords" content="s6 ftrig notification subscriber listener libftrigr ftrigr library interface" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>ftrigr</tt> library interface </h1>
+
+<p>
+ The <tt>ftrigr</tt> library provides an API for listeners, i.e.
+programs that want to subscribe to fifodirs and be instantly
+notified when the proper sequence of events happens.
+</p>
+
+<h2> Compiling </h2>
+
+<ul>
+ <li> Make sure the s6 headers, as well as the skalibs headers,
+are visible in your header search path. </li>
+ <li> Use <tt>#include &lt;s6/ftrigr.h&gt;</tt> </li>
+</ul>
+
+<h2> Linking </h2>
+
+<ul>
+ <li> Make sure the s6 libraries, as well as the skalibs libraries,
+are visible in your library search path. </li>
+ <li> Link against <tt>-ls6</tt> and <tt>-lskarnet</tt>. </li>
+</ul>
+
+<h2> Programming </h2>
+
+<p>
+ Check the <tt>s6/ftrigr.h</tt> header for the
+exact function prototypes.
+</p>
+
+<p>
+ Make sure your application is not disturbed by children it doesn't
+know it has. This means paying some attention to the SIGCHLD handler,
+if any, and to the way you perform <tt>waitpid()</tt>s. The best
+practice is to use a
+<a href="http://www.skarnet.org/software/skalibs/libstddjb/selfpipe.html">self-pipe</a>
+to handle SIGCHLD (as well as other signals the application needs to trap),
+and to <em>always</em> use <tt>wait_nohang()</tt> to reap children,
+simply ignoring pids you don't know.
+</p>
+
+<p>
+ If your (badly programmed) application has trouble handling unknown
+children, consider using a ftrigrd service.
+</p>
+
+<h3> A programming example </h3>
+
+<p>
+ The <tt>src/pipe-tools/s6-ftrig-listen1.c</tt> and
+<tt>src/supervision/s6-svwait.c</tt> files in the s6 package,
+for instance, illustrate how to use the ftrigr library.
+</p>
+
+
+<h3> Synchronous functions with a specified maximum execution time </h3>
+
+<ul>
+ <li> Synchronous functions take a <tt>tain_t const *</tt>
+(<em>deadline</em>) parameter and a <tt>tain_t *</tt> (<em>stamp</em>)
+parameter. Those are pointers to taia structures containing absolute times;
+the former represents a deadline (in most cases, this time will be in the
+future) and the latter must be an accurate enough timestamp. These
+structures can be filled using the <tt>tain_</tt> primitives declared in
+<a href="http://skarnet.org/software/skalibs/libstddjb/tai.html">skalibs/tai.h</a>. </li>
+ <li> ("Accurate enough" means that <strong>no blocking system call must have
+been made</strong> since the last time <em>stamp</em> was updated (by
+<tt>tain_now(&amp;stamp)</tt>). It's a good policy to always update
+<em>stamp</em> right after a (potentially) blocking system call like
+<tt>select()</tt>returns. And unless the application is extremely CPU-intensive
+(think calculus for physicists or astronomers) updating <em>stamp</em> more
+frequently is unnecessary.) </li>
+ <li> If such a synchronous function still hasn't returned when the deadline
+occurs, then it will immediately return a failure code and set errno to ETIMEDOUT.
+It is possible to pass null pointers to the function instead of pointers to
+taia structures, in which case the function will never timeout. </li>
+ <li> If a timeout occurs, the library does not guarantee proper interprocess
+communication later on; the application should either die, or at least close
+the communication channel and open a new one. </li>
+ <li> If any waiting occurred, the <em>stamp</em> structure is automatically
+updated by the called function, so it always represents an accurate enough estimation
+of the current time. This allows the programmer to call several such functions
+in a sequence without modifying the <em>deadline</em> and <em>stamp</em>
+parameters: then the whole sequence is bound in execution time. </li>
+ <li> This is a general safety mechanism implemented in
+<a href="http://skarnet.org/software/skalibs/libunixonacid/">libunixonacid</a>:
+in interprocess communication, purely synchronous primitives are dangerous
+because they make the calling process rely on proper behaviour of the called
+process. Giving synchronous primitives the ability to timeout allows developers
+to write reliable programs even when interacting with software they have no
+control on. </li>
+</ul>
+
+
+<h3> Starting and ending a session </h3>
+
+<pre>
+ftrigr_t a = FTRIGR_ZERO ;
+struct taia deadline, stamp ;
+
+taia_now(&amp;stamp) ;
+taia_addsec(&amp;deadline, &amp;stamp, 2)
+
+// char const *path = FTRIGR_IPCPATH ;
+// ftrigr_start(&amp;a, path, &amp;deadline, &amp;stamp) ;
+ftrigr_startf(&amp;a, &amp;deadline, &amp;stamp) ;
+</pre>
+
+<p>
+<tt>ftrigr_start</tt> starts a session with a ftrigrd service listening on
+<em>path</em>. <br />
+<tt>ftrigr_startf</tt> starts a session with a ftrigrd process as a child
+(which is the simplest usage). <br />
+<tt>a</tt> is a ftrigr_t structure that must be declared in the stack and
+initialized to FTRIGR_ZERO.
+<tt>stamp</tt> must be an accurate enough timestamp. <br />
+If the session initialization fails, the function returns 0 and errno is set;
+else the function returns 1.
+</p>
+<p>
+If the absolute time <tt>deadline</tt> is reached and the function
+has not returned yet, it immediately returns 0 with errno set to ETIMEDOUT.
+
+Only local interprocess communications are involved; unless your system is
+heavily overloaded, the function should return near-instantly. One or two
+seconds of delay between <tt>stamp</tt> and <tt>deadline</tt> should be
+enough: if the function takes more than that to return, then there is a
+problem with the underlying processes.
+</p>
+
+<p>
+ You can have more than one session open in parallel, by declaring
+several distinct <tt>ftrigr_t</tt> structures and calling
+<tt>ftrigr_startf</tt> (or <tt>ftrigr_start</tt>) more than once.
+However, this is useless, since one single session can handle
+virtually as many concurrent fifodirs as your application needs.
+</p>
+
+<pre>
+ftrigr_end(&amp;a) ;
+</pre>
+
+<p>
+<tt>ftrigr_end</tt> frees all the resources used by the session. The
+<tt>a</tt> structure is then reusable for another session.
+</p>
+
+<h3> Subscribing to a fifodir </h3>
+
+<pre>
+char const *path = "/var/lib/myservice/fifodir" ;
+char const *re = "a.*b|c*d" ;
+uint32 options = 0 ;
+
+uint16 id = ftrigr_subscribe (&amp;a, path, re, options, &amp;deadline, &amp;stamp) ;
+</pre>
+
+<p>
+<tt>ftrigr_subscribe</tt> instructs the
+<a href="s6-ftrigrd.html">s6-ftrigrd daemon</a>, related to the open
+session represented by the <tt>a</tt> structure, to subscribe to the
+<tt>path</tt> fifodir, and to notify the application when it receives
+a series of events that matches the <tt>re</tt> regexp.
+<tt>options</tt> can be 0 or FTRIGR_REPEAT. If it is 0, the daemon will
+automatically unsubscribe from <tt>path</tt> once <tt>re</tt> has been
+matched by a series of events. If it is FTRIGR_REPEAT, it will remain
+subscribed until told otherwise.
+</p>
+
+<p>
+ <tt>ftrigr_subscribe()</tt> returns 0 and sets errno in case of failure, or
+a nonzero 16-bit number identifying the subscription in case of success.
+</p>
+
+<p>
+<tt>ftrigr_subscribe</tt> should return near-instantly, but if
+<em>deadline</em> is reached, it will return 0 ETIMEDOUT. If
+<tt>ftrigr_subscribe</tt> returns successfully, then the
+s6-ftrigrd daemon is guaranteed to be listening on <tt>path</tt>,
+and events can be sent without the risk of a race condition.
+</p>
+
+<h3> Synchronously waiting for events </h3>
+
+<pre>
+uint16 list[1] ;
+unsigned int n = 1 ;
+char trigger ;
+list[0] = id ;
+
+// r = ftrigr_wait_and(&amp;a, list, n, &amp;deadline) ;
+r = ftrigr_wait_or(&amp;a, list, n, &amp;deadline, &amp;trigger) ;
+</pre>
+
+<p>
+ <tt>ftrigr_wait_and()</tt> waits for <em>all</em> the <tt>n</tt> fifodirs
+whose ids are listed in <tt>list</tt> to receive an event. It returns -1
+in case of error or timeout, or a non-negative integer in case of success. <br />
+ <tt>ftrigr_wait_or()</tt> waits for <em>one</em> of the <tt>n</tt> fifodirs
+whose ids are listed in <tt>list</tt> to receive an event. It returns -1
+in case of error or timeout; if it succeeds, the return value is the
+position in <tt>list</tt>, starting at 0, of the identifier that received
+an event; and <tt>trigger</tt> is set to the character that triggered that
+event, i.e. the last character of a sequence that matched the regular
+expression <tt>re</tt> used in the subscription.
+</p>
+
+<h3> Asynchronously waiting for events </h3>
+
+<p>
+<em> (from now on, the functions are listed with their prototypes instead
+of usage examples.) </em>
+</p>
+
+<pre>
+int ftrigr_fd (struct ftrigr const *a)
+</pre>
+
+<p>
+ Returns a file descriptor to select on for reading. Do not
+<tt>read()</tt> it though.
+</p>
+
+<pre>
+int ftrigr_update (ftrigr_ref a)
+</pre>
+
+<p>
+ Call this function whenever the fd checks readability: it will
+update <em>a</em>'s internal structures with information from the
+<a href="s6-ftrigrd.html">s6-ftrigrd</a> daemon. It returns -1 if an error
+occurs; in case of success, it returns the number of identifiers for
+which something happened.
+</p>
+
+<p>
+ When <tt>ftrigr_update</tt> returns,
+<tt>genalloc_s(uint16, &amp;a-&gt;list)</tt> points to an array of
+<tt>genalloc_len(uint16, &amp;a-&gt;list)</tt> 16-bit unsigned
+integers. Those integers are ids waiting to be passed to
+<tt>ftrigr_check</tt>.
+</p>
+
+<pre>
+int ftrigr_check (ftrigr_ref a, uint16 id, char *what)
+</pre>
+
+<p>
+ Checks whether an event happened to <em>id</em>. Use after a
+call to <tt>ftrigr_update()</tt>.
+</p>
+
+<ul>
+ <li> If an error occurred, returns -1 and sets errno. The error
+number may have been transmitted from
+<a href="s6-ftrigrd.html">s6-ftrigrd</a>. </li>
+ <li> If no notification happened yet, returns 0. </li>
+ <li> If something happened, writes the character that triggered the
+latest notification into <em>what</em> and returns the number of
+times that an event happened to this identifier since the last
+call to <tt>ftrigr_check()</tt>. </li>
+</ul>
+
+</body>
+</html>
