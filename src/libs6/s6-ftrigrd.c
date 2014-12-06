@@ -166,7 +166,7 @@ static int parse_protocol (unixmessage_t const *m, void *context)
         answer(errno) ;
         break ;
       }
-      if (!buffer_init(&buffer_read, f.fd, f.buf, FTRIGRD_BUFSIZE))
+      if (!buffer_init(&buffer_read, f.trig.fd, f.buf, FTRIGRD_BUFSIZE))
       {
         ftrigio_deepfree(&f) ;
         answer(errno) ;
