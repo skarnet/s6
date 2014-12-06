@@ -23,7 +23,7 @@
 #include <s6/ftrigr.h>
 
 #define FTRIGRD_MAXREADS 32
-#define FTRIGRD_BUFSIZE 16
+#define FTRIGRD_BUFSIZE 17
 
 #define dienomem() strerr_diefu1sys(111, "stralloc_catb")
 
@@ -163,6 +163,12 @@ static int parse_protocol (unixmessage_t const *m, void *context)
       if (!ftrig1_make(&f.trig, m->s + 15))
       {
         regfree(&f.re) ;
+        answer(errno) ;
+        break ;
+      }
+      if (!buffer_init(&buffer_read, f.fd, f.buf, FTRIGRD_BUFSIZE))
+      {
+        ftrigio_deepfree(&f) ;
         answer(errno) ;
         break ;
       }
