@@ -371,13 +371,13 @@ cat <<EOF
 #define ${package_macro_name}_VERSION "$version"
 EOF
 if $slashpackage ; then
-  echo "#define ${package_macro_name}_BINPREFIX \"$binprefix\""
-  echo "#define ${package_macro_name}_EXTBINPREFIX \"$extbinprefix\""
-  echo "#define ${package_macro_name}_LIBEXECPREFIX \"$binprefix\""
+  echo "#define ${package_macro_name}_BINPREFIX \"$binprefix/\""
+  echo "#define ${package_macro_name}_EXTBINPREFIX \"$extbinprefix/\""
+  echo "#define ${package_macro_name}_LIBEXECPREFIX \"$binprefix/\""
 else
   echo "#define ${package_macro_name}_BINPREFIX \"\""
   echo "#define ${package_macro_name}_EXTBINPREFIX \"\""
-  echo "#define ${package_macro_name}_LIBEXECPREFIX \"$libexecdir\""
+  echo "#define ${package_macro_name}_LIBEXECPREFIX \"$libexecdir/\""
 fi
 echo
 echo "#endif"

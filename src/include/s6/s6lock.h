@@ -14,8 +14,8 @@
 
  /* Constants */
 
-#define S6LOCKD_PROG S6_BINPREFIX "/s6lockd"
-#define S6LOCKD_HELPER_PROG S6_BINPREFIX "/s6lockd-helper"
+#define S6LOCKD_PROG S6_BINPREFIX "s6lockd"
+#define S6LOCKD_HELPER_PROG S6_BINPREFIX "s6lockd-helper"
 
 #define S6LOCK_BANNER1 "s6lock v1.0 (b)\n"
 #define S6LOCK_BANNER1_LEN (sizeof S6LOCK_BANNER1 - 1)
