@@ -36,7 +36,8 @@ being a leaf.
 <a href="servicedir.html">service directory</a>. </li>
  <li> It exits 100 if another s6-supervise process is already monitoring this service. </li>
  <li> If the <tt>./event</tt> <a href="fifodir.html">fifodir</a> does not exist,
-s6-supervise creates it and allows public subscriptions to it.
+s6-supervise creates it and allows subscriptions to it from processes having the same
+effective group id as the s6-supervise process.
 If it already exists, it uses it as is, without modifying the subscription rights. </li>
  <li> It <a href="libftrigw.html">sends</a> a <tt>'s'</tt> event to <tt>./event</tt>. </li>
  <li> If the default service state is up, s6-supervise spawns <tt>./run</tt>. </li>

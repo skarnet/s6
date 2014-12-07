@@ -69,5 +69,11 @@ to read them. To avoid uncontrolled growth, make sure your client calls
 <tt>ftrigr_update()</tt> as soon as <tt>ftrigr_fd()</tt> becomes readable.
 </p>
 
+<p>
+ A s6-ftrigrd instance can only handle up to FTRIGRD_MAX (defined in <tt>s6/ftrigr.h</tt>)
+subscriptions at once. By default, this number is 1000, which is more than enough for
+any reasonable system.
+</p>
+
 </body>
 </html>
