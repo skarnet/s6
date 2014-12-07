@@ -11,7 +11,6 @@
 #include <skalibs/strerr2.h>
 #include <skalibs/buffer.h>
 #include <skalibs/stralloc.h>
-#include <skalibs/genalloc.h>
 #include <skalibs/bufalloc.h>
 #include <skalibs/sig.h>
 #include <skalibs/tai.h>
@@ -40,25 +39,26 @@ struct ftrigio_s
   uint16 id ; /* given by client */
 } ;
 #define FTRIGIO_ZERO { .xindex = 0, .trig = FTRIG1_ZERO, .b = BUFFER_INIT(0, -1, 0, 0), .buf = "", .sa = STRALLOC_ZERO, .options = 0, .id = 0 }
-static ftrigio_t const fzero = FTRIGIO_ZERO ;
+static ftrigio_t const ftrigio_zero = FTRIGIO_ZERO ;
 
-static genalloc a = GENALLOC_ZERO ; /* array of ftrigio_t */
+static ftrigio_t a[FTRIGR_MAX] ;
+static unsigned int n = 0 ;
 
-static void ftrigio_deepfree (ftrigio_t_ref p)
+static void ftrigio_deepfree (ftrigio_t *p)
 {
   ftrig1_free(&p->trig) ;
   stralloc_free(&p->sa) ;
   regfree(&p->re) ;
-  *p = fzero ;
+  *p = ftrigio_zero ;
 }
 
 static void cleanup (void)
 {
-  register unsigned int i = genalloc_len(ftrigio_t, &a) ;
-  for (; i ; i--) ftrigio_deepfree(genalloc_s(ftrigio_t, &a) + i - 1) ;
-  genalloc_setlen(ftrigio_t, &a, 0) ;
+  register unsigned int i = 0 ;
+  for (; i < n ; i++) ftrigio_deepfree(a + i) ;
+  n = 0 ;
 }
- 
+
 static void trig (uint16 id, char what, char info)
 {
   char pack[4] ;
@@ -84,16 +84,15 @@ static void answer (char c)
 
 static void remove (unsigned int i)
 {
-  register unsigned int n = genalloc_len(ftrigio_t, &a) - 1 ;
-  ftrigio_deepfree(genalloc_s(ftrigio_t, &a) + i) ;
-  genalloc_s(ftrigio_t, &a)[i] = genalloc_s(ftrigio_t, &a)[n] ;
-  genalloc_setlen(ftrigio_t, &a, n) ;
+  ftrigio_deepfree(a + i) ;
+  a[i] = a[--n] ;
+  a[i].b.c.x = a[i].buf ;
 }
 
 static inline int ftrigio_read (ftrigio_t *p)
 {
-  unsigned int n = FTRIGRD_MAXREADS ;
-  while (n--)
+  unsigned int i = FTRIGRD_MAXREADS ;
+  while (i--)
   {
     regmatch_t pmatch ;
     unsigned int blen ;
@@ -129,23 +128,22 @@ static int parse_protocol (unixmessage_t const *m, void *context)
   {
     case 'U' : /* unsubscribe */
     {
-      register unsigned int i = genalloc_len(ftrigio_t, &a) ;
-      for (; i ; i--) if (genalloc_s(ftrigio_t, &a)[i-1].id == id) break ;
-      if (i) remove(i-1) ;
+      register unsigned int i = 0 ;
+      for (; i < n ; i++) if (a[i].id == id) break ;
+      if (i < n) remove(i) ;
       answer(0) ;
       break ;
     }
     case 'L' : /* subscribe to path and match re */
     {
-      ftrigio_t f = FTRIGIO_ZERO ;
-      uint32 pathlen, relen ;
+      uint32 options, pathlen, relen ;
       int r ;
-      if (m->len < 18)
+      if (m->len < 19)
       {
         answer(EPROTO) ;
         break ;
       }
-      uint32_unpack_big(m->s + 3, &f.options) ;
+      uint32_unpack_big(m->s + 3, &options) ;
       uint32_unpack_big(m->s + 7, &pathlen) ;
       uint32_unpack_big(m->s + 11, &relen) ;
       if (((pathlen + relen + 17) != m->len) || m->s[15 + pathlen] || m->s[m->len - 1])
@@ -153,31 +151,32 @@ static int parse_protocol (unixmessage_t const *m, void *context)
         answer(EPROTO) ;
         break ;
       }
-      f.id = id ;
-      r = regcomp(&f.re, m->s + 16 + pathlen, REG_EXTENDED) ;
+      if (n >= FTRIGR_MAX)
+      {
+        answer(ENFILE) ;
+        break ;
+      }
+      a[n].options = options ;
+      a[n].id = id ;
+      r = regcomp(&a[n].re, m->s + 16 + pathlen, REG_EXTENDED) ;
       if (r)
       {
         answer(r == REG_ESPACE ? ENOMEM : EINVAL) ;
         break ;
       }
-      if (!ftrig1_make(&f.trig, m->s + 15))
+      if (!ftrig1_make(&a[n].trig, m->s + 15))
       {
-        regfree(&f.re) ;
+        regfree(&a[n].re) ;
         answer(errno) ;
         break ;
       }
-      if (!buffer_init(&f.b, &buffer_read, f.trig.fd, f.buf, FTRIGRD_BUFSIZE))
+      if (!buffer_init(&a[n].b, &buffer_read, a[n].trig.fd, a[n].buf, FTRIGRD_BUFSIZE))
       {
-        ftrigio_deepfree(&f) ;
+        ftrigio_deepfree(a + n) ;
         answer(errno) ;
         break ;
       }
-      if (!genalloc_append(ftrigio_t, &a, &f))
-      {
-        ftrigio_deepfree(&f) ;
-        answer(errno) ;
-        break ;
-      }
+      n++ ;
       answer(0) ;
       break ;
     }
@@ -209,7 +208,6 @@ int main (void)
 
   for (;;)
   {
-    register unsigned int n = genalloc_len(ftrigio_t, &a) ;
     iopause_fd x[3 + n] ;
     unsigned int i = 0 ;
 
@@ -219,9 +217,8 @@ int main (void)
     x[2].events = IOPAUSE_EXCEPT | (unixmessage_sender_isempty(unixmessage_sender_x) ? 0 : IOPAUSE_WRITE) ;
     for (; i < n ; i++)
     {
-      register ftrigio_t_ref p = genalloc_s(ftrigio_t, &a) + i ;
-      p->xindex = 3 + i ;
-      x[3+i].fd = p->trig.fd ;
+      a[i].xindex = 3 + i ;
+      x[3+i].fd = a[i].trig.fd ;
       x[3+i].events = IOPAUSE_READ ;
     }
 
@@ -249,11 +246,10 @@ int main (void)
       }
 
    /* scan listening ftrigs */
-    for (i = 0 ; i < genalloc_len(ftrigio_t, &a) ; i++)
+    for (i = 0 ; i < n ; i++)
     {
-      register ftrigio_t_ref p = genalloc_s(ftrigio_t, &a) + i ;
-      if (x[p->xindex].revents & IOPAUSE_READ)
-        if (!ftrigio_read(p)) remove(i--) ;
+      if (x[a[i].xindex].revents & IOPAUSE_READ)
+        if (!ftrigio_read(a+i)) remove(i--) ;
     }
 
    /* client is writing */

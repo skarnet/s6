@@ -23,6 +23,8 @@
 #define FTRIGR_BANNER2 "ftrigr v1.0 (a)\n"
 #define FTRIGR_BANNER2_LEN (sizeof FTRIGR_BANNER2 - 1)
 
+#define FTRIGR_MAX 1000
+
 
  /* Internals of the ftrigr_t */
 
