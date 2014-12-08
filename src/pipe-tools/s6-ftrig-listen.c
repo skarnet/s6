@@ -78,17 +78,8 @@ int main (int argc, char const **argv, char const *const *envp)
       if (!ids[i]) strerr_diefu4sys(111, "subscribe to ", argv[i<<1], " with regexp ", argv[(i<<1)+1]) ;
     }
 
-    pid = fork() ;
-    switch (pid)
-    {
-      case -1 : strerr_diefu1sys(111, "fork") ;
-      case 0  :
-      {
-        PROG = "s6-ftrig-listen (child)" ;
-        pathexec_run(argv[argc1 + 1], argv + argc1 + 1, envp) ;
-        strerr_dieexec(111, argv[argc1 + 1]) ;
-      }
-    }
+    pid = child_spawn0(argv[argc1 + 1], argv + argc1 + 1, envp) ;
+    if (!pid) strerr_diefu2sys(111, "spawn ", argv[argc1 + 1]) ;
 
     for (;;)
     {

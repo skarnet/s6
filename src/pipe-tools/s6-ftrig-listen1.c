@@ -65,17 +65,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (sig_ignore(SIGPIPE) < 0) strerr_diefu1sys(111, "sig_ignore") ;
   x[1].fd = ftrigr_fd(&a) ;
 
-  pid = fork() ;
-  switch (pid)
-  {
-    case -1 : strerr_diefu1sys(111, "fork") ;
-    case 0  :
-    {
-      PROG = "s6-ftrig-listen1 (child)" ;
-      pathexec_run(argv[2], argv+2, envp) ;
-      strerr_dieexec(111, argv[2]) ;
-    }
-  }
+  pid = child_spawn0(argv[2], argv+2, envp) ;
+  if (!pid) strerr_diefu2sys(111, "spawn ", argv[2]) ;
 
   for (;;)
   {
