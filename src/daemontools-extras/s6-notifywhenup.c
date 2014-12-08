@@ -22,16 +22,17 @@ static int run_child (int fd, char const *fifodir, unsigned int timeout)
   int haswritten = 0 ;
   register int r = 0 ;
   if (!tain_now_g()) strerr_diefu1sys(111, "tain_now") ;
-  tain_from_millisecs(&deadline, timeout) ;
+  if (timeout) tain_from_millisecs(&deadline, timeout) ;
+  else deadline = tain_infinite_relative ;
   tain_add_g(&deadline, &deadline) ;
   while (!r)
   {
-    register int r = iopause_g(&x, 1, &deadline) ;
+    r = iopause_g(&x, 1, &deadline) ;
     if (r < 0) strerr_diefu1sys(111, "iopause") ;
     if (!r) return 99 ;
     while (r > 0)
     {
-      r = sanitize_read(fd_read(fd, dummy, 4096)) ;
+      r = sanitize_read(fd_read(fd, dummy, 4096)) ; /* talk to the hand */
       if (r > 0) haswritten = 1 ;
     }
   }
@@ -72,7 +73,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     if (pipe(p) < 0) strerr_diefu1sys(111, "pipe") ;
     pid = df ? doublefork() : fork() ;
     if (pid < 0) strerr_diefu1sys(111, df ? "doublefork" : "fork") ;
-    else if (pid)
+    else if (!pid)
     {
       PROG = "s6-notifywhenup (child)" ;
       fd_close(p[1]) ;
