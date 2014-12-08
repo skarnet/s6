@@ -4,6 +4,7 @@
 #include <skalibs/uint16.h>
 #include <skalibs/tai.h>
 #include <skalibs/iopause.h>
+#include <skalibs/error.h>
 #include <s6/s6lock.h>
 
 int s6lock_wait_or (s6lock_t *a, uint16 const *idlist, unsigned int n, tain_t const *deadline, tain_t *stamp)
