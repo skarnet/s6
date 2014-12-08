@@ -278,13 +278,6 @@ tryflag CPPFLAGS_AUTO -Werror=implicit-function-declaration
 tryflag CPPFLAGS_AUTO -Werror=implicit-int
 tryflag CPPFLAGS_AUTO -Werror=pointer-sign
 tryflag CPPFLAGS_AUTO -Werror=pointer-arith
-tryflag CPPFLAGS_AUTO -Wno-parentheses
-tryflag CPPFLAGS_AUTO -Wno-uninitialized
-tryflag CPPFLAGS_AUTO -Wno-missing-braces
-tryflag CPPFLAGS_AUTO -Wno-unused-value
-tryflag CPPFLAGS_AUTO -Wno-unused-but-set-variable
-tryflag CPPFLAGS_AUTO -Wno-unknown-pragmas
-tryflag CPPFLAGS_AUTO -Wno-pointer-to-int-cast
 
 if $evenmorestatic ; then
   LDFLAGS_NOSHARED=-static
