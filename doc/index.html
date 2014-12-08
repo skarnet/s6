@@ -82,7 +82,7 @@ supervision that might help you understand the basics.
 
 <ul>
  <li> <a href="upgrade.html">This page</a> lists the differences to be aware of between
-the previous versions of execline and the current one. </li>
+the previous versions of s6 and the current one. </li>
 </ul>
 
 <hr />
@@ -114,6 +114,7 @@ a user interface to control those processes and monitor service states.
 <li><a href="s6-svok.html">The <tt>s6-svok</tt> program</a></li>
 <li><a href="s6-svstat.html">The <tt>s6-svstat</tt> program</a></li>
 <li><a href="s6-svwait.html">The <tt>s6-svwait</tt> program</a></li>
+<li><a href="s6-notifywhenup.html">The <tt>s6-notifywhenup</tt> program</a> </li>
 </ul>
 
 <h4> Other daemontools-like utilities </h4>
@@ -141,7 +142,6 @@ counterpart.
 <li><a href="s6-tai64n.html">The <tt>s6-tai64n</tt> program</a></li>
 <li><a href="s6-tai64nlocal.html">The <tt>s6-tai64nlocal</tt> program</a></li>
 <li><a href="ucspilogd.html">The <tt>ucspilogd</tt> program</a></li>
-<li><a href="s6-notifywhenup.html">The <tt>s6-notifywhenup</tt> program</a> (NEW in 2.0.0.0)</li>
 </ul>
 
 <h4> Fifodir management, notification and subscription </h4>
@@ -240,9 +240,7 @@ traditional init system for Linux. </li>
 for Linux, with complete service management, that comes with the Ubuntu
 distribution. It includes a coffee machine and the kitchen sink.</li>
  <li> Because Upstart wasn't bloated or unreliable enough, someone came up with
-<a href="http://freedesktop.org/wiki/Software/systemd/">systemd</a>, yet
-another Linux init system, so contrary to all principles of good engineering
-it's just scary. </li>
+<a href="systemd.html">systemd</a>, yet another Linux init system. </li>
  <li> The various BSD flavors have their own style of
 <a href="http://www.freebsd.org/doc/handbook/boot-init.html">init</a>. </li>
  <li> MacOS X has its own init spaghetti monster called
@@ -256,21 +254,6 @@ usually find it much simpler.
 <a href="s6-svscan-1.html#stages">There is a good reason for this.</a>
 </p>
 
-
-<h2> Credits </h2>
-
- s6 is one of the (late...) results of a long design discussion that
-happened in 2002-2003 on the
-<a href="http://www.skarnet.org/lists.html#supervision">supervision list</a>
-and the <a href="http://cr.yp.to/lists.html#log">log list</a>.
-The main contributors to the thread were
-<ul>
- <li> <a href="http://dogmap.org/">Paul Jarc</a> </li>
- <li> <a href="http://smarden.org/pape/">Gerrit Pape</a> </li>
- <li> <a href="http://ino-waiting.gmxhome.de/">Clemens Fischer</a> </li>
- <li> <a href="http://www.mathematik.uni-ulm.de/m5/sk/">Stefan Karrman</a> </li>
- <li> and me. </li>
-</ul>
 
 <h2> Miscellaneous </h2>
 
