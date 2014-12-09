@@ -24,7 +24,9 @@ uint16 ftrigr_subscribe (ftrigr_t *a, char const *path, char const *re, uint32 o
   uint32_pack_big(tmp+11, (uint32)relen) ;
   if (!skaclient_sendv(&a->connection, v, 3, &skaclient_default_cb, &err, deadline, stamp))
   {
+    register int e = errno ;
     gensetdyn_delete(&a->data, i) ;
+    errno = e ;
     return 0 ;
   }
   if (err)
