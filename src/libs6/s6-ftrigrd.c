@@ -74,7 +74,7 @@ static void trig (uint16 id, char what, char info)
 
 static void answer (char c)
 {
-  unixmessage_t m = { &c, 1, 0, 0 } ;
+  unixmessage_t m = { .s = &c, .len = 1, .fds = 0, .nfds = 0 } ;
   if (!unixmessage_put(unixmessage_sender_1, &m))
   {
     cleanup() ;
