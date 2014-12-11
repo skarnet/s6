@@ -72,10 +72,10 @@ update:
 global-links: $(DESTDIR)$(exthome) $(SHARED_LIBS:lib%.so=$(DESTDIR)$(sproot)/library.so/lib%.so) $(BIN_TARGETS:%=$(DESTDIR)$(sproot)/command/%) $(SBIN_TARGETS:%=$(DESTDIR)$(sproot)/command/%)
 
 $(DESTDIR)$(sproot)/command/%: $(DESTDIR)$(home)/command/%
-	exec $(INSTALL) -D -l ..$(exthome)/command/$(<F) $@
+	exec $(INSTALL) -D -l ..$(subst $(sproot),,$(exthome))/command/$(<F) $@
 
 $(DESTDIR)$(sproot)/library.so/lib%.so: $(DESTDIR)$(dynlibdir)/lib%.so
-	exec $(INSTALL) -D -l ..$(exthome)/library.so/$(<F) $@
+	exec $(INSTALL) -D -l ..$(subst $(sproot),,$(exthome))/library.so/$(<F) $@
 
 .PHONY: update global-links
 
@@ -95,7 +95,7 @@ $(DESTDIR)$(libexecdir)/% $(DESTDIR)$(bindir)/% $(DESTDIR)$(sbindir)/%: % packag
 	chmod $$mode $@ ; }
 
 $(DESTDIR)$(libdir)/lib%.a: lib%.a
-	$(INSTALL) -D -m 644 $< $@
+	exec $(INSTALL) -D -m 644 $< $@
 
 $(DESTDIR)$(includedir)/$(package)/%.h: src/include/$(package)/%.h
 	exec $(INSTALL) -D -m 644 $< $@
