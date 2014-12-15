@@ -119,7 +119,7 @@ tryldflag () {
 
 CC_AUTO="$CC"
 CFLAGS_AUTO="$CFLAGS"
-CPPFLAGS_AUTO="-D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=600 -O2 $CPPFLAGS"
+CPPFLAGS_AUTO="-D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -O2 $CPPFLAGS"
 LDFLAGS_AUTO="$LDFLAGS"
 LDFLAGS_NOSHARED=
 prefix=
@@ -344,9 +344,19 @@ if $allstatic ; then
   vpathd=
 fi
   echo "vpath lib%.so$vpathd"
-echo
-$static || echo "STATIC_LIBS :="
-$shared || echo "SHARED_LIBS :="
+echo "STATIC_LIBS :="
+echo "SHARED_LIBS :="
+if $static ; then
+  echo "DO_STATIC := 1"
+else
+  echo "DO_STATIC :="
+fi
+if $shared ; then
+  echo "DO_SHARED := 1"
+else
+  echo "DO_SHARED :="
+fi
+
 exec 1>&3 3>&-
 echo "  ... done."
 

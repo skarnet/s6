@@ -9,8 +9,8 @@ it: all
 
 CC = $(error Please use ./configure first)
 
-include package/targets.mak
 -include config.mak
+include package/targets.mak
 include package/deps.mak
 
 version_m := $(basename $(version))

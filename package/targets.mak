@@ -1,4 +1,4 @@
-BIN_TARGETS = \
+BIN_TARGETS := \
 s6-ftrigrd \
 s6-ftrig-listen1 \
 s6-ftrig-listen \
@@ -26,11 +26,12 @@ s6-softlimit \
 s6-tai64n \
 s6-tai64nlocal
 
-LIBEXEC_TARGETS = \
-s6lockd-helper
+LIBEXEC_TARGETS := s6lockd-helper
 
-SHARED_LIBS = \
-libs6.so
+ifdef DO_SHARED
+SHARED_LIBS := libs6.so
+endif
 
-STATIC_LIBS = \
-libs6.a
+ifdef DO_STATIC
+STATIC_LIBS := libs6.a
+endif
