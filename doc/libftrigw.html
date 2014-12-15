@@ -98,8 +98,8 @@ processes.
 When stray KILL signals hit <a href="s6-ftrigrd.html">s6-ftrigrd</a> processes,
 1. it's a sign of incorrect system administration, 2. they can leave
 unused named pipes in the fifodir. It's the fifodir's owner's job, i.e.
-the notifier's job, to periodically do some housecleaning and take out
-the trash.
+the notifier's job, to periodically do some housecleaning and remove
+those unused pipes.
 </p>
 
 <pre>
