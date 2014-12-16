@@ -103,13 +103,13 @@ s6lockd-helper: private EXTRA_LIBS :=
 s6lockd-helper: src/libs6/s6lockd-helper.o -lskarnet
 s6-cleanfifodir: private EXTRA_LIBS :=
 s6-cleanfifodir: src/pipe-tools/s6-cleanfifodir.o -ls6 -lskarnet
-s6-ftrig-listen: private EXTRA_LIBS := ${TAINNOW_LIB}
+s6-ftrig-listen: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
 s6-ftrig-listen: src/pipe-tools/s6-ftrig-listen.o -ls6 -lexecline -lskarnet
-s6-ftrig-listen1: private EXTRA_LIBS := ${TAINNOW_LIB}
+s6-ftrig-listen1: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
 s6-ftrig-listen1: src/pipe-tools/s6-ftrig-listen1.o -ls6 -lskarnet
 s6-ftrig-notify: private EXTRA_LIBS :=
 s6-ftrig-notify: src/pipe-tools/s6-ftrig-notify.o -ls6 -lskarnet
-s6-ftrig-wait: private EXTRA_LIBS := ${TAINNOW_LIB}
+s6-ftrig-wait: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
 s6-ftrig-wait: src/pipe-tools/s6-ftrig-wait.o -ls6 -lskarnet
 s6-mkfifodir: private EXTRA_LIBS :=
 s6-mkfifodir: src/pipe-tools/s6-mkfifodir.o -ls6 -lskarnet
@@ -125,5 +125,5 @@ s6-svscanctl: private EXTRA_LIBS :=
 s6-svscanctl: src/supervision/s6-svscanctl.o -ls6 -lskarnet
 s6-svstat: private EXTRA_LIBS := ${SYSCLOCK_LIB}
 s6-svstat: src/supervision/s6-svstat.o -ls6 -lskarnet
-s6-svwait: private EXTRA_LIBS := ${TAINNOW_LIB}
+s6-svwait: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
 s6-svwait: src/supervision/s6-svwait.o -ls6 -lskarnet
