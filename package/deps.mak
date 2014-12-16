@@ -69,33 +69,61 @@ src/supervision/s6-svscanctl.o src/supervision/s6-svscanctl.lo: src/supervision/
 src/supervision/s6-svstat.o src/supervision/s6-svstat.lo: src/supervision/s6-svstat.c src/include/s6/s6-supervise.h
 src/supervision/s6-svwait.o src/supervision/s6-svwait.lo: src/supervision/s6-svwait.c src/include/s6/ftrigr.h src/include/s6/s6-supervise.h
 
+s6-envdir: private EXTRA_LIBS :=
 s6-envdir: src/daemontools-extras/s6-envdir.o -lskarnet
+s6-envuidgid: private EXTRA_LIBS :=
 s6-envuidgid: src/daemontools-extras/s6-envuidgid.o -lskarnet
+s6-fghack: private EXTRA_LIBS :=
 s6-fghack: src/daemontools-extras/s6-fghack.o -lskarnet
-s6-log: src/daemontools-extras/s6-log.o -lskarnet ${TAINNOW_LIB}
-s6-notifywhenup: src/daemontools-extras/s6-notifywhenup.o -ls6 -lskarnet ${TAINNOW_LIB}
-s6-setlock: src/daemontools-extras/s6-setlock.o -lskarnet ${TAINNOW_LIB}
+s6-log: private EXTRA_LIBS := ${TAINNOW_LIB}
+s6-log: src/daemontools-extras/s6-log.o -lskarnet
+s6-notifywhenup: private EXTRA_LIBS := ${TAINNOW_LIB}
+s6-notifywhenup: src/daemontools-extras/s6-notifywhenup.o -ls6 -lskarnet
+s6-setlock: private EXTRA_LIBS := ${TAINNOW_LIB}
+s6-setlock: src/daemontools-extras/s6-setlock.o -lskarnet
+s6-setsid: private EXTRA_LIBS :=
 s6-setsid: src/daemontools-extras/s6-setsid.o -lskarnet
+s6-setuidgid: private EXTRA_LIBS :=
 s6-setuidgid: src/daemontools-extras/s6-setuidgid.o -lskarnet
+s6-softlimit: private EXTRA_LIBS :=
 s6-softlimit: src/daemontools-extras/s6-softlimit.o -lskarnet
-s6-tai64n: src/daemontools-extras/s6-tai64n.o -lskarnet ${SYSCLOCK_LIB}
+s6-tai64n: private EXTRA_LIBS := ${SYSCLOCK_LIB}
+s6-tai64n: src/daemontools-extras/s6-tai64n.o -lskarnet
+s6-tai64nlocal: private EXTRA_LIBS :=
 s6-tai64nlocal: src/daemontools-extras/s6-tai64nlocal.o -lskarnet
+ucspilogd: private EXTRA_LIBS :=
 ucspilogd: src/daemontools-extras/ucspilogd.o -lskarnet
 libs6.a:  src/libs6/ftrigr1_zero.o src/libs6/ftrigr_check.o src/libs6/ftrigr_end.o src/libs6/ftrigr_start.o src/libs6/ftrigr_startf.o src/libs6/ftrigr_subscribe.o src/libs6/ftrigr_unsubscribe.o src/libs6/ftrigr_update.o src/libs6/ftrigr_wait_and.o src/libs6/ftrigr_wait_or.o src/libs6/ftrigr_zero.o src/libs6/ftrigw_clean.o src/libs6/ftrigw_fifodir_make.o src/libs6/ftrigw_notify.o src/libs6/ftrigw_notifyb.o src/libs6/s6_supervise_lock.o src/libs6/s6_supervise_lock_mode.o src/libs6/s6_svc_main.o src/libs6/s6_svc_write.o src/libs6/s6_svstatus_pack.o src/libs6/s6_svstatus_read.o src/libs6/s6_svstatus_unpack.o src/libs6/s6_svstatus_write.o src/libs6/s6lock_acquire.o src/libs6/s6lock_check.o src/libs6/s6lock_end.o src/libs6/s6lock_release.o src/libs6/s6lock_start.o src/libs6/s6lock_startf.o src/libs6/s6lock_update.o src/libs6/s6lock_wait_and.o src/libs6/s6lock_wait_or.o src/libs6/s6lock_zero.o
 libs6.so:  src/libs6/ftrigr1_zero.lo src/libs6/ftrigr_check.lo src/libs6/ftrigr_end.lo src/libs6/ftrigr_start.lo src/libs6/ftrigr_startf.lo src/libs6/ftrigr_subscribe.lo src/libs6/ftrigr_unsubscribe.lo src/libs6/ftrigr_update.lo src/libs6/ftrigr_wait_and.lo src/libs6/ftrigr_wait_or.lo src/libs6/ftrigr_zero.lo src/libs6/ftrigw_clean.lo src/libs6/ftrigw_fifodir_make.lo src/libs6/ftrigw_notify.lo src/libs6/ftrigw_notifyb.lo src/libs6/s6_supervise_lock.lo src/libs6/s6_supervise_lock_mode.lo src/libs6/s6_svc_main.lo src/libs6/s6_svc_write.lo src/libs6/s6_svstatus_pack.lo src/libs6/s6_svstatus_read.lo src/libs6/s6_svstatus_unpack.lo src/libs6/s6_svstatus_write.lo src/libs6/s6lock_acquire.lo src/libs6/s6lock_check.lo src/libs6/s6lock_end.lo src/libs6/s6lock_release.lo src/libs6/s6lock_start.lo src/libs6/s6lock_startf.lo src/libs6/s6lock_update.lo src/libs6/s6lock_wait_and.lo src/libs6/s6lock_wait_or.lo src/libs6/s6lock_zero.lo
-s6-ftrigrd: src/libs6/s6-ftrigrd.o src/libs6/ftrig1_free.o src/libs6/ftrig1_make.o -lskarnet ${SOCKET_LIB} ${TAINNOW_LIB}
-s6lockd: src/libs6/s6lockd.o -lskarnet ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-ftrigrd: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-ftrigrd: src/libs6/s6-ftrigrd.o src/libs6/ftrig1_free.o src/libs6/ftrig1_make.o -lskarnet
+s6lockd: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6lockd: src/libs6/s6lockd.o -lskarnet
+s6lockd-helper: private EXTRA_LIBS :=
 s6lockd-helper: src/libs6/s6lockd-helper.o -lskarnet
+s6-cleanfifodir: private EXTRA_LIBS :=
 s6-cleanfifodir: src/pipe-tools/s6-cleanfifodir.o -ls6 -lskarnet
-s6-ftrig-listen: src/pipe-tools/s6-ftrig-listen.o -ls6 -lexecline -lskarnet ${TAINNOW_LIB}
-s6-ftrig-listen1: src/pipe-tools/s6-ftrig-listen1.o -ls6 -lskarnet ${TAINNOW_LIB}
+s6-ftrig-listen: private EXTRA_LIBS := ${TAINNOW_LIB}
+s6-ftrig-listen: src/pipe-tools/s6-ftrig-listen.o -ls6 -lexecline -lskarnet
+s6-ftrig-listen1: private EXTRA_LIBS := ${TAINNOW_LIB}
+s6-ftrig-listen1: src/pipe-tools/s6-ftrig-listen1.o -ls6 -lskarnet
+s6-ftrig-notify: private EXTRA_LIBS :=
 s6-ftrig-notify: src/pipe-tools/s6-ftrig-notify.o -ls6 -lskarnet
-s6-ftrig-wait: src/pipe-tools/s6-ftrig-wait.o -ls6 -lskarnet ${TAINNOW_LIB}
+s6-ftrig-wait: private EXTRA_LIBS := ${TAINNOW_LIB}
+s6-ftrig-wait: src/pipe-tools/s6-ftrig-wait.o -ls6 -lskarnet
+s6-mkfifodir: private EXTRA_LIBS :=
 s6-mkfifodir: src/pipe-tools/s6-mkfifodir.o -ls6 -lskarnet
-s6-supervise: src/supervision/s6-supervise.o -ls6 -lskarnet ${TAINNOW_LIB}
+s6-supervise: private EXTRA_LIBS := ${TAINNOW_LIB}
+s6-supervise: src/supervision/s6-supervise.o -ls6 -lskarnet
+s6-svc: private EXTRA_LIBS :=
 s6-svc: src/supervision/s6-svc.o -ls6 -lskarnet
+s6-svok: private EXTRA_LIBS :=
 s6-svok: src/supervision/s6-svok.o -lskarnet
-s6-svscan: src/supervision/s6-svscan.o -ls6 -lskarnet ${TAINNOW_LIB}
+s6-svscan: private EXTRA_LIBS := ${TAINNOW_LIB}
+s6-svscan: src/supervision/s6-svscan.o -ls6 -lskarnet
+s6-svscanctl: private EXTRA_LIBS :=
 s6-svscanctl: src/supervision/s6-svscanctl.o -ls6 -lskarnet
-s6-svstat: src/supervision/s6-svstat.o -ls6 -lskarnet ${SYSCLOCK_LIB}
-s6-svwait: src/supervision/s6-svwait.o -ls6 -lskarnet ${TAINNOW_LIB}
+s6-svstat: private EXTRA_LIBS := ${SYSCLOCK_LIB}
+s6-svstat: src/supervision/s6-svstat.o -ls6 -lskarnet
+s6-svwait: private EXTRA_LIBS := ${TAINNOW_LIB}
+s6-svwait: src/supervision/s6-svwait.o -ls6 -lskarnet

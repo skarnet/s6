@@ -68,12 +68,18 @@ for dir in $(ls -1 src | grep -v ^include) ; do
 
   for file in $(ls -1 src/$dir/deps-exe) ; do
     deps=
+    libs=
     while read dep ; do
       if echo $dep | grep -q -- \\.o$ ; then
         dep="src/$dir/$dep"
       fi
-      deps="$deps $dep"
+      if echo $dep | grep -q ^\\\$ ; then
+        libs="$libs $dep"
+      else
+        deps="$deps $dep"
+      fi
     done < src/$dir/deps-exe/$file
+    echo "$file: private EXTRA_LIBS :=$libs"
     echo "$file: src/$dir/$file.o$deps"
   done
 done
