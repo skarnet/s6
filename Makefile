@@ -107,7 +107,7 @@ $(DESTDIR)$(includedir)/$(package)/%.h: src/include/$(package)/%.h
 	exec $(REALCC) $(CPPFLAGS_ALL) $(CFLAGS_ALL) $(CFLAGS_SHARED) -c -o $@ $<
 
 $(ALL_BINS):
-	exec $(REALCC) -o $@ $(CFLAGS_ALL) $(LDFLAGS_ALL) $(LDFLAGS_NOSHARED) $^ $(LDLIBS_ALL)
+	exec $(REALCC) -o $@ $(CFLAGS_ALL) $(LDFLAGS_ALL) $(LDFLAGS_NOSHARED) $^ $(EXTRA_LIBS) $(LDLIBS_ALL)
 
 lib%.a:
 	exec $(AR) rc $@ $^
