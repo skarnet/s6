@@ -7,6 +7,10 @@ patchit () {
   chmod 755 $1
 }
 
+# Solaris doesn't understand POSIX.1-2008 either.
+sed -e 's/XOPEN_SOURCE=700/XOPEN_SOURCE=600/' < configure > configure.tmp
+mv -f configure.tmp configure
+
 patchit ./configure
 patchit ./tools/install.sh
 patchit ./tools/gen-deps.sh
