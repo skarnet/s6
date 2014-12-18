@@ -79,7 +79,7 @@ s6-log: private EXTRA_LIBS := ${TAINNOW_LIB}
 s6-log: src/daemontools-extras/s6-log.o -lskarnet
 s6-notifywhenup: private EXTRA_LIBS := ${TAINNOW_LIB}
 s6-notifywhenup: src/daemontools-extras/s6-notifywhenup.o -ls6 -lskarnet
-s6-setlock: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-setlock: private EXTRA_LIBS := ${TAINNOW_LIB}
 s6-setlock: src/daemontools-extras/s6-setlock.o -lskarnet
 s6-setsid: private EXTRA_LIBS :=
 s6-setsid: src/daemontools-extras/s6-setsid.o -lskarnet
