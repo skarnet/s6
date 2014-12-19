@@ -82,23 +82,32 @@ is always a sign of developer hubris and inexperience, and never a sign of
 good engineering. Ever. Remember sendmail, BIND, INN, and, definitely a better
 analogy, the early days of Microsoft Windows&nbsp;? Yes, systemd is in
 exactly the same league. It's as if we had learned <em>nothing</em> from the
-mistakes of the past 20 years. Technically as well as politically, systemd
-is actually very close to Windows; is that the future we want for Linux
-machines&nbsp?
+mistakes of the past 20 years. The systemd programmers may be better at
+writing code than the BIND programmers - which isn't saying much - but
+they are just as bad at <em>designing software</em>, and when said software
+is process 1 and basically the whole low-level userland layer, it is
+frightening.
 </p>
 
 <p>
- Doing more instead of less is bad, and it's especially true in the case of
+ Yes, doing more instead of less is especially bad in the case of
 system software, i.e. low-level software that
 aims to make the machine work and that application software depends upon.
 The goal of an operating system is to make it possible to run <em>applications</em>,
 and system software should always partake in that goal. <strong>System software
-should stay the heck out of the way</strong>, and systemd is big, loud and
-obnoxious. Embedded devices are common, and will become even more common in
-the future; that is a market that systemd will have trouble breaking into, because
-it's a lot more complex than embedded devices need. And that, too, says something:
-if a software suite is too complex for an embedded device, maybe it's just too
-complex, period.
+should stay the heck out of the way</strong>, which is exactly what systemd does
+not.
+</p>
+
+<p>
+ Technically as well as politically, systemd is actually very similar to
+Microsoft Windows. If it is not fought, it is going to cause a lot of harm
+to the Linux ecosystem. It has already begun.
+</p>
+
+<p>
+ s6 is my humble contribution to the fight against systemd, and I am
+committed to making it evolve so it becomes a real alternative.
 </p>
 
 <h2> Links </h2>
@@ -108,8 +117,6 @@ complex, period.
  <li> <a href="http://uselessd.darknedgy.net/ProSystemdAntiSystemd/">An analysis of
 the vacuity of most Internet arguments about systemd</a>, by the author of
 <a href="http://uselessd.darknedgy.net/">uselessd</a>. </li>
- <li> <a href="http://boycottsystemd.org">boycottsystemd.org</a>, summarizing
-political arguments against systemd </li>
  <li> <a href="http://ewontfix.com/14/">Technical arguments against systemd</a>,
 by Rich Felker, main author of <a href="http://musl-libc.org/">musl</a> </li>
  <li> <a href="http://judecnelson.blogspot.fr/2014/09/systemd-biggest-fallacies.html">A
