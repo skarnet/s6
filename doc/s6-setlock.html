@@ -40,7 +40,7 @@ s6-setlock takes a lock on a file, then executes into another program.
 exit 1 immediately. </li>
  <li> <tt>-N</tt>&nbsp;: blocking lock. s6-setlock will wait until it can acquire the lock.
 This is the default. </li>
- <li> <tt>-t&nbsp;<em>timeout</em>&nbsp;: timed lock. If s6-setlock cannot acquire
+ <li> <tt>-t&nbsp;<em>timeout</em></tt>&nbsp;: timed lock. If s6-setlock cannot acquire
 the lock after <em>timeout</em> milliseconds, it will exit 1. </li>
  <li> <tt>-r</tt>&nbsp;: shared lock. Other shared locks on the same file will not prevent
 the lock from being acquired (but an exclusive lock will). </li>
