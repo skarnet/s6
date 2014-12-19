@@ -76,7 +76,7 @@ for instance, illustrate how to use the ftrigr library.
 <ul>
  <li> Synchronous functions take a <tt>tain_t const *</tt>
 (<em>deadline</em>) parameter and a <tt>tain_t *</tt> (<em>stamp</em>)
-parameter. Those are pointers to taia structures containing absolute times;
+parameter. Those are pointers to tain_t structures containing absolute times;
 the former represents a deadline (in most cases, this time will be in the
 future) and the latter must be an accurate enough timestamp. These
 structures can be filled using the <tt>tain_</tt> primitives declared in
@@ -85,13 +85,13 @@ structures can be filled using the <tt>tain_</tt> primitives declared in
 been made</strong> since the last time <em>stamp</em> was updated (by
 <tt>tain_now(&amp;stamp)</tt>). It's a good policy to always update
 <em>stamp</em> right after a (potentially) blocking system call like
-<tt>select()</tt>returns. And unless the application is extremely CPU-intensive
+<tt>select()</tt> returns. And unless the application is extremely CPU-intensive
 (think calculus for physicists or astronomers) updating <em>stamp</em> more
 frequently is unnecessary.) </li>
  <li> If such a synchronous function still hasn't returned when the deadline
 occurs, then it will immediately return a failure code and set errno to ETIMEDOUT.
 It is possible to pass null pointers to the function instead of pointers to
-taia structures, in which case the function will never timeout. </li>
+tain_t structures, in which case the function will never timeout. </li>
  <li> If a timeout occurs, the library does not guarantee proper interprocess
 communication later on; the application should either die, or at least close
 the communication channel and open a new one. </li>
@@ -114,10 +114,10 @@ control on. </li>
 
 <pre>
 ftrigr_t a = FTRIGR_ZERO ;
-struct taia deadline, stamp ;
+tain_t deadline, stamp ;
 
-taia_now(&amp;stamp) ;
-taia_addsec(&amp;deadline, &amp;stamp, 2)
+tain_now(&amp;stamp) ;
+tain_addsec(&amp;deadline, &amp;stamp, 2)
 
 // char const *path = FTRIGR_IPCPATH ;
 // ftrigr_start(&amp;a, path, &amp;deadline, &amp;stamp) ;
@@ -231,7 +231,7 @@ of usage examples.) </em>
 </p>
 
 <pre>
-int ftrigr_fd (struct ftrigr const *a)
+int ftrigr_fd (ftrigr_t const *a)
 </pre>
 
 <p>
@@ -240,7 +240,7 @@ int ftrigr_fd (struct ftrigr const *a)
 </p>
 
 <pre>
-int ftrigr_update (ftrigr_ref a)
+int ftrigr_update (ftrigr_t *a)
 </pre>
 
 <p>
@@ -260,7 +260,7 @@ integers. Those integers are ids waiting to be passed to
 </p>
 
 <pre>
-int ftrigr_check (ftrigr_ref a, uint16 id, char *what)
+int ftrigr_check (ftrigr_t *a, uint16 id, char *what)
 </pre>
 
 <p>
