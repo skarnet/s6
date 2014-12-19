@@ -1,0 +1,14 @@
+This directory (/mnt/tmpfs/dev on the root filesystem) will
+be brutally overriden when the tmpfs is mounted. Its only
+purpose is to provide an initial /dev/console to the kernel
+when it starts process 1.
+The directory should contain a working /dev/console device!
+
+ init-stage1 will close all handles to this /dev/console,
+then mount the tmpfs and copy the tmpfs image to the tmpfs
+- the image contains a full version of /dev, which will then
+be used.
+ This trick is necessary to have a working read-write /dev
+when you have a root-only filesystem and when you cannot or
+do not want to rely on fancy Linux-specific tricks such as
+devtmpfs.

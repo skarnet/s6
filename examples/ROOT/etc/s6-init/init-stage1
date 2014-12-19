@@ -1,0 +1,58 @@
+#!/command/execlineb -P
+
+# This file is the first program run at boot time,
+# as process 1.
+# Edit it to suit your needs.
+
+# Make sure everything is sane and ignore input
+cd /
+umask 022
+fdclose 0
+
+# This should be printed to the console
+if { s6-echo "* init stage 1" }
+
+
+# Mount /sys and /proc
+if { s6-mount -wt sysfs sys /mnt/sysfs }
+if { s6-mount -wt proc proc /mnt/procfs }
+
+# Close remaining handles to /dev/console
+fdclose 1 fdclose 2
+
+# Now no process has any open fd to /dev/console (or to
+# anything for that matter).
+# We can safely overwrite the minimal /dev with the real one.
+
+# in case some Linux kernel has mounted a devtmpfs
+foreground { s6-umount /mnt/tmpfs/dev }
+
+# Make the tmpfs
+if { s6-mount -wt tmpfs -o mode=0755,size=67108864 tmpfs /mnt/tmpfs }
+
+# Copy the image to the tmpfs
+if { s6-hiercopy /img/tmpfs /mnt/tmpfs }
+
+# Now we have a working /dev and /tmp, and a minimal writable /service
+# with a catch-all logger and a getty. We're good for stage 2 !
+
+# Reopen stdin/stdout/stderr and make them point to the right places
+redirfd -r 0 /dev/null
+redirfd -wnb 1 /service/s6-svscan-log/fifo # (black magic: doesn't block)
+fdmove -c 2 1
+
+# Load the general environment
+s6-envdir /etc/s6-init/env
+
+# Fork the "init-stage2" script and have it ready to start as soon
+# as the catch-all logger is in place
+background
+{
+  s6-setsid
+  redirfd -w 1 /service/s6-svscan-log/fifo # (blocks until the logger reads)
+  /etc/s6-init/init-stage2
+}
+unexport LASTPID
+
+# Start stage 2.
+s6-svscan -t0 /service

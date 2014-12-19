@@ -1,0 +1,5 @@
+#!/command/execlineb -P
+
+# if { ifconfig lo 127.0.0.1 netmask 255.0.0.0 }
+
+# Configure your network interfaces and routing here.

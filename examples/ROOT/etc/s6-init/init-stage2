@@ -1,0 +1,41 @@
+#!/command/execlineb -P
+
+# This file is executed (not as process 1!) as soon as s6-svscan
+# starts. It should perform all the remaining one-time initialization
+# tasks.
+
+
+if -nt
+{
+
+# This should be logged in /tmp/uncaught-logs/current,
+# NOT on /dev/console !
+  if { s6-echo "* init-stage2 starting." }
+
+# Call your one-time EARLY initialization scripts (before bringing
+# the network up) here:
+# set the hostname, mount filesystems, adjust sysctls, etc.
+# if { s6-mount -wt devpts -o noexec,nosuid,gid=0,mode=0600 devpts /dev/pts }
+# if { s6-mount -wt ext4 /dev/sda3 /mnt/rwfs }
+
+# Start the local services
+  if { s6-hiercopy /img/services-local /service }
+  if { s6-svscanctl -a /service }
+
+# Bring up the network
+  if { /etc/s6-init/network-config }
+
+# Start the late services
+  if { s6-hiercopy /img/services-network /service }
+  if { s6-svscanctl -a /service }
+
+# We're done and the machine is fully operational.
+  s6-echo "* init-stage2 completed."
+}
+
+
+# If anything in the if -nt { } block fails, control jumps here.
+# No need to do much because there's already an operational getty running.
+
+redirfd -w 1 /dev/console
+s6-echo "\n!!!!!\ninit-stage2 failed, please log in and investigate.\n!!!!!"

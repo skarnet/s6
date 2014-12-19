@@ -1,0 +1,9 @@
+This directory is read-only. It contains the service
+repository (actually one list of services that do not
+need the network and one list of services that can only
+be started after the network is up), and an image of the
+tmpfs that it copied as-is at boot-time (during stage 1
+init).
+This directory is only used at boot-time, it is never
+written to (the service directories are copied as-is
+to /service during stage 2 init).

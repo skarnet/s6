@@ -1,0 +1,5 @@
+Service directory for a sshd server over IPv4,
+implemented via s6-networking and dropbear.
+The rules subdirectory implements access control; in
+this example, only 127.0.0.1 is allowed to connect
+(which isn't exactly useful for a SSH server).

@@ -1,0 +1,4 @@
+#!/command/execlineb -P
+s6-setuidgid dnslog
+exec -c
+s6-log -t s1000000 n20 /var/log/dns-cache

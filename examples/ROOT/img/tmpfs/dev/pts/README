@@ -1,0 +1,2 @@
+The place (after it's copied to the tmpfs) where
+the virtual devpts filesystem will be mounted.

@@ -1,0 +1,2 @@
+Service directory for a DNS caching resolver service,
+implemented via djbdns's dnscache running on 127.0.0.1

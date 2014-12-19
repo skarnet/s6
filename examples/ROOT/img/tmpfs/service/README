@@ -1,0 +1,5 @@
+This is the initial image of the scan directory.
+When init executes into s6-svscan, s6-svscan will immediately
+start the "s6-svscan-log" service, which logs s6-svscan's own
+output, and the "getty1" service, which spawns a getty on
+tty1 as early as possible, in case debugging is needed.

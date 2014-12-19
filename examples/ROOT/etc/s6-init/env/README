@@ -1,0 +1,6 @@
+
+This directory is read by s6-envdir at boot time.
+It contains environment variables that will be present in
+all the supervision tree, and all the launched services.
+Make sure to remove this file, or else you'll have a
+README environment variable in all your daemons. :)

@@ -1,0 +1,6 @@
+Study this filesystem tree skeleton carefully.
+After a few adjustments for your system, it can
+become the basis for a very fast, efficient and
+lightweight boot, with s6-svscan running as process 1
+for all of stage 2, i.e. practically the whole
+system lifetime.

@@ -1,0 +1,8 @@
+#!/command/execlineb -P
+fdmove -c 2 1
+exec -c
+s6-envuidgid nobody
+s6-notifywhenup -f
+s6-ipcserver -U -1 -- /dev/log
+fdmove -c 1 2
+ucspilogd IPCREMOTEEUID IPCREMOTEEGID

@@ -1,0 +1,7 @@
+/img/tmpfs is the hierarchy that will be copied to /mnt/tmpfs
+during stage 1 init, so the basics are covered for stage 2:
+ - /dev points to a real, writable device directory
+ - /tmp points to a real, writable temporary directory
+ - /service points to a real, writable scan directory that
+already contains basic services (s6-svscan's own logger and
+an early getty).

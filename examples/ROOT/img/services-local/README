@@ -1,0 +1,5 @@
+This is the service repository for services that should be started
+early, typically before the network goes up.
+"klogd" and "syslogd" services should be present as soon as possible,
+because other services might need them. However, since they need
+a writable disk filesystem, they can't be run as early as a getty.

@@ -1,0 +1,4 @@
+#!/command/execlineb -P
+s6-setuidgid ntplog
+exec -c
+s6-log -t /var/log/ntpclient

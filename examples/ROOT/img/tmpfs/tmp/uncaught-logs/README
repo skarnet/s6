@@ -1,0 +1,4 @@
+This directory should not belong to root, but to nobody:nogroup;
+it should also have "2700" rights.
+It is the catch-all logdir.
+/tmp/uncaught-logs/current will be the current catch-all log file.

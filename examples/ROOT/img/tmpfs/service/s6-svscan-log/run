@@ -1,0 +1,13 @@
+#!/command/execlineb -P
+redirfd -w 2 /dev/console
+redirfd -rnb 0 fifo
+s6-setuidgid nobody
+exec -c
+s6-log -bpt /tmp/uncaught-logs
+
+#  The -p option is important:
+# even if s6-svscan is told to kill everything,
+# you do not want this logger to die.
+#  The -b option ensures s6-log processes lines one
+# at a time, so it doesn't eat up too much memory
+# in case of a problem spike.

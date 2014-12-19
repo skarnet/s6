@@ -1,0 +1,5 @@
+Add this to your /etc/ directory.
+/etc/leapsecs.dat is needed for skalibs programs to work properly!
+/etc/init is what the kernel launches as process 1 if it does not
+find an init binary in other places. Make sure you remove other
+init programs to run this /etc/init as process 1 at boot time!

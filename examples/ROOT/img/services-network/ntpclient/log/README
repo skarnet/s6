@@ -1,0 +1,3 @@
+Yes, the output of the ntpclient service is logged to
+the /var/log/ntpclient logdir.
+Make sure it has the correct Unix credentials and permissions!

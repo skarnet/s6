@@ -1,0 +1,14 @@
+#!/command/execlineb -P
+fdmove -c 2 1
+if
+{
+  forbacktickx -p -0 i { s6-ls -0 /service }
+  import i unexport i
+  foreground
+  {
+    if { s6-test -d /service/${i}/log }
+    s6-cleanfifodir /service/${i}/log/event
+  }
+  s6-cleanfifodir /service/${i}/event
+}
+s6-sleep 86400

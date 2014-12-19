@@ -1,0 +1,4 @@
+This directory is the /dev image.
+It should contain all your static devices.
+It MUST contain at least /dev/null and /dev/console,
+else the system will crash during stage 1 init.

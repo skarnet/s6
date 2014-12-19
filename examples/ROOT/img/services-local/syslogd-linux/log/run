@@ -1,0 +1,5 @@
+#!/command/execlineb -P
+s6-setuidgid syslog
+exec -c
+s6-log -t s1000000 n20 /var/log/syslogd
+# Change the logging script to alter s6-log's behaviour

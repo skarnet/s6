@@ -1,0 +1,3 @@
+This klogd emulation is only valid under Linux.
+The service only processes logs from /proc/kmsg and
+sends them to stdout, i.e. its own logger.

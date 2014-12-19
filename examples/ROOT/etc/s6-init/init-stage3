@@ -1,0 +1,46 @@
+#!/command/execlineb -S0
+
+# This is the shutdown script, running as process 1.
+
+# Make sure we have no open handle to anywhere else
+# than /dev/console
+cd /
+fdclose 0
+redirfd -w 1 /dev/console
+fdmove -c 2 1
+
+foreground { s6-echo "Syncing disks." }
+foreground { s6-sync }
+
+
+# Even if s6-svscan properly brought all the services down
+# before exec'ing into this script, users might have launched
+# background nohup processes, so we have to kill everything.
+
+foreground { s6-echo "Sending all processes the TERM signal." }
+foreground { s6-nuke -th }
+foreground { s6-sleep 1 }
+foreground { s6-echo "Sending all processes the KILL signal." }
+foreground { s6-nuke -k }
+
+# Here, s6-nuke sends a SIGKILL to every process on the system.
+# It kills itself, but not before the SIGKILL has been broadcast.
+# The "foreground" process runs as process 1, so it survives,
+# and execs into the rest of the script when s6-nuke dies.
+
+# Reap the huge army of zombies we just created
+wait { }
+
+
+foreground { s6-echo "Syncing disks." }
+foreground { s6-sync } # yes, it helps.
+foreground { s6-echo "Unmounting disks." }
+
+# Unmount all your filesystems here, turn off swap,
+# remount / read-only if needed, etc.
+# foreground { s6-umount /mnt/rwfs }
+
+# Reboot, halt or poweroff the machine, depending on the parameter
+# that was given to the script.
+foreground { s6-echo "\nPerforming "${1}"." }
+s6-${1}

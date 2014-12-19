@@ -1,0 +1,3 @@
+This directory exists so /dev/shm points to a place
+in the tmpfs.
+It should have "1777" rights.

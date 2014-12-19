@@ -1,0 +1,4 @@
+This logger service logs everything the syslogd service receives
+into the /var/log/syslogd/ logdir.
+You may want to edit the logging script to provide filters to
+change s6-log's behaviour.

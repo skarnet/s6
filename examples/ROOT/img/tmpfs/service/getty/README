@@ -1,0 +1,2 @@
+This service is started very early, to make sure a tty exists as soon
+as s6-svscan is run, so early debugging is possible.

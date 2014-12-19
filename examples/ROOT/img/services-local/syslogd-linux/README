@@ -1,0 +1,7 @@
+This syslogd emulation works on any Unix where syslog() is
+implemented via a connection on the /dev/log Unix-domain socket.
+It needs a Unix superserver (see s6-networking, ucspi-unix or
+ucspi-ipc) and ucspilogd.
+A ucspilogd process is spawned for every syslog() client. It
+processes logs and sends them to stderr, i.e. the service's
+logger.

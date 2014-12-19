@@ -1,0 +1,5 @@
+This is the service repository for all the late services,
+i.e. those that do not need to be started before the network
+is up.
+Only a few examples are provided here; you can make your own
+service directories depending on your needs.

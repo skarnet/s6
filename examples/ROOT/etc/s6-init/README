@@ -1,0 +1,9 @@
+This is an example directory containing booting scripts
+that lead to s6-svscan running as process 1 in stage 2.
+
+Read them carefully and edit them to suit your needs.
+Some scripts are Linux-dependent; they can be easily
+adapted to other Unix systems.
+
+The skarnet.org servers actually run such a system, with
+scripts that are based on this model.

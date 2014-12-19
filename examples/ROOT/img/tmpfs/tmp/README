@@ -1,0 +1,4 @@
+This directory contains what will be /mnt/tmpfs/tmp after
+stage 1 init, so it contains everything /tmp should point
+to.
+It should have "1777" rights.

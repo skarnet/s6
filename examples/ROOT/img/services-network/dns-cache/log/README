@@ -1,0 +1,3 @@
+Logger service for the dns-cache service.
+djbdns's dnscache produces a lot of output, so
+you may want to add log filters.

@@ -1,0 +1,9 @@
+This service updates the system clock via NTP every 4 hours.
+If you're not in France, change 0.fr.pool.ntp.org to a NTP
+server pool more fitting your location.
+See www.ntp.pool.org for details.
+
+Do yourself a favor and don't rely on NTP internally.
+Just synchronize your main time server via this NTP client
+to the outside world, and use a saner and simpler protocol
+like TAICLOCK in your internal, fast-speed network.

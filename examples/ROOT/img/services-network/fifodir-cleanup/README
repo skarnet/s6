@@ -1,0 +1,2 @@
+This service cleans up the fifodirs for all the services in
+/service once a day.
