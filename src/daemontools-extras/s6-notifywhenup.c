@@ -31,7 +31,7 @@ static int run_child (int fd, char const *fifodir, unsigned int timeout)
     if (!r) return 99 ;
     r = sanitize_read(fd_read(fd, dummy, 4096)) ;
     if (r < 0)
-      if (errno == EPIPE) return 0 ;
+      if (errno == EPIPE) return 1 ;
       else strerr_diefu1sys(111, "read from parent") ;
     else if (r)
       if (byte_chr(dummy, r, '\n') < r) break ;
