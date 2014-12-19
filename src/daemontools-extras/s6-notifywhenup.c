@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <skalibs/uint.h>
+#include <skalibs/bytestr.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/allreadwrite.h>
@@ -19,25 +20,23 @@ static int run_child (int fd, char const *fifodir, unsigned int timeout)
   char dummy[4096] ;
   iopause_fd x = { .fd = fd, .events = IOPAUSE_READ } ;
   tain_t deadline ;
-  int haswritten = 0 ;
-  register int r = 0 ;
   if (!tain_now_g()) strerr_diefu1sys(111, "tain_now") ;
   if (timeout) tain_from_millisecs(&deadline, timeout) ;
   else deadline = tain_infinite_relative ;
   tain_add_g(&deadline, &deadline) ;
-  while (!r)
+  for (;;)
   {
-    r = iopause_g(&x, 1, &deadline) ;
+    register int r = iopause_g(&x, 1, &deadline) ;
     if (r < 0) strerr_diefu1sys(111, "iopause") ;
     if (!r) return 99 ;
-    while (r > 0)
-    {
-      r = sanitize_read(fd_read(fd, dummy, 4096)) ; /* talk to the hand */
-      if (r > 0) haswritten = 1 ;
-    }
+    r = sanitize_read(fd_read(fd, dummy, 4096)) ;
+    if (r < 0)
+      if (errno == EPIPE) return 0 ;
+      else strerr_diefu1sys(111, "read from parent") ;
+    else if (r)
+      if (byte_chr(dummy, r, '\n') < r) break ;
   }
-  if (errno != EPIPE) strerr_diefu1sys(111, "read from parent") ;
-  if (haswritten) ftrigw_notify(fifodir, 'U') ;
+  ftrigw_notify(fifodir, 'U') ;
   return 0 ;
 }
 
