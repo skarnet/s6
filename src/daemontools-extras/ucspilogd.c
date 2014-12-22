@@ -4,13 +4,14 @@
 #define SYSLOG_NAMES
 #endif
 
+#include <skalibs/nonposix.h>
 #include <stdlib.h>
 #include <syslog.h>
+#include <skalibs/uint.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/buffer.h>
 #include <skalibs/strerr2.h>
-#include <skalibs/fmtscan.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/skamisc.h>

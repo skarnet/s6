@@ -24,7 +24,8 @@ s6-setsid \
 s6-setuidgid \
 s6-softlimit \
 s6-tai64n \
-s6-tai64nlocal
+s6-tai64nlocal \
+ucspilogd
 
 LIBEXEC_TARGETS := s6lockd-helper
 
