@@ -1,5 +1,6 @@
 /* ISC license. */
 
+#undef INTERNAL_MARK
 #ifndef SYSLOG_NAMES
 #define SYSLOG_NAMES
 #endif
@@ -23,6 +24,68 @@ static inline void die (void)
 {
   strerr_diefu1sys(111, "write to stdout") ;
 }
+
+
+ /*
+   Hack: INTERNAL_MARK is defined by all systems that
+   use the CODE stuff, and not by others (Solaris).
+*/
+
+#ifndef INTERNAL_MARK
+
+typedef struct CODE_s CODE, *CODE_ref ;
+struct CODE_s
+{
+  char *c_name ;
+  unsigned int c_val ;
+} ;
+
+static const CODE prioritynames[] =
+{
+  { "emerg", LOG_EMERG },
+  { "alert", LOG_ALERT },
+  { "crit", LOG_CRIT },
+  { "err", LOG_ERR },
+  { "warning", LOG_WARNING },
+  { "notice", LOG_NOTICE },
+  { "info", LOG_INFO },
+  { "debug", LOG_DEBUG },
+  { 0, -1 }
+} ;
+
+static const CODE facilitynames[] =
+{
+  { "kern", LOG_KERN },
+  { "user", LOG_USER },
+  { "mail", LOG_MAIL },
+  { "news", LOG_NEWS },
+  { "uucp", LOG_UUCP },
+  { "daemon", LOG_DAEMON },
+  { "auth", LOG_AUTH },
+  { "cron", LOG_CRON },
+  { "lpr", LOG_LPR },
+#ifdef LOG_SYSLOG
+  { "syslog", LOG_SYSLOG },
+#endif
+#ifdef LOG_AUDIT
+  { "audit", LOG_AUDIT },
+#endif
+  { "local0", LOG_LOCAL0 },
+  { "local1", LOG_LOCAL1 },
+  { "local2", LOG_LOCAL2 },
+  { "local3", LOG_LOCAL3 },
+  { "local4", LOG_LOCAL4 },
+  { "local5", LOG_LOCAL5 },
+  { "local6", LOG_LOCAL6 },
+  { "local7", LOG_LOCAL7 },
+  { 0, -1 }
+} ;
+
+#define LOG_PRI(p) ((p) & LOG_PRIMASK)
+#define LOG_FAC(p) (((p) & LOG_FACMASK) / (LOG_PRIMASK + 1))
+
+#endif
+
 
 static unsigned int syslog_names (char const *line)
 {
