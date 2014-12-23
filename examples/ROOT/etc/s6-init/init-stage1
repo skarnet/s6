@@ -52,7 +52,7 @@ background
   redirfd -w 1 /service/s6-svscan-log/fifo # (blocks until the logger reads)
   /etc/s6-init/init-stage2
 }
-unexport LASTPID
+unexport !
 
 # Start stage 2.
 s6-svscan -t0 /service
