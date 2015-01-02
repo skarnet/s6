@@ -4,10 +4,7 @@
 
 usage () {
 cat <<EOF
-Usage: $0 [OPTION]... [VAR=VALUE]... [TARGET]
-
-To assign environment variables (e.g., CC, CFLAGS...), specify them as
-VAR=VALUE.  See below for descriptions of some of the useful variables.
+Usage: $0 [OPTION]... [TARGET]
 
 Defaults for the options are specified in brackets.
 
