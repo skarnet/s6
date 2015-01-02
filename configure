@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. package/info
+
 usage () {
 cat <<EOF
 Usage: $0 [OPTION]... [VAR=VALUE]... [TARGET]
@@ -22,14 +24,20 @@ Fine tuning of the installation directories:
   --bindir=DIR                  user executables [EPREFIX/bin]
   --sbindir=DIR                 admin executables [EPREFIX/sbin]
   --libexecdir=DIR              package-scoped executables [EPREFIX/libexec]
-  --libdir=DIR                  static library files [PREFIX/lib]
-  --includedir=DIR              include files for the C compiler [PREFIX/include]
+  --libdir=DIR                  static library files [PREFIX/lib/$package]
+  --includedir=DIR              C header files [PREFIX/include]
+
+ If no --prefix option is given, by default libdir (but not dynlibdir) will be
+ /usr/lib/$package, and includedir will be /usr/include.
 
 Dependencies:
-  --with-sysdeps=DIR            use sysdeps in DIR [/usr/lib/skalibs/sysdeps]
+  --with-sysdeps=DIR            use sysdeps in DIR [PREFIX/lib/skalibs/sysdeps]
   --with-include=DIR            add DIR to the list of searched directories for headers
   --with-lib=DIR                add DIR to the list of searched directories for static libraries
   --with-dynlib=DIR             add DIR to the list of searched directories for shared libraries
+
+ If no --prefix option is given, by default sysdeps will be fetched from
+ /usr/lib/skalibs/sysdeps.
 
 Optional features:
   --enable-shared               build shared libraries [disabled]
@@ -37,12 +45,11 @@ Optional features:
   --disable-allstatic           do not prefer linking against static libraries [enabled]
   --enable-static-libc          make entirely static binaries [disabled]
   --enable-slashpackage[=ROOT]  assume /package installation at ROOT [disabled]
-  --enable-cross=PREFIX         prefix toolchain executable names with PREFIX [none]
+  --enable-cross=CROSS          prefix toolchain executable names with CROSS [none]
 
 EOF
 exit 0
 }
-
 
 # Helper functions
 
@@ -115,8 +122,6 @@ tryldflag () {
 
 # Actual script
 
-. package/info
-
 CC_AUTO="$CC"
 CFLAGS_AUTO="$CFLAGS"
 CPPFLAGS_AUTO="-D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -O2 $CPPFLAGS"
@@ -128,9 +133,9 @@ dynlibdir='$prefix/lib'
 libexecdir='$exec_prefix/libexec'
 bindir='$exec_prefix/bin'
 sbindir='$exec_prefix/sbin'
-libdir='$prefix/usr/lib/'$package
-includedir='$prefix/usr/include'
-sysdeps='$prefix/usr/lib/skalibs/sysdeps'
+libdir='$prefix/lib/$package'
+includedir='$prefix/include'
+sysdeps='$prefix/lib/skalibs/sysdeps'
 manualsysdeps=false
 shared=false
 static=true
@@ -184,7 +189,22 @@ for arg ; do
   esac
 done
 
-for i in prefix exec_prefix dynlibdir libexecdir bindir sbindir libdir includedir linkdynlibdir linkbindir linksbindir sysdeps sproot skalibs ; do
+# Add /usr in the default default case
+if test -z "$prefix" ; then
+  if test "$libdir" = '$prefix/lib/$package' ; then
+    libdir=/usr/lib/$package
+  fi
+  if test "$includedir" = '$prefix/include' ; then
+    includedir=/usr/include
+  fi
+  if test "$sysdeps" = '$prefix/lib/skalibs/sysdeps' ; then
+    sysdeps=/usr/lib/skalibs/sysdeps
+  fi
+fi
+
+# Expand installation directories
+stripdir prefix
+for i in exec_prefix dynlibdir libexecdir bindir sbindir libdir includedir sysdeps sproot skalibs ; do
   eval tmp=\${$i}
   eval $i=$tmp
   stripdir $i
