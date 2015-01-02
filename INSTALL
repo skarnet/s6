@@ -115,8 +115,22 @@ absolute pathnames. skarnet.org packages support it: use the
 --enable-slashpackage=DIR for a prefixed DIR/package tree.
 This option will activate slashpackage support during the build
 and set slashpackage-compatible installation directories.
-Other options setting individual installation directories will be
-ignored.
+If $package_home is the home of the package, defined as
+DIR/package/$category/$package-$version with the variables
+read from the package/info file, then:
+
+  --dynlibdir is set to $package_home/library.so
+  --bindir is set to $package_home/command
+  --sbindir is also set to $package_home/command (slashpackage
+differentiates root-only binaries by their Unix rights, not their
+location in the filesystem)
+  --libexecdir is also set to $package_home/command (slashpackage
+does not need a specific directory for internal binaries)
+  --libdir is set to $package_home/library
+  --includedir is set to $package_home/include
+
+ --prefix is pretty much ignored when you use --enable-slashpackage.
+You should probably not use both --enable-slashpackage and --prefix.
 
  When using slashpackage, two additional Makefile targets are
 available after "make install":
