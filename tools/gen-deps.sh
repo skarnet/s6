@@ -61,9 +61,7 @@ for dir in $(ls -1 src | grep -v ^include) ; do
       deps="$deps src/$dir/$dep"
     done < src/$dir/deps-lib/$file
     echo "lib$file.a: $deps"
-    if test -x "src/$dir/deps-lib/$file" ; then
-      echo "lib${file}.so: $(echo "$deps" | sed 's/\.o/.lo/g')"
-    fi
+    echo "lib${file}.so: $(echo "$deps" | sed 's/\.o/.lo/g')"
   done
 
   for file in $(ls -1 src/$dir/deps-exe) ; do
