@@ -233,13 +233,13 @@ int main (void)
 
    /* client is reading */
     if (x[1].revents & IOPAUSE_WRITE)
-      if ((unixmessage_sender_flush(unixmessage_sender_1) < 0) && !error_isagain(errno))
+      if (!unixmessage_sender_flush(unixmessage_sender_1) && !error_isagain(errno))
       {
         cleanup() ;
         strerr_diefu1sys(111, "flush stdout") ;
       }
     if (x[2].revents & IOPAUSE_WRITE)
-      if ((!unixmessage_sender_flush(unixmessage_sender_x) < 0) && !error_isagain(errno))
+      if (!unixmessage_sender_flush(unixmessage_sender_x) && !error_isagain(errno))
       {
         cleanup() ;
         strerr_diefu1sys(111, "flush asyncout") ;
