@@ -21,11 +21,14 @@ s6-fghack \
 s6-log \
 s6-setlock \
 s6-setsid \
-s6-setuidgid \
 s6-softlimit \
 s6-tai64n \
 s6-tai64nlocal \
 ucspilogd
+
+SBIN_TARGETS := \
+s6-applyuidgid \
+s6-setuidgid
 
 LIBEXEC_TARGETS := s6lockd-helper
 

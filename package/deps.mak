@@ -5,6 +5,7 @@
 src/include/s6/ftrigr.h: src/include/s6/config.h
 src/include/s6/s6.h: src/include/s6/ftrigr.h src/include/s6/ftrigw.h src/include/s6/s6-supervise.h src/include/s6/s6lock.h
 src/include/s6/s6lock.h: src/include/s6/config.h
+src/daemontools-extras/s6-applyuidgid.o src/daemontools-extras/s6-applyuidgid.lo: src/daemontools-extras/s6-applyuidgid.c
 src/daemontools-extras/s6-envdir.o src/daemontools-extras/s6-envdir.lo: src/daemontools-extras/s6-envdir.c
 src/daemontools-extras/s6-envuidgid.o src/daemontools-extras/s6-envuidgid.lo: src/daemontools-extras/s6-envuidgid.c
 src/daemontools-extras/s6-fghack.o src/daemontools-extras/s6-fghack.lo: src/daemontools-extras/s6-fghack.c
@@ -69,6 +70,8 @@ src/supervision/s6-svscanctl.o src/supervision/s6-svscanctl.lo: src/supervision/
 src/supervision/s6-svstat.o src/supervision/s6-svstat.lo: src/supervision/s6-svstat.c src/include/s6/s6-supervise.h
 src/supervision/s6-svwait.o src/supervision/s6-svwait.lo: src/supervision/s6-svwait.c src/include/s6/ftrigr.h src/include/s6/s6-supervise.h
 
+s6-applyuidgid: private EXTRA_LIBS :=
+s6-applyuidgid: src/daemontools-extras/s6-applyuidgid.o -lskarnet
 s6-envdir: private EXTRA_LIBS :=
 s6-envdir: src/daemontools-extras/s6-envdir.o -lskarnet
 s6-envuidgid: private EXTRA_LIBS :=

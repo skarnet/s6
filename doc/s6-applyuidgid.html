@@ -1,0 +1,63 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-applyuidgid program</title>
+    <meta name="Description" content="s6: the s6-applyuidgid program" />
+    <meta name="Keywords" content="s6 command s6-applyuidgid uid gid groups privilege dropping loss user change su" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-applyuidgid program </h1>
+
+<p>
+ s6-applyuidgid executes a program with reduced privileges.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-applyuidgid [ -z ] [ -u <em>uid</em> ] [ -g <em>gid</em> ] [ -G <em>gidlist</em> ] [ -U ] <em>prog...</em>
+</pre>
+
+<ul>
+ <li> s6-applyuidgid sets its uid, gid and supplementary group list to the
+values given, then executes into <em>prog</em>. </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-u&nbsp;<em>uid</em></tt>&nbsp;: set the process' user ID to <em>uid</em> </li>
+ <li> <tt>-g&nbsp;<em>gid</em></tt>&nbsp;: set the process' group ID to <em>gid</em> </li>
+ <li> <tt>-G&nbsp;<em>gidlist</em></tt>&nbsp;: set the process' supplementary group list
+to <em>gidlist</em>, which must be given as a comma-separated list of numeric GIDs,
+without spaces. </li>
+ <li> <tt>-U</tt>&nbsp;: set the process' user ID, group ID and supplementary group list
+to the values of the UID, GID and GIDLIST environment variables. If a <tt>-u</tt>,
+<tt>-g</tt> or <tt>-G</tt> option is given after <tt>-U</tt>, the command line
+value overrides the environment variable. </li>
+ <li> <tt>-z</tt>&nbsp;: unexport. The UID, GID and GIDLIST variables will be
+removed from the process environment. </li>
+</ul>
+	
+<h2> Notes </h2>
+
+<ul>
+ <li> s6-applyuidgid can only be run as root. Its main use is to drop root privileges before
+starting a daemon. </li>
+ <li> s6-applyuidgid is a more generic version of
+<a href="s6-setuidgid.html">s6-setuidgid</a>. It is used as a command line
+building block by some programs that rewrite their command line, such as
+<a href="http://skarnet.org/software/s6-networking/s6-tcpserver.html">s6-tcpserver</a> </li>
+</ul>
+
+</body>
+</html>

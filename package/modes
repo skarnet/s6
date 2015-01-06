@@ -15,6 +15,7 @@ s6-svscanctl		0755
 s6-svok			0755
 s6-svstat		0755
 s6-svwait		0755
+s6-applyuidgid		0700
 s6-envdir		0755
 s6-envuidgid		0755
 s6-fghack		0755
