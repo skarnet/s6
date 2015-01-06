@@ -7,6 +7,7 @@
 #include <limits.h>
 #include <skalibs/uint.h>
 #include <skalibs/gidstuff.h>
+#include <skalibs/setgroups.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/env.h>
