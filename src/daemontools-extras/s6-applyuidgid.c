@@ -34,7 +34,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
         case 'z' : unexport = 1 ; break ;
         case 'u' : if (!uint0_scan(l.arg, &uid)) dieusage() ; break ;
         case 'g' : if (!uint0_scan(l.arg, &gid)) dieusage() ; break ;
-        case 'G' : if (!gid_scanlist(gids, NGROUPS_MAX, l.arg, &gidn)) dieusage() ; break ;
+        case 'G' : if (!gid_scanlist(gids, NGROUPS_MAX, l.arg, &gidn) && *l.arg) dieusage() ; break ;
         case 'U' :
         {
           char const *x = env_get2(envp, "UID") ;
