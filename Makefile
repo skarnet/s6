@@ -9,6 +9,9 @@ it: all
 
 CC = $(error Please use ./configure first)
 
+STATIC_LIBS :=
+SHARED_LIBS :=
+
 -include config.mak
 include package/targets.mak
 include package/deps.mak

@@ -75,10 +75,10 @@ int main (int argc, char const *const *argv, char const *const *envp)
     else if (!pid)
     {
       PROG = "s6-notifywhenup (child)" ;
-      fd_close(p[1]) ;
+      close(p[1]) ;
       return run_child(p[0], fifodir, timeout) ;
     }
-    fd_close(p[0]) ;
+    close(p[0]) ;
     if (fd_move((int)fd, p[1]) < 0) strerr_diefu1sys(111, "fd_move") ;
   }
   pathexec_run(argv[0], argv, envp) ;

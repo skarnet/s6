@@ -361,8 +361,6 @@ if $allstatic ; then
   vpathd=
 fi
   echo "vpath lib%.so$vpathd"
-echo "STATIC_LIBS :="
-echo "SHARED_LIBS :="
 if $static ; then
   echo "DO_STATIC := 1"
 else
