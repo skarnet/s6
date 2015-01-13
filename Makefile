@@ -122,3 +122,5 @@ lib%.so:
 .PHONY: it all clean distclean tgz strip install install-dynlib install-bin install-sbin install-lib install-include
 
 .DELETE_ON_ERROR:
+
+.NOTPARALLEL:
