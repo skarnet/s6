@@ -10,10 +10,10 @@ src/daemontools-extras/s6-envdir.o src/daemontools-extras/s6-envdir.lo: src/daem
 src/daemontools-extras/s6-envuidgid.o src/daemontools-extras/s6-envuidgid.lo: src/daemontools-extras/s6-envuidgid.c
 src/daemontools-extras/s6-fghack.o src/daemontools-extras/s6-fghack.lo: src/daemontools-extras/s6-fghack.c
 src/daemontools-extras/s6-log.o src/daemontools-extras/s6-log.lo: src/daemontools-extras/s6-log.c
-src/daemontools-extras/s6-notifywhenup.o src/daemontools-extras/s6-notifywhenup.lo: src/daemontools-extras/s6-notifywhenup.c src/include/s6/ftrigw.h
+src/daemontools-extras/s6-notifywhenup.o src/daemontools-extras/s6-notifywhenup.lo: src/daemontools-extras/s6-notifywhenup.c src/include/s6/ftrigw.h src/include/s6/s6-supervise.h
 src/daemontools-extras/s6-setlock.o src/daemontools-extras/s6-setlock.lo: src/daemontools-extras/s6-setlock.c src/include/s6/config.h
 src/daemontools-extras/s6-setsid.o src/daemontools-extras/s6-setsid.lo: src/daemontools-extras/s6-setsid.c
-src/daemontools-extras/s6-setuidgid.o src/daemontools-extras/s6-setuidgid.lo: src/daemontools-extras/s6-setuidgid.c
+src/daemontools-extras/s6-setuidgid.o src/daemontools-extras/s6-setuidgid.lo: src/daemontools-extras/s6-setuidgid.c src/include/s6/config.h
 src/daemontools-extras/s6-softlimit.o src/daemontools-extras/s6-softlimit.lo: src/daemontools-extras/s6-softlimit.c
 src/daemontools-extras/s6-tai64n.o src/daemontools-extras/s6-tai64n.lo: src/daemontools-extras/s6-tai64n.c
 src/daemontools-extras/s6-tai64nlocal.o src/daemontools-extras/s6-tai64nlocal.lo: src/daemontools-extras/s6-tai64nlocal.c
@@ -81,7 +81,7 @@ s6-fghack: src/daemontools-extras/s6-fghack.o -lskarnet
 s6-log: private EXTRA_LIBS := ${TAINNOW_LIB}
 s6-log: src/daemontools-extras/s6-log.o -lskarnet
 s6-notifywhenup: private EXTRA_LIBS := ${TAINNOW_LIB}
-s6-notifywhenup: src/daemontools-extras/s6-notifywhenup.o -ls6 -lskarnet
+s6-notifywhenup: src/daemontools-extras/s6-notifywhenup.o ${LIBS6} -lskarnet
 s6-setlock: private EXTRA_LIBS := ${TAINNOW_LIB}
 s6-setlock: src/daemontools-extras/s6-setlock.o -lskarnet
 s6-setsid: private EXTRA_LIBS :=
@@ -105,28 +105,28 @@ s6lockd: src/libs6/s6lockd.o -lskarnet
 s6lockd-helper: private EXTRA_LIBS :=
 s6lockd-helper: src/libs6/s6lockd-helper.o -lskarnet
 s6-cleanfifodir: private EXTRA_LIBS :=
-s6-cleanfifodir: src/pipe-tools/s6-cleanfifodir.o -ls6 -lskarnet
+s6-cleanfifodir: src/pipe-tools/s6-cleanfifodir.o ${LIBS6} -lskarnet
 s6-ftrig-listen: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
-s6-ftrig-listen: src/pipe-tools/s6-ftrig-listen.o -ls6 -lexecline -lskarnet
+s6-ftrig-listen: src/pipe-tools/s6-ftrig-listen.o ${LIBS6} -lexecline -lskarnet
 s6-ftrig-listen1: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
-s6-ftrig-listen1: src/pipe-tools/s6-ftrig-listen1.o -ls6 -lskarnet
+s6-ftrig-listen1: src/pipe-tools/s6-ftrig-listen1.o ${LIBS6} -lskarnet
 s6-ftrig-notify: private EXTRA_LIBS :=
-s6-ftrig-notify: src/pipe-tools/s6-ftrig-notify.o -ls6 -lskarnet
+s6-ftrig-notify: src/pipe-tools/s6-ftrig-notify.o ${LIBS6} -lskarnet
 s6-ftrig-wait: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
-s6-ftrig-wait: src/pipe-tools/s6-ftrig-wait.o -ls6 -lskarnet
+s6-ftrig-wait: src/pipe-tools/s6-ftrig-wait.o ${LIBS6} -lskarnet
 s6-mkfifodir: private EXTRA_LIBS :=
-s6-mkfifodir: src/pipe-tools/s6-mkfifodir.o -ls6 -lskarnet
+s6-mkfifodir: src/pipe-tools/s6-mkfifodir.o ${LIBS6} -lskarnet
 s6-supervise: private EXTRA_LIBS := ${TAINNOW_LIB}
-s6-supervise: src/supervision/s6-supervise.o -ls6 -lskarnet
+s6-supervise: src/supervision/s6-supervise.o ${LIBS6} -lskarnet
 s6-svc: private EXTRA_LIBS :=
-s6-svc: src/supervision/s6-svc.o -ls6 -lskarnet
+s6-svc: src/supervision/s6-svc.o ${LIBS6} -lskarnet
 s6-svok: private EXTRA_LIBS :=
 s6-svok: src/supervision/s6-svok.o -lskarnet
 s6-svscan: private EXTRA_LIBS := ${TAINNOW_LIB}
-s6-svscan: src/supervision/s6-svscan.o -ls6 -lskarnet
+s6-svscan: src/supervision/s6-svscan.o ${LIBS6} -lskarnet
 s6-svscanctl: private EXTRA_LIBS :=
-s6-svscanctl: src/supervision/s6-svscanctl.o -ls6 -lskarnet
+s6-svscanctl: src/supervision/s6-svscanctl.o ${LIBS6} -lskarnet
 s6-svstat: private EXTRA_LIBS := ${SYSCLOCK_LIB}
-s6-svstat: src/supervision/s6-svstat.o -ls6 -lskarnet
+s6-svstat: src/supervision/s6-svstat.o ${LIBS6} -lskarnet
 s6-svwait: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
-s6-svwait: src/supervision/s6-svwait.o -ls6 -lskarnet
+s6-svwait: src/supervision/s6-svwait.o ${LIBS6} -lskarnet

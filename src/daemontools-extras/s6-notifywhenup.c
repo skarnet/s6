@@ -11,6 +11,7 @@
 #include <skalibs/iopause.h>
 #include <skalibs/djbunix.h>
 #include <s6/ftrigw.h>
+#include <s6/s6-supervise.h>
 
 #define USAGE "s6-notifywhenup [ -d fd ] [ -e fifodir ] [ -f ] [ -t timeout ] prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
@@ -36,6 +37,10 @@ static int run_child (int fd, char const *fifodir, unsigned int timeout)
     else if (r)
       if (byte_chr(dummy, r, '\n') < r) break ;
   }
+  close(fd) ;
+  fd = open_create(S6_SUPERVISE_READY_FILENAME) ;
+  if (fd < 0) strerr_warnwu1sys("touch " S6_SUPERVISE_READY_FILENAME) ;
+  else close(fd) ;
   ftrigw_notify(fifodir, 'U') ;
   return 0 ;
 }

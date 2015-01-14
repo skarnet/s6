@@ -42,25 +42,28 @@ daemon may not be ready yet.
 
 <p>
  Reliable startup notifications need support from the daemons themselves.
-Daemons should notify the outside world when the service they are providing
-is reliably up - because only they know when it is the case.
-</p>
-
-<p>
- s6 provides two ways for daemons to perform startup notification.
+Daemons should do two things to signal the outside world that they are
+ready:
 </p>
 
 <ol>
- <li> Daemons can use the <tt>ftrigw_notify()</tt> function, provided in
-<a href="libftrigw.html">the ftrigw library</a>. This is extremely
-simple and efficient, but requires specific s6 support in the daemon. </li>
- <li> Daemons can write a line to a file descriptor of their choice,
+ <li> Update a state file, so other processes can get a snapshot
+of the daemon's state </li>
+ <li> Send an event to processes waiting for a state change. </li>
+</ol>
+
+<p>
+ This is complex to implement in every single daemon, so s6 provides
+tools to make it easier for daemon authors, without any need to link
+against the s6 library or use any s6-specific construct:
+ daemons can simply write a line to a file descriptor of their choice,
 then close that file descriptor, when they're ready to serve. This is
-a generic mechanism that some daemons already implement, and does not
-require anything specific in the daemon's code. The administrator can
+a generic mechanism that some daemons already implement.
+The administrator can
 then run the daemon under <a href="s6-notifywhenup.html">s6-notifywhenup</a>,
-which will properly catch the daemon's message and notify all the subscribers
-with a 'U' event, meaning that the service is now up. <br /> <br />
+which will properly catch the daemon's message and update a state file
+itself, then notify all the subscribers
+with a 'U' event, meaning that the service is now up. <br />
  Note that there is <em>still</em> a small race condition remaining:
 if the daemon writes a line then instantly dies, and the supervisor
 picks up the death before the <a href="s6-notifywhenup.html">s6-notifywhenup</a>
@@ -69,11 +72,10 @@ to the fifodir to be wrong - 'd' before 'U'. This should be extremely
 rare, but unfortunately the race condition is unavoidable. The only
 way to be absolutely race-free is to have the daemon perform its
 readiness notification itself, which requires specific support.
- </li>
-</ol>
+</p>
 
 <p>
- The second method should really be implemented in every long-running
+ This method should really be implemented in every long-running
 program providing a service. When it is not the case, it's impossible
 to provide reliable startup notifications, and subscribers should then
 be content with the unreliable 'u' events provided by s6-supervise.

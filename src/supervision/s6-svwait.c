@@ -1,5 +1,7 @@
 /* ISC license. */
 
+#include <unistd.h>
+#include <errno.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/uint16.h>
@@ -77,8 +79,23 @@ int main (int argc, char const *const *argv)
     for (i = 0 ; i < (unsigned int)argc ; i++)
     {
       s6_svstatus_t st = S6_SVSTATUS_ZERO ;
+      int isup ;
       if (!s6_svstatus_read(argv[i], &st)) strerr_diefu1sys(111, "s6_svstatus_read") ;
-      bitarray_poke(states, i, !!st.pid) ;
+      isup = !!st.pid ;
+      if (re[0] == 'U' && isup)
+      {
+        unsigned int len = str_len(argv[i]) ;
+        char s[len + 1 + sizeof(S6_SUPERVISE_READY_FILENAME)] ;
+        byte_copy(s, len, argv[i]) ;
+        s[len] = '/' ;
+        byte_copy(s + len + 1, sizeof(S6_SUPERVISE_READY_FILENAME), S6_SUPERVISE_READY_FILENAME) ;
+        if (access(s, F_OK) < 0)
+        {
+          if (errno == ENOENT) isup = 0 ;
+          else strerr_warnwu2sys("check ", s) ;
+        }
+      }
+      bitarray_poke(states, i, isup) ;
     }
 
     for (;;)

@@ -11,6 +11,8 @@ CC = $(error Please use ./configure first)
 
 STATIC_LIBS :=
 SHARED_LIBS :=
+INTERNAL_LIBS :=
+EXTRA_TARGETS :=
 
 -include config.mak
 include package/targets.mak
@@ -32,13 +34,13 @@ STRIP := $(CROSS_COMPILE)strip
 INSTALL := ./tools/install.sh
 
 ALL_BINS := $(LIBEXEC_TARGETS) $(BIN_TARGETS) $(SBIN_TARGETS)
-ALL_LIBS := $(SHARED_LIBS) $(STATIC_LIBS)
+ALL_LIBS := $(SHARED_LIBS) $(STATIC_LIBS) $(INTERNAL_LIBS)
 ALL_INCLUDES := $(wildcard src/include/$(package)/*.h)
 
 all: $(ALL_LIBS) $(ALL_BINS) $(ALL_INCLUDES)
 
 clean:
-	@exec rm -f $(ALL_LIBS) $(ALL_BINS) $(wildcard src/*/*.o src/*/*.lo)
+	@exec rm -f $(ALL_LIBS) $(ALL_BINS) $(wildcard src/*/*.o src/*/*.lo) $(EXTRA_TARGETS)
 
 distclean: clean
 	@exec rm -f config.mak src/include/${package}/config.h
@@ -122,5 +124,3 @@ lib%.so:
 .PHONY: it all clean distclean tgz strip install install-dynlib install-bin install-sbin install-lib install-include
 
 .DELETE_ON_ERROR:
-
-.NOTPARALLEL:

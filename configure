@@ -169,8 +169,8 @@ for arg ; do
     --enable-static|--enable-static=yes) static=true ;;
     --disable-static|--enable-static=no) static=false ;;
     --enable-allstatic|--enable-allstatic=yes) allstatic=true ;;
-    --disable-allstatic|--enable-allstatic=no) allstatic=false ;;
-    --enable-static-libc|--enable-static-libc=yes) evenmorestatic=true ;;
+    --disable-allstatic|--enable-allstatic=no) allstatic=false ; evenmorestatic=false ;;
+    --enable-static-libc|--enable-static-libc=yes) allstatic=true ; evenmorestatic=true ;;
     --disable-static-libc|--enable-static-libc=no) evenmorestatic=false ;;
     --enable-slashpackage=*) sproot=${arg#*=} ; slashpackage=true ; ;;
     --enable-slashpackage) sproot= ; slashpackage=true ;;
@@ -358,6 +358,7 @@ vpath lib%a$vpaths
 EOF
 if $allstatic ; then
   echo ".LIBPATTERNS := lib%.a"
+  echo "DO_ALLSTATIC := 1"
   vpathd=
 fi
   echo "vpath lib%.so$vpathd"

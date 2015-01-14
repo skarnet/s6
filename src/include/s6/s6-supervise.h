@@ -9,6 +9,7 @@
 #define S6_SUPERVISE_EVENTDIR "event"
 #define S6_SVSCAN_CTLDIR ".s6-svscan"
 #define S6_SVSTATUS_FILENAME S6_SUPERVISE_CTLDIR "/status"
+#define S6_SUPERVISE_READY_FILENAME S6_SUPERVISE_CTLDIR "/ready"
 #define S6_SVSTATUS_SIZE 18
 
 extern int s6_svc_write (char const *, char const *, unsigned int) ;

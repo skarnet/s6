@@ -38,7 +38,8 @@ needed.
  <li> s6-notifywhenup forks and executes <em>prog...</em> as the
 parent, with a pipe from <em>prog...</em>'s stdout to the child. </li>
  <li> The child waits for a newline (<tt>\n</tt>) to be written
-on the pipe. When it gets it, it sends a 'U' event to the
+on the pipe. When it gets it, it creates an empty
+<tt>./supervise/ready</tt> file then sends a 'U' event to the
 <tt>./event</tt> fifodir. </li>
  <li> The child exits 0. </li>
 </ul>

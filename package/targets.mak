@@ -32,6 +32,12 @@ s6-setuidgid
 
 LIBEXEC_TARGETS := s6lockd-helper
 
+ifdef DO_ALLSTATIC
+LIBS6 := libs6.a
+else
+LIBS6 := libs6.so
+endif
+
 ifdef DO_SHARED
 SHARED_LIBS := libs6.so
 endif

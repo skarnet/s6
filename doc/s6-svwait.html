@@ -33,7 +33,7 @@ s6-svwait only waits for notifications; it never polls.
 
 <p>
 s6-svwait monitors one or more <a href="servicedir.html">service
-directories</a> given as its arguments, waiting for a state (up or down) to
+directories</a> given as its arguments, waiting for a state (ready, up or down) to
 happen. It exits 0 when the wanted condition becomes true.
 </p>
 
@@ -46,8 +46,10 @@ This is the default; it is not reliable, but it does not depend on specific
 support in the service programs. See <a href="notifywhenup.html">this page</a>
 for details. </li>
  <li> <tt>-U</tt>&nbsp;: really up. s6-svwait will wait until the services are
-up, as reported by the services themselves. This requires specific support in the
-service programs: see the explanation on <a href="notifywhenup.html">this page</a>. </li>
+up <em>and</em> ready as reported by the services themselves. This requires
+specific support in the service programs, and the use of
+<a href="s6-notifywhenup.html">s6-notifywhenup</a> in the service's run script.
+See the explanation on <a href="notifywhenup.html">this page</a>. </li>
  <li> <tt>-d</tt>&nbsp;: down. s6-svwait will wait until the services are down. </li>
  <li> <tt>-o</tt>&nbsp;: or. s6-svwait will wait until <em>one</em> of the
 given services comes up or down. </li>
@@ -59,13 +61,13 @@ to stderr and exit 1. By default, <em>timeout</em> is 0, which means no time
 limit. </li>
 </ul>
 
-
 <h2> Internals </h2>
 
 <p>
 s6-svwait spawns a <a href="s6-ftrigrd.html">s6-ftrigrd</a> child to
 listen to notifications sent by <a href="s6-supervise.html">s6-supervise</a>.
-It also checks <tt>supervise/status</tt> files to get the current service
+It also checks <tt>supervise/status</tt> files, as well as the
+<tt>supervise/ready</tt> files if necessary, to get the current service
 states, so it is immune to race conditions.
 </p>
 

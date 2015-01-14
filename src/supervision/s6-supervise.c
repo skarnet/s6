@@ -161,6 +161,8 @@ static void trystart (void)
     PROG = "s6-supervise (child)" ;
     selfpipe_finish() ;
     fd_close(p[0]) ;
+    if (unlink(S6_SUPERVISE_READY_FILENAME) < 0 && errno != ENOENT)
+      strerr_warnwu1sys("unlink " S6_SUPERVISE_READY_FILENAME) ;
     if (flagsetsid) setsid() ;
     execve("./run", (char *const *)cargv, (char *const *)environ) ;
     fd_write(p[1], "", 1) ;
@@ -264,14 +266,21 @@ static void uptimeout (void)
   strerr_warnw1x("can't happen: timeout while the service is up!") ;
 }
 
-static void up_z (void)
+static void uplastup_z (int islast)
 {
   int wstat = status.pid ;
   status.pid = 0 ;
   tain_copynow(&status.stamp) ;
   announce() ;
   ftrigw_notify(S6_SUPERVISE_EVENTDIR, 'd') ;
-  tryfinish(wstat, 0) ;
+  if (unlink(S6_SUPERVISE_READY_FILENAME) < 0 && errno != ENOENT)
+    strerr_warnwu1sys("unlink " S6_SUPERVISE_READY_FILENAME) ;
+  tryfinish(wstat, islast) ;
+}
+
+static void up_z (void)
+{
+  uplastup_z(0) ;
 }
 
 static void up_o (void)
@@ -346,12 +355,7 @@ static void finish_x (void)
 
 static void lastup_z (void)
 {
-  int wstat = status.pid ;
-  status.pid = 0 ;
-  tain_copynow(&status.stamp) ;
-  announce() ;
-  ftrigw_notify(S6_SUPERVISE_EVENTDIR, 'd') ;
-  tryfinish(wstat, 1) ;
+  uplastup_z(1) ;
 }
 
 static action_t_ref const actions[5][23] =

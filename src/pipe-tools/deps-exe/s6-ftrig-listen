@@ -1,4 +1,4 @@
--ls6
+${LIBS6}
 -lexecline
 -lskarnet
 ${SOCKET_LIB}
