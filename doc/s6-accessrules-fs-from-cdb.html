@@ -1,0 +1,60 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-accessrules-fs-from-cdb program</title>
+    <meta name="Description" content="s6: the s6-accessrules-fs-from-cdb program" />
+    <meta name="Keywords" content="s6 s6-accessrules-fs-from-cdb tcp unix access control ipcrules tcprules cdb filesystem" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-accessrules-fs-from-cdb</tt> program </h1>
+
+<p>
+<tt>s6-accessrules-fs-from-cdb</tt> decompiles a CDB database
+containing a ruleset suitable for
+<a href="s6-ipcserver-access.html">s6-ipcserver-access<a> or
+<a href="http://skarnet.org/software/s6-networking/s6-tcpserver-access.html">s6-tcpserver-access<a> and
+that has been compiled with
+<a href="s6-accessrules-cdb-from-fs.html">s6-accessrules-cdb-from-fs<a>.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-accessrules-fs-from-cdb <em>dir</em> <em>cdbfile</em>
+</pre>
+
+<ul>
+ <li> s6-accessrules-fs-from-cdb decompiles the
+<a href="http://en.wikipedia.org/wiki/Cdb_(software)">CDB file</a>
+<em>cdbfile</em> into the directory <em>dir</em>, then exits 0. </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> <em>dir</em> must not exist prior to the decompilation. </li>
+ <li> <em>dir</em> must be considered a work in progress as long as
+s6-accessrules-fs-from-cdb is running. It is only safe to use <em>dir</em>
+as a ruleset once the program has exited. </li>
+ <li> If s6-accessrules-fs-from-cdb fails at some point, the partial
+arborescence at <em>dir</em> is removed. However, this doesn't happen if
+s6-accessrules-fs-from-cdb is interrupted by a signal. </li>
+ <li> After the program successfully completes, if <em>cdbfile</em>
+was a suitable candidate for the <tt>-x</tt> option of
+<a href="s6-ipcserver-access.html">s6-ipcserver-access</a> or
+<a href="s6-tcpserver-access.html">s6-tcpserver-access</a>, then
+<em>dir</em> will be a suitable candidate for the <tt>-i</tt> option
+of the same program, implementing the same ruleset. </li>
+</ul>
+
+</body>
+</html>

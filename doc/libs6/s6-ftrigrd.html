@@ -10,7 +10,8 @@
 <body>
 
 <p>
-<a href="index.html">s6</a><br />
+<a href="index.html">libs6</a><br />
+<a href="../">s6</a><br />
 <a href="http://skarnet.org/software/">Software</a><br />
 <a href="http://skarnet.org/">skarnet.org</a>
 </p>
@@ -20,7 +21,7 @@
 <p>
 s6-ftrigrd is a helper program that manages a set of subscriptions to fifodirs as well
 as regular expressions on events. It takes orders from its client program that controls
-it via the <a href="libftrigr.html">ftrigr library</a>, and notifies it when desired
+it via the <a href="ftrigr.html">ftrigr library</a>, and notifies it when desired
 events happen.
 </p>
 
@@ -37,9 +38,9 @@ stdout is a pipe writing to the client; its stderr is the same as the client's; 
 there's an additional pipe from s6-ftrigrd to the client, used for asynchronous
 notifications. </li>
  <li> If the client program uses <tt>ftrigr_start()</tt>, then it tries to connect
-to a Unix domain socket. A <em>ftrigrd service</em> should be listening to that
+to a Unix domain socket. A ftrigrd <a href="../localservice.html">local service</a> should be listening to that
 socket, i.e. a Unix domain superserver such as
-<a href="http://www.skarnet.org/software/s6-networking/s6-ipcserver.html">s6-ipcserver</a>
+<a href="s6-ipcserver.html">s6-ipcserver</a>
 spawning a s6-ftrigrd program on every connection. Then a s6-ftrigrd instance is created
 for the client. </li>
  <li> When the client uses <tt>ftrigr_end()</tt>, or closes s6-ftrigrd's stdin in
@@ -58,7 +59,7 @@ the client.
 
 <p>
  The connection management between the client and s6-ftrigrd is entirely done
-by the <a href="http://www.skarnet.org/software/skalibs/libunixonacid/skaclient.html">skaclient</a>
+by the <a href="http://skarnet.org/software/skalibs/libunixonacid/skaclient.html">skaclient</a>
 library.
 </p>
 

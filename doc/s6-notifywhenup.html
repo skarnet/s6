@@ -68,11 +68,11 @@ Default is 0, meaning infinite. </li>
 for <em>prog</em> to keep the same pid, which is vital for supervised
 processes. </li>
  <li> s6-notifywhenup can be used, for instance, with
-<a href="http://skarnet.org/software/s6-networking/s6-tcpserver.html">s6-tcpserver</a>
+<a href="s6-ipcserver.html">s6-ipcserver</a>
 and its <tt>-1</tt> option, so that reliable startup notification is
-achieved. <tt>s6-notifywhenup -f s6-tcpserver -1 <em>args</em></tt> will
-send a 'U' event to <tt>./event</tt> when s6-tcpserver is actually
-listening to its network socket. </li>
+achieved. <tt>s6-notifywhenup -f s6-ipcserver -1 <em>args</em></tt> will
+send a 'U' event to <tt>./event</tt> when s6-ipcserver is actually
+listening to its socket. </li>
  <li> The <a href="s6-svwait.html">s6-svwait</a> program can be used
 to wait for 'U' events. </li>
 </ul>

@@ -10,7 +10,8 @@
 <body>
 
 <p>
-<a href="index.html">s6</a><br />
+<a href="index.html">libs6</a><br />
+<a href="../">s6</a><br />
 <a href="http://skarnet.org/software/">Software</a><br />
 <a href="http://skarnet.org/">skarnet.org</a>
 </p>
@@ -22,22 +23,6 @@
 programs that want to subscribe to fifodirs and be instantly
 notified when the proper sequence of events happens.
 </p>
-
-<h2> Compiling </h2>
-
-<ul>
- <li> Make sure the s6 headers, as well as the skalibs headers,
-are visible in your header search path. </li>
- <li> Use <tt>#include &lt;s6/ftrigr.h&gt;</tt> </li>
-</ul>
-
-<h2> Linking </h2>
-
-<ul>
- <li> Make sure the s6 libraries, as well as the skalibs libraries,
-are visible in your library search path. </li>
- <li> Link against <tt>-ls6</tt> and <tt>-lskarnet</tt>. </li>
-</ul>
 
 <h2> Programming </h2>
 
@@ -51,7 +36,7 @@ exact function prototypes.
 know it has. This means paying some attention to the SIGCHLD handler,
 if any, and to the way you perform <tt>waitpid()</tt>s. The best
 practice is to use a
-<a href="http://www.skarnet.org/software/skalibs/libstddjb/selfpipe.html">self-pipe</a>
+<a href="http://skarnet.org/software/skalibs/libstddjb/selfpipe.html">self-pipe</a>
 to handle SIGCHLD (as well as other signals the application needs to trap),
 and to <em>always</em> use <tt>wait_nohang()</tt> to reap children,
 simply ignoring pids you don't know.

@@ -1,0 +1,80 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-sudoc program</title>
+    <meta name="Description" content="s6: the s6-sudoc program" />
+    <meta name="Keywords" content="s6 s6-sudoc sudo setuid suid unix privilege gain getpeereid client" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-sudoc</tt> program </h1>
+
+<p>
+<tt>s6-sudoc</tt> talks to a peer <a href="s6-sudod.html">s6-sudod</a>
+program over a Unix socket, passing it command-line arguments, environment
+variables and standard descriptors.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-sudoc [ -e ] [ -t <em>timeoutconn</em> ] [ -T <em>timeoutrun</em> ] [ <em>args...</em> ]
+</pre>
+
+<ul>
+ <li> s6-sudoc transmits its standard input, standard output and standard error
+via fd-passing over a Unix socket that must be open on its descriptors 6 and 7.
+ It expects a <a href="s6-sudod.html">s6-sudod</a> process to be receiving them
+on the other side. </li>
+<li> It also transmits its command-line arguments <em>args</em>, and also its
+environment by default. Note that s6-sudod will not necessarily accept all the
+environment variables that s6-sudoc tries to transmit. </li>
+ <li> s6-sudoc waits for the server program run by s6-sudod to finish. It exits
+the same exit code as the server program. If the server program is killed by a
+signal, s6-sudoc kills itself with the same signal. </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-e</tt>&nbsp;: do not attempt to transmit any environment variables
+to <a href="s6-sudod.html">s6-sudod</a>. </li>
+ <li> <tt>-t&nbsp;<em>timeoutconn</em></tt>&nbsp;: if s6-sudod has not
+managed to process the given information and start the server program after
+<em>timeoutconn</em> milliseconds, give up. By default, <em>timeoutconn</em>
+is 0, meaning infinite. Note that there is no reason to set up a nonzero
+<em>timeoutconn</em> with a large value: s6-sudod is not supposed to block.
+The option is only there to protect against ill-written services. </li>
+ <li> <tt>-T&nbsp;<em>timeoutrun</em></tt>&nbsp;: if the server program
+has not exited after <em>timeoutrun</em> milliseconds, give up. By
+default, <em>timeoutrun</em> is 0, meaning infinite. </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> If s6-sudoc is killed, or exits after <em>timeoutrun</em> milliseconds,
+while the server program is still running, s6-sudod will send a SIGTERM and a
+SIGCONT to the server program - but this does not guarantee that it will die.
+If the server program keeps running, it might still read from the file that
+was s6-sudoc's stdin, or write to the files that were s6-sudoc's stdout or
+stderr. <strong>This is a potential security risk</strong>.
+Administrators should audit their server programs to make sure this does not
+happen. </li>
+ <li> More generally, anything using signals or terminals will not be
+handled transparently by the s6-sudoc + s6-sudod mechanism. The mechanism
+was designed to allow programs to gain privileges in specific situations:
+short-lived, simple, noninteractive processes. It was not designed to emulate
+the full suid functionality and will not go out of its way to do so. </li>
+</ul>
+
+</body>
+</html>

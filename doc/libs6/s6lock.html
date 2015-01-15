@@ -4,12 +4,13 @@
     <meta http-equiv="Content-Language" content="en" />
     <title>s6: the s6lock library interface</title>
     <meta name="Description" content="s6: the s6lock library interface" />
-    <meta name="Keywords" content="s6 timed lock s6lock libs6lock library interface" />
+    <meta name="Keywords" content="s6 timed lock s6lock libs6 library interface" />
     <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
   </head>
 <body>
 
 <p>
+<a href="index.html">libs6</a><br />
 <a href="../">s6</a><br />
 <a href="http://skarnet.org/software/">Software</a><br />
 <a href="http://skarnet.org/">skarnet.org</a>
@@ -20,30 +21,11 @@
 <h2> General information </h2>
 
 <p>
- <tt>libs6lock</tt> is a C interface to timed locks. Unix natively provides
+ <tt>s6lock</tt> is a C interface to timed locks. Unix natively provides
 locks, but the locking primitives are synchronous, so either they are
-unbounded in execution time or they require polling. libs6lock provides
+unbounded in execution time or they require polling. s6lock provides
 poll-free locks that can timeout during attempted acquisition.
 </p>
-
-<h2> Compiling </h2>
-
-<ul>
- <li> Make sure the s6 headers, as well as the skalibs headers,
-are visible in your header search path. </li>
- <li> Use <tt>#include &lt;s6/s6lock.h&gt;</tt> </li>
-</ul>
-
-<h2> Linking </h2>
-
-<ul>
- <li> Make sure the s6 libraries, as well as the skalibs libraries,
-are visible in your library search path. </li>
- <li> Link against <tt>-ls6</tt>, <tt>-lskarnet</tt>,
-<tt>`cat $sysdeps/socket.lib`</tt>, and
-<tt>`cat $sysdeps/tainnow.lib`</tt>,
-if <tt>$sysdeps</tt> is your skalibs installation's sysdeps directory. </li>
-</ul>
 
 <h2> Programming </h2>
 
@@ -54,7 +36,7 @@ often simplified macros, for instance relying on the STAMP global variable
 to hold the current time. Fully reentrant functions with more control
 options are usually available. </li>
  <li> Given the nature of the s6lock library, it makes sense to use a
-<a href="http://skarnet.org/software/s6-networking/localservice.html">s6lockd service</a> concurrently
+<a href="../localservice.html">s6lockd service</a> concurrently
 accessed by several applications using such locks to gate shared
 resources. </li>
  <li> If you're not using a s6lockd service,

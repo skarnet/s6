@@ -3,8 +3,20 @@
 #
 
 src/include/s6/ftrigr.h: src/include/s6/config.h
-src/include/s6/s6.h: src/include/s6/ftrigr.h src/include/s6/ftrigw.h src/include/s6/s6-supervise.h src/include/s6/s6lock.h
+src/include/s6/s6.h: src/include/s6/accessrules.h src/include/s6/ftrigr.h src/include/s6/ftrigw.h src/include/s6/s6-supervise.h src/include/s6/s6lock.h
 src/include/s6/s6lock.h: src/include/s6/config.h
+src/conn-tools/s6-accessrules-cdb-from-fs.o src/conn-tools/s6-accessrules-cdb-from-fs.lo: src/conn-tools/s6-accessrules-cdb-from-fs.c
+src/conn-tools/s6-accessrules-fs-from-cdb.o src/conn-tools/s6-accessrules-fs-from-cdb.lo: src/conn-tools/s6-accessrules-fs-from-cdb.c
+src/conn-tools/s6-connlimit.o src/conn-tools/s6-connlimit.lo: src/conn-tools/s6-connlimit.c
+src/conn-tools/s6-ioconnect.o src/conn-tools/s6-ioconnect.lo: src/conn-tools/s6-ioconnect.c
+src/conn-tools/s6-ipcclient.o src/conn-tools/s6-ipcclient.lo: src/conn-tools/s6-ipcclient.c
+src/conn-tools/s6-ipcserver-access.o src/conn-tools/s6-ipcserver-access.lo: src/conn-tools/s6-ipcserver-access.c src/include/s6/accessrules.h
+src/conn-tools/s6-ipcserver-socketbinder.o src/conn-tools/s6-ipcserver-socketbinder.lo: src/conn-tools/s6-ipcserver-socketbinder.c
+src/conn-tools/s6-ipcserver.o src/conn-tools/s6-ipcserver.lo: src/conn-tools/s6-ipcserver.c src/include/s6/config.h
+src/conn-tools/s6-ipcserverd.o src/conn-tools/s6-ipcserverd.lo: src/conn-tools/s6-ipcserverd.c
+src/conn-tools/s6-sudo.o src/conn-tools/s6-sudo.lo: src/conn-tools/s6-sudo.c src/include/s6/config.h
+src/conn-tools/s6-sudoc.o src/conn-tools/s6-sudoc.lo: src/conn-tools/s6-sudoc.c src/conn-tools/s6-sudo.h
+src/conn-tools/s6-sudod.o src/conn-tools/s6-sudod.lo: src/conn-tools/s6-sudod.c src/conn-tools/s6-sudo.h
 src/daemontools-extras/s6-applyuidgid.o src/daemontools-extras/s6-applyuidgid.lo: src/daemontools-extras/s6-applyuidgid.c
 src/daemontools-extras/s6-envdir.o src/daemontools-extras/s6-envdir.lo: src/daemontools-extras/s6-envdir.c
 src/daemontools-extras/s6-envuidgid.o src/daemontools-extras/s6-envuidgid.lo: src/daemontools-extras/s6-envuidgid.c
@@ -36,6 +48,14 @@ src/libs6/ftrigw_fifodir_make.o src/libs6/ftrigw_fifodir_make.lo: src/libs6/ftri
 src/libs6/ftrigw_notify.o src/libs6/ftrigw_notify.lo: src/libs6/ftrigw_notify.c src/include/s6/ftrigw.h
 src/libs6/ftrigw_notifyb.o src/libs6/ftrigw_notifyb.lo: src/libs6/ftrigw_notifyb.c src/libs6/ftrig1.h src/include/s6/ftrigw.h
 src/libs6/s6-ftrigrd.o src/libs6/s6-ftrigrd.lo: src/libs6/s6-ftrigrd.c src/libs6/ftrig1.h src/include/s6/ftrigr.h
+src/libs6/s6_accessrules_backend_cdb.o src/libs6/s6_accessrules_backend_cdb.lo: src/libs6/s6_accessrules_backend_cdb.c src/include/s6/accessrules.h
+src/libs6/s6_accessrules_backend_fs.o src/libs6/s6_accessrules_backend_fs.lo: src/libs6/s6_accessrules_backend_fs.c src/include/s6/accessrules.h
+src/libs6/s6_accessrules_keycheck_ip4.o src/libs6/s6_accessrules_keycheck_ip4.lo: src/libs6/s6_accessrules_keycheck_ip4.c src/include/s6/accessrules.h
+src/libs6/s6_accessrules_keycheck_ip6.o src/libs6/s6_accessrules_keycheck_ip6.lo: src/libs6/s6_accessrules_keycheck_ip6.c src/include/s6/accessrules.h
+src/libs6/s6_accessrules_keycheck_reversedns.o src/libs6/s6_accessrules_keycheck_reversedns.lo: src/libs6/s6_accessrules_keycheck_reversedns.c src/include/s6/accessrules.h
+src/libs6/s6_accessrules_keycheck_uidgid.o src/libs6/s6_accessrules_keycheck_uidgid.lo: src/libs6/s6_accessrules_keycheck_uidgid.c src/include/s6/accessrules.h
+src/libs6/s6_accessrules_uidgid_cdb.o src/libs6/s6_accessrules_uidgid_cdb.lo: src/libs6/s6_accessrules_uidgid_cdb.c src/include/s6/accessrules.h
+src/libs6/s6_accessrules_uidgid_fs.o src/libs6/s6_accessrules_uidgid_fs.lo: src/libs6/s6_accessrules_uidgid_fs.c src/include/s6/accessrules.h
 src/libs6/s6_supervise_lock.o src/libs6/s6_supervise_lock.lo: src/libs6/s6_supervise_lock.c src/include/s6/s6-supervise.h
 src/libs6/s6_supervise_lock_mode.o src/libs6/s6_supervise_lock_mode.lo: src/libs6/s6_supervise_lock_mode.c src/include/s6/s6-supervise.h
 src/libs6/s6_svc_main.o src/libs6/s6_svc_main.lo: src/libs6/s6_svc_main.c src/include/s6/s6-supervise.h
@@ -70,6 +90,30 @@ src/supervision/s6-svscanctl.o src/supervision/s6-svscanctl.lo: src/supervision/
 src/supervision/s6-svstat.o src/supervision/s6-svstat.lo: src/supervision/s6-svstat.c src/include/s6/s6-supervise.h
 src/supervision/s6-svwait.o src/supervision/s6-svwait.lo: src/supervision/s6-svwait.c src/include/s6/ftrigr.h src/include/s6/s6-supervise.h
 
+s6-accessrules-cdb-from-fs: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-accessrules-cdb-from-fs: src/conn-tools/s6-accessrules-cdb-from-fs.o -lskarnet
+s6-accessrules-fs-from-cdb: private EXTRA_LIBS :=
+s6-accessrules-fs-from-cdb: src/conn-tools/s6-accessrules-fs-from-cdb.o -lskarnet
+s6-connlimit: private EXTRA_LIBS :=
+s6-connlimit: src/conn-tools/s6-connlimit.o -lskarnet
+s6-ioconnect: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-ioconnect: src/conn-tools/s6-ioconnect.o -lskarnet
+s6-ipcclient: private EXTRA_LIBS := ${SOCKET_LIB}
+s6-ipcclient: src/conn-tools/s6-ipcclient.o -lskarnet
+s6-ipcserver: private EXTRA_LIBS :=
+s6-ipcserver: src/conn-tools/s6-ipcserver.o -lskarnet
+s6-ipcserver-access: private EXTRA_LIBS := ${SOCKET_LIB}
+s6-ipcserver-access: src/conn-tools/s6-ipcserver-access.o ${LIBS6} -lskarnet
+s6-ipcserver-socketbinder: private EXTRA_LIBS := ${SOCKET_LIB}
+s6-ipcserver-socketbinder: src/conn-tools/s6-ipcserver-socketbinder.o -lskarnet
+s6-ipcserverd: private EXTRA_LIBS := ${SOCKET_LIB}
+s6-ipcserverd: src/conn-tools/s6-ipcserverd.o -lskarnet
+s6-sudo: private EXTRA_LIBS :=
+s6-sudo: src/conn-tools/s6-sudo.o -lskarnet
+s6-sudoc: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-sudoc: src/conn-tools/s6-sudoc.o -lskarnet
+s6-sudod: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-sudod: src/conn-tools/s6-sudod.o -lskarnet
 s6-applyuidgid: private EXTRA_LIBS :=
 s6-applyuidgid: src/daemontools-extras/s6-applyuidgid.o -lskarnet
 s6-envdir: private EXTRA_LIBS :=
@@ -96,8 +140,8 @@ s6-tai64nlocal: private EXTRA_LIBS :=
 s6-tai64nlocal: src/daemontools-extras/s6-tai64nlocal.o -lskarnet
 ucspilogd: private EXTRA_LIBS :=
 ucspilogd: src/daemontools-extras/ucspilogd.o -lskarnet
-libs6.a:  src/libs6/ftrigr1_zero.o src/libs6/ftrigr_check.o src/libs6/ftrigr_end.o src/libs6/ftrigr_start.o src/libs6/ftrigr_startf.o src/libs6/ftrigr_subscribe.o src/libs6/ftrigr_unsubscribe.o src/libs6/ftrigr_update.o src/libs6/ftrigr_wait_and.o src/libs6/ftrigr_wait_or.o src/libs6/ftrigr_zero.o src/libs6/ftrigw_clean.o src/libs6/ftrigw_fifodir_make.o src/libs6/ftrigw_notify.o src/libs6/ftrigw_notifyb.o src/libs6/s6_supervise_lock.o src/libs6/s6_supervise_lock_mode.o src/libs6/s6_svc_main.o src/libs6/s6_svc_write.o src/libs6/s6_svstatus_pack.o src/libs6/s6_svstatus_read.o src/libs6/s6_svstatus_unpack.o src/libs6/s6_svstatus_write.o src/libs6/s6lock_acquire.o src/libs6/s6lock_check.o src/libs6/s6lock_end.o src/libs6/s6lock_release.o src/libs6/s6lock_start.o src/libs6/s6lock_startf.o src/libs6/s6lock_update.o src/libs6/s6lock_wait_and.o src/libs6/s6lock_wait_or.o src/libs6/s6lock_zero.o
-libs6.so:  src/libs6/ftrigr1_zero.lo src/libs6/ftrigr_check.lo src/libs6/ftrigr_end.lo src/libs6/ftrigr_start.lo src/libs6/ftrigr_startf.lo src/libs6/ftrigr_subscribe.lo src/libs6/ftrigr_unsubscribe.lo src/libs6/ftrigr_update.lo src/libs6/ftrigr_wait_and.lo src/libs6/ftrigr_wait_or.lo src/libs6/ftrigr_zero.lo src/libs6/ftrigw_clean.lo src/libs6/ftrigw_fifodir_make.lo src/libs6/ftrigw_notify.lo src/libs6/ftrigw_notifyb.lo src/libs6/s6_supervise_lock.lo src/libs6/s6_supervise_lock_mode.lo src/libs6/s6_svc_main.lo src/libs6/s6_svc_write.lo src/libs6/s6_svstatus_pack.lo src/libs6/s6_svstatus_read.lo src/libs6/s6_svstatus_unpack.lo src/libs6/s6_svstatus_write.lo src/libs6/s6lock_acquire.lo src/libs6/s6lock_check.lo src/libs6/s6lock_end.lo src/libs6/s6lock_release.lo src/libs6/s6lock_start.lo src/libs6/s6lock_startf.lo src/libs6/s6lock_update.lo src/libs6/s6lock_wait_and.lo src/libs6/s6lock_wait_or.lo src/libs6/s6lock_zero.lo
+libs6.a:  src/libs6/ftrigr1_zero.o src/libs6/ftrigr_check.o src/libs6/ftrigr_end.o src/libs6/ftrigr_start.o src/libs6/ftrigr_startf.o src/libs6/ftrigr_subscribe.o src/libs6/ftrigr_unsubscribe.o src/libs6/ftrigr_update.o src/libs6/ftrigr_wait_and.o src/libs6/ftrigr_wait_or.o src/libs6/ftrigr_zero.o src/libs6/ftrigw_clean.o src/libs6/ftrigw_fifodir_make.o src/libs6/ftrigw_notify.o src/libs6/ftrigw_notifyb.o src/libs6/s6_accessrules_backend_cdb.o src/libs6/s6_accessrules_backend_fs.o src/libs6/s6_accessrules_keycheck_ip4.o src/libs6/s6_accessrules_keycheck_ip6.o src/libs6/s6_accessrules_keycheck_reversedns.o src/libs6/s6_accessrules_keycheck_uidgid.o src/libs6/s6_accessrules_uidgid_cdb.o src/libs6/s6_accessrules_uidgid_fs.o src/libs6/s6_supervise_lock.o src/libs6/s6_supervise_lock_mode.o src/libs6/s6_svc_main.o src/libs6/s6_svc_write.o src/libs6/s6_svstatus_pack.o src/libs6/s6_svstatus_read.o src/libs6/s6_svstatus_unpack.o src/libs6/s6_svstatus_write.o src/libs6/s6lock_acquire.o src/libs6/s6lock_check.o src/libs6/s6lock_end.o src/libs6/s6lock_release.o src/libs6/s6lock_start.o src/libs6/s6lock_startf.o src/libs6/s6lock_update.o src/libs6/s6lock_wait_and.o src/libs6/s6lock_wait_or.o src/libs6/s6lock_zero.o
+libs6.so:  src/libs6/ftrigr1_zero.lo src/libs6/ftrigr_check.lo src/libs6/ftrigr_end.lo src/libs6/ftrigr_start.lo src/libs6/ftrigr_startf.lo src/libs6/ftrigr_subscribe.lo src/libs6/ftrigr_unsubscribe.lo src/libs6/ftrigr_update.lo src/libs6/ftrigr_wait_and.lo src/libs6/ftrigr_wait_or.lo src/libs6/ftrigr_zero.lo src/libs6/ftrigw_clean.lo src/libs6/ftrigw_fifodir_make.lo src/libs6/ftrigw_notify.lo src/libs6/ftrigw_notifyb.lo src/libs6/s6_accessrules_backend_cdb.lo src/libs6/s6_accessrules_backend_fs.lo src/libs6/s6_accessrules_keycheck_ip4.lo src/libs6/s6_accessrules_keycheck_ip6.lo src/libs6/s6_accessrules_keycheck_reversedns.lo src/libs6/s6_accessrules_keycheck_uidgid.lo src/libs6/s6_accessrules_uidgid_cdb.lo src/libs6/s6_accessrules_uidgid_fs.lo src/libs6/s6_supervise_lock.lo src/libs6/s6_supervise_lock_mode.lo src/libs6/s6_svc_main.lo src/libs6/s6_svc_write.lo src/libs6/s6_svstatus_pack.lo src/libs6/s6_svstatus_read.lo src/libs6/s6_svstatus_unpack.lo src/libs6/s6_svstatus_write.lo src/libs6/s6lock_acquire.lo src/libs6/s6lock_check.lo src/libs6/s6lock_end.lo src/libs6/s6lock_release.lo src/libs6/s6lock_start.lo src/libs6/s6lock_startf.lo src/libs6/s6lock_update.lo src/libs6/s6lock_wait_and.lo src/libs6/s6lock_wait_or.lo src/libs6/s6lock_zero.lo
 s6-ftrigrd: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
 s6-ftrigrd: src/libs6/s6-ftrigrd.o src/libs6/ftrig1_free.o src/libs6/ftrig1_make.o -lskarnet
 s6lockd: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}

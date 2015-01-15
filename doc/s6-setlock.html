@@ -55,7 +55,7 @@ execution. This is intended: the fd holds the lock, which is released
 when <em>prog</em> exits. <em>prog</em> must not touch fds it does not
 know about. </li>
  <li> If the timed lock option is chosen, s6-setlock does not acquire the lock
-itself. Instead, it spawns a <a href="libs6lock/s6lockd-helper.html">s6lockd-helper</a>
+itself. Instead, it spawns a <a href="libs6/s6lockd-helper.html">s6lockd-helper</a>
 process that acquires the lock while s6-setlock controls the timeout; the
 s6lockd-helper process then holds the lock and lives as long as
 <em>prog</em>. </li>

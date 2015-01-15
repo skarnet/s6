@@ -1,0 +1,331 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the accessrules library interface</title>
+    <meta name="Description" content="s6: the accessrules library interface" />
+    <meta name="Keywords" content="s6 net accessrules library libs6net unix tcp access control dns ipv4 ipv6" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">libs6</a><br />
+<a href="../">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>accessrules</tt> library interface </h1>
+
+<p>
+ The following functions and structures are declared in the <tt>s6/accessrules.h</tt> header,
+and implemented in the <tt>libs6.a</tt> or <tt>libs6.so</tt> library.
+</p>
+
+<h2> General information </h2>
+
+<p>
+ <tt>accessrules</tt> is an access control library. It looks up
+a key in a user-specified database, then returns a code depending on
+whether the database allows access (in which case additional information
+can also be returned), denies access, or does not contain the key.
+</p>
+
+<p>
+ <tt>accessrules</tt> has been designed to be easily extensible to any
+database format and any key format.
+</p>
+
+<p>
+ Check the <tt>s6/accessrules.h</tt> header for the exact definitions.
+</p>
+
+<h2> Data structures </h2>
+
+<ul>
+ <li> A <tt>s6_accessrules_result_t</tt> is a scalar that
+can have the following values: S6_ACCESSRULES_ERROR,
+S6_ACCESSRULES_DENY, S6_ACCESSRULES_ALLOW or S6_ACCESSRULES_NOTFOUND. </li>
+ <li> A <tt>s6_accessrules_params_t</tt> is a structure containing two
+<a href="http://skarnet.org/software/skalibs/libstddjb/stralloc.html">strallocs</a>,
+<em>.env</em> and <em>.exec</em>, used to return data contained in the
+database when a key has been allowed. The interpretation of this data is
+application-defined. </li>
+</ul>
+
+<h2> Function types </h2>
+
+<h3> Backend lookups </h3>
+
+<p>
+ A <tt>s6_accessrules_backend_func_t</tt> is the type of a function
+that takes a single key, looks it up in a database, and returns the result.
+Namely:
+</p>
+
+<p>
+<code>s6_accessrules_result_t f (char const *key, unsigned int keylen, void *handle, s6_accessrules_params_t *params) </code>
+</p>
+
+<p>
+ <em>f</em> looks up key <em>key</em> of length <em>keylen</em> in the database
+represented by <em>handle</em> in an implementation-defined way. It returns a
+number that says the key has been allowed, denied or not found, or an error
+occurred. If the key has been allowed, <em>f</em> stores additional information
+from the database into *<em>params</em>.
+</p>
+
+<p>
+ Two s6_accessrules_backend_func_t functions are natively implemented:
+</p>
+
+<ul>
+ <li> <tt>s6_accessrules_backend_fs</tt> takes a <tt>char const *</tt>
+<em>handle</em> and interprets it as a base directory to look up <em>key</em>
+under, in the format understood by
+<a href="../s6-accessrules-cdb-from-fs.html">s6-accessrules-cdb-from-fs</a>. </li>
+ <li> <tt>s6_accessrules_backend_cdb</tt> takes a <tt>struct cdb *</tt>
+<em>handle</em> and looks up <em>key</em> in the
+<a href="http://cr.yp.to/cdb.html">CDB</a> it points to. <em>handle</em> must
+already be mapped to a CDB file. Such a file can be built with the
+<a href="../s6-accessrules-cdb-from-fs.html">s6-accessrules-cdb-from-fs</a>
+utility. </li>
+</ul>
+
+<h3> Frontend key checking </h3>
+
+<p>
+ A <tt>s6_accessrules_keycheck_func_t</tt> is the type of a function that
+takes a user-level key, makes a list of corresponding backend-level keys and
+calls a <tt>s6_accessrules_backend_func_t</tt> function until it finds
+a match. Namely:
+</p>
+
+<p>
+<code>s6_accessrules_result_t f (void const *key, void *handle, s6_accessrules_params_t *params, s6_accessrules_backend_func_t *backend) </code>
+</p>
+
+<p>
+ <em>f</em> derives a list of low-level keys to check from <em>key</em>.
+Then, for each key <em>k</em> of length <em>klen</em> in this list, it calls
+<tt>(*backend)(k, klen, handle, params)</tt>, returning *<em>backend</em>'s result if it
+is not S6_ACCESSRULES_NOTFOUND. If no match can be found in the whole list,
+<em>f</em> finally returns S6_ACCESSRULES_NOTFOUND.
+</p>
+
+<p>
+ Five s6_accessrules_keycheck_func_t functions are natively implemented:
+</p>
+
+<ul>
+ <li>
+<a name="uidgid" />
+ <tt>s6_accessrules_keycheck_uidgid</tt> interprets <em>key</em> as a
+<a href="http://skarnet.org/software/skalibs/libstddjb/">diuint</a>, i.e. a
+structure containing two unsigned ints. The first one is interpreted as an
+uid <em>u</em>, the second one as a gid <em>g</em>. The function first looks
+for a <tt>uid/<em>u</em></tt> match; if it cannot find one, it looks for a
+<tt>gid/<em>g</em></tt> match. If it cannot find one either, it checks
+<tt>uid/default</tt> and returns the result. </li>
+ <li>
+<a name="reversedns" />
+ <tt>s6_accessrules_keycheck_reversedns</tt> interprets <em>key</em>
+as a string containing a FQDN. Then for each suffix <em>k</em> of <em>key</em>,
+starting with <em>key</em> itself and ending with <em>key</em>'s TLD,
+it looks up <tt>reversedns/<em>k</em></tt>. The final dot is excluded from
+<em>k</em>. If no match can be found, the function checks <tt>reversedns/@</tt>
+and returns the result. For instance, if <em>key</em> is "foo.bar.com",
+the following strings are looked up, in that order:
+  <ul>
+   <li> reversedns/foo.bar.com </li>
+   <li> reversedns/bar.com </li>
+   <li> reversedns/com </li>
+   <li> reversedns/@ </li>
+  </ul> </li>
+ <li>
+<a name="ip4" />
+ <tt>s6_accessrules_keycheck_ip4</tt> interprets <em>key</em> as
+4 network-byte-order characters containing an IPv4 address. Then for each
+netmask <em>mask</em> from 32 to 0, it constructs the IPv4 network
+prefix <em>addr</em> corresponding to that address, and looks up
+<tt>ip4/<em>addr</em>_<em>mask</em></tt>. For instance, if <em>key</em>
+is "\300\250\001\007", representing the 192.168.1.7 address, the following
+strings are looked up, in that order:
+ <ul>
+  <li> ip4/192.168.1.7_32 </li>
+  <li> ip4/192.168.1.6_31 </li>
+  <li> ip4/192.168.1.4_30 </li>
+  <li> ip4/192.168.1.0_29 </li>
+  <li> ip4/192.168.0.0_28 </li>
+  <li> ip4/192.168.0.0_27 </li>
+ </ul>
+ and so on, down to:
+ <ul>
+  <li> ip4/192.0.0.0_3 </li>
+  <li> ip4/192.0.0.0_2 </li>
+  <li> ip4/128.0.0.0_1 </li>
+  <li> ip4/0.0.0.0_0 </li>
+ </ul>
+ Note that the <tt>ip4/0.0.0.0_0</tt> string is a catch-all key that
+matches everything. </li>
+ <li>
+<a name="ip6" />
+ <tt>s6_accessrules_keycheck_ip6</tt> interprets <em>key</em> as
+16 network-byte-order characters containing an IPv6 address. Then for each
+netmask <em>mask</em> from 128 to 0, it constructs the IPv6 network
+prefix <em>addr</em> corresponding to that address,
+<strong>in canonical form</strong>,
+and looks up
+<tt>ip6/<em>addr</em>_<em>mask</em></tt>. For instance, if <em>key</em>
+is "*\0\024P@\002\b\003\0\0\0\0\0\0\020\006", representing the
+2a00:1450:4002:803::1006 address, the following
+strings are looked up, in that order:
+ <ul>
+  <li> ip6/2a00:1450:4002:803::1006_128 </li>
+  <li> ip6/2a00:1450:4002:803::1006_127 </li>
+  <li> ip6/2a00:1450:4002:803::1004_126 </li>
+  <li> ip6/2a00:1450:4002:803::1000_125 </li>
+  <li> ip6/2a00:1450:4002:803::1000_124 </li>
+  <li> ip6/2a00:1450:4002:803::1000_123 </li>
+  <li> ip6/2a00:1450:4002:803::1000_122 </li>
+  <li> ip6/2a00:1450:4002:803::1000_121 </li>
+  <li> ip6/2a00:1450:4002:803::1000_120 </li>
+  <li> ip6/2a00:1450:4002:803::1000_119 </li>
+  <li> ip6/2a00:1450:4002:803::1000_118 </li>
+  <li> ip6/2a00:1450:4002:803::1000_117 </li>
+  <li> ip6/2a00:1450:4002:803::1000_116 </li>
+  <li> ip6/2a00:1450:4002:803::1000_115 </li>
+  <li> ip6/2a00:1450:4002:803::1000_114 </li>
+  <li> ip6/2a00:1450:4002:803::1000_113 </li>
+  <li> ip6/2a00:1450:4002:803::_112 </li>
+  <li> ip6/2a00:1450:4002:803::_111 </li>
+ </ul>
+ and so on, down to:
+ <ul>
+  <li> ip6/2a00::_11 </li>
+  <li> ip6/2800::_10 </li>
+  <li> ip6/2800::_9 </li>
+  <li> ip6/2000::_8 </li>
+  <li> ip6/2000::_7 </li>
+  <li> ip6/2000::_6 </li>
+  <li> ip6/2000::_5 </li>
+  <li> ip6/2000::_4 </li>
+  <li> ip6/2000::_3 </li>
+  <li> ip6/::_2 </li>
+  <li> ip6/::_1 </li>
+  <li> ip6/::_0 </li>
+ </ul>
+ Note that the <tt>ip6/::_0</tt> string is a catch-all key that
+matches everything. </li>
+ <li>
+<a name="ip46" />
+ <tt>s6_accessrules_keycheck_ip46</tt> interprets <em>key</em> as a pointer to an
+<a href="http://skarnet.org/software/skalibs/libstddjb/ip46.html">ip46_t</a>, and
+behaves either as s6_accessrules_keycheck_ip6 or s6_accessrules_keycheck_ip4,
+depending on the type of address *<em>key</em> contains. </li>
+</ul>
+
+<h2> Ready-to-use functions </h2>
+
+ Those functions are mostly macros; they're built by associating a frontend
+function with a backend function.
+
+<p>
+<code> s6_accessrules_result_t s6_accessrules_uidgid_cdb
+(unsigned int u, unsigned int g, struct cdb *c,
+s6_accessrules_params_t *params) </code> <br />
+Checks the *<em>c</em> CDB database for an authorization for uid <em>u</em>
+and gid <em>g</em>. If the result is S6_ACCESSRULES_ALLOW, additional
+information may be stored into <em>params</em>.
+</p>
+
+<p>
+<code> s6_accessrules_result_t s6_accessrules_uidgid_fs
+(unsigned int u, unsigned int g, char const *dir,
+s6_accessrules_params_t *params) </code> <br />
+Checks the <em>dir</em> base directory for an authorization for uid <em>u</em>
+and gid <em>g</em>. If the result is S6_ACCESSRULES_ALLOW, additional
+information may be stored into <em>params</em>.
+</p>
+
+<p>
+<code> s6_accessrules_result_t s6_accessrules_reversedns_cdb
+(char const *name, struct cdb *c,
+s6_accessrules_params_t *params) </code> <br />
+Checks the *<em>c</em> CDB database for an authorization for the
+<em>name</em> FQDN. If the result is S6_ACCESSRULES_ALLOW, additional
+information may be stored into <em>params</em>.
+</p>
+
+<p>
+<code> s6_accessrules_result_t s6_accessrules_reversedns_fs
+(char const *name, char const *dir,
+s6_accessrules_params_t *params) </code> <br />
+Checks the <em>dir</em> base directory for an authorization for the
+<em>name</em> FQDN. If the result is S6_ACCESSRULES_ALLOW, additional
+information may be stored into <em>params</em>.
+</p>
+
+<p>
+<code> s6_accessrules_result_t s6_accessrules_ip4_cdb
+(char const *ip4, struct cdb *c,
+s6_accessrules_params_t *params) </code> <br />
+Checks the *<em>c</em> CDB database for an authorization for the
+<em>ip4</em> IPv4 address (4 network byte order characters).
+If the result is S6_ACCESSRULES_ALLOW, additional
+information may be stored into <em>params</em>.
+</p>
+
+<p>
+<code> s6_accessrules_result_t s6_accessrules_ip4_fs
+(char const *ip4, char const *dir,
+s6_accessrules_params_t *params) </code> <br />
+Checks the <em>dir</em> base directory for an authorization for the
+<em>ip4</em> IPv4 address (4 network byte order characters).
+If the result is S6_ACCESSRULES_ALLOW, additional
+information may be stored into <em>params</em>.
+</p>
+
+<p>
+<code> s6_accessrules_result_t s6_accessrules_ip6_cdb
+(char const *ip6, struct cdb *c,
+s6_accessrules_params_t *params) </code> <br />
+Checks the *<em>c</em> CDB database for an authorization for the
+<em>ip6</em> IPv6 address (16 network byte order characters).
+If the result is S6_ACCESSRULES_ALLOW, additional
+information may be stored into <em>params</em>.
+</p>
+
+<p>
+<code> s6_accessrules_result_t s6_accessrules_ip6_fs
+(char const *ip6, char const *dir,
+s6_accessrules_params_t *params) </code> <br />
+Checks the <em>dir</em> base directory for an authorization for the
+<em>ip6</em> IPv6 address (16 network byte order characters).
+If the result is S6_ACCESSRULES_ALLOW, additional
+information may be stored into <em>params</em>.
+</p>
+
+<p>
+<code> s6_accessrules_result_t s6_accessrules_ip46_cdb
+(ip46_t *ip, struct cdb *c,
+s6_accessrules_params_t *params) </code> <br />
+Checks the *<em>c</em> CDB database for an authorization for the
+<em>ip</em> IP address.
+If the result is S6_ACCESSRULES_ALLOW, additional
+information may be stored into <em>params</em>.
+</p>
+
+<p>
+<code> s6_accessrules_result_t s6_accessrules_ip46_fs
+(ip46_t const *ip, char const *dir,
+s6_accessrules_params_t *params) </code> <br />
+Checks the <em>dir</em> base directory for an authorization for the
+<em>ip</em> IP address.
+If the result is S6_ACCESSRULES_ALLOW, additional
+information may be stored into <em>params</em>.
+</p>
+
+</body>
+</html>

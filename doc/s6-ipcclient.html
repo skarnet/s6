@@ -1,0 +1,74 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-ipcclient program</title>
+    <meta name="Description" content="s6: the s6-ipcclient program" />
+    <meta name="Keywords" content="s6 s6-ipcclient ipcclient ucspi unix client" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-ipcclient</tt> program </h1>
+
+<p>
+<tt>s6-ipcclient</tt> is an
+<a href="http://cr.yp.to/proto/ucspi.txt">UCSPI client tool</a> for
+Unix domain sockets. It connects to a socket, then executes into
+a program.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-ipcclient [ -q | -Q | -v ] [ -p bindpath ] [ -l localname ] <em>path</em> <em>prog...</em>
+</pre>
+
+<ul>
+ <li> s6-ipcclient connects to a Unix domain socket on <em>path</em>. </li>
+ <li> It executes into <em>prog...</em> with descriptor 6 reading from
+the socket and descriptor 7 writing to it. </li>
+</ul>
+
+<h2> Environment variables </h2>
+
+<p>
+ <em>prog...</em> is run with
+the following variables set:
+</p>
+
+<ul>
+ <li> PROTO: always set to IPC </li>
+ <li> IPCLOCALPATH: set to the path associated with the local socket,
+if any. Be aware that it may contain arbitrary characters. </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-q</tt>&nbsp;: be quiet. </li>
+ <li> <tt>-Q</tt>&nbsp;: be normally verbose. This is the default. </li>
+ <li> <tt>-v</tt>&nbsp;: be verbose. </li>
+ <li> <tt>-p&nbsp;<em>localpath</em></tt>&nbsp;: bind the local
+socket to <em>localpath</em> before connecting to <em>path</em>. </li>
+ <li> <tt>-l&nbsp;<em>localname</em></tt>&nbsp;: use <em>localname</em>
+as the value of the IPCLOCALPATH environment variable. </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> s6-ipcclient is mostly used to connect a client to a
+<a href="localservice.html">local service</a> without having
+to implement networking in the client. For instance, the
+<a href="s6-sudo">s6-sudo</a> program does this. </li>
+</ul>
+
+</body>
+</html>

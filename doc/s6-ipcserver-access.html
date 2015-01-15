@@ -1,0 +1,172 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-ipcserver-access program</title>
+    <meta name="Description" content="s6: the s6-ipcserver-access program" />
+    <meta name="Keywords" content="s6 s6-ipcserver-access unix access control ipcrules" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-ipcserver-access</tt> program </h1>
+
+<p>
+<tt>s6-ipcserver-access</tt> is a command-line access
+control tool for Unix domain sockets on systems where the
+<a href="http://www.superscript.com/ucspi-ipc/getpeereid.html">getpeereid()</a> system call can be implemented.
+It is meant to be run after
+<a href="s6-ipcserverd.html">s6-ipcserverd</a> and before
+the application program on the s6-ipcserver command line.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-ipcserver-access [ -v <em>verbosity</em> ] [ -E | -e ] [ -l <em>localname</em> ] [ -i <em>rulesdir</em> | -x <em>rulesfile</em> ] <em>prog...</em>
+</pre>
+
+<ul>
+ <li> s6-ipcserver-access checks it is run under a UCSPI server tool
+such as <a href="s6-ipcserver.html">s6-ipcserver</a>.
+ <li> It checks that the remote end of the connection fits the
+accepted criteria defined by the database contained in <em>rulesdir</em>
+or <em>rulesfile</em>. If the database tells it to reject the connection,
+the program exits 1. </li>
+ <li> It sets up a few additional environment variables. </li>
+ <li> It executes into <em>prog...</em>,
+unless the first matching rule in the rule database
+includes instructions to override <em>prog...</em>. </li>
+</ul>
+
+<h2> Environment variables </h2>
+
+<p>
+s6-ipcserver-access expects to inherit some environment variables from
+its parent:
+</p>
+
+<ul>
+ <li> PROTO: normally IPC, but could be anything else, like UNIX. </li>
+ <li> ${PROTO}REMOTEEUID: the effective UID of the client program connecting to the socket. </li>
+ <li> ${PROTO}REMOTEEGID: the effective GID of the client program connecting to the socket. </li>
+</ul>
+
+<p>
+ Additionally, it exports the following variables before executing into
+<em>prog...</em>:
+</p>
+
+<ul>
+ <li> ${PROTO}LOCALPATH: set to the local "address" of the socket, as
+reported by the
+<a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/getsockname.html">getsockname()</a>
+system call, truncated to 99 characters max. </li>
+</ul>
+
+<p>
+ Also, the access rules database can instruct s6-ipcserver-access to set
+up, or unset, more environment variables, depending on the client address.
+</p>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-v&nbsp;<em>verbosity</em></tt>&nbsp;: be more or less verbose, i.e.
+print more or less information to stderr:
+  <ul>
+   <li> 0: only log error messages. </li>
+   <li> 1: only log error and warning messages, and accepted connections.
+This is the default. </li>
+   <li> 2: also log rejected connections and more warning messages. </li>
+  </ul> </li>
+ <li> <tt>-E</tt>&nbsp;: no environment. All environment variables potentially
+set by s6-ipcserver-access, as well as those set by
+<a href="s6-ipcserver.html">s6-ipcserver</a>, will be unset instead. </li>
+ <li> <tt>-e</tt>&nbsp;: set up environment variables normally.
+This is the default. </li>
+ <li> <tt>-l&nbsp;<em>localname</em></tt>&nbsp;: use <em>localname</em>
+as the value for the ${PROTO}LOCALPATH environment variable, instead of
+looking it up via getsockname(). </li>
+ <li> <tt>-i&nbsp;<em>rulesdir</em></tt>&nbsp;: check client credentials
+against a filesystem-based database in the <em>rulesdir</em> directory. </li>
+ <li> <tt>-x&nbsp;<em>rulesfile</em></tt>&nbsp;: check client credentials
+against a <a href="http://en.wikipedia.org/wiki/Cdb_(software)">cdb</a>
+database in the <em>rulesfile</em> file. <tt>-i</tt> and <tt>-x</tt> are
+mutually exclusive. If none of those options is given, no credential checking will be
+performed, and a warning will be emitted on every connection if
+<em>verbosity</em> is 2 or more. </li>
+</ul>
+
+<h2> Access rule checking </h2>
+
+<p>
+ s6-ipcserver-access checks its client connection against
+a ruleset. This ruleset can be implemented:
+</p>
+
+<ul>
+ <li> either in the filesystem as an arborescence of directories and files,
+if the <tt>-i</tt> option has been given. This option is the most flexible
+one: the directory format is simple enough for scripts to understand and
+modify it, and the ruleset can be changed dynamically. This is practical,
+for instance, for roaming users. </li>
+<li> or in a <a href="http://en.wikipedia.org/wiki/Cdb_(software)">CDB
+file</a>, if the <tt>-x</tt> option has been given. This option is the most
+efficient one if the ruleset is static enough: a lot less system calls are
+needed to perform searches in a CDB than in the filesystem. </li>
+</ul>
+
+<p>
+ The exact format of the ruleset is described on the
+<a href="s6-accessrules-cdb-from-fs.html">s6-accessrules-cdb-from-fs</a> page.
+</p>
+
+<p>
+s6-ipcserver-access first reads the client UID <em>uid</em> and
+GID <em>gid</em> from the
+${PROTO}REMOTEEUID and ${PROTO}REMOTEEGID environment variables, and checks
+them with the
+<a href="libs6/accessrules.html#uidgid">s6_accessrules_keycheck_uidgid()</a>
+function. In other words, it tries to match:
+
+<ul>
+ <li> <tt>uid/</tt><em>uid</em> </li>
+ <li> <tt>gid/</tt><em>gid</em> </li>
+ <li> <tt>uid/default</tt> </li>
+</ul>
+
+<p>
+ in that order. If no S6_ACCESSRULES_ALLOW result can be obtained,
+the connection is denied.
+</p>
+
+<h2> Environment and executable modifications </h2>
+
+<p>
+ s6-ipcserver-access interprets non-empty <tt>env</tt> subdirectories
+and <tt>exec</tt> files
+it finds in the first matching rule of the ruleset, as explained
+in the <a href="s6-accessrules-cdb-from-fs.html">s6-accessrules-cdb-from-fs</a>
+page.
+</p>
+
+<ul>
+ <li> An <tt>env</tt> subdirectory is interpreted as if the
+<a href="http://skarnet.org/software/s6/s6-envdir.html">s6-envdir</a>
+command had been called before executing <em>prog</em>: the environment
+is modified according to the contents of <tt>env</tt>. </li>
+ <li> An <tt>exec</tt> file containing <em>newprog</em> completely
+bypasses the rest of s6-ipcserver-access' command line. After
+environment modifications, if any, s6-ipcserver-access execs into
+<tt><a href="http://skarnet.org/software/execline/execlineb.html">execlineb</a> -c <em>newprog</em></tt>. </li>
+</ul>
+
+</body>
+</html>

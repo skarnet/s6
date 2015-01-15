@@ -1,0 +1,141 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-accessrules-cdb-from-fs program</title>
+    <meta name="Description" content="s6: the s6-accessrules-cdb-from-fs program" />
+    <meta name="Keywords" content="s6 s6-accessrules-cdb-from-fs tcp unix access control ipcrules tcprules cdb filesystem" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-accessrules-cdb-from-fs</tt> program </h1>
+
+<p>
+<tt>s6-accessrules-cdb-from-fs</tt> compiles a directory
+containing a ruleset suitable for
+<a href="s6-ipcserver-access.html">s6-ipcserver-access<a> or
+<a href="http://skarnet.org/software/s6-networking/s6-tcpserver-access.html">s6-tcpserver-access<a> into a
+<a href="http://en.wikipedia.org/wiki/Cdb_(software)">CDB file</a>.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-accessrules-cdb-from-fs <em>cdbfile</em> <em>dir</em>
+</pre>
+
+<ul>
+ <li> s6-accessrules-cdb-from-fs compiles the <em>dir</em>
+directory containing a ruleset into a
+<a href="http://en.wikipedia.org/wiki/Cdb_(software)">CDB file</a>
+<em>cdbfile</em> then exits 0. </li>
+</ul>
+
+<h2> Ruleset directory format </h2>
+
+<p>
+ To be understood by s6-accessrules-cdb-from-fs,
+<a href="s6-ipcserver-access.html">s6-ipcserver-access<a>, or
+<a href="http://skarnet.org/software/s6-networking/s6-tcpserver-access.html">s6-tcpserver-access<a>,
+<em>dir</em> must have a specific format.
+</p>
+
+<p>
+ <em>dir</em> contains a series of directories:
+</p>
+
+<ul>
+ <li> <tt>ip4</tt> for rules on IPv4 addresses </li>
+ <li> <tt>ip6</tt> for rules on IPv6 addresses </li>
+ <li> <tt>reversedns</tt> for rules on host names </li>
+ <li> <tt>uid</tt> for rules on user IDs </li>
+ <li> <tt>gid</tt> for rules on group IDs </li>
+</ul>
+
+<p>
+Depending on the application, other directories can appear in <em>dir</em>
+and be compiled into <em>cdbfile</em>, but
+<a href="http://skarnet.org/software/s6-networking/s6-tcpserver-access.html">s6-tcpserver-access<a> only
+uses the first three, and
+<a href="s6-ipcserver-access.html">s6-ipcserver-access<a> only
+uses the last two.
+</p>
+
+<p>
+ Each of those directories contains a set of rules. A rule is
+a subdirectory named after the set of keys it matches, and containing
+actions that will be executed if the rule is the first matching rule
+for the tested key.
+</p>
+
+<p>
+ The syntax for the rule name is dependent on the nature of keys, and
+fully documented on the
+<a href="libs6/accessrules.html">accessrules</a>
+library page. For instance, a subdirectory named <tt>192.168.0.0_27</tt>
+in the <tt>ip4</tt> directory will match every IPv4 address in the
+192.168.0.0/27 network that does not match a more precise rule.
+</p>
+
+<p>
+ The syntax for the actions, however, is the same for every type of key.
+A rule subdirectory can contain the following elements:
+</p>
+
+<ul>
+ <li> a file (that can be empty) named <tt>allow</tt>. If such a file exists,
+a key matching this rule will be immediately accepted. </li>
+ <li> a file (that can be empty) named <tt>deny</tt>. If such a file exists and
+no <tt>allow</tt> file exists, a key matching this rule will be immediately
+denied. </li>
+ <li> a subdirectory named <tt>env</tt>. If such a directory exists along
+with an <tt>allow</tt> file, then its contents represent environment
+modifications that will be applied after accepting the connection and
+before executing the next program in the chain, as if the
+<a href="s6-envdir.html">s6-envdir</a>
+program, without options, was applied to <tt>env</tt>. <tt>env</tt>
+has exactly the same format as a directory suitable for s6-envdir;
+however, if the modifications take up more than 4096 bytes when
+compiled into <em>cdbfile</em>, then s6-accessrules-cdb-from-fs will
+complain and exit 100. </li>
+ <li> a file named <tt>exec</tt>. If such a file exists along with an
+<tt>allow</tt> file, then its contents represent a command line that,
+interpreted by the
+<a href="http://skarnet.org/software/execline/execlineb.html">execlineb</a>
+launcher, will be executed after accepting the connection, totally bypassing the
+original command line. s6-accessrules-cdb-from-fs truncates the <tt>exec</tt>
+file to 4096 bytes max when embedding it into <em>cdbfile</em>, so make
+sure it is not larger than that. </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> <em>cdbfile</em> can exist prior to, and during, the compilation,
+which actually works in a temporary file in the same directory as
+<em>cdbfile</em> and performs an atomic replacement when it is done.
+So it is not necessary to interrupt a running service during the
+compilation. </li>
+ <li> If s6-accessrules-cdb-from-fs fails at some point, the temporary
+file is removed. However, this doesn't happen if
+s6-accessrules-cdb-from-fs is interrupted by a signal. </li>
+ <li> After the program successfully completes, if <em>dir</em>
+was a suitable candidate for the <tt>-i</tt> option of
+<a href="s6-ipcserver-access.html">s6-ipcserver-access</a> or
+<a href="http://skarnet.org/software/s6-networking/s6-tcpserver-access.html">s6-tcpserver-access</a>, then
+<em>cdbfile</em> will be a suitable candidate for the <tt>-x</tt> option
+of the same program, implementing the same ruleset. </li>
+ <li> <em>cdbfile</em> can be decompiled by the
+<a href="s6-accessrules-fs-from-cdb.html">s6-accessrules-fs-from-cdb</a>
+program. </li>
+</ul>
+
+</body>
+</html>

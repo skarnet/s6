@@ -1,0 +1,72 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-ipcserver-socketbinder program</title>
+    <meta name="Description" content="s6: the s6-ipcserver-socketbinder program" />
+    <meta name="Keywords" content="s6 s6-ipcserver-socketbinder ipcserver ucspi socket bind listen" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-ipcserver-socketbinder</tt> program </h1>
+
+<p>
+<tt>s6-ipcserver-socketbinder</tt> binds a Unix domain
+socket, then executes a program.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-ipcserver-socketbinder [ -d | -D ] [ -b <em>backlog</em> ] <em>path</em> <em>prog...</em>
+</pre>
+
+<ul>
+ <li> s6-ipcserver-socketbinder creates a Unix domain socket of type SOCK_STREAM
+and binds it to <em>path</em>. It prepares the socket to accept
+connections by calling
+<a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/listen.html">listen()</a>. </li>
+ <li> It then execs into <em>prog...</em> with the open socket
+as its standard input. </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-d</tt>&nbsp;: allow instant rebinding to the same path
+even if it has been used not long ago - this is the SO_REUSEADDR flag to
+<a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/setsockopt.html">setsockopt()</a>
+and is generally used with server programs. This is the default. Note that
+<em>path</em> will be deleted if it already exists at program start time. </li>
+ <li> <tt>-D</tt>&nbsp;: disallow instant rebinding to the same path. </li>
+ <li> <tt>-b&nbsp;<em>backlog</em></tt>&nbsp;: set a maximum of
+<em>backlog</em> backlog connections on the socket. Extra
+connection attempts will rejected by the kernel. </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> s6-ipcserver-socketbinder is part of a set of basic blocks used to
+build a flexible Unix super-server. It normally should be given a
+command line crafted to make it execute into
+<a href="s6-ipcserverd.html">s6-ipcserverd</a> to accept connections
+from clients, or into a program such as
+<a href="s6-applyuidgid.html">s6-applyuidgid</a>
+to drop privileges before doing so. </li>
+ <li> The <a href="s6-ipcserver.html">s6-ipcserver</a> program does
+exactly this. It implements
+a full Unix super-server by building a command line starting with
+s6-ipcserver-socketbinder and ending with s6-ipcserverd followed by the
+application program, and executing into it. </li>
+</ul>
+
+</body>
+</html>

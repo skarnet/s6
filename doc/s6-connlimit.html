@@ -1,0 +1,107 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-connlimit program</title>
+    <meta name="Description" content="s6: the s6-connlimit program" />
+    <meta name="Keywords" content="s6 connection limit s6-connlimit" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-connlimit</tt> program </h1>
+
+<p>
+<tt>s6-connlimit</tt> is a small utility to perform IP-based
+control on the number of client connections to a TCP socket, and
+uid-based control on the number of client connections to a Unix
+domain socket.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-connlimit <em>prog...</em>
+</pre>
+
+<ul>
+ <li> <tt>s6-connlimit</tt> reads its environment for the PROTO
+environment variable, and then for ${PROTO}CONNNUM and ${PROTO}CONNMAX,
+which must contain integers. </li>
+ <li> If the value of ${PROTO}CONNNUM is superior or equal to the value
+of ${PROTO}CONNMAX, s6-connlimit exits 1 with an error message. </li>
+ <li> Else it execs into <em>prog...</em>. </li>
+ <li> If ${PROTO}CONNMAX is unset, s6-connlimit directly execs into
+<em>prog...</em> without performing any check:
+no maximum number of connections has been defined. </li>
+</ul>
+
+<h2> Usage </h2>
+
+<p>
+ The <a href="http://skarnet.org/software/s6-networking/s6-tcpserver4.html">s6-tcpserver4</a> and
+<a href="http://skarnet.org/software/s6-networking/s6-tcpserver6.html">s6-tcpserver6</a> define the PROTO environment
+variable to "TCP", and spawn every child server with the TCPCONNNUM environment
+variable set to the number of connections from the same IP address.
+ The <a href="http://skarnet.org/software/s6-networking/s6-tcpserver-access.html">s6-tcpserver-access</a> program
+can set environment variables depending on the client's IP address. If the
+s6-tcpserver-access database is configured to set the TCPCONNMAX environment
+variable for a given set of IP addresses, and s6-tcpserver-access execs into
+s6-connlimit, then s6-connlimit will drop connections if there already are
+${TCPCONNMAX} connections from the same client IP address.
+</p>
+
+<p>
+ The <a href="s6-ipcserver.html">s6-ipcserver</a> and
+<a href="s6-ipcserver-access.html">s6-ipcserver-access</a> programs can
+be used the same way, with "IPC" instead of "TCP", to limit the number
+of client connections by UID.
+</p>
+
+<h2> Example </h2>
+
+<p>
+ The following command line:
+</p>
+
+<pre>
+     s6-tcpserver4 -v2 -c1000 -C40 1.2.3.4 80 \
+     s6-tcpserver-access -v2 -RHl0 -i <em>dir</em> \
+     s6-connlimit \
+     <em>prog...</em>
+</pre>
+
+<p>
+ will run a server listening to IPv4 address 1.2.3.4, on port 80,
+serving up to 1000 concurrent connections, and up to 40 concurrent
+connections from the same IP address, no matter what the IP address.
+For every client connection, it will look up the database set up
+in <em>dir</em>; if the connection is accepted, it will run <em>prog...</em>.
+</p>
+
+<p>
+ If the <tt><em>dir</em>/ip4/5.6.7.8_32/env/TCPCONNMAX</tt> file
+exists and contains the string <tt>30</tt>, then at most 30 concurrent
+connections from 5.6.7.8 will execute <em>prog...</em>, instead of the
+default of 40.
+</p>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> The s6-connlimit utility was once part of the
+<a href=""http://skarnet.org/software/s6-networking/">s6-networking</a>
+suite, and is mostly useful with TCP connections, which is why the
+examples here involve TCP. Nevertheless, it can be used with connections
+across Unix domain sockets, and that is why it has been moved to the s6
+package. </li>
+</ul>
+
+</body>
+</html>

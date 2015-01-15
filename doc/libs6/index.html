@@ -1,0 +1,72 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6 library interface</title>
+    <meta name="Description" content="s6: the s6 library interface" />
+    <meta name="Keywords" content="s6 s6 libs6 library libs6net" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="../">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6</tt> library interface </h1>
+
+<h2> General information </h2>
+
+<p>
+ <tt>libs6</tt> is a collection of utility
+C interfaces, used in the s6 executables.
+</p>
+
+<h2> Compiling </h2>
+
+<ul>
+ <li> Make sure the s6 headers, as well as the skalibs headers,
+are visible in your header search path. </li>
+ <li> Use <tt>#include &lt;s6/s6.h&gt;</tt> </li>
+</ul>
+
+<h2> Linking </h2>
+
+<ul>
+ <li> Make sure the s6 libraries, as well as the skalibs
+libraries, are visible in your library search path. </li>
+ <li> Link against <tt>-ls6</tt> and <tt>-lskarnet</tt>.
+If you're using socket functions (which is the case with
+<a href="ftrigr.html">libftrigr</a>, for instance, add
+<tt>`cat $sysdeps/socket.lib`</tt> to your command line.
+If you're using timed functions involving TAI timestamps
+(which is also the case with <a href="ftrigr.html">libftrigr</a>
+for instance), add
+<tt>`cat $sysdeps/tainnow.lib`</tt>. <tt>$sysdeps</tt>
+stands for your skalibs sysdeps directory. </li>
+</ul>
+
+<h2> Programming </h2>
+
+<p>
+ The <tt>s6/s6.h</tt> header is actually a
+concatenation of other headers:
+the libs6net is separated into several modules, each of them with its
+own header.
+</p>
+
+<ul>
+ <li> The <a href="accessrules.html">s6/accessrules.h</a> header
+provides functions to check credentials against configuration files. </li>
+ <li> The <a href="ftrigr.html">s6/ftrigr.h</a> header provides
+functions to subscribe to fifodirs and be notified of events. </li>
+ <li> The <a href="ftrigw.html">s6/ftrigw.h</a> header provides
+functions to manage fifodirs and send notifications to them. </li>
+ <li> The <a href="s6lock.html">s6/s6lock.h</a> header provides
+functions to acquire locks with a timeout. </li>
+</ul>
+
+</body>
+</html>

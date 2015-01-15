@@ -24,6 +24,18 @@ s6-setsid \
 s6-softlimit \
 s6-tai64n \
 s6-tai64nlocal \
+s6-accessrules-cdb-from-fs \
+s6-accessrules-fs-from-cdb \
+s6-connlimit \
+s6-ioconnect \
+s6-ipcclient \
+s6-ipcserver-access \
+s6-ipcserver-socketbinder \
+s6-ipcserver \
+s6-ipcserverd \
+s6-sudo \
+s6-sudoc \
+s6-sudod \
 ucspilogd
 
 SBIN_TARGETS := \

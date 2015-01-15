@@ -1,0 +1,131 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-ipcserverd program</title>
+    <meta name="Description" content="s6: the s6-ipcserverd program" />
+    <meta name="Keywords" content="s6 s6-ipcserverd ipcserver ucspi unix server super-server" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-ipcserverd</tt> program </h1>
+
+<p>
+<tt>s6-ipcserverd</tt> is the serving part of the
+<a href="s6-ipcserver.html">s6-ipcserver</a> super-server.
+It assumes that its stdin is a bound and listening Unix
+domain socket, and
+it accepts connections from clients connecting to it, forking a
+program to handle each connection.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-ipcserverd [ -1 ] [ -v verbosity ] [ -P | -p ] [ -c <em>maxconn</em> ] [ -C <em>localmaxconn</em> ] <em>prog...</em>
+</pre>
+
+<ul>
+ <li> s6-ipcserverd accepts connections from clients to an already
+bound and listening SOCK_STREAM Unix domain socket which is its
+standard input. </li>
+ <li> For every client connection to this socket, it
+forks. The child sets some environment variables, then
+executes <em>prog...</em> with stdin reading from the socket and
+stdout writing to it. </li>
+ <li> Depending on the verbosity level, it logs what it does to stderr. </li>
+ <li> It runs until killed by a signal. Depending on the received
+signal, it may kill its children before exiting. </li>
+</ul>
+
+<h2> Environment variables </h2>
+
+<p>
+ For each connection, an instance of <em>prog...</em> is spawned with
+the following variables set:
+</p>
+
+<ul>
+ <li> PROTO: always set to IPC </li>
+ <li> IPCREMOTEEUID: set to the effective UID of the client,
+unless credentials lookups have been disabled </li>
+ <li> IPCREMOTEEGID: set to the effective GID of the client,
+unless credentials lookups have been disabled </li>
+ <li> IPCREMOTEPATH: set to the path associated with the remote socket,
+if any. Be aware that it may contain arbitrary characters. </li>
+ <li> IPCCONNNUM: set to the number of connections originating from
+the same user (i.e. same uid) </li>
+</ul>
+
+<p>
+ If client credentials lookup has been disabled, IPCREMOTEEUID and
+IPCREMOTEEUID will be set, but empty.
+</p>
+
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-1</tt>&nbsp;: write a newline to stdout, and close stdout,
+right before entering the client-accepting loop.
+If stdout is suitably redirected, this can be used by monitoring
+programs to check when the server is accepting connections.
+The <a href="s6-notifywhenup.html">s6-notifywhenup</a>
+program can be used before the s6-ipcserver
+invocation to notify listeners when the server is ready. </li>
+ <li> <tt>-v&nbsp;<em>verbosity</em></tt>&nbsp;: be more or less
+verbose. <em>verbosity</em> can be 0 (quiet), 1 (normal), or 2
+(verbose). </li>
+ <li> <tt>-P</tt>&nbsp;: disable client credentials lookups. The
+IPCREMOTEEUID and IPCREMOTEEGID environment variables will be unset
+in every instance of <em>prog...</em>. This is the portable option,
+because not every system supports credential lookup across Unix domain
+sockets; but it is not as secure. </li>
+ <li> <tt>-p</tt>&nbsp;: enable client credentials lookups. This
+is the default; it works at least on Linux, Solaris, and
+*BSD systems. On systems that do not support it, every connection
+attempt will fail with a warning message. </li>
+ <li> <tt>-c&nbsp;<em>maxconn</em></tt>&nbsp;: accept at most
+<em>maxconn</em> concurrent connections. Default is 40. It is
+impossible to set it higher than 1000. </li>
+ <li> <tt>-C&nbsp;<em>localmaxconn</em></tt>&nbsp;: accept at most
+<em>localmaxconn</em> connections from the same user ID.
+Default is 40. It is impossible to set it higher than <em>maxconn</em>. </li>
+</ul>
+
+<h2> Signals </h2>
+
+<ul>
+ <li> SIGTERM: exit. </li>
+ <li> SIGHUP: send a SIGTERM and a SIGCONT to all children. </li>
+ <li> SIGQUIT: send a SIGTERM and a SIGCONT to all children, then exit. </li>
+ <li> SIGABRT: send a SIGKILL to all children, then exit. </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> Unlike his close cousin
+<a href="http://www.superscript.com/ucspi-ipc/ipcserver.html">ipcserver</a>,
+s6-ipcserverd does not perform operations such as access control. Those are
+delegated to the
+<a href="s6-ipcserver-access.html">s6-ipcserver-access</a> program. </li>
+ <li> s6-ipcserverd can be used to set up
+<a href="localservice.html">local services</a>. </li>
+ <li> s6-ipcserverd is meant to be execve'd into by a program that gets
+the listening socket. That program is normally
+<a href="s6-ipcserver-socketbinder.html">s6-ipcserver-socketbinder</a>,
+which creates the socket itself; but it can be a different one if the
+socket is to be retrieved by another means, for instance by fd-passing
+from a fd-holding daemon (some people call this "socket activation"). </li>
+</ul>
+
+</body>
+</html>

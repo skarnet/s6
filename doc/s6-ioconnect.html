@@ -1,0 +1,90 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-ioconnect program</title>
+    <meta name="Description" content="s6: the s6-ioconnect program" />
+    <meta name="Keywords" content="s6 ioconnect ucspi tcpconnect ipcconnect" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-ioconnect</tt> program </h1>
+
+<p>
+<tt>s6-ioconnect</tt> performs full-duplex data transmission
+between two sets of open file descriptors.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-ioconnect [ -t <em>millisecs</em> ] [ -r <em>fdr</em> ] [ -w <em>fdw</em> ] [ -0 ] [ -1 ] [ -6 ] [ -7 ]
+</pre>
+
+<ul>
+ <li> s6-ioconnect reads data from its stdin and writes it as is to
+file descriptor 7, which is assumed to be open. </li>
+ <li> It also reads data from its file descriptor 6, which is assumed
+to be open, and writes it as is to its stdout. </li>
+ <li> When both sides have transmitted EOF and s6-ioconnect has
+flushed its buffers, it exits 0. </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-t&nbsp;<em>millisecs</em></tt>&nbsp;: if no activity on
+either side happens for <em>millisecs</em> milliseconds, s6-ioconnect
+closes the connection on both ends and exits 1. By default,
+<em>millisecs</em> is 0, which means no such timeout. </li>
+ <li> <tt>-r&nbsp;<em>fdr</em></tt>&nbsp;: Use fd <em>fdr</em> for
+"remote" reading instead of fd 6. </li>
+ <li> <tt>-w&nbsp;<em>fdw</em></tt>&nbsp;: Use fd <em>fdw</em> for
+"remote" writing instead of fd 7. </li>
+ <li> <tt>-0</tt>: assume stdin is a socket and needs to be shut down
+for reading after an EOF. </li>
+ <li> <tt>-1</tt>: assume stdout is a socket and needs to be shut down
+for writing to correctly transmit an EOF. </li>
+ <li> <tt>-6</tt>: assume the remote reading fd is a socket and needs to be shut down
+for reading after an EOF. </li>
+ <li> <tt>-7</tt>: assume the remote writing fd is a socket and needs to be shut down
+for writing to correctly transmit  an EOF. </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> Transmitting EOF across full-duplex sockets
+<a href="http://cr.yp.to/tcpip/twofd.html">is ugly</a>. The right thing
+in every case cannot be automatically determined, so it is up to the user
+to mention that a socket must be shut down. Most of the time, though,
+shutting down sockets after EOF <em>is</em> the right thing to do, so
+<tt>s6-ioconnect -67</tt> should be the common use case. </li>
+ <li> The point of s6-ioconnect is to be used together with
+<a href="http://skarnet.org/software/s6-networking/s6-tcpclient.html">s6-tcpclient</a> or
+<a href="s6-ipcclient.html">s6-ipcclient</a> to establish a full-
+duplex connection between the client and the server, for instance
+for testing purposes. <tt>s6-ioconnect</tt> is to s6-tcpclient as
+<tt>cat</tt> is to s6-tcpserver: a program that will just echo
+what it gets. </li>
+ <li> On modern Linux systems, s6-ioconnect will perform zero-copy
+data transmission, via the
+<a href="http://man7.org/linux/man-pages/man2/splice.2.html">splice</a>
+system call. </li>
+ <li> The s6-ioconnect utility was once part of the
+<a href=""http://skarnet.org/software/s6-networking/">s6-networking</a>
+suite, which is why the
+examples here involve TCP. Nevertheless, it can be used with connections
+across Unix domain sockets as well, and has its place in the s6
+package. </li>
+</ul>
+
+</body>
+</html>

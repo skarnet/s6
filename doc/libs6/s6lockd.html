@@ -9,7 +9,7 @@
   </head>
 <body>
 
-<a href="index.html">libs6lock</a><br />
+<a href="index.html">libs6</a><br />
 <a href="../">s6</a><br />
 <a href="http://skarnet.org/software/">Software</a><br />
 <a href="http://skarnet.org/">skarnet.org</a><p />
@@ -27,7 +27,7 @@ a set of lock files in a given directory, and associated timeouts.
   s6lockd does not fork, does not background itself automatically,
 and does not use syslog. It is not meant to be run directly by the
 user: it will be spawned by the
-<a href="index.html">s6lock client library</a>.
+<a href="s6lock.html">s6lock client library</a>.
 </p>
 
 <p>
@@ -44,7 +44,7 @@ a s6lockd instance might not be able
 to open a lock file created by a former instance run by another
 client with different permissions. </li>
  <li> Use the <tt>s6lock_start()</tt> library call, together with a
-<a href="http://skarnet.org/software/s6-networking/localservice.html">s6lockd service</a>.
+<a href="../localservice.html">s6lockd service</a>.
 For once, <em>this is the recommended setup</em>: s6lockd creates empty
 lock files, and having all s6lockd instances run under the same user
 simplifies permissions management considerably. </li>
@@ -55,7 +55,7 @@ simplifies permissions management considerably. </li>
 When run as a service, s6lockd has no "standalone" mode: it is
 designed to work with a Unix
 domain superserver, like
-<a href="http://skarnet.org/software/s6-networking/s6-ipcserver.html">s6-ipcserver</a>.
+<a href="../s6-ipcserver.html">s6-ipcserver</a>.
 s6lockd follows the <a href="http://cr.yp.to/proto/ucspi.txt">UCSPI</a>
 interface, it can be directly executed from the superserver.
 </p>

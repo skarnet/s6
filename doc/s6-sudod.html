@@ -1,0 +1,170 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-sudod program</title>
+    <meta name="Description" content="s6: the s6-sudod program" />
+    <meta name="Keywords" content="s6 s6-sudod sudo setuid suid unix privilege gain getpeereid server" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-sudod</tt> program </h1>
+
+<p>
+<tt>s6-sudod</tt> receives command-line arguments, environment variables
+and standard descriptors from a peer <a href="s6-sudoc.html">s6-sudoc</a>
+program over a Unix socket, then forks another program.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-sudod [ -0 ] [ -1 ] [ -2 ] [ -s ] [ -t <em>timeout</em> ] [ <em>sargv...</em> ]
+</pre>
+
+<ul>
+ <li> s6-sudod gets 3 file descriptors via fd-passing over a Unix socket that
+must be open on its descriptors 0 and 1. (The received descriptors will be the
+stdin, stdout and stderr of the server program.) It expects a
+<a href="s6-sudoc.html">s6-sudoc</a> process to be sending them on the
+client side. </li>
+ <li> It also receives a list of command-line arguments <em>cargv...</em>, and
+an environment <em>clientenv</em>. </li>
+ <li> s6-sudod forks and executes <em>sargv...</em> <em>cargv</em>...
+The client command line is appended to the server command line. </li>
+ <li> s6-sudod waits for its child to exit and transmits its exit code
+to the peer <a href="s6-sudoc.html">s6-sudoc</a> process. It then exits 0. </li>
+</ul>
+
+<h2> Environment </h2>
+
+<p>
+s6-sudod transmits its own environment to its child, plus the environment sent
+by <a href="s6-sudoc.html">s6-sudoc</a>, filtered in the following manner:
+for every variable sent by <a href="s6-sudoc.html">s6-sudoc</a>, if the
+variable is <strong>present but empty</strong> in s6-sudod's environment, then
+its value is overriden by the value given by s6-sudoc. A variable that is
+already nonempty, or that doesn't exist, in s6-sudod's environment, will not
+be transmitted to the child.
+</p>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-0</tt>&nbsp;: do not inherit stdin from s6-sudoc. The child will be
+run with its stdin pointing to <tt>/dev/null</tt> instead. </li>
+ <li> <tt>-1</tt>&nbsp;: do not inherit stdout from s6-sudoc. The child will be
+run with its stdout pointing to <tt>/dev/null</tt> instead. </li>
+ <li> <tt>-2</tt>&nbsp;: do not inherit stderr from s6-sudoc. The child will be
+run with its stderr being a copy of s6-sudod's stderr instead. (This is useful
+to still log the child's error messages without sending them to the client.) </li>
+ <li> <tt>-t&nbsp;<em>timeout</em></tt>&nbsp;: if s6-sudod has not
+received all the needed data from the client after <em>timeout</em>
+milliseconds, it will exit without spawning a child. By default, <em>timeout</em>
+is 0, meaning infinite. This mechanism exists to protect the server from
+malicious or buggy clients that would uselessly consume resources. </li>
+</ul>
+
+<h2> Usage example </h2>
+
+<p>
+ The typical use of s6-sudod is in a
+<a href="localservice.html">local service</a> with a
+<a href="s6-ipcserver.html">s6-ipcserver</a> process listening on a Unix
+socket, a <a href="s6-ipcserver-access.html">s6-ipcserver-access</a> process
+performing client authentication and access control, and possibly a
+<a href="s6-envdir.html">s6-envdir</a>
+process setting up the environment variables that will be accepted by
+s6-sudod. The following script, meant to be a <em>run script</em> in a
+<a href="servicedir.html">service directory</a>,
+will set up a privileged program:
+</p>
+
+<pre>
+#!/command/execlineb -P
+fdmove -c 2 1
+s6-envuidgid serveruser
+s6-notifywhenup -f
+s6-ipcserver -U -1 -- serversocket
+s6-ipcserver-access -v2 -l0 -i rules --
+exec -c
+s6-envdir env
+s6-sudod
+sargv
+</pre>
+
+<ul>
+ <li> <a href="http://skarnet.org/software/execline/execlineb.html">execlineb</a>
+executes the script. </li>
+ <li> <a href="http://skarnet.org/software/execline/fdmove.html">fdmove</a> makes
+sure the script's error messages are sent to the service's logger. </li>
+ <li> <a href="s6-envuidgid.html">s6-envuidgid</a>
+sets the UID, GID and GIDLIST environment variables for s6-ipcserver to interpret. </li>
+ <li> <a href="s6-notifywhenup.html">s6-notifywhenup</a> primes the
+service for readiness notification (and the
+<tt>-1</tt> option to s6-ipcserver tells the daemon to actually
+notify when it's ready). </li>
+ <li> <a href="s6-ipcserver.html">s6-ipcserver</a> binds to <em>serversocket</em>,
+drops its privileges to those of <em>serveruser</em>, and announces its
+readiness. Then, for every client connecting to <em>serversocket</em>:
+  <ul>
+   <li> <a href="s6-ipcserver-access.html">s6-ipcserver-access</a> checks the
+client's credentials according to the rules in directory <em>rules</em>.
+   <li> <a href="http://skarnet.org/software/execline/exec.html">exec -c</a>
+clears the environment. </li>
+   <li> <a href="http://skarnet.org/software/s6/s6-envdir.html">s6-envdir</a>
+sets environment variables according to the directory <em>env</em>. You can
+make sure that a variable VAR will be present but empty by performing
+<tt>echo > env/VAR</tt>. (A single newline is interpreted by s6-envdir as
+an empty variable; whereas if <tt>env/VAR</tt> is totally empty, then the
+VAR variable will be removed from the environment.) </li>
+   <li> s6-sudod reads a command line <em>cargv</em>, a client environment
+and file descriptors over the socket. </li>
+   <li> s6-sudod spawns <tt>sargv cargv</tt>. </li>
+  </ul>
+ (Actually, <a href="s6-ipcserver.html">s6-ipcserver</a> does not do this
+itself: it executes into other programs that each do one of the tasks. But for
+our example, it does not matter.) </li>
+</ul>
+
+<p>
+ This means that user <em>clientuser</em> running
+<tt><a href="s6-sudo.html">s6-sudo</a> serversocket cargv</tt> will be
+able, if authorized by the configuration in <em>rules</em>, to run
+<tt>sargv cargv</tt> as user <em>serveruser</em>, with stdin,
+stdout, stderr and the environment variables properly listed in <em>env</em>
+transmitted to <em>sargv</em>.
+</p>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> If s6-sudoc is killed, or exits after <em>timeoutrun</em> milliseconds,
+while the server program is still running, s6-sudod will send a SIGTERM and a
+SIGCONT to its child, then exit 1. However, sending a SIGTERM to the child
+does not guarantee that it will die; and
+if it keeps running, it might still read from the file that
+was s6-sudoc's stdin, or write to the files that were s6-sudoc's stdout or
+stderr. <strong>This is a potential security risk</strong>.
+Administrators should audit their server programs to make sure this does not
+happen. </li>
+ <li> More generally, anything using signals or terminals will not be
+handled transparently by the s6-sudoc + s6-sudod mechanism. The mechanism
+was designed to allow programs to gain privileges in specific situations:
+short-lived, simple, noninteractive processes. It was not designed to emulate
+the full suid functionality and will not go out of its way to do so. </li>
+ <li> <em>sargv</em> may be empty. In that case, the client is in complete
+control of the command line executed as <em>serveruser</em>. This setup is
+permitted by s6-sudod, but it is very dangerous, and extreme attention should
+be paid to the construction of the s6-ipcserver-access rules. </li>
+</ul>
+
+</body>
+</html>

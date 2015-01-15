@@ -13,6 +13,14 @@ ftrigw_clean.o
 ftrigw_fifodir_make.o
 ftrigw_notify.o
 ftrigw_notifyb.o
+s6_accessrules_backend_cdb.o
+s6_accessrules_backend_fs.o
+s6_accessrules_keycheck_ip4.o
+s6_accessrules_keycheck_ip6.o
+s6_accessrules_keycheck_reversedns.o
+s6_accessrules_keycheck_uidgid.o
+s6_accessrules_uidgid_cdb.o
+s6_accessrules_uidgid_fs.o
 s6_supervise_lock.o
 s6_supervise_lock_mode.o
 s6_svc_main.o

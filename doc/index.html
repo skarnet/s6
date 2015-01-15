@@ -37,7 +37,8 @@ supervision that might help you understand the basics.
 
 <ul>
 <li> <a href="why.html">Why another supervision suite?</a> Isn't <a href="http://smarden.org/runit/">runit</a> good enough?</li>
-<li> What is instant notification? What does the <a href="libftrig.html">libftrig</a> do exactly?</li>
+<li> What is <a href="ftrig.html">instant notification</a>? What does the
+<a href="libs6/ftrigr.html">ftrigr library</a> do exactly?</li>
 <li> How to run a s6-svscan-based supervision tree <a href="s6-svscan-not-1.html">without replacing init</a> </li>
 <li> How to <a href="s6-svscan-1.html">replace init</a> </li>
 </ul>
@@ -67,7 +68,7 @@ supervision that might help you understand the basics.
 <h3> Download </h3>
 
 <ul>
- <li> The current released version of s6 is <a href="s6-2.0.1.0.tar.gz">2.0.1.0</a>. </li>
+ <li> The current released version of s6 is <a href="s6-2.0.2.0.tar.gz">2.0.2.0</a>. </li>
  <li> Alternatively, you can checkout a copy of the s6 git repository:
 <pre> git clone git://git.skarnet.org/s6 </pre> </li>
 </ul>
@@ -151,7 +152,7 @@ counterpart.
 These programs are a clean rewrite of the obsolete "pipe-tools" package; they
 are now based on a properly designed notification library.
 They provide a command-line interface to
-<a href="libftrig.html#notification">inter-process notification and
+<a href="ftrig.html#notification">inter-process notification and
 synchronization</a>.
 </p>
 
@@ -172,21 +173,51 @@ synchronization</a>.
 <li><a href="s6-ftrig-listen.html">The <tt>s6-ftrig-listen</tt> program</a></li>
 </ul>
 
+<h4> Local service management and access control </h4>
+
+<ul>
+<li><a href="s6-ipcclient.html">The <tt>s6-ipcclient</tt> program</a></li>
+<li><a href="s6-ipcserver.html">The <tt>s6-ipcserver</tt> program</a></li>
+<li><a href="s6-ipcserver-socketbinder.html">The <tt>s6-ipcserver-socketbinder</tt> program</a></li>
+<li><a href="s6-ipcserverd.html">The <tt>s6-ipcserverd</tt> program</a></li>
+<li><a href="s6-ioconnect.html">The <tt>s6-ioconnect</tt> program</a></li>
+</ul>
+<p></p>
+<ul>
+<li><a href="s6-ipcserver-access.html">The <tt>s6-ipcserver-access</tt> program</a></li>
+<li><a href="s6-connlimit.html">The <tt>s6-connlimit</tt> program</a></li>
+</ul>
+<p></p>
+<ul>
+<li><a href="s6-accessrules-cdb-from-fs.html">The <tt>s6-accessrules-cdb-from-fs</tt> program</a></li>
+<li><a href="s6-accessrules-fs-from-cdb.html">The <tt>s6-accessrules-fs-from-cdb</tt> program</a></li>
+</ul>
+
+<h4> suidless privilege gain </h4>
+
+<ul>
+<li><a href="s6-sudo.html">The <tt>s6-sudo</tt> program</a></li>
+<li><a href="s6-sudoc.html">The <tt>s6-sudoc</tt> program</a></li>
+<li><a href="s6-sudod.html">The <tt>s6-sudod</tt> program</a></li>
+</ul>
+
 <h4> Internal commands </h4>
 
 <ul>
 <li><a href="s6-ftrigrd.html">The <tt>s6-ftrigrd</tt> internal program</a></li>
-<li><a href="libs6lock/s6lockd.html">The <tt>s6lockd</tt> internal program</a></li>
-<li><a href="libs6lock/s6lockd-helper.html">The <tt>s6lockd-helper</tt> internal program</a></li>
+<li><a href="libs6/s6lockd.html">The <tt>s6lockd</tt> internal program</a></li>
+<li><a href="libs6/s6lockd-helper.html">The <tt>s6lockd-helper</tt> internal program</a></li>
 </ul>
 
 
 <h3> Libraries </h3>
 
 <ul>
-<li><a href="libftrigw.html">The <tt>ftrigw</tt> library interface</a></li>
-<li><a href="libftrigr.html">The <tt>ftrigr</tt> library interface</a></li>
-<li><a href="libs6lock/">The <tt>s6lock</tt> library interface</a></li>
+<li><a href="libs6/"><tt>s6/s6.h</tt>, the main entry point</a></li>
+<li><a href="libs6/ftrigw.html">The <tt>ftrigw</tt> library interface</a></li>
+<li><a href="libs6/ftrigr.html">The <tt>ftrigr</tt> library interface</a></li>
+<li><a href="libs6/s6lock.html">The <tt>s6lock</tt> library interface</a></li>
+<li><a href="libs6/accessrules.html">The <tt>accessrules</tt> library interface</a></li>
 </ul>
 
 <h3> Definitions </h3>
@@ -195,7 +226,8 @@ synchronization</a>.
 <li> What is a <a href="fifodir.html">fifodir</a></li>
 <li> What is a <a href="servicedir.html">service directory</a></li>
 <li> What is a <a href="scandir.html">scan directory</a></li>
-<li> Why are the <a href="libftrig.html">libftrigw and libftrigr</a> needed </li>
+<li> What is a <a href="localservice.html">local service</a></li>
+<li> Why are the <a href="ftrig.html">libftrigw and libftrigr</a> needed </li>
 </ul>
 
 <hr />

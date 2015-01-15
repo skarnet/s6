@@ -1,0 +1,59 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-sudo program</title>
+    <meta name="Description" content="s6: the s6-sudo program" />
+    <meta name="Keywords" content="s6 s6-sudo sudo setuid suid unix privilege gain getpeereid" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-sudo</tt> program </h1>
+
+<p>
+<tt>s6-sudo</tt> connects to a Unix domain socket and passes
+its standard file descriptors, command-line arguments and
+environment to a program running on the server side, potentially
+with different privileges.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-sudo [ -q | -Q | -v ] [ -p <em>bindpath</em> ] [ -l <em>localname</em> ] [ -e ] [ -t <em>timeoutconn</em> ] [ -T <em>timeoutrun</em> ] <em>path</em> [ <em>args...</em> ]
+</pre>
+
+<ul>
+ <li> s6-sudo executes into <tt><a href="s6-ipcclient.html">s6-ipcclient</a> <em>path</em>
+<a href="s6-sudoc.html">s6-sudoc</a> args...</tt> It does nothing else: it is just a
+convenience program. The <a href="s6-ipcclient.html">s6-ipcclient</a> program connects
+to a Unix socket at <em>path</em>, and the
+<a href="s6-sudoc.html">s6-sudoc program</a> transmits the desired elements over the
+socket. </li>
+ <li> It should be used to connect to a
+<a href="localservice.html">local service</a> running the
+<a href="s6-sudod.html">s6-sudod</a> program, which will run a server program on the
+client's behalf. </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> The <tt>-q</tt>, <tt>-Q</tt>, <tt>-v</tt>, <tt>-p</tt> and </tt>-l</tt>
+options are passed to <a href="s6-ipcclient.html">s6-ipcclient</a>. </li>
+ <li> The <tt>-e</tt>, <tt>-t</tt> and <tt>-T</tt> options are passed to
+<a href="s6-sudoc.html">s6-sudoc</a>. </li>
+ <li> Command-line arguments, if any, are also passed to
+<a href="s6-sudoc.html">s6-sudoc</a>, which will transmit them to
+<a href="s6-sudod.html">s6-sudod</a> over the socket.
+</ul>
+
+</body>
+</html>

@@ -1,0 +1,153 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: what is a local service</title>
+    <meta name="Description" content="s6: what is a local service" />
+    <meta name="Keywords" content="s6 local service s6-ipcserver" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> Local services </h1>
+
+<p>
+ A <em>local service</em> is a daemon that listens to incoming connections
+on a Unix domain socket. Clients of the service are programs connecting to
+this socket: the daemon performs operations on their behalf.
+</p>
+
+<p>
+ The service is called <em>local</em> because it is not accessible to
+clients from the network.
+</p>
+
+<p>
+ A widely known example of a local service is the <tt>syslogd</tt> daemon.
+On most implementations, it listens to the <tt>/dev/log</tt> socket.
+Its clients connect to it and send their logs via the socket. The
+<tt>openlog()</tt> function is just a wrapper arround the <tt>connect()</tt>
+system call, the <tt>syslog()</tt> function a wrapper around <tt>write()</tt>,
+and so on.
+</p>
+
+<h2> Benefits </h2>
+
+<h3> Privileges </h3>
+
+<p>
+ The most important benefit of a local service is that it permits
+<strong>controlled privilege gains without using setuid programs</strong>.
+The daemon is run as user S; a client running as user C and connecting to
+the daemon asks it to perform operations: those will be done as user S.
+</p>
+
+<p>
+ Standard Unix permissions on the listening socket can be used to implement
+some basic access control: to restrict access to clients belonging to group
+G, change the socket to user S and group G, and give it 0420 permissions.
+This is functionally equivalent to the basic access control for setuid
+programs: a program having user S, group G and permissions 4750 will be
+executable by group G and run with S rights.
+</p>
+
+<p>
+ But modern systems implement the
+<a href="http://www.superscript.com/ucspi-ipc/getpeereid.html">getpeereid()</a>
+system call or library function. This function allows the server to know the
+client's credentials: so fine-grained access control is possible. On those
+systems, <strong>local services can do as much authentication as setuid programs,
+in a much more controlled environment</strong>.
+</p>
+
+<h3> fd-passing </h3>
+
+<p>
+ The most obvious difference between a local service and a network service
+is that a local service does not serve network clients. But local services
+have another nice perk: while network services usually only provide you
+with a single channel (a TCP or UDP socket) of communication between the
+client and the server, forcing you to multiplex your data into that
+channel, local services allow you to have as many
+communication channels as you want.
+</p>
+
+<p>
+(The SCTP transport layer provides a way for network services to use
+several communication channels. Unfortunately, it is not widely deployed
+yet, and a lot of network services still depend on TCP.)
+</p>
+
+<p>
+ The <em>fd-passing</em> mechanism is Unix domain socket black magic
+that allows one peer of the socket to send open file descriptors to
+the other peer. So, if the server opens a pipe and sends one end of
+this pipe to a client via this mechanism, there is effectively a
+socket <em>and</em> a pipe between the client and the server.
+</p>
+
+<h2> UCSPI </h2>
+
+<p>
+ The <a href="http://cr.yp.to/proto/ucspi.txt">UCSPI</a> protocol
+is an easy way of abstracting clients and servers from the network.
+A server written as a UCSPI server, just as it can be run
+under inetd or
+<a href="http://skarnet.org/software/s6-networking/s6-tcpserver.html">s6-tcpserver</a>,
+can be run under
+<a href="s6-ipcserver.html">s6-ipcserver</a>: choose a socket
+location and you have a local service.
+</p>
+
+<p>
+ Fine-grained access control can be added by inserting
+<a href="s6-ipcserver-access.html">s6-ipcserver-access</a> in
+your server command line after s6-ipcserver.
+</p>
+
+<p>
+ A client written as an UCSPI client, i.e. assuming it has descriptor
+6 (resp. 7) open and reading from (resp. writing to) the server socket,
+can be run under <a href="s6-ipcclient.html">s6-ipcclient</a>.
+</p>
+
+<h2> Use in skarnet.org software </h2>
+
+<p>
+ skarnet.org libraries often use a separate process to handle
+asynchronicity and background work in a way that's invisible to
+the user. Among them are:
+</p>
+
+<ul>
+ <li> <a href="libs6/s6-ftrigrd.html">s6-ftrigrd</a>,
+managing the reception of notifications and only waking up the client process
+when the notification pattern matches a regular expression. </li>
+ <li> <a href="libs6/s6lockd.html">s6lockd</a>,
+handling time-constrained lock acquisition on client behalf. </li>
+ <li> <a href="http://skarnet.org/software/s6-dns/skadns/skadnsd.html">skadnsd</a>,
+performing asynchronous DNS queries and only waking up the client process
+when an answer arrives. </li>
+</ul>
+
+<p>
+ Those processes are usually spawned from a client, via the corresponding
+<tt>*_startf*()</tt> library call. But they can also be spawned from a
+s6-ipcserver program in a local service configuration. In both cases, they
+need an additional control channel to be passed from the server to
+the client: the main socket is used for synchronous commands from the client
+to the server and their answers, whereas the additional channel, which is
+now implemented as a socket as well (but created by the server on-demand
+and not bound to a local path), is used for asynchronous
+notifications from the server to the client. The fd-passing mechanism
+is used to transfer the additional channel from the server to the client.
+</p>
+
+</body>
+</html>

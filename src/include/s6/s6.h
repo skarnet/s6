@@ -6,6 +6,7 @@
 #include <s6/s6-supervise.h>
 #include <s6/ftrigr.h>
 #include <s6/ftrigw.h>
+#include <s6/accessrules.h>
 #include <s6/s6lock.h>
 
 #endif
