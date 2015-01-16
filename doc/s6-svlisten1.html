@@ -1,0 +1,81 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-svlisten1 program</title>
+    <meta name="Description" content="s6: the s6-svlisten1 program" />
+    <meta name="Keywords" content="s6 command s6-svlisten1 notification service waiting" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-svlisten1 program </h1>
+
+<p>
+ s6-svlisten1 runs a program while listening on notifications from a
+supervised service, and blocks until said service goes up, or down.
+</p>
+
+<p>
+ s6-svlisten1 only waits for notifications; it never polls.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-svlisten [ -U | -u | -d ] [ -t <em>timeout</em> ] <em>servicedir</em> <em>prog...</em>
+</pre>
+
+<ul>
+ <li> s6-svlisten1 checks the state of the <em>servicedir</em>
+<a href="servicedir.html">service directory</a> and monitor its
+state changes. </li>
+ <li> It spawns <em>prog...</em> as a child right after getting the
+initial state of the service. </li>
+ <li> It then blocks until the wanted state happens, then exits 0. </li>
+</p>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-u</tt>&nbsp;: up. s6-svlisten1 will wait until the service is up, as
+reported by s6-supervise.
+This is the default; it is not reliable, but it does not depend on specific
+support in the service programs. See <a href="notifywhenup.html">this page</a>
+for details. </li>
+ <li> <tt>-U</tt>&nbsp;: really up. s6-svlisten1 will wait until the service is
+up <em>and</em> ready as reported by the daemon itself. This requires
+specific support in the daemon program, and the use of
+<a href="s6-notifywhenup.html">s6-notifywhenup</a> in the service's run script.
+See the explanation on <a href="notifywhenup.html">this page</a>. </li>
+ <li> <tt>-d</tt>&nbsp;: down. s6-svlisten1 will wait until the service is down. </li>
+ <li> <tt>-t&nbsp;<em>timeout</em></tt>&nbsp;: if the requested event has not
+happened after <em>timeout</em> milliseconds, s6-svlisten1 will print a message
+to stderr and exit 1. By default, <em>timeout</em> is 0, which means no time
+limit. </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> s6-svlisten1 is the service-specific version of
+<a href="s6-ftrig-listen1.html">s6-ftrig-listen1</a>. The point of s6-svlisten1
+is to use it to spawn a program such as <a href="s6-svc.html">s6-svc</a>,
+in order to send signals to a service while making sure to catch its
+state changes - thus avoiding the race condition that occurs when running
+<a href="s6-svc.html">s6-svc</a> then <a href="s6-svwait.html">s6-svwait</a>
+sequentially. </li>
+ <li> The <a href="s6-svlisten.html">s6-svlisten</a> program is an extension
+of s6-svlisten1. It can watch the state of several services at once; however,
+its syntax makes it best used in <a href="http://skarnet.org/software/execline/">execline</a>
+scripts only. </li>
+</ul>
+
+</body>
+</html>

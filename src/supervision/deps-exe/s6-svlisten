@@ -1,0 +1,5 @@
+${LIBS6}
+-lexecline
+-lskarnet
+${SOCKET_LIB}
+${TAINNOW_LIB}

@@ -27,7 +27,7 @@ knowing their PIDs, and without using horrible hacks such as .pid files.
 <h2> Interface </h2>
 
 <pre>
-     s6-svc [ -abqhkti12fFpcoduxO ] <em>servicedir</em>
+     s6-svc [ -D | -U ] [ -t <em>timeout</em> ] [ -abqhkti12pcoduxO ] <em>servicedir</em>
 </pre>
 
 <p>
@@ -62,7 +62,17 @@ normally never be used on a working system. </li>
  <li> <tt>-O</tt>&nbsp;: Once at most. Do not restart the supervised process
 when it dies. If it is down when the command is received, do not even start
 it. </li>
- <li> <tt>-f</tt>,&nbsp;<tt>-F</tt>&nbsp;: unused for now. </li>
+ <li> <tt>-t&nbsp;<em>timeout</em></tt>&nbsp;: if the <tt>-D</tt> or
+<tt>-U</tt> option has been given, <tt>-t</tt> specifies a timeout
+(in milliseconds) after which s6-svc will exit 1 with an error message if
+the service still hasn't reached the desired state. By default, the
+timeout is 0, which means that s6-svc will block indefinitely. </li>
+ <li> <tt>-D</tt>&nbsp;: s6-svc will not exit until the service is down. </li>
+ <li> <tt>-U</tt>&nbsp;: s6-svc will not exit until the service is up and
+<a href="notifywhenup.html">ready</a> as notified by the daemon itself.
+Be careful to only use this command on services that send readiness
+notifications and are managed by <a href="s6-notifywhenup.html">s6-notifywhenup</a>,
+else the command will never be successful. </li>
 </ul>
 
 <h2> Usage examples </h2>
@@ -81,9 +91,15 @@ the process represented by the <tt>/service/sshd</tt> service directory -
 typically the sshd server.
 </p>
 
-<pre> s6-svc -d /service/ftpd </pre>
+<pre> s6-svc -Dd /service/ftpd </pre>
 <p>
- Take down the ftpd server.
+ Take down the ftpd server and block until the process is really down.
+</p>
+
+<pre> s6-svc -Uu -t 5000 /service/ftpd </pre>
+<p>
+ Bring up the ftpd server and block until it has sent notification that it
+is ready. Exit 1 if it is still not ready after 5 seconds.
 </p>
 
 <pre> s6-svc -a /service/httpd/log </pre>
@@ -94,11 +110,16 @@ process is <a href="s6-log.html">s6-log</a>, this triggers a log rotation.
 
 <h2> Internals </h2>
 
-<p>
-s6-svc writes control commands into the <tt><em>servicedir</em>/supervise/control</tt>
+<ul>
+ <li> s6-svc writes control commands into the <tt><em>servicedir</em>/supervise/control</tt>
 FIFO. A s6-supervise process running on <em>servicedir</em> will be listening to this FIFO,
-and will read and interpret those commands.
-</p>
+and will read and interpret those commands. </li>
+ <li> When invoked with the <tt>-D</tt> or <tt>-U</tt> option, s6-svc executes into
+<a href="s6-svlisten1.html">s6-svlisten1</a>, which will listen to service state
+changes and spawn another s6-svc instance (without the <tt>-D</tt> or <tt>-U</tt>
+option) that will send the commands to the service. Any error message written during
+the waiting period will mention it is being written by s6-svlisten1; this is normal. </li>
+</ul>
 
 </body>
 </html>

@@ -15,6 +15,8 @@ s6-svscanctl \
 s6-svok \
 s6-svstat \
 s6-svwait \
+s6-svlisten1 \
+s6-svlisten \
 s6-envdir \
 s6-envuidgid \
 s6-fghack \

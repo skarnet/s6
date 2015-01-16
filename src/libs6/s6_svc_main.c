@@ -3,7 +3,6 @@
 #include <skalibs/bytestr.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
-#include <skalibs/skamisc.h>
 #include <s6/s6-supervise.h>
 
 #define DATASIZE 256

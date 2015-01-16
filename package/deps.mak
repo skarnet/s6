@@ -83,7 +83,9 @@ src/pipe-tools/s6-ftrig-notify.o src/pipe-tools/s6-ftrig-notify.lo: src/pipe-too
 src/pipe-tools/s6-ftrig-wait.o src/pipe-tools/s6-ftrig-wait.lo: src/pipe-tools/s6-ftrig-wait.c src/include/s6/ftrigr.h
 src/pipe-tools/s6-mkfifodir.o src/pipe-tools/s6-mkfifodir.lo: src/pipe-tools/s6-mkfifodir.c src/include/s6/ftrigw.h
 src/supervision/s6-supervise.o src/supervision/s6-supervise.lo: src/supervision/s6-supervise.c src/include/s6/ftrigw.h src/include/s6/s6-supervise.h
-src/supervision/s6-svc.o src/supervision/s6-svc.lo: src/supervision/s6-svc.c src/include/s6/s6-supervise.h
+src/supervision/s6-svc.o src/supervision/s6-svc.lo: src/supervision/s6-svc.c src/include/s6/config.h src/include/s6/s6-supervise.h
+src/supervision/s6-svlisten.o src/supervision/s6-svlisten.lo: src/supervision/s6-svlisten.c src/include/s6/ftrigr.h src/include/s6/s6-supervise.h
+src/supervision/s6-svlisten1.o src/supervision/s6-svlisten1.lo: src/supervision/s6-svlisten1.c src/include/s6/ftrigr.h src/include/s6/s6-supervise.h
 src/supervision/s6-svok.o src/supervision/s6-svok.lo: src/supervision/s6-svok.c src/include/s6/s6-supervise.h
 src/supervision/s6-svscan.o src/supervision/s6-svscan.lo: src/supervision/s6-svscan.c src/include/s6/config.h src/include/s6/s6-supervise.h
 src/supervision/s6-svscanctl.o src/supervision/s6-svscanctl.lo: src/supervision/s6-svscanctl.c src/include/s6/s6-supervise.h
@@ -164,6 +166,10 @@ s6-supervise: private EXTRA_LIBS := ${TAINNOW_LIB}
 s6-supervise: src/supervision/s6-supervise.o ${LIBS6} -lskarnet
 s6-svc: private EXTRA_LIBS :=
 s6-svc: src/supervision/s6-svc.o ${LIBS6} -lskarnet
+s6-svlisten: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-svlisten: src/supervision/s6-svlisten.o ${LIBS6} -lexecline -lskarnet
+s6-svlisten1: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-svlisten1: src/supervision/s6-svlisten1.o ${LIBS6} -lskarnet
 s6-svok: private EXTRA_LIBS :=
 s6-svok: src/supervision/s6-svok.o -lskarnet
 s6-svscan: private EXTRA_LIBS := ${TAINNOW_LIB}

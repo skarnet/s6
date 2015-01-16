@@ -14,7 +14,7 @@
 #include <execline/execline.h>
 #include <s6/ftrigr.h>
 
-#define USAGE "s6-ftrig-listen [ -a | -o ] [ -t timeout ] ~fifodir1 ~regexp1 ... ; prog..."
+#define USAGE "s6-ftrig-listen [ -a | -o ] [ -t timeout ] fifodir1 regexp1 ... \"\" prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 
 static void handle_signals (void)
@@ -54,7 +54,7 @@ int main (int argc, char const **argv, char const *const *envp)
     if (t) tain_from_millisecs(&tto, t) ; else tto = tain_infinite_relative ;
     argc -= subgetopt_here.ind ; argv += subgetopt_here.ind ;
   }
-  if (argc < 2) dieusage() ;
+  if (argc < 4) dieusage() ;
   argc1 = el_semicolon(argv) ;
   if (!argc1 || (argc1 & 1) || (argc == argc1 + 1)) dieusage() ;
   if (argc1 >= argc) strerr_dief1x(100, "unterminated fifodir+regex block") ;
