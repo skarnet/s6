@@ -18,27 +18,38 @@
 <h1> The s6-svstat program </h1>
 
 <p>
-s6-svstat prints a short, human-readable summary of the state of a supervised
-service.
+s6-svstat prints a short, human-readable summary of the state of a process
+monitored by <a href="s6-supervise.html">s6-supervise</a>.
 </p>
 
 <h2> Interface </h2>
 
 <pre>
-     s6-svstat <em>servicedir</em>
+     s6-svstat [ -n ] <em>servicedir</em>
 </pre>
 
 <p>
- s6-svstat gives the following information about the process being monitored
+ s6-svstat gives information about the process being monitored
 at the <em>servicedir</em> <a href="servicedir.html">service directory</a>, then
-exits 0:
+exits 0. The information includes the following:
 </p>
 
 <ul>
- <li> whether it is up or down </li>
- <li> its pid, if it is up </li>
+ <li> whether the process is up or down </li>
+ <li> the process' pid, if it is up, or its last exit code or terminating
+signal, if it is down </li>
  <li> what its default state is, if it is different from its current state </li>
  <li> the number of seconds since it last changed states </li>
+ <li> if the current state is transient and will change as soon as the
+kernel's scheduler picks up s6-supervise </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-n</tt>&nbsp;: if the monitored process has been killed by a signal,
+print the signal number. By default, a symbolic name for the signal will be
+printed instead. </li>
 </ul>
 
 </body>

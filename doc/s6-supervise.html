@@ -44,9 +44,12 @@ If it already exists, it uses it as is, without modifying the subscription right
  <li> s6-supervise sends a <tt>'u'</tt> event to <tt>./event</tt> whenever it
 successfully spawns <tt>./run</tt>. </li>
  <li> When <tt>./run</tt> dies, s6-supervise sends a <tt>'d'</tt> event to <tt>./event</tt>. </li>
- <li> When <tt>./run</tt> dies, s6-supervise spawns <tt>./finish</tt> if it exists. </li>
+ <li> When <tt>./run</tt> dies, s6-supervise spawns <tt>./finish</tt> if it exists.
+<tt>./finish</tt> will have <tt>./run</tt>'s exit code as first argument, or 256 if
+<tt>./run</tt> was signaled; it will have the number of the signal that killed <tt>./run</tt>
+as second argument, or an undefined number if <tt>./run</tt> was not signaled. </li>
  <li> <tt>./finish</tt> must exit in less than 5 seconds. If it takes more than that,
-s6-supervise kills it. </li>
+s6-supervise kills it with a SIGKILL. </li>
  <li> When <tt>./finish</tt> dies, s6-supervise restarts <tt>./run</tt> unless it has been
 told not to. </li>
  <li> There is a minimum 1-second delay between two <tt>./run</tt> spawns, to avoid busylooping

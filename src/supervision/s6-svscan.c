@@ -29,7 +29,7 @@
 #define DIR_RETRY_TIMEOUT 3
 #define CHECK_RETRY_TIMEOUT 4
 
-struct svinfo
+struct svinfo_s
 {
   dev_t dev ;
   ino_t ino ;
@@ -39,9 +39,8 @@ struct svinfo
   unsigned int flagactive : 1 ;
   unsigned int flaglog : 1 ;
 } ;
-#define SVINFO_ZERO { -1, -1, { TAIN_ZERO, TAIN_ZERO }, { 0, 0 }, { -1, -1 }, 0, 0, 0 } ;
 
-static struct svinfo *services ;
+static struct svinfo_s *services ;
 static unsigned int max = 500 ;
 static unsigned int n = 0 ;
 static tain_t deadline, defaulttimeout ;
@@ -452,7 +451,7 @@ int main (int argc, char const *const *argv)
 
 
   {
-    struct svinfo blob[max] ; /* careful with that stack, Eugene */
+    struct svinfo_s blob[max] ; /* careful with that stack, Eugene */
     services = blob ;
     tain_now_g() ;
 

@@ -13,6 +13,7 @@ ftrigw_clean.o
 ftrigw_fifodir_make.o
 ftrigw_notify.o
 ftrigw_notifyb.o
+ftrigw_notifyb_nosig.o
 s6_accessrules_backend_cdb.o
 s6_accessrules_backend_fs.o
 s6_accessrules_keycheck_ip4.o
@@ -23,7 +24,6 @@ s6_accessrules_uidgid_cdb.o
 s6_accessrules_uidgid_fs.o
 s6_supervise_lock.o
 s6_supervise_lock_mode.o
-s6_svc_main.o
 s6_svc_write.o
 s6_svstatus_pack.o
 s6_svstatus_read.o
@@ -39,3 +39,15 @@ s6lock_update.o
 s6lock_wait_and.o
 s6lock_wait_or.o
 s6lock_zero.o
+s6_fdholder_delete.o
+s6_fdholder_delete_async.o
+s6_fdholder_getdump.o
+s6_fdholder_list.o
+s6_fdholder_list_async.o
+s6_fdholder_list_cb.o
+s6_fdholder_retrieve.o
+s6_fdholder_retrieve_async.o
+s6_fdholder_retrieve_cb.o
+s6_fdholder_setdump.o
+s6_fdholder_store.o
+s6_fdholder_store_async.o

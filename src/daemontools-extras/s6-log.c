@@ -30,6 +30,7 @@
 #include <skalibs/selfpipe.h>
 #include <skalibs/skamisc.h>
 #include <skalibs/environ.h>
+#include <execline/config.h>
 
 #define USAGE "s6-log [ -q | -v ] [ -b ] [ -p ] [ -t ] [ -e ] logging_script"
 #define dienomem() strerr_diefu1sys(111, "stralloc_catb")
@@ -354,7 +355,7 @@ static int finish (logdir_t *ldp, char const *name, char suffix)
 
 static inline void exec_processor (logdir_t_ref ldp)
 {
-  char const *cargv[4] = { "execlineb", "-Pc", ldp->processor, 0 } ;
+  char const *cargv[4] = { EXECLINE_EXTBINPREFIX "execlineb", "-Pc", ldp->processor, 0 } ;
   unsigned int dirlen = str_len(ldp->dir) ;
   int fd ;
   char x[dirlen + 10] ;

@@ -4,7 +4,7 @@
 #include <skalibs/djbunix.h>
 #include <s6/s6-supervise.h>
 
-int s6_svstatus_read (char const *dir, s6_svstatus_t_ref status)
+int s6_svstatus_read (char const *dir, s6_svstatus_t *status)
 {
   unsigned int n = str_len(dir) ;
   char pack[S6_SVSTATUS_SIZE] ;

@@ -45,7 +45,7 @@ typedef void action_t (void) ;
 typedef action_t *action_t_ref ;
 
 static tain_t deadline ;
-static s6_svstatus_t status = { .stamp = TAIN_ZERO, .pid = 0, .flagwant = 1, .flagwantup = 1, .flagpaused = 0, .flagfinishing = 0 } ;
+static s6_svstatus_t status = { .stamp = TAIN_ZERO, .pid = 0, .flagwant = 1, .flagwantup = 1, .flagpaused = 0, .flagfinishing = 0, .wstat = 0 } ;
 static state_t state = DOWN ;
 static int flagsetsid = 1 ;
 static int cont = 1 ;
@@ -166,7 +166,7 @@ static void trystart (void)
     if (flagsetsid) setsid() ;
     execve("./run", (char *const *)cargv, (char *const *)environ) ;
     fd_write(p[1], "", 1) ;
-    strerr_dieexec(111, "run") ;
+    strerr_dieexec(127, "run") ;
   }
   fd_close(p[1]) ;
   {
@@ -194,7 +194,7 @@ static void trystart (void)
   status.pid = pid ;
   tain_copynow(&status.stamp) ;
   announce() ;
-  ftrigw_notify(S6_SUPERVISE_EVENTDIR, 'u') ;
+  ftrigw_notifyb_nosig(S6_SUPERVISE_EVENTDIR, "u", 1) ;
 }
 
 static void downtimeout (void)
@@ -230,7 +230,7 @@ static void down_d (void)
   announce() ;
 }
 
-static void tryfinish (int wstat, int islast)
+static inline void tryfinish (int islast)
 {
   register pid_t pid = fork() ;
   if (pid < 0)
@@ -238,7 +238,6 @@ static void tryfinish (int wstat, int islast)
     strerr_warnwu2sys("fork for ", "./finish") ;
     if (islast) bail() ;
     state = DOWN ;
-    status.pid = 0 ;
     settimeout(1) ;
     return ;
   }
@@ -248,16 +247,15 @@ static void tryfinish (int wstat, int islast)
     char fmt1[UINT_FMT] ;
     char *cargv[4] = { "finish", fmt0, fmt1, 0 } ;
     selfpipe_finish() ;
-    fmt0[uint_fmt(fmt0, WIFSIGNALED(wstat) ? 255 : WEXITSTATUS(wstat))] = 0 ;
-    fmt1[uint_fmt(fmt1, WTERMSIG(wstat))] = 0 ;
+    fmt0[uint_fmt(fmt0, WIFSIGNALED(status.wstat) ? 256 : WEXITSTATUS(status.wstat))] = 0 ;
+    fmt1[uint_fmt(fmt1, WTERMSIG(status.wstat))] = 0 ;
     if (flagsetsid) setsid() ;
     execve("./finish", cargv, (char *const *)environ) ;
-    _exit(111) ;
+    _exit(127) ;
   }
   status.pid = pid ;
   status.flagfinishing = 1 ;
   state = islast ? LASTFINISH : FINISH ;
-  settimeout(5) ;
 }
 
 static void uptimeout (void)
@@ -268,18 +266,20 @@ static void uptimeout (void)
 
 static void uplastup_z (int islast)
 {
-  int wstat = status.pid ;
+  status.wstat = status.pid ;
   status.pid = 0 ;
   tain_copynow(&status.stamp) ;
+  tryfinish(islast) ;
   announce() ;
-  ftrigw_notify(S6_SUPERVISE_EVENTDIR, 'd') ;
+  ftrigw_notifyb_nosig(S6_SUPERVISE_EVENTDIR, "d", 1) ;
   if (unlink(S6_SUPERVISE_READY_FILENAME) < 0 && errno != ENOENT)
     strerr_warnwu1sys("unlink " S6_SUPERVISE_READY_FILENAME) ;
-  tryfinish(wstat, islast) ;
+  settimeout(5) ;
 }
 
 static void up_z (void)
 {
+  status.flagpaused = 0 ;
   uplastup_z(0) ;
 }
 
@@ -401,7 +401,7 @@ static void handle_signals (void)
             if (errno != ECHILD) strerr_diefu1sys(111, "wait_pid_nohang") ;
             else break ;
           else if (!r) break ;
-          status.pid = wstat ;
+          status.pid = wstat ; /* don't overwrite status.wstat if it's ./finish */
           (*actions[state][V_CHLD])() ;
         }
         break ;
@@ -490,7 +490,7 @@ int main (int argc, char const *const *argv)
     settimeout(0) ;
     tain_copynow(&status.stamp) ;
     announce() ;
-    ftrigw_notify(S6_SUPERVISE_EVENTDIR, 's') ;
+    ftrigw_notifyb_nosig(S6_SUPERVISE_EVENTDIR, "s", 1) ;
 
     while (cont)
     {
@@ -506,7 +506,7 @@ int main (int argc, char const *const *argv)
       }
     }
 
-    ftrigw_notify(S6_SUPERVISE_EVENTDIR, 'x') ;
+    ftrigw_notifyb_nosig(S6_SUPERVISE_EVENTDIR, "x", 1) ;
   }
   return 0 ;
 }
