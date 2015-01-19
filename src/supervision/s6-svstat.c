@@ -76,7 +76,10 @@ int main (int argc, char const *const *argv)
       if (flagnum)
         buffer_putnoflush(buffer_1small, fmt, uint_fmt(fmt, WTERMSIG(status.wstat))) ;
       else
+      {
+        buffer_putnoflush(buffer_1small, "SIG", 3) ;
         buffer_putsnoflush(buffer_1small, sig_name(WTERMSIG(status.wstat))) ;
+      }
     }
     else
     {
