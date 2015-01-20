@@ -35,13 +35,17 @@ exits 0. The information includes the following:
 </p>
 
 <ul>
- <li> whether the process is up or down </li>
+ <li> whether the process is up or down, and if it's up, the number of
+seconds that it has been up. </li>
  <li> the process' pid, if it is up, or its last exit code or terminating
 signal, if it is down </li>
  <li> what its default state is, if it is different from its current state </li>
  <li> the number of seconds since it last changed states </li>
  <li> if the current state is transient and will change as soon as the
 kernel's scheduler picks up s6-supervise </li>
+ <li> whether the service is <a href="notifywhenup.html">ready</a>,
+as notified by the daemon itself, and
+if it is, the number of seconds that it has been. </li>
 </ul>
 
 <h2> Options </h2>
