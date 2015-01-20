@@ -21,6 +21,7 @@ static int run_child (int fd, char const *fifodir, unsigned int timeout)
   char dummy[4096] ;
   iopause_fd x = { .fd = fd, .events = IOPAUSE_READ } ;
   tain_t deadline ;
+  char pack[TAIN_PACK] ;
   if (!tain_now_g()) strerr_diefu1sys(111, "tain_now") ;
   if (timeout) tain_from_millisecs(&deadline, timeout) ;
   else deadline = tain_infinite_relative ;
@@ -38,9 +39,9 @@ static int run_child (int fd, char const *fifodir, unsigned int timeout)
       if (byte_chr(dummy, r, '\n') < r) break ;
   }
   close(fd) ;
-  fd = open_create(S6_SUPERVISE_READY_FILENAME) ;
-  if (fd < 0) strerr_warnwu1sys("touch " S6_SUPERVISE_READY_FILENAME) ;
-  else close(fd) ;
+  tain_pack(pack, &STAMP) ;
+  if (!openwritenclose_suffix(S6_SUPERVISE_READY_FILENAME, pack, TAIN_PACK, ".new"))
+    strerr_warnwu1sys("open " S6_SUPERVISE_READY_FILENAME " for writing") ;
   ftrigw_notify(fifodir, 'U') ;
   return 0 ;
 }

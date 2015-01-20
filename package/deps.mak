@@ -8,7 +8,7 @@ src/include/s6/s6lock.h: src/include/s6/config.h
 src/conn-tools/s6-accessrules-cdb-from-fs.o src/conn-tools/s6-accessrules-cdb-from-fs.lo: src/conn-tools/s6-accessrules-cdb-from-fs.c
 src/conn-tools/s6-accessrules-fs-from-cdb.o src/conn-tools/s6-accessrules-fs-from-cdb.lo: src/conn-tools/s6-accessrules-fs-from-cdb.c
 src/conn-tools/s6-connlimit.o src/conn-tools/s6-connlimit.lo: src/conn-tools/s6-connlimit.c
-src/conn-tools/s6-fdholderd.o src/conn-tools/s6-fdholderd.lo: src/conn-tools/s6-fdholderd.c src/include/s6/accessrules.h src/include/s6/s6-fdholder.h src/include/s6/s6-supervise.h
+src/conn-tools/s6-fdholderd.o src/conn-tools/s6-fdholderd.lo: src/conn-tools/s6-fdholderd.c src/include/s6/accessrules.h src/include/s6/s6-fdholder.h
 src/conn-tools/s6-ioconnect.o src/conn-tools/s6-ioconnect.lo: src/conn-tools/s6-ioconnect.c
 src/conn-tools/s6-ipcclient.o src/conn-tools/s6-ipcclient.lo: src/conn-tools/s6-ipcclient.c
 src/conn-tools/s6-ipcserver-access.o src/conn-tools/s6-ipcserver-access.lo: src/conn-tools/s6-ipcserver-access.c src/include/s6/accessrules.h
@@ -23,7 +23,6 @@ src/daemontools-extras/s6-envdir.o src/daemontools-extras/s6-envdir.lo: src/daem
 src/daemontools-extras/s6-envuidgid.o src/daemontools-extras/s6-envuidgid.lo: src/daemontools-extras/s6-envuidgid.c
 src/daemontools-extras/s6-fghack.o src/daemontools-extras/s6-fghack.lo: src/daemontools-extras/s6-fghack.c
 src/daemontools-extras/s6-log.o src/daemontools-extras/s6-log.lo: src/daemontools-extras/s6-log.c
-src/daemontools-extras/s6-notifywhenup.o src/daemontools-extras/s6-notifywhenup.lo: src/daemontools-extras/s6-notifywhenup.c src/include/s6/ftrigw.h src/include/s6/s6-supervise.h
 src/daemontools-extras/s6-setlock.o src/daemontools-extras/s6-setlock.lo: src/daemontools-extras/s6-setlock.c src/include/s6/config.h
 src/daemontools-extras/s6-setsid.o src/daemontools-extras/s6-setsid.lo: src/daemontools-extras/s6-setsid.c
 src/daemontools-extras/s6-setuidgid.o src/daemontools-extras/s6-setuidgid.lo: src/daemontools-extras/s6-setuidgid.c src/include/s6/config.h
@@ -95,6 +94,7 @@ src/pipe-tools/s6-ftrig-listen1.o src/pipe-tools/s6-ftrig-listen1.lo: src/pipe-t
 src/pipe-tools/s6-ftrig-notify.o src/pipe-tools/s6-ftrig-notify.lo: src/pipe-tools/s6-ftrig-notify.c src/include/s6/ftrigw.h
 src/pipe-tools/s6-ftrig-wait.o src/pipe-tools/s6-ftrig-wait.lo: src/pipe-tools/s6-ftrig-wait.c src/include/s6/ftrigr.h
 src/pipe-tools/s6-mkfifodir.o src/pipe-tools/s6-mkfifodir.lo: src/pipe-tools/s6-mkfifodir.c src/include/s6/ftrigw.h
+src/supervision/s6-notifywhenup.o src/supervision/s6-notifywhenup.lo: src/supervision/s6-notifywhenup.c src/include/s6/ftrigw.h src/include/s6/s6-supervise.h
 src/supervision/s6-supervise.o src/supervision/s6-supervise.lo: src/supervision/s6-supervise.c src/include/s6/ftrigw.h src/include/s6/s6-supervise.h
 src/supervision/s6-svc.o src/supervision/s6-svc.lo: src/supervision/s6-svc.c src/include/s6/config.h src/include/s6/s6-supervise.h
 src/supervision/s6-svlisten.o src/supervision/s6-svlisten.lo: src/supervision/s6-svlisten.c src/include/s6/ftrigr.h src/include/s6/s6-supervise.h
@@ -139,8 +139,6 @@ s6-fghack: private EXTRA_LIBS :=
 s6-fghack: src/daemontools-extras/s6-fghack.o -lskarnet
 s6-log: private EXTRA_LIBS := ${TAINNOW_LIB}
 s6-log: src/daemontools-extras/s6-log.o -lskarnet
-s6-notifywhenup: private EXTRA_LIBS := ${TAINNOW_LIB}
-s6-notifywhenup: src/daemontools-extras/s6-notifywhenup.o ${LIBS6} -lskarnet
 s6-setlock: private EXTRA_LIBS := ${TAINNOW_LIB}
 s6-setlock: src/daemontools-extras/s6-setlock.o -lskarnet
 s6-setsid: private EXTRA_LIBS :=
@@ -175,6 +173,8 @@ s6-ftrig-wait: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
 s6-ftrig-wait: src/pipe-tools/s6-ftrig-wait.o ${LIBS6} -lskarnet
 s6-mkfifodir: private EXTRA_LIBS :=
 s6-mkfifodir: src/pipe-tools/s6-mkfifodir.o ${LIBS6} -lskarnet
+s6-notifywhenup: private EXTRA_LIBS := ${TAINNOW_LIB}
+s6-notifywhenup: src/supervision/s6-notifywhenup.o ${LIBS6} -lskarnet
 s6-supervise: private EXTRA_LIBS := ${TAINNOW_LIB}
 s6-supervise: src/supervision/s6-supervise.o ${LIBS6} -lskarnet
 s6-svc: private EXTRA_LIBS :=

@@ -10,6 +10,7 @@
 #include <skalibs/unixconnection.h>
 
 #define S6_FDHOLDER_ID_SIZE 255
+#define S6_FDHOLDER_MAX 16
 
 typedef struct s6_fdholder_s s6_fdholder_t, *s6_fdholder_t_ref ;
 struct s6_fdholder_s

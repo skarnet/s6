@@ -23,6 +23,7 @@ int main (int argc, char const *const *argv)
   s6_svstatus_t status ;
   int flagnum = 0 ;
   int isup, normallyup ;
+  tain_t readytime = TAIN_ZERO ;
   char fmt[UINT_FMT] ;
   PROG = "s6-svstat" ;
   {
@@ -44,21 +45,31 @@ int main (int argc, char const *const *argv)
   if (!s6_svstatus_read(*argv, &status))
     strerr_diefu2sys(111, "read status for ", *argv) ;
 
+  tain_now_g() ;
+  if (tain_future(&status.stamp)) tain_copynow(&status.stamp) ;
+
   {
+    char pack[TAIN_PACK] ;
     struct stat st ;
     unsigned int dirlen = str_len(*argv) ;
-    char fn[dirlen + 6] ;
+    char fn[dirlen + sizeof(S6_SUPERVISE_READY_FILENAME) + 1] ;
     byte_copy(fn, dirlen, *argv) ;
     byte_copy(fn + dirlen, 6, "/down") ;
     if (stat(fn, &st) == -1)
       if (errno != ENOENT) strerr_diefu2sys(111, "stat ", fn) ;
       else normallyup = 1 ;
     else normallyup = 0 ;
+    byte_copy(fn + dirlen, sizeof(S6_SUPERVISE_READY_FILENAME) + 1, "/" S6_SUPERVISE_READY_FILENAME) ;
+    if (openreadnclose(fn, pack, TAIN_PACK) < TAIN_PACK)
+    {
+      if (errno != ENOENT) strerr_warnwu2sys("read ", fn) ;
+    }
+    else
+    {
+      tain_unpack(pack, &readytime) ;
+      if (tain_future(&readytime)) tain_copynow(&readytime) ;
+    }
   }
-
-  tain_now_g() ;
-  if (tain_future(&status.stamp)) tain_copynow(&status.stamp) ;
-  tain_sub(&status.stamp, &STAMP, &status.stamp) ;
 
   isup = status.pid && !status.flagfinishing ;
   if (isup)
@@ -89,8 +100,9 @@ int main (int argc, char const *const *argv)
     buffer_putnoflush(buffer_1small, ") ", 2) ;
   }
 
+  tain_sub(&status.stamp, &STAMP, &status.stamp) ;
   buffer_putnoflush(buffer_1small, fmt, uint64_fmt(fmt, status.stamp.sec.x)) ;
-  buffer_putnoflush(buffer_1small," seconds", 8) ;
+  buffer_putnoflush(buffer_1small, " seconds", 8) ;
 
   if (isup && !normallyup)
     buffer_putnoflush(buffer_1small, ", normally down", 15) ;
@@ -103,6 +115,13 @@ int main (int argc, char const *const *argv)
   if (isup && (status.flagwant == 'd'))
     buffer_putnoflush(buffer_1small, ", want down", 12) ;
 
+  if (readytime.sec.x)
+  {
+    tain_sub(&readytime, &STAMP, &readytime) ;
+    buffer_putnoflush(buffer_1small, ", ready ", 8) ;
+    buffer_putnoflush(buffer_1small, fmt, uint64_fmt(fmt, readytime.sec.x)) ;
+    buffer_putnoflush(buffer_1small, " seconds", 8) ;
+  }
   if (buffer_putflush(buffer_1small, "\n", 1) < 0)
     strerr_diefu1sys(111, "write to stdout") ;
   return 0 ;
