@@ -38,7 +38,7 @@ needed.
  <li> s6-notifywhenup forks and executes <em>prog...</em> as the
 parent, with a pipe from <em>prog...</em>'s stdout to the child. </li>
  <li> The child waits for a newline (<tt>\n</tt>) to be written
-on the pipe. When it gets it, it creates an empty
+on the pipe. When it gets it, it creates a
 <tt>./supervise/ready</tt> file then sends a 'U' event to the
 <tt>./event</tt> fifodir. </li>
  <li> The child exits 0. </li>
@@ -75,6 +75,9 @@ send a 'U' event to <tt>./event</tt> when s6-ipcserver is actually
 listening to its socket. </li>
  <li> The <a href="s6-svwait.html">s6-svwait</a> program can be used
 to wait for 'U' events. </li>
+ <li> The <tt>supervise/ready</tt> file, when created, contains at least
+the absolute time when s6-notifywhenup detected service readiness. The
+format and contents of this file are subject to change. </li>
 </ul>
 
 </body>
