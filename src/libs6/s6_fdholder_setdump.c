@@ -2,6 +2,7 @@
 
 #include <errno.h>
 #include <skalibs/uint32.h>
+#include <skalibs/allreadwrite.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/error.h>
 #include <skalibs/tai.h>
@@ -25,7 +26,7 @@ int s6_fdholder_setdump (s6_fdholder_t *a, s6_fdholder_fd_t const *list, unsigne
     uint32_pack_big(pack+1, ntot) ;
     if (!unixmessage_put(&a->connection.out, &m)) return 0 ;
     if (!unixmessage_sender_timed_flush(&a->connection.out, deadline, stamp)) return 0 ;
-    if (!unixmessage_timed_receive(&a->connection.in, &m, deadline, stamp)) return 0 ;
+    if (sanitize_read(unixmessage_timed_receive(&a->connection.in, &m, deadline, stamp)) < 0) return 0 ;
     if (!m.len || m.nfds) { unixmessage_drop(&m) ; return (errno = EPROTO, 0) ; }
     if (m.s[0]) return (errno = m.s[0], 0) ;
     if (m.len != 5) return (errno = EPROTO, 0) ;
@@ -58,7 +59,7 @@ int s6_fdholder_setdump (s6_fdholder_t *a, s6_fdholder_fd_t const *list, unsigne
     if (!unixmessage_sender_timed_flush(&a->connection.out, deadline, stamp)) return 0 ;
     {
       unixmessage_t m ;
-      if (!unixmessage_timed_receive(&a->connection.in, &m, deadline, stamp)) return 0 ;
+      if (sanitize_read(unixmessage_timed_receive(&a->connection.in, &m, deadline, stamp)) < 0) return 0 ;
       if (m.len != 1 || m.nfds)
       {
         unixmessage_drop(&m) ;

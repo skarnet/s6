@@ -8,7 +8,6 @@ src/include/s6/s6lock.h: src/include/s6/config.h
 src/conn-tools/s6-accessrules-cdb-from-fs.o src/conn-tools/s6-accessrules-cdb-from-fs.lo: src/conn-tools/s6-accessrules-cdb-from-fs.c
 src/conn-tools/s6-accessrules-fs-from-cdb.o src/conn-tools/s6-accessrules-fs-from-cdb.lo: src/conn-tools/s6-accessrules-fs-from-cdb.c
 src/conn-tools/s6-connlimit.o src/conn-tools/s6-connlimit.lo: src/conn-tools/s6-connlimit.c
-src/conn-tools/s6-fdholderd.o src/conn-tools/s6-fdholderd.lo: src/conn-tools/s6-fdholderd.c src/include/s6/accessrules.h src/include/s6/s6-fdholder.h
 src/conn-tools/s6-ioconnect.o src/conn-tools/s6-ioconnect.lo: src/conn-tools/s6-ioconnect.c
 src/conn-tools/s6-ipcclient.o src/conn-tools/s6-ipcclient.lo: src/conn-tools/s6-ipcclient.c
 src/conn-tools/s6-ipcserver-access.o src/conn-tools/s6-ipcserver-access.lo: src/conn-tools/s6-ipcserver-access.c src/include/s6/accessrules.h
@@ -30,6 +29,20 @@ src/daemontools-extras/s6-softlimit.o src/daemontools-extras/s6-softlimit.lo: sr
 src/daemontools-extras/s6-tai64n.o src/daemontools-extras/s6-tai64n.lo: src/daemontools-extras/s6-tai64n.c
 src/daemontools-extras/s6-tai64nlocal.o src/daemontools-extras/s6-tai64nlocal.lo: src/daemontools-extras/s6-tai64nlocal.c
 src/daemontools-extras/ucspilogd.o src/daemontools-extras/ucspilogd.lo: src/daemontools-extras/ucspilogd.c
+src/fdholder/s6-fdholder-daemon.o src/fdholder/s6-fdholder-daemon.lo: src/fdholder/s6-fdholder-daemon.c src/include/s6/config.h
+src/fdholder/s6-fdholder-getdump.o src/fdholder/s6-fdholder-getdump.lo: src/fdholder/s6-fdholder-getdump.c src/include/s6/config.h
+src/fdholder/s6-fdholder-getdumpc.o src/fdholder/s6-fdholder-getdumpc.lo: src/fdholder/s6-fdholder-getdumpc.c src/include/s6/s6-fdholder.h
+src/fdholder/s6-fdholder-list.o src/fdholder/s6-fdholder-list.lo: src/fdholder/s6-fdholder-list.c src/include/s6/config.h
+src/fdholder/s6-fdholder-listc.o src/fdholder/s6-fdholder-listc.lo: src/fdholder/s6-fdholder-listc.c src/include/s6/s6-fdholder.h
+src/fdholder/s6-fdholder-retrieve.o src/fdholder/s6-fdholder-retrieve.lo: src/fdholder/s6-fdholder-retrieve.c src/include/s6/config.h
+src/fdholder/s6-fdholder-retrievec.o src/fdholder/s6-fdholder-retrievec.lo: src/fdholder/s6-fdholder-retrievec.c src/include/s6/s6-fdholder.h
+src/fdholder/s6-fdholder-setdump.o src/fdholder/s6-fdholder-setdump.lo: src/fdholder/s6-fdholder-setdump.c src/include/s6/config.h
+src/fdholder/s6-fdholder-setdumpc.o src/fdholder/s6-fdholder-setdumpc.lo: src/fdholder/s6-fdholder-setdumpc.c src/include/s6/s6-fdholder.h
+src/fdholder/s6-fdholder-store.o src/fdholder/s6-fdholder-store.lo: src/fdholder/s6-fdholder-store.c src/include/s6/config.h
+src/fdholder/s6-fdholder-storec.o src/fdholder/s6-fdholder-storec.lo: src/fdholder/s6-fdholder-storec.c src/include/s6/s6-fdholder.h
+src/fdholder/s6-fdholder-transferdump.o src/fdholder/s6-fdholder-transferdump.lo: src/fdholder/s6-fdholder-transferdump.c src/include/s6/config.h
+src/fdholder/s6-fdholder-transferdumpc.o src/fdholder/s6-fdholder-transferdumpc.lo: src/fdholder/s6-fdholder-transferdumpc.c src/include/s6/s6-fdholder.h
+src/fdholder/s6-fdholderd.o src/fdholder/s6-fdholderd.lo: src/fdholder/s6-fdholderd.c src/include/s6/accessrules.h src/include/s6/s6-fdholder.h
 src/libs6/ftrig1_free.o src/libs6/ftrig1_free.lo: src/libs6/ftrig1_free.c src/libs6/ftrig1.h
 src/libs6/ftrig1_make.o src/libs6/ftrig1_make.lo: src/libs6/ftrig1_make.c src/libs6/ftrig1.h
 src/libs6/ftrigr1_zero.o src/libs6/ftrigr1_zero.lo: src/libs6/ftrigr1_zero.c src/include/s6/ftrigr.h
@@ -55,6 +68,7 @@ src/libs6/s6_accessrules_keycheck_ip4.o src/libs6/s6_accessrules_keycheck_ip4.lo
 src/libs6/s6_accessrules_keycheck_ip6.o src/libs6/s6_accessrules_keycheck_ip6.lo: src/libs6/s6_accessrules_keycheck_ip6.c src/include/s6/accessrules.h
 src/libs6/s6_accessrules_keycheck_reversedns.o src/libs6/s6_accessrules_keycheck_reversedns.lo: src/libs6/s6_accessrules_keycheck_reversedns.c src/include/s6/accessrules.h
 src/libs6/s6_accessrules_keycheck_uidgid.o src/libs6/s6_accessrules_keycheck_uidgid.lo: src/libs6/s6_accessrules_keycheck_uidgid.c src/include/s6/accessrules.h
+src/libs6/s6_accessrules_params_free.o src/libs6/s6_accessrules_params_free.lo: src/libs6/s6_accessrules_params_free.c src/include/s6/accessrules.h
 src/libs6/s6_accessrules_uidgid_cdb.o src/libs6/s6_accessrules_uidgid_cdb.lo: src/libs6/s6_accessrules_uidgid_cdb.c src/include/s6/accessrules.h
 src/libs6/s6_accessrules_uidgid_fs.o src/libs6/s6_accessrules_uidgid_fs.lo: src/libs6/s6_accessrules_uidgid_fs.c src/include/s6/accessrules.h
 src/libs6/s6_fdholder_delete.o src/libs6/s6_fdholder_delete.lo: src/libs6/s6_fdholder_delete.c src/include/s6/s6-fdholder.h
@@ -153,8 +167,36 @@ s6-tai64nlocal: private EXTRA_LIBS :=
 s6-tai64nlocal: src/daemontools-extras/s6-tai64nlocal.o -lskarnet
 ucspilogd: private EXTRA_LIBS :=
 ucspilogd: src/daemontools-extras/ucspilogd.o -lskarnet
-libs6.a:  src/libs6/ftrigr1_zero.o src/libs6/ftrigr_check.o src/libs6/ftrigr_end.o src/libs6/ftrigr_start.o src/libs6/ftrigr_startf.o src/libs6/ftrigr_subscribe.o src/libs6/ftrigr_unsubscribe.o src/libs6/ftrigr_update.o src/libs6/ftrigr_wait_and.o src/libs6/ftrigr_wait_or.o src/libs6/ftrigr_zero.o src/libs6/ftrigw_clean.o src/libs6/ftrigw_fifodir_make.o src/libs6/ftrigw_notify.o src/libs6/ftrigw_notifyb.o src/libs6/ftrigw_notifyb_nosig.o src/libs6/s6_accessrules_backend_cdb.o src/libs6/s6_accessrules_backend_fs.o src/libs6/s6_accessrules_keycheck_ip4.o src/libs6/s6_accessrules_keycheck_ip6.o src/libs6/s6_accessrules_keycheck_reversedns.o src/libs6/s6_accessrules_keycheck_uidgid.o src/libs6/s6_accessrules_uidgid_cdb.o src/libs6/s6_accessrules_uidgid_fs.o src/libs6/s6_supervise_lock.o src/libs6/s6_supervise_lock_mode.o src/libs6/s6_svc_write.o src/libs6/s6_svstatus_pack.o src/libs6/s6_svstatus_read.o src/libs6/s6_svstatus_unpack.o src/libs6/s6_svstatus_write.o src/libs6/s6lock_acquire.o src/libs6/s6lock_check.o src/libs6/s6lock_end.o src/libs6/s6lock_release.o src/libs6/s6lock_start.o src/libs6/s6lock_startf.o src/libs6/s6lock_update.o src/libs6/s6lock_wait_and.o src/libs6/s6lock_wait_or.o src/libs6/s6lock_zero.o src/libs6/s6_fdholder_delete.o src/libs6/s6_fdholder_delete_async.o src/libs6/s6_fdholder_getdump.o src/libs6/s6_fdholder_list.o src/libs6/s6_fdholder_list_async.o src/libs6/s6_fdholder_list_cb.o src/libs6/s6_fdholder_retrieve.o src/libs6/s6_fdholder_retrieve_async.o src/libs6/s6_fdholder_retrieve_cb.o src/libs6/s6_fdholder_setdump.o src/libs6/s6_fdholder_store.o src/libs6/s6_fdholder_store_async.o
-libs6.so:  src/libs6/ftrigr1_zero.lo src/libs6/ftrigr_check.lo src/libs6/ftrigr_end.lo src/libs6/ftrigr_start.lo src/libs6/ftrigr_startf.lo src/libs6/ftrigr_subscribe.lo src/libs6/ftrigr_unsubscribe.lo src/libs6/ftrigr_update.lo src/libs6/ftrigr_wait_and.lo src/libs6/ftrigr_wait_or.lo src/libs6/ftrigr_zero.lo src/libs6/ftrigw_clean.lo src/libs6/ftrigw_fifodir_make.lo src/libs6/ftrigw_notify.lo src/libs6/ftrigw_notifyb.lo src/libs6/ftrigw_notifyb_nosig.lo src/libs6/s6_accessrules_backend_cdb.lo src/libs6/s6_accessrules_backend_fs.lo src/libs6/s6_accessrules_keycheck_ip4.lo src/libs6/s6_accessrules_keycheck_ip6.lo src/libs6/s6_accessrules_keycheck_reversedns.lo src/libs6/s6_accessrules_keycheck_uidgid.lo src/libs6/s6_accessrules_uidgid_cdb.lo src/libs6/s6_accessrules_uidgid_fs.lo src/libs6/s6_supervise_lock.lo src/libs6/s6_supervise_lock_mode.lo src/libs6/s6_svc_write.lo src/libs6/s6_svstatus_pack.lo src/libs6/s6_svstatus_read.lo src/libs6/s6_svstatus_unpack.lo src/libs6/s6_svstatus_write.lo src/libs6/s6lock_acquire.lo src/libs6/s6lock_check.lo src/libs6/s6lock_end.lo src/libs6/s6lock_release.lo src/libs6/s6lock_start.lo src/libs6/s6lock_startf.lo src/libs6/s6lock_update.lo src/libs6/s6lock_wait_and.lo src/libs6/s6lock_wait_or.lo src/libs6/s6lock_zero.lo src/libs6/s6_fdholder_delete.lo src/libs6/s6_fdholder_delete_async.lo src/libs6/s6_fdholder_getdump.lo src/libs6/s6_fdholder_list.lo src/libs6/s6_fdholder_list_async.lo src/libs6/s6_fdholder_list_cb.lo src/libs6/s6_fdholder_retrieve.lo src/libs6/s6_fdholder_retrieve_async.lo src/libs6/s6_fdholder_retrieve_cb.lo src/libs6/s6_fdholder_setdump.lo src/libs6/s6_fdholder_store.lo src/libs6/s6_fdholder_store_async.lo
+s6-fdholder-daemon: private EXTRA_LIBS :=
+s6-fdholder-daemon: src/fdholder/s6-fdholder-daemon.o -lskarnet
+s6-fdholder-getdump: private EXTRA_LIBS :=
+s6-fdholder-getdump: src/fdholder/s6-fdholder-getdump.o -lskarnet
+s6-fdholder-getdumpc: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-fdholder-getdumpc: src/fdholder/s6-fdholder-getdumpc.o ${LIBS6} -lskarnet
+s6-fdholder-list: private EXTRA_LIBS :=
+s6-fdholder-list: src/fdholder/s6-fdholder-list.o -lskarnet
+s6-fdholder-listc: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-fdholder-listc: src/fdholder/s6-fdholder-listc.o ${LIBS6} -lskarnet
+s6-fdholder-retrieve: private EXTRA_LIBS :=
+s6-fdholder-retrieve: src/fdholder/s6-fdholder-retrieve.o -lskarnet
+s6-fdholder-retrievec: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-fdholder-retrievec: src/fdholder/s6-fdholder-retrievec.o ${LIBS6} -lskarnet
+s6-fdholder-setdump: private EXTRA_LIBS :=
+s6-fdholder-setdump: src/fdholder/s6-fdholder-setdump.o -lskarnet
+s6-fdholder-setdumpc: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-fdholder-setdumpc: src/fdholder/s6-fdholder-setdumpc.o ${LIBS6} -lskarnet
+s6-fdholder-store: private EXTRA_LIBS :=
+s6-fdholder-store: src/fdholder/s6-fdholder-store.o -lskarnet
+s6-fdholder-storec: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-fdholder-storec: src/fdholder/s6-fdholder-storec.o ${LIBS6} -lskarnet
+s6-fdholder-transferdump: private EXTRA_LIBS :=
+s6-fdholder-transferdump: src/fdholder/s6-fdholder-transferdump.o -lskarnet
+s6-fdholder-transferdumpc: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-fdholder-transferdumpc: src/fdholder/s6-fdholder-transferdumpc.o ${LIBS6} -lskarnet
+s6-fdholderd: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-fdholderd: src/fdholder/s6-fdholderd.o ${LIBS6} -lskarnet
+libs6.a:  src/libs6/ftrigr1_zero.o src/libs6/ftrigr_check.o src/libs6/ftrigr_end.o src/libs6/ftrigr_start.o src/libs6/ftrigr_startf.o src/libs6/ftrigr_subscribe.o src/libs6/ftrigr_unsubscribe.o src/libs6/ftrigr_update.o src/libs6/ftrigr_wait_and.o src/libs6/ftrigr_wait_or.o src/libs6/ftrigr_zero.o src/libs6/ftrigw_clean.o src/libs6/ftrigw_fifodir_make.o src/libs6/ftrigw_notify.o src/libs6/ftrigw_notifyb.o src/libs6/ftrigw_notifyb_nosig.o src/libs6/s6_accessrules_backend_cdb.o src/libs6/s6_accessrules_backend_fs.o src/libs6/s6_accessrules_keycheck_ip4.o src/libs6/s6_accessrules_keycheck_ip6.o src/libs6/s6_accessrules_keycheck_reversedns.o src/libs6/s6_accessrules_keycheck_uidgid.o src/libs6/s6_accessrules_params_free.o src/libs6/s6_accessrules_uidgid_cdb.o src/libs6/s6_accessrules_uidgid_fs.o src/libs6/s6_supervise_lock.o src/libs6/s6_supervise_lock_mode.o src/libs6/s6_svc_write.o src/libs6/s6_svstatus_pack.o src/libs6/s6_svstatus_read.o src/libs6/s6_svstatus_unpack.o src/libs6/s6_svstatus_write.o src/libs6/s6lock_acquire.o src/libs6/s6lock_check.o src/libs6/s6lock_end.o src/libs6/s6lock_release.o src/libs6/s6lock_start.o src/libs6/s6lock_startf.o src/libs6/s6lock_update.o src/libs6/s6lock_wait_and.o src/libs6/s6lock_wait_or.o src/libs6/s6lock_zero.o src/libs6/s6_fdholder_delete.o src/libs6/s6_fdholder_delete_async.o src/libs6/s6_fdholder_getdump.o src/libs6/s6_fdholder_list.o src/libs6/s6_fdholder_list_async.o src/libs6/s6_fdholder_list_cb.o src/libs6/s6_fdholder_retrieve.o src/libs6/s6_fdholder_retrieve_async.o src/libs6/s6_fdholder_retrieve_cb.o src/libs6/s6_fdholder_setdump.o src/libs6/s6_fdholder_store.o src/libs6/s6_fdholder_store_async.o
+libs6.so:  src/libs6/ftrigr1_zero.lo src/libs6/ftrigr_check.lo src/libs6/ftrigr_end.lo src/libs6/ftrigr_start.lo src/libs6/ftrigr_startf.lo src/libs6/ftrigr_subscribe.lo src/libs6/ftrigr_unsubscribe.lo src/libs6/ftrigr_update.lo src/libs6/ftrigr_wait_and.lo src/libs6/ftrigr_wait_or.lo src/libs6/ftrigr_zero.lo src/libs6/ftrigw_clean.lo src/libs6/ftrigw_fifodir_make.lo src/libs6/ftrigw_notify.lo src/libs6/ftrigw_notifyb.lo src/libs6/ftrigw_notifyb_nosig.lo src/libs6/s6_accessrules_backend_cdb.lo src/libs6/s6_accessrules_backend_fs.lo src/libs6/s6_accessrules_keycheck_ip4.lo src/libs6/s6_accessrules_keycheck_ip6.lo src/libs6/s6_accessrules_keycheck_reversedns.lo src/libs6/s6_accessrules_keycheck_uidgid.lo src/libs6/s6_accessrules_params_free.lo src/libs6/s6_accessrules_uidgid_cdb.lo src/libs6/s6_accessrules_uidgid_fs.lo src/libs6/s6_supervise_lock.lo src/libs6/s6_supervise_lock_mode.lo src/libs6/s6_svc_write.lo src/libs6/s6_svstatus_pack.lo src/libs6/s6_svstatus_read.lo src/libs6/s6_svstatus_unpack.lo src/libs6/s6_svstatus_write.lo src/libs6/s6lock_acquire.lo src/libs6/s6lock_check.lo src/libs6/s6lock_end.lo src/libs6/s6lock_release.lo src/libs6/s6lock_start.lo src/libs6/s6lock_startf.lo src/libs6/s6lock_update.lo src/libs6/s6lock_wait_and.lo src/libs6/s6lock_wait_or.lo src/libs6/s6lock_zero.lo src/libs6/s6_fdholder_delete.lo src/libs6/s6_fdholder_delete_async.lo src/libs6/s6_fdholder_getdump.lo src/libs6/s6_fdholder_list.lo src/libs6/s6_fdholder_list_async.lo src/libs6/s6_fdholder_list_cb.lo src/libs6/s6_fdholder_retrieve.lo src/libs6/s6_fdholder_retrieve_async.lo src/libs6/s6_fdholder_retrieve_cb.lo src/libs6/s6_fdholder_setdump.lo src/libs6/s6_fdholder_store.lo src/libs6/s6_fdholder_store_async.lo
 s6-ftrigrd: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
 s6-ftrigrd: src/libs6/s6-ftrigrd.o src/libs6/ftrig1_free.o src/libs6/ftrig1_make.o -lskarnet
 s6lockd: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}

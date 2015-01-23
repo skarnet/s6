@@ -1,4 +1,4 @@
-/* ISC license. */
+ /* ISC license. */
 
 #include <skalibs/uint.h>
 #include <skalibs/sgetopt.h>

@@ -15,6 +15,8 @@ struct s6_accessrules_params_s
 } ;
 #define S6_ACCESSRULES_PARAMS_ZERO { .env = STRALLOC_ZERO, .exec = STRALLOC_ZERO }
 
+extern void s6_accessrules_params_free (s6_accessrules_params_t *) ;
+
 typedef enum s6_accessrules_result_e s6_accessrules_result_t, *s6_accessrules_result_t_ref ;
 enum s6_accessrules_result_e
 {

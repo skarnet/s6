@@ -2,6 +2,7 @@
 
 #include <errno.h>
 #include <skalibs/uint32.h>
+#include <skalibs/bytestr.h>
 #include <skalibs/error.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/unixmessage.h>
@@ -19,6 +20,7 @@ int s6_fdholder_list_cb (unixmessage_t const *m, void *p)
     return 1 ;
   }
   uint32_unpack_big(m->s + 1, &n) ;
+  if (byte_count(m->s + 5, m->len - 5, 0) != n) goto err ;
   if (!stralloc_catb(res->sa, m->s + 5, m->len - 5)) return 0 ;
   res->n = n ;
   res->err = 0 ;
