@@ -30,7 +30,7 @@ int s6_fdholder_setdump (s6_fdholder_t *a, s6_fdholder_fd_t const *list, unsigne
     if (!m.len || m.nfds) { unixmessage_drop(&m) ; return (errno = EPROTO, 0) ; }
     if (m.s[0]) return (errno = m.s[0], 0) ;
     if (m.len != 5) return (errno = EPROTO, 0) ;
-    uint32_unpack_big(pack + 1, &trips) ;
+    uint32_unpack_big(m.s + 1, &trips) ;
     if (trips != 1 + (ntot-1) / UNIXMESSAGE_MAXFDS) return (errno = EPROTO, 0) ;
   }
   for (i = 0 ; i < trips ; i++, ntot -= UNIXMESSAGE_MAXFDS)
@@ -49,9 +49,9 @@ int s6_fdholder_setdump (s6_fdholder_t *a, s6_fdholder_fd_t const *list, unsigne
         v[1 + (j<<1)].s = pack + j * (TAIN_PACK+1) ;
         v[1 + (j<<1)].len = TAIN_PACK + 1 ;
         tain_pack(pack + j * (TAIN_PACK+1), &list->limit) ;
-        pack[j * (TAIN_PACK+1) + TAIN_PACK] = (unsigned char)len + 1 ;
+        pack[j * (TAIN_PACK+1) + TAIN_PACK] = (unsigned char)len ;
         v[2 + (j<<1)].s = (char *)list->id ;
-        v[2 + (j<<1)].len = len ;
+        v[2 + (j<<1)].len = len + 1 ;
         fds[j] = list->fd ;
       }
       if (!unixmessage_putv(&a->connection.out, &m)) return 0 ;

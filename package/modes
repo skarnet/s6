@@ -1,3 +1,4 @@
+ucspilogd			0755
 s6-ftrigrd			0755
 s6-ftrig-listen1		0755
 s6-ftrig-listen			0755
@@ -40,4 +41,17 @@ s6-ipcserverd			0755
 s6-sudo				0755
 s6-sudoc			0755
 s6-sudod			0755
-ucspilogd			0755
+s6-fdholder-daemon		0755
+s6-fdholderd			0755
+s6-fdholder-store		0755
+s6-fdholder-storec		0755
+s6-fdholder-retrieve		0755
+s6-fdholder-retrievec		0755
+s6-fdholder-list		0755
+s6-fdholder-listc		0755
+s6-fdholder-getdump		0755
+s6-fdholder-getdumpc		0755
+s6-fdholder-setdump		0755
+s6-fdholder-setdumpc		0755
+s6-fdholder-transferdump	0755
+s6-fdholder-transferdumpc	0755

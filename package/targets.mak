@@ -1,4 +1,5 @@
 BIN_TARGETS := \
+ucspilogd \
 s6-ftrigrd \
 s6-ftrig-listen1 \
 s6-ftrig-listen \
@@ -38,7 +39,20 @@ s6-ipcserverd \
 s6-sudo \
 s6-sudoc \
 s6-sudod \
-ucspilogd
+s6-fdholder-daemon \
+s6-fdholderd \
+s6-fdholder-store \
+s6-fdholder-storec \
+s6-fdholder-retrieve \
+s6-fdholder-retrievec \
+s6-fdholder-list \
+s6-fdholder-listc \
+s6-fdholder-getdump \
+s6-fdholder-getdumpc \
+s6-fdholder-setdump \
+s6-fdholder-setdumpc \
+s6-fdholder-transferdump \
+s6-fdholder-transferdumpc
 
 SBIN_TARGETS := \
 s6-applyuidgid \
