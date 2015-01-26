@@ -41,7 +41,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   tain_now_g() ;
   tain_add_g(&deadline, &deadline) ;
   fd = s6_fdholder_retrieve_maybe_delete_g(&a, argv[0], dodelete, &deadline) ;
-  if (fd < 0) strerr_diefu2sys(111, "retrieve fd for id ", argv[0]) ;
+  if (fd < 0) strerr_diefu2sys(1, "retrieve fd for id ", argv[0]) ;
   else if (!fd)
   {
     if (uncoe(0) < 0) strerr_diefu1sys(111, "uncoe stdin") ;

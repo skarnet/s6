@@ -43,6 +43,8 @@ s6-sudoc			0755
 s6-sudod			0755
 s6-fdholder-daemon		0755
 s6-fdholderd			0755
+s6-fdholder-delete		0755
+s6-fdholder-deletec		0755
 s6-fdholder-store		0755
 s6-fdholder-storec		0755
 s6-fdholder-retrieve		0755

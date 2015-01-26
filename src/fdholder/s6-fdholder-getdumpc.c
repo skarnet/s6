@@ -41,7 +41,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   tain_now_g() ;
   tain_add_g(&deadline, &deadline) ;
   if (!s6_fdholder_getdump_g(&a, &dump, &deadline))
-    strerr_diefu1sys(111, "get dump") ;
+    strerr_diefu1sys(1, "get dump") ;
   s6_fdholder_free(&a) ;
   tain_half(&halfinfinite, &tain_infinite_relative) ;
   tain_add_g(&halfinfinite, &halfinfinite) ;
@@ -67,14 +67,14 @@ int main (int argc, char const *const *argv, char const *const *envp)
       modifs[pos++] = '=' ;
       byte_copy(modifs + pos, len, p->id) ;
       pos += len ;
+      byte_copy(modifs + pos, 11, "S6_FDLIMIT_") ; pos += 11 ;
+      pos += uint_fmt(modifs + pos, i) ;
       if (tain_less(&p->limit, &halfinfinite))
       {
-        byte_copy(modifs + pos, 11, "S6_FDLIMIT_") ; pos += 11 ;
-        pos += uint_fmt(modifs + pos, i) ;
         modifs[pos++] = '=' ;
         pos += timestamp_fmt(modifs + pos, &p->limit) ;
-        modifs[pos++] = 0 ;
       }
+      modifs[pos++] = 0 ;
     }
     pathexec_r(argv, envp, env_len(envp), modifs, pos) ;
   }

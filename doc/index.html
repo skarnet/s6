@@ -22,8 +22,34 @@
  s6 is a small suite of programs for UNIX, designed to allow process supervision
 (a.k.a service supervision),
 in the line of <a href="http://cr.yp.to/daemontools.html">daemontools</a>
-and <a href="http://smarden.org/runit/">runit</a>.
+and <a href="http://smarden.org/runit/">runit</a>, as well as various
+operations on processes and daemons. It is meant to be a toolbox for
+low-level process and service administration, providing different sets of
+independent tools that can be used within or without the framework, and
+that can be assembled together to achieve powerful functionality with
+a very small amount of code.
 </p>
+
+<p>
+ Examples of things you can do by assembling together several programs
+provided by s6:
+</p>
+
+<ul>
+ <li> <a href="http://en.wikipedia.org/wiki/Syslog">syslogd</a> functionality,
+using much less resources than the traditional syslogd. </li>
+ <li> Reliable service readiness notification, which is the basis for
+service dependency management. </li>
+ <li> Controlled privileged gain as with
+<a href="http://en.wikipedia.org/wiki/Sudo">sudo</a>, without using
+any suid programs. </li>
+ <li> The useful parts of
+<a href="http://0pointer.de/blog/projects/socket-activation.html">socket
+activation</a><sup><a href="#fn1" id="r1">[1]</a></sup>
+without having to change application code or link servers
+against any specific library, and without having to switch to any
+specific init system. </li>
+</ul>
 
 <p>
  The s6 documentation tries to be complete and self-contained; however,
@@ -51,11 +77,14 @@ supervision that might help you understand the basics.
 
 <ul>
  <li> A POSIX-compliant system with a standard C development environment </li>
- <li> GNU make, version 4.0 or later </li>
+ <li> GNU make, version 4.0 or later. Please be aware that s6 will not build
+with an earlier version. </li>
  <li> <a href="http://skarnet.org/software/skalibs/">skalibs</a> version
-2.2.1.0 or later </li>
+2.2.1.0 or later. It's a build-time requirement. It's also a run-time
+requirement if you link against the shared version of the skalibs
+library. </li>
  <li> <a href="http://skarnet.org/software/execline/">execline</a> version
-2.0.1.1 or later </li>
+2.0.1.1 or later. It's a build-time and run-time requirement. </li>
 </ul>
 
 <h3> Licensing </h3>
@@ -120,32 +149,24 @@ a user interface to control those processes and monitor service states.
 <li><a href="s6-notifywhenup.html">The <tt>s6-notifywhenup</tt> program</a> </li>
 </ul>
 
-<h4> Other daemontools-like utilities </h4>
+<h4> Daemontools-like utilities </h4>
 
 <p>
  These programs are a rewrite of the corresponding utilities from
 <a href="http://cr.yp.to/daemontools.html">daemontools</a>, with
-a few extras. The
-<a href="s6-log.html">s6-log</a> program is important in itself: it's
-a powerful, scriptable, general-purpose filtering and logging tool
-that can be used to entirely replace syslogd. It has many more
-features than its <a href="http://cr.yp.to/daemontools/multilog.html">multilog</a>
-counterpart.
+a few extras.
 </p>
 
 <ul>
 <li><a href="s6-envdir.html">The <tt>s6-envdir</tt> program</a></li>
 <li><a href="s6-envuidgid.html">The <tt>s6-envuidgid</tt> program</a></li>
 <li><a href="s6-fghack.html">The <tt>s6-fghack</tt> program</a></li>
-<li><a href="s6-log.html">The <tt>s6-log</tt> program</a></li>
-<li><a href="s6-setlock.html">The <tt>s6-setlock</tt> program</a></li>
 <li><a href="s6-setsid.html">The <tt>s6-setsid</tt> program</a></li>
 <li><a href="s6-setuidgid.html">The <tt>s6-setuidgid</tt> program</a></li>
 <li><a href="s6-applyuidgid.html">The <tt>s6-applyuidgid</tt> program</a></li>
 <li><a href="s6-softlimit.html">The <tt>s6-softlimit</tt> program</a></li>
 <li><a href="s6-tai64n.html">The <tt>s6-tai64n</tt> program</a></li>
 <li><a href="s6-tai64nlocal.html">The <tt>s6-tai64nlocal</tt> program</a></li>
-<li><a href="ucspilogd.html">The <tt>ucspilogd</tt> program</a></li>
 </ul>
 
 <h4> Fifodir management, notification and subscription </h4>
@@ -173,6 +194,11 @@ synchronization</a>.
 <li><a href="s6-ftrig-wait.html">The <tt>s6-ftrig-wait</tt> program</a></li>
 <li><a href="s6-ftrig-listen1.html">The <tt>s6-ftrig-listen1</tt> program</a></li>
 <li><a href="s6-ftrig-listen.html">The <tt>s6-ftrig-listen</tt> program</a></li>
+</ul>
+<p>
+</p>
+<ul>
+<li><a href="s6-ftrigrd.html">The <tt>s6-ftrigrd</tt> internal program</a></li>
 </ul>
 
 <h4> Local service management and access control </h4>
@@ -203,14 +229,44 @@ synchronization</a>.
 <li><a href="s6-sudod.html">The <tt>s6-sudod</tt> program</a></li>
 </ul>
 
-<h4> Internal commands </h4>
+<h4> Logging </h4>
 
 <ul>
-<li><a href="s6-ftrigrd.html">The <tt>s6-ftrigrd</tt> internal program</a></li>
-<li><a href="libs6/s6lockd.html">The <tt>s6lockd</tt> internal program</a></li>
+<li><a href="s6-log.html">The <tt>s6-log</tt> program</a></li>
+<li><a href="ucspilogd.html">The <tt>ucspilogd</tt> program</a></li>
+</ul>
+
+<h4> Timed lock acquisition </h4>
+
+<ul>
+<li><a href="s6-setlock.html">The <tt>s6-setlock</tt> program</a></li>
+<li><a href="libs6/s6lockd.html">The <tt>s6lockd</tt> program</a></li>
 <li><a href="libs6/s6lockd-helper.html">The <tt>s6lockd-helper</tt> internal program</a></li>
 </ul>
 
+<h4> fd-holding, a.k.a. the sensible part of socket activation </h4>
+
+<ul>
+<li><a href="s6-fdholder-daemon.html">The <tt>s6-fdholder-daemon</tt> program</a></li>
+<li><a href="s6-fdholderd.html">The <tt>s6-fdholderd</tt> program</a></li>
+</ul>
+<p></p>
+<ul>
+<li><a href="s6-fdholder-store.html">The <tt>s6-fdholder-store</tt> program</a></li>
+<li><a href="s6-fdholder-storec.html">The <tt>s6-fdholder-storec</tt> program</a></li>
+<li><a href="s6-fdholder-retrieve.html">The <tt>s6-fdholder-retrieve</tt> program</a></li>
+<li><a href="s6-fdholder-retrievec.html">The <tt>s6-fdholder-retrievec</tt> program</a></li>
+<li><a href="s6-fdholder-delete.html">The <tt>s6-fdholder-delete</tt> program</a></li>
+<li><a href="s6-fdholder-deletec.html">The <tt>s6-fdholder-deletec</tt> program</a></li>
+<li><a href="s6-fdholder-list.html">The <tt>s6-fdholder-list</tt> program</a></li>
+<li><a href="s6-fdholder-listc.html">The <tt>s6-fdholder-listc</tt> program</a></li>
+<li><a href="s6-fdholder-getdump.html">The <tt>s6-fdholder-getdump</tt> program</a></li>
+<li><a href="s6-fdholder-getdumpc.html">The <tt>s6-fdholder-getdumpc</tt> program</a></li>
+<li><a href="s6-fdholder-setdump.html">The <tt>s6-fdholder-setdump</tt> program</a></li>
+<li><a href="s6-fdholder-setdumpc.html">The <tt>s6-fdholder-setdumpc</tt> program</a></li>
+<li><a href="s6-fdholder-transferdump.html">The <tt>s6-fdholder-transferdump</tt> program</a></li>
+<li><a href="s6-fdholder-transferdumpc.html">The <tt>s6-fdholder-transferdumpc</tt> program</a></li>
+</ul>
 
 <h3> Libraries </h3>
 
@@ -220,6 +276,7 @@ synchronization</a>.
 <li><a href="libs6/ftrigr.html">The <tt>ftrigr</tt> library interface</a></li>
 <li><a href="libs6/s6lock.html">The <tt>s6lock</tt> library interface</a></li>
 <li><a href="libs6/accessrules.html">The <tt>accessrules</tt> library interface</a></li>
+<li><a href="libs6/s6-fdholder.html">The <tt>s6-fdholder</tt> library interface</a></li>
 </ul>
 
 <h3> Definitions </h3>
@@ -259,6 +316,10 @@ daemontools.) </li>
 approach to process supervision, with the same goals. </li>
  <li> <a href="http://b0llix.net/perp/">perp</a>, yet another slightly different
 approach to process supervision, also with the same goals. </li>
+ <li> <a href="http://homepage.ntlworld.com/jonathan.deboynepollard/Softwares/nosh.html">nosh</a>
+is another suite of system-level utilities with similarities in the design
+and approach. It is written in C++, though, and is coded in quite a
+different way than the previous items on this list. </li>
 </ul>
 
 <h3> Other init systems </h3>
@@ -301,6 +362,15 @@ usually find it much simpler.
 software, and it's short. Expect more use of s6- in future skarnet.org software
 releases. And please avoid using that prefix for your own projects.
 </p>
+
+<h3> Footnotes </h3>
+
+<section>
+ <p id="fn1"><a href="#r1"><sup>[1]</sup></a>
+ Take everything you read on that link with two or three salt shakers.
+(This is true for anything written by the author of that document.)
+ </p>
+</section>
 
 </body>
 </html>

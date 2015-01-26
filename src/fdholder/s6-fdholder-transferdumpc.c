@@ -41,11 +41,11 @@ int main (int argc, char const *const *argv, char const *const *envp)
   tain_now_g() ;
   tain_add_g(&deadline, &deadline) ;
   if (!s6_fdholder_getdump_g(&a, &dump, &deadline))
-    strerr_diefu1sys(111, "get dump") ;
+    strerr_diefu1sys(1, "get dump") ;
   s6_fdholder_free(&a) ;
   s6_fdholder_init(&a, 1) ;
   tain_add_g(&deadline, &totto) ;
   if (!s6_fdholder_setdump_g(&a, genalloc_s(s6_fdholder_fd_t, &dump), genalloc_len(s6_fdholder_fd_t, &dump), &deadline))
-    strerr_diefu1sys(111, "set dump") ;
+    strerr_diefu1sys(1, "set dump") ;
   return 0 ;
 }

@@ -1,0 +1,51 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-fdholder-list program</title>
+    <meta name="Description" content="s6: the s6-fdholder-list program" />
+    <meta name="Keywords" content="s6 s6-fdholder fd-holding fd-holder fd list unix socket activation" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-fdholder-list</tt> program </h1>
+
+<p>
+<tt>s6-fdholder-list</tt> lists the descriptors currently held by a
+<a href="s6-fdholderd.html">fd-holding daemon</a>.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-fdholder-list [ -t <em>timeout</em> ] <em>path</em>
+</pre>
+
+<ul>
+ <li> s6-fdholder-list executes into <tt><a href="s6-ipcclient.html">s6-ipcclient</a> <em>path</em>
+<a href="s6-fdholder-listc.html">s6-fdholder-listc</a> <em>id</em></tt>. It does nothing else: it is just a
+convenience program. The <a href="s6-ipcclient.html">s6-ipcclient</a> program connects
+to a Unix socket at <em>path</em>, and the
+<a href="s6-fdholder-listc.html">s6-fdholder-listc</a> program transmits
+the instruction over the socket, and gets and prints the result. </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+<li> <tt>-t&nbsp;<em>timeout</em></tt>&nbsp;: if the operation cannot be
+processed in <em>timeout</em> milliseconds, then fail with an error message.
+Communications with the server should be near-instant, so this option is
+only here to protect users against programming errors (connecting to the
+wrong socket, for instance). </li>
+</ul>
+
+</body>
+</html>

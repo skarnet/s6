@@ -70,7 +70,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
       else if (!timestamp_scan(x, &dump[i].limit)) strerr_dieinvalid(100, s) ;
     }
     if (!s6_fdholder_setdump_g(&a, dump, dumplen, &deadline))
-      strerr_diefu1sys(111, "set dump") ;
+      strerr_diefu1sys(1, "set dump") ;
   }
   return 0 ;
 }

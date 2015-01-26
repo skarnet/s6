@@ -1,0 +1,66 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-fdholder-setdump program</title>
+    <meta name="Description" content="s6: the s6-fdholder-setdump program" />
+    <meta name="Keywords" content="s6 s6-fdholder fd-holding fd-holder fd dump storage unix socket activation" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-fdholder-setdump</tt> program </h1>
+
+<p>
+<tt>s6-fdholder-setdump</tt> connects to a
+<a href="s6-fdholderd.html">fd-holding daemon</a> listening on a
+Unix domain socket, and dumps a set of file descriptors into
+that daemon.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-fdholder-setdump [ -t <em>timeout</em> ] <em>path</em>
+</pre>
+
+<ul>
+ <li> s6-fdholder-setdump executes into <tt><a href="s6-ipcclient.html">s6-ipcclient</a> <em>path</em>
+<a href="s6-fdholder-setdumpc.html">s6-fdholder-setdumpc</a> <em>id</em></tt>. It does nothing else: it is just a
+convenience program. The <a href="s6-ipcclient.html">s6-ipcclient</a> program connects
+to a Unix socket at <em>path</em>, and the
+<a href="s6-fdholder-setdumpc.html">s6-fdholder-setdumpc</a> program transmits the
+file descriptors over the socket. </li>
+ <li> It should be used to connect to a
+<a href="s6-fdholderd.html">s6-fdholderd</a> daemon, which will store the set of
+file descriptors. </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+<li> <tt>-t&nbsp;<em>timeout</em></tt>&nbsp;: if the operation cannot be
+processed in <em>timeout</em> milliseconds, then fail with an error message.
+Communications with the server should be near-instant, so this option is
+only here to protect users against programming errors (connecting to the
+wrong socket, for instance). </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> The file descriptors to transmit to the server should of course be
+already open in the s6-fdholder-setdump program; also, s6-fdholder-setdump
+should have certain environment variables that describe that set of file
+descriptors. The format of the environment is the same as the one set by
+<a href="s6-fdholder-getdumpc.html">s6-fdholder-getdumpc</a>. </li>
+</ul>
+
+</body>
+</html>

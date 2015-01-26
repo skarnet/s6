@@ -1,0 +1,58 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-fdholder-transferdump program</title>
+    <meta name="Description" content="s6: the s6-fdholder-transferdump program" />
+    <meta name="Keywords" content="s6 s6-fdholder fd-holding fd-holder fd dump transfer unix socket activation" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-fdholder-transferdump</tt> program </h1>
+
+<p>
+<tt>s6-fdholder-transferdump</tt> connects to two separate
+<a href="s6-fdholderd.html">fd-holding daemons</a> and
+transfers the content of the first one to the second one.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-fdholder-transferdump [ -t <em>timeoutfrom:timeoutto</em> ] <em>pathfrom</em> <em>pathto</em>
+</pre>
+
+<ul>
+ <li> s6-fdholder-transferdump executes into a more complex command line
+involving two
+<a href="s6-ipcclient.html">s6-ipcclient</a> invocations and ending with
+<a href="s6-fdholder-transferdumpc.html">s6-fdholder-transferdumpc</a>. It
+is just a convenience program: the real transfer is performed by
+<a href="s6-fdholder-transferdumpc.html">s6-fdholder-transferdumpc</a>. </li>
+ <li> The file descriptor transfer will occur from the
+<a href="s6-fdholderd.html">s6-fdholderd</a> daemon listening on
+<em>pathfrom</em> to the one listening on <em>pathto</em>. </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+<li> <tt>-t&nbsp;<em>timeoutfrom</em>:<em>timeoutto</em></tt>&nbsp;:
+if the operations cannot be
+processed in <em>timeoutfrom</em> (for the connection to <em>pathfrom</em>)
+or <em>timeoutto</em> (for the connection to <em>pathto</em>) milliseconds,
+then fail with an error message.
+Communications with the servers should be near-instant, so this option is
+only here to protect users against programming errors (connecting to the
+wrong socket, for instance). </li>
+</ul>
+
+</body>
+</html>

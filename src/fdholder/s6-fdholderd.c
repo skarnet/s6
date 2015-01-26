@@ -243,7 +243,7 @@ static int do_store (unsigned int cc, unixmessage_t const *m)
   if (numfds >= maxfds)
   {
     unixmessage_drop(m) ;
-    return answer(c, ENOSPC) ;
+    return answer(c, ENFILE) ;
   }
   if (avltreen_search(fds_by_id, m->s + TAIN_PACK + 1, &pp))
   {
@@ -639,7 +639,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
 {
   int spfd ;
   int flag1 = 0 ;
-  unsigned int maxconn = 40 ;
+  unsigned int maxconn = 16 ;
   PROG = "s6-fdholderd" ;
 
   {
@@ -760,7 +760,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
 
       if (!r)
       {
-        if (!cont && !tain_future(&lameduckdeadline)) return 1 ;
+        if (!cont && !tain_future(&lameduckdeadline)) break ;
         for (;;)
         {
           if (!avltreeb_min(&fdmap_deadline, &i)) break ;
@@ -793,6 +793,6 @@ int main (int argc, char const *const *argv, char const *const *envp)
         else client_add(&i, fd, &rre, &wre, flags) ;
       }
     }
+    return (~!numfds | (!!numconn << 1)) ;
   }
-  return 0 ;
 }

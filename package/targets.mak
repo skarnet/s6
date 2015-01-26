@@ -41,6 +41,8 @@ s6-sudoc \
 s6-sudod \
 s6-fdholder-daemon \
 s6-fdholderd \
+s6-fdholder-delete \
+s6-fdholder-deletec \
 s6-fdholder-store \
 s6-fdholder-storec \
 s6-fdholder-retrieve \

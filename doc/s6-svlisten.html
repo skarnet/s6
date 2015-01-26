@@ -51,7 +51,7 @@ their state changes. </li>
  <li> It spawns <em>prog...</em> as a child right after getting the
 initial state of all the monitored services. </li>
  <li> It then blocks until the wanted state happens, then exits 0. </li>
-</p>
+</ul>
 
 <h2> Options </h2>
 
@@ -91,7 +91,7 @@ sequentially. </li>
 For that, it uses an encoding provided by
 <a href="http://skarnet.org/software/execline/">execline</a>, so it's best
 to only use it in execline scripts (only the execline syntax is guaranteed
-to not change). There is a variant of s6-svlisten that does not use execline
+not to change). There is a variant of s6-svlisten that does not use execline
 syntax, but only handles one service directory:
 <a href="s6-svlisten1.html">s6-svlisten1</a>. </li>
 </ul>

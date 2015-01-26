@@ -128,31 +128,6 @@ program to easily script a service that binds to a privileged socket
 then drops its privileges to those of a named non-root account. </li>
 </ul>
 
-<h2> Implementation </h2>
-
-<ul>
- <li> s6-ipcserver parses the options and arguments it is given, and
-builds a new command line with them. It then executes into that new
-command line. </li>
- <li> The first program s6-ipcserver executes into is
-<a href="s6-ipcserver-socketbinder.html">s6-ipcserver-socketbinder</a>.
-It will create and bind a Unix domain socket to <em>path</em>, then
-execute into the rest of the command line. </li>
- <li> If a privilege-dropping operation has been requested, the
-program that s6-ipcserver-socketbinder executes into is
-<a href="s6-applyuidgid.html">s6-applyuidgid</a>.
-It will drop the root privileges, then execute into the rest of the
-command line. </li>
- <li> The next program in the chain is
-<a href="s6-ipcserverd.html">s6-ipcserverd</a>. It is executed into
-by s6-applyuidgid, or directly by s6-ipcserver-socketbinder if no
-privilege-dropping operation has been requested. s6-ipcserverd is
-the long-lived process, the "daemon" itself, accepting connections
-from clients. </li>
- <li> For every client, s6-ipcserverd will spawn an instance of
-<em>prog...</em>, the remainder of the command line. </li>
-</ul>
-
 <h2> Notes </h2>
 
 <ul>

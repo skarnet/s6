@@ -41,6 +41,6 @@ int main (int argc, char const *const *argv, char const *const *envp)
   tain_add_g(&deadline, &deadline) ;
   tain_add_g(&limit, &limit) ;
   if (!s6_fdholder_store_g(&a, 0, argv[0], &limit, &deadline))
-    strerr_diefu1sys(111, "store fd") ;
+    strerr_diefu1sys(1, "store fd") ;
   return 0 ;
 }

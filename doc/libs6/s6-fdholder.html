@@ -1,0 +1,207 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-fdholder library interface</title>
+    <meta name="Description" content="s6: the s6-fdholder library interface" />
+    <meta name="Keywords" content="s6 fdholder file descriptor fd holding fd-passing library interface" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">libs6</a><br />
+<a href="../">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-fdholder</tt> library interface </h1>
+
+<p>
+ The <tt>s6-fdholder</tt> library provides an API for clients
+wanting to communicate with a
+<a href="../s6-fdholderd.html">s6-fdholderd</a> daemon.
+</p>
+
+<h2> Programming </h2>
+
+<p>
+ Check the <tt>s6/s6-fdholder.h</tt> header for the
+exact function prototypes.
+</p>
+
+<h3> A programming example </h3>
+
+<p>
+ The <tt>src/fdholder/s6-fdholder-*c.c</tt> files in the s6 package,
+for instance, illustrate how to use the s6-fdholder library.
+</p>
+
+
+<h3> Synchronous functions with a specified maximum execution time </h3>
+
+<p>
+ The explanation given
+<a href="ftrigr.html#synctimed">there</a> applies here too: the
+functions documented in this page are synchronous, but can return
+early if the deadline is reached, in which case the connection to the
+server should be closed immediately because no protocol consistency is
+guaranteed.
+</p>
+
+<p>
+ The <a href="../s6-fdholderd.html">s6-fdholderd</a> server should be
+very quick to answer queries, so this mechanism is provided as a simple
+security against programming errors - for instance, connecting to the
+wrong daemon.
+</p>
+
+<h3> Starting and ending a session </h3>
+
+<pre>
+s6_fdholder_t a = S6_FDHOLDER_ZERO ;
+int fd = 6 ;
+
+tain_now_g() ;
+
+s6_fdholder_init(&amp;a, fd) ;
+(...)
+s6_fdholder_free(&a) ;
+</pre>
+
+<p>
+<tt>s6_fdholder_init</tt> assumes that <em>fd</em> is a socket already
+connected to a s6-fdholderd daemon. The <em>a</em> structure must be
+initialized to <tt>S6_FDHOLDER_ZERO</tt> before use.
+</p>
+
+<p>
+<a href="http://skarnet.org/software/skalibs/libstddjb/tai.html">tain_now_g()</a>
+initializes a global variable that keeps track of the current time, for
+use with later functions.
+</p>
+
+<p>
+<tt>s6_fdholder_free</tt> frees the resources occupied by <em>a</em>.
+It does not, however, close <em>fd</em>. You should manually close it
+to end the connection to the server. Note that if your program has been
+started by <a href="../s6-ipcclient.html">s6-ipcclient</a>, both fds 6
+and 7 are open (and refer to the same socket), so you should close both.
+</p>
+
+<h3> Storing a fd </h3>
+
+<pre>
+int r ;
+int fd ;
+tain_t limit = TAIN_INFINITE ;
+char const *id = "my_identifier" ;
+r = s6_fdholder_store_g(&amp;a, fd, id, &amp;limit, &amp;deadline) ;
+</pre>
+
+<p>
+<tt>s6_fdholder_store</tt> (and its variant <tt>s6_fdholder_store_g</tt>
+that uses the global timestamp variable) attempts to store a copy of
+descriptor <em>fd</em> into s6-fdholderd, using identifier <em>id</em>,
+with an expiration date of <em>limit</em>. In this example, <em>limit</em>
+is TAIN_INFINITE, which means no expiration date. The operation should
+return before <em>deadline</em>, else it will automatically return
+0 ETIMEDOUT. The result is 1 on success and 0 on failure, with an
+<a href="../s6-fdholder-errorcodes.html">appropriate</a> errno code.
+</p>
+
+<h3> Deleting a fd </h3>
+
+<pre>
+fd = s6_fdholder_delete_g(&amp;a, id, &amp;deadline) ;
+</pre>
+
+<p>
+<tt>s6_fdholder_delete</tt> attempts to delete the file descriptor
+identified by <em>id</em>. It returns 1 on success and 0 on failure,
+with an
+<a href="../s6-fdholder-errorcodes.html">appropriate</a> errno code.
+</p>
+
+<h3> Retrieving a fd </h3>
+
+<pre>
+fd = s6_fdholder_retrieve_g(&amp;a, id, &amp;deadline) ;
+</pre>
+
+<p>
+<tt>s6_fdholder_retrieve</tt> attempts to retrieve the file descriptor
+identified by <em>id</em>. It returns a valid fd number on success, and
+-1 on failure, with an
+<a href="../s6-fdholder-errorcodes.html">appropriate</a> errno code.
+</p>
+
+<p>
+ <tt>s6_fdholder_retrieve_delete()</tt> performs a retrieval and a
+deletion at the same time, if the client is authorized to do so.
+</p>
+
+<h3> Listing the identifiers held by the server </h3>
+
+<pre>
+stralloc list = STRALLOC_ZERO ;
+int n ;
+n = s6_fdholder_list_g(&amp;a, &amp;list, &amp;deadline) ;
+</pre>
+
+<p>
+<tt>s6_fdholder_list</tt> gets the list of all identifiers currently
+held by the server. It stores it into the
+<a href="http://skarnet.org/software/skalibs/libstddjb/stralloc.html">stralloc</a>
+<em>list</em>, as a series of null-terminated strings, one after the other.
+There are <em>n</em> such strings. The function returns <em>n</em> on
+success, or -1 on failure, with an
+<a href="../s6-fdholder-errorcodes.html">appropriate</a> errno code.
+</p>
+
+
+<h3> Reading a dump </h3>
+
+<pre>
+genalloc dump = GENALLOC_ZERO ;
+r = s6_fdholder_getdump_g(&amp;a, &amp;dump, &amp;deadline) ;
+</pre>
+
+<p>
+<tt>s6_fdholder_getdump</tt> attempts to retrieve the whole set of
+descriptors from the server.
+It returns 1 on success, and 0 on failure, with an
+<a href="../s6-fdholder-errorcodes.html">appropriate</a> errno code.
+The set is stored into the
+<a href="http://skarnet.org/software/skalibs/libstddjb/genalloc.html">genalloc</a>
+<em>dump</em>, which is to be interpreted as a stralloc containing an array
+of <tt>s6_fdholder_fd_t</tt>.
+</p>
+
+<p>
+<tt>genalloc_s(s6_fdholder_fd_t, &amp;dump)</tt> is a pointer to this array, and
+<tt>genalloc_len(s6_fdholder_fd_t, &amp;dump)</tt> is the number of elements
+in the array. A <tt>s6_fdholder_fd_t</tt> contains at least a descriptor
+number, an identifier, and an expiration date, see the
+<tt>s6/s6-fdholder.h</tt> header file.
+</p>
+
+<h3> Writing a dump </h3>
+
+<pre>
+unsigned int dumplen ;
+s6_fdholder_fd_t const *dumparray ;
+r = s6_fdholder_setdump_g(&amp;a, &amp;dumparray, dumplen, &amp;deadline) ;
+</pre>
+
+<p>
+<tt>s6_fdholder_setdump</tt> attempts to send a set of descriptors to the
+server. The descriptors are contained in the array <em>dumparray</em> of
+length <em>dumplen</em>. The function
+returns 1 on success, and 0 on failure, with an
+<a href="../s6-fdholder-errorcodes.html">appropriate</a> errno code.
+</p>
+
+</body>
+</html>

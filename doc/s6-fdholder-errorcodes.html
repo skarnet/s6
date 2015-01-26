@@ -1,0 +1,72 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-fdholder error codes</title>
+    <meta name="Description" content="s6: the s6-fdholder error codes" />
+    <meta name="Keywords" content="s6 s6-fdholder fd-holding fd-holder fd unix socket activation" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-fdholder</tt> error codes </h1>
+
+<p>
+ The following error messages (and corresponding
+<a href="http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/errno.h.html">errno codes</a>)
+can be returned by the
+<a href="s6-fdholderd.html">s6-fdholderd</a> daemon to its various clients.
+This page explains why they occur.
+</p>
+
+<ul>
+ <li> <tt>Protocol error</tt> (EPROTO) or <tt>Protocol wrong type
+for socket</tt> (EPROTOTYPE): the client connected to the wrong
+kind of server and they cannot communicate. This is generally a
+programming error. It can also
+signal a bug in the s6-fdholder tools, but protocol bugs have
+usually been wiped out before a s6 release. </li>
+ <li> <tt>Broken pipe</tt> (EPIPE): the client was not authorized to
+connect to the server, which closed the connection. You need to
+<a href="s6-fdholderd.html#configuration">configure the access
+rights to the server</a>. </li>
+ <li> <tt>Operation not permitted</tt> (EPERM): even though the
+client was authorized to connect to the server, the specific
+operation it wanted to perform was denied. You need to
+<a href="s6-fdholderd.html#configuration">configure the access
+rights to the server</a>. </li>
+ <li> <tt>Too many open files in system</tt> (ENFILE): the client
+attempted to store more file descriptors than the server can hold.
+Or, the client attempted to retrieve more file descriptors than it
+can hold. You should check the <tt>-n</tt> option to
+<a href="s6-fdholderd.html">s6-fdholderd</a>, as well as the
+<a href="http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sys_resource.h.html">RLIMIT_NOFILE</a>
+resource limits used by the client and the server, and adjust them
+accordingly. </li>
+ <li> <tt>Resource busy</tt> (EBUSY): the client attempted to store
+a descriptor under an identifier that is already used. </li>
+ <li> <tt>Filename too long</tt> (ENAMETOOLONG): the identifier
+provided by the client was too long. </li>
+ <li> <tt>No such file or directory</tt> (ENOENT): the identifier
+provided by the client was not found in the server database. </li>
+ <li> <tt>Bad file descriptor</tt> (EBADF): the client attempted
+to transmit a closed, or otherwise unsuitable for fd-passing,
+file descriptor. </li>
+ <li> <tt>Operation timed out</tt> (ETIMEDOUT): the client, or the
+server, took too long to perform the wanted operation. This is most
+probably a programming error, because both client and server should
+have a very fast reaction time. Check that the client is connecting
+to the right server, and check <tt>-t</tt> options to both client and
+server (the argument is interpreted as milliseconds!). </li>
+ <li> Other errors indicate a transient error such as lack of memory,
+hardware failure, etc. </li>
+</ul>
+
+</body>
+</html>

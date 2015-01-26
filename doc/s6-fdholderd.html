@@ -1,0 +1,318 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-fdholderd program</title>
+    <meta name="Description" content="s6: the s6-fdholderd program" />
+    <meta name="Keywords" content="s6 s6-fdholderd fd-holding fd-holder fd unix socket activation server daemon" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-fdholderd</tt> program </h1>
+
+<p>
+<tt>s6-fdholderd</tt> is the serving part of the
+<a href="s6-fdholder-daemon.html">s6-fdholder-daemon</a>
+fd-holding server.
+It assumes that its stdin is a bound and listening Unix
+domain socket, and
+it accepts connections from clients connecting to it, and stores and
+retrieves file descriptors on their behalf.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-fdholderd [ -1 ] [ -v verbosity ] [ -c <em>maxconn</em> ] [ -n <em>maxfds</em> ] [ -i <em>rulesdir</em> | -x <em>rulesfile</em> ]
+</pre>
+
+<ul>
+ <li> s6-fdholderd accepts connections from clients to an already
+bound and listening SOCK_STREAM Unix domain socket which is its
+standard input. </li>
+ <li> Depending on the verbosity level, it logs what it does to stderr. </li>
+ <li> It runs until killed by a signal. Depending on the received
+signal, it may kill its children before exiting. </li>
+ <li> Client connections are short-lived. Clients generally perform
+one operation, then disconnect. </li>
+ <li> Possible operations include:
+ <ul>
+  <li> <a href="s6-fdholder-storec.html">Storing a file descriptor</a> </li>
+  <li> <a href="s6-fdholder-retrievec.html">Retrieving a file descriptor</a> </li>
+  <li> <a href="s6-fdholder-deletec.html">Deleting a file descriptor</a> </li>
+  <li> <a href="s6-fdholder-listc.html">Listing stored file descriptor
+identifiers</a> </li>
+  <li> <a href="s6-fdholder-getdumpc.html">Getting the whole server state</a> </li>
+  <li> <a href="s6-fdholder-setdumpc.html">Setting the whole server state</a>,
+or more accurately adding a set of file descriptors to the already existing
+state </li>
+ </ul> </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-1</tt>&nbsp;: write a newline to stdout, and close stdout,
+right before entering the client-accepting loop.
+If stdout is suitably redirected, this can be used by monitoring
+programs to check when the server is accepting connections.
+The <a href="s6-notifywhenup.html">s6-notifywhenup</a>
+program can be used before the s6-ipcserver
+invocation to notify listeners when the server is ready. </li>
+ <li> <tt>-v&nbsp;<em>verbosity</em></tt>&nbsp;: be more or less
+verbose. <em>verbosity</em> can be 0 (quiet), 1 (normal), or 2 or more
+(verbose). </li>
+ <li> <tt>-c&nbsp;<em>maxconn</em></tt>&nbsp;: accept at most
+<em>maxconn</em> concurrent connections. Default is 16. It is
+impossible to set it higher than the value of the S6_FDHOLDER_MAX macro,
+i.e. 256. Client connections to this server are short-lived, so this
+number needs not be too high. Every client connection eats up
+one available file descriptor, so it is best for <em>maxconn</em> to be
+as small as possible. </li>
+ <li> <tt>-n&nbsp;<em>maxfds</em></tt>&nbsp;: store at most
+<em>maxfds</em> file descriptors. Default is 1000.
+It is impossible to set it higher than the number of files that can
+be opened by the s6-fdholderd process, minus a few descriptors
+needed for correct operation. Before running s6-fdholderd, make sure to
+<a href="s6-softlimit.html">properly adjust</a> the
+<a href="http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sys_resource.h.html">number
+of openable files</a> of the current process. </li>
+ <li> <tt>-t&nbsp;<em>clienttimeout</em></tt>&nbsp;: disconnect a client
+if it's in the middle of an operation and it has not written or read any
+data in <em>clienttimeout</em> milliseconds. By default, <em>clienttimeout</em>
+is 0, which means infinite. </li>
+ <li> <tt>-T&nbsp;<em>lameducktimeout</em></tt>&nbsp;: give clients
+<em>lameducktimeout</em> milliseconds to finish their current operation
+before exiting after receiving a SIGTERM. By default, <em>lameducktimeout</em>
+is 0, which means infinite. </li>
+ <li> <tt>-x&nbsp;<em>rulesfile</em></tt>&nbsp;: read access rights
+configuration from
+<a href="http://en.wikipedia.org/wiki/Cdb_%28software%29">CDB</a>
+file <em>rulesfile</em>. </li>
+ <li> <tt>-i&nbsp;<em>rulesdir</em></tt>&nbsp;: read access rights
+configuration from the filesystem in directory <em>rulesdir</em>. </li>
+</ul>
+
+<h2> Signals </h2>
+
+<ul>
+ <li> SIGTERM: enter lameduck mode, then exit when no more operation
+is pending. </li>
+ <li> SIGHUP: reopen <em>rulesfile</em>, if s6-fdholderd has been run
+with the <tt>-x</tt> option. It is not necessary to send s6-fdholderd
+a SIGHUP when the <tt>-i</tt> option is used instead: configuration
+changes in the filesystem are automatically picked up. </li>
+</ul>
+
+<h2> Identifiers </h2>
+
+<ul>
+ <li> Every file descriptor is stored in the s6-fdholderd daemon via the
+<a href="s6-fdholder-storec.html">s6-fdholder-storec</a> program, with
+an <em>identifier</em>. That identifier is a zero-terminated character
+string, containing 1 to 255 characters. </li>
+ <li> Any non-null character can be used in an identifier. Non-printable or
+special characters will be quoted when printed by
+<a href="s6-fdholder-listc.html">s6-fdholder-listc</a>. However, it is
+recommended to only use reasonable characters in identifiers: clients
+should be able to know at a glance what file descriptor is represented by
+an identifier. Identifiers have no special meaning to the server. </li>
+ <li> A good convention is to use <tt>unix:/<em>path</em>/<em>to</em>/<em>socket</em></tt> for
+Unix domain sockets and <tt><em>protocol</em>:<em>ip</em>:</em><em>port</em></tt>
+for INET domain sockets. </li>
+ <li> An identifier is chosen by the storing client, within the limits of
+what the server authorizes it to use. </li>
+ <li> The retrieving client must know the exact identifier corresponding to
+a descriptor to be able to retrieve that descriptor. It must also be
+authorized by the server. </li>
+ <li> When an identifier is in use, it cannot be used again to store another
+descriptor. However, once the descriptor has been deleted or has expired,
+it is possible to reuse the same identifier. </li>
+</ul>
+
+<a name="configuration">
+<h2> Configuration </h2>
+</a>
+
+<p>
+ Before running s6-fdholderd (or its wrapper
+<a href="s6-fdholder-daemon.html">s6-fdholder-daemon</a>), it is necessary
+to configure it. This is done by a series of rules, or <em>ruleset</em>,
+stored in either a <em>rulesfile</em> in the
+<a href="http://en.wikipedia.org/wiki/Cdb_%28software%29">CDB</a> format,
+or in a <em>rulesdir</em>, i.e. a directory in the filesystem following a
+certain format. s6-fdholderd will refuse to run if neither the <tt>-i</tt>
+nor the <tt>-x</tt> option have been provided.
+</p>
+
+<p>
+ Rulesets can be converted between the <em>rulesdir</em> and
+<em>rulesfile</em> formats with the
+<a href="s6-accessrules-cdb-from-fs.html">s6-accessrules-cdb-from-fs</a> and
+<a href="s6-accessrules-fs-from-cdb.html">s6-accessrules-fs-from-cdb</a>
+conversion tools.
+</p>
+
+<h3> Rules format </h3>
+
+<p>
+ The rules file, or rules directory, follows the
+<a href="libs6/accessrules.html">s6 accessrules format</a> for uid and
+gid checking. For every connecting client, s6-fdholderd matches the uid
+and gid of the client against the provided ruleset, and determines what
+the client is authorized to do.
+</p>
+
+<p>
+ By default, no client is allowed to do anything - not even
+connect to the server. Even <tt>root</tt>, the super-user, will be denied
+access. That's why
+it is essential to create a sensible ruleset prior to running the server
+in order to do anything useful.
+</p>
+
+<p>
+ The various rights that a client can have are the following (using a
+rulesdir as an example, but a rulesfile works the same way):
+</p>
+
+<ul>
+ <li> Connect to the server. This is a prerequisite for
+doing anything. It will allow a client to perform "public" operations,
+ones that do not require specific access rights other than connecting:
+for instance, listing all identifiers. This right is given if an
+<tt>allow</tt> file is found in one of the subdirectories checked by
+<a href="libs6/accessrules.html#uidgid">s6_accessrules_keycheck_uidgid</a>.
+For instance, to allow everyone to connect, touch
+<tt><em>rulesdir</em>/uid/default/allow</tt>. </li>
+</ul>
+
+<p>
+ The other rights are defined in the "environment" part of the ruleset:
+</p>
+
+<ul>
+ <li> File descriptor storage rights. This will be checked for storage and
+deletion of individual file descriptors. This right is given if a non-empty
+file named <tt>S6_FDHOLDER_STORE_REGEX</tt> is found is the <tt>env/</tt>
+subdirectory of one of the subdirectories checked by
+<a href="libs6/accessrules.html#uidgid">s6_accessrules_keycheck_uidgid</a>.
+This file should contain a single line, which will be interpreted as an
+<a href="http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap09.html#tag_09_04">extended
+regular expression</a> by s6-fdholderd; the regular expression describes the
+set of identifiers that the client is allowed to use to store file
+descriptors. For instance, <tt>^unix:/tmp/</tt> indicates that a client
+that matches this rule will be allowed to store or delete file descriptors
+using any identifier starting with <tt>unix:/tmp/</tt>. </li>
+ <li> File descriptor retrieval rights. This will be checked for retrieval
+of individual file descriptors. This right is given if a non-empty
+file named <tt>S6_FDHOLDER_RETRIEVE_REGEX</tt> is found is the <tt>env/</tt>
+subdirectory of one of the subdirectories checked by
+<a href="libs6/accessrules.html#uidgid">s6_accessrules_keycheck_uidgid</a>.
+This file should contain a single line, which will be interpreted as an
+<a href="http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap09.html#tag_09_04">extended
+regular expression</a> by s6-fdholderd; the regular expression describes the
+set of identifiers that the client is allowed to use to retrieve file
+descriptors. For instance, <tt>^unix:/tmp/</tt> indicates that a client
+that matches this rule will be allowed to retrieve file descriptors that are
+identified by strings starting with <tt>unix:/tmp/</tt>. </li>
+ <li> Dump reading rights. This will be checked for clients wanting to
+copy the whole state of the server. This right is given if a non-empty
+file named <tt>S6_FDHOLDER_GETDUMP</tt> is found is the <tt>env/</tt>
+subdirectory of one of the subdirectories checked by
+<a href="libs6/accessrules.html#uidgid">s6_accessrules_keycheck_uidgid</a>.
+This is very powerful: you should only give this right to <tt>root</tt>,
+or to a dedicated uid that is only used to perform dump transfers. </li>
+ <li> Dump writing rights. This will be checked for clients wanting to
+copy an entire set of file descriptors into the server.
+This right is given if a non-empty
+file named <tt>S6_FDHOLDER_SETDUMP</tt> is found is the <tt>env/</tt>
+subdirectory of one of the subdirectories checked by
+<a href="libs6/accessrules.html#uidgid">s6_accessrules_keycheck_uidgid</a>.
+This is very powerful: you should only give this right to <tt>root</tt>, or
+to a dedicated uid that is only used to perform dump transfers. </li>
+</ul>
+
+<h3> Configuration examples </h3>
+
+<p>
+ Assuming you want to run a s6-fdholderd daemon in the
+<tt>/service/fdholder</tt> directory with the <tt>-i rules</tt> option,
+you should:
+</p>
+
+<ul>
+ <li> Prepare the rules directory: <tt>mkdir /service/fdholder/rules ;
+cd /service/fdholder/rules ; mkdir uid gid</tt> </li>
+ <li> Allow a few users, or everyone, to connect. To allow root to
+connect: <tt>mkdir uid/0 ; touch uid/0/allow</tt>. To allow everyone
+to connect: <tt>mkdir uid/default ; touch uid/default/allow</tt>. </li>
+</ul>
+
+<p>
+ Depending on your policy, you should now give certain rights to
+certain users or groups. For instance:
+</p>
+
+<ul>
+ <li> To allow user number 50 to perform dump transfers from and to
+this server: <tt>mkdir -p uid/50/env ; touch uid/50/allow ;
+echo &gt; uid/50/env/S6_FDHOLDER_GETDUMP ; echo &gt;
+uid/50/env/S6_FDHOLDER_SETDUMP</tt> </li>
+ <li> To allow user number 72 to store a descriptor under the name
+<tt>foobar</tt> and <em>only</em> this name: <tt>mkdir -p uid/72/env ;
+touch uid/72/allow ; echo '^foobar$' &gt;
+uid/72/env/S6_FDHOLDER_STORE_REGEX</tt> </li>
+ <li> To allow users having 23 as their primary group number to retrieve file
+descriptors with an identifier containing <tt>foo</tt>, then one
+character, then <tt>bar</tt>:
+<tt>mkdir -p gid/23/env ; touch gid/23/allow ; echo foo.bar &gt;
+gid/23/env/S6_FDHOLDER_RETRIEVE_REGEX</tt> </li>
+ <li> To allow everyone to dump entire states into the server:
+<tt>mkdir -p uid/default/env ; touch uid/default/allow ;
+echo &gt; uid/default/env/S6_FDHOLDER_SETDUMP</tt>.
+<strong>Never do this!</strong> </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> s6-fdholderd is meant to be execve'd into by a program that gets
+the listening socket. That program is normally
+<a href="s6-ipcserver-socketbinder.html">s6-ipcserver-socketbinder</a>,
+which creates the socket itself; but it can be a different one if the
+socket is to be obtained by another means, for instance if it has
+been retrieved from another fd-holding daemon. </li>
+ <li> s6-fdholderd will store any open file descriptor, without
+discriminating on its type. However, it makes more sense to store certain
+file descriptor types than others: for instance, Unix domain or INET domain
+sockets, or named pipes, are good candidates for fd-holding. On the other
+hand, it makes little sense to fd-hold regular files, and if done anyway,
+the results can be surprising, because the read/write file offset is
+stored with the descriptor, and no automatic rewind is performed by the
+daemon. </li>
+ <li> Anyone that is allowed to connect is allowed to read the whole list
+of identifiers. This is intentional: identifiers should be public and
+well-known, and the security of the system should not depend on a client
+not knowing what identifier a certain descriptor is stored under. If you
+need to hold descriptors that only a few programs are supposed to access,
+you can always run a separate s6-fdholderd instance in a private directory
+with a configuration tailored to your needs
+- and you can even make the name of the listening socket private.
+s6-fdholderd is lightweight, you can start as many instances as you need,
+and you can run them as long as you need then kill them with SIGTERM.
+ <li> s6-fdholderd pre-allocates its storage at start, in the stack. It
+uses a small amount of heap memory for communication with a client, but frees
+it as soon as the client disconnects. It should never run out of memory in
+normal usage, even if used intensively. </li>
+</ul>
+
+</body>
+</html>

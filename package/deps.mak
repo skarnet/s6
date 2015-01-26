@@ -169,6 +169,10 @@ ucspilogd: private EXTRA_LIBS :=
 ucspilogd: src/daemontools-extras/ucspilogd.o -lskarnet
 s6-fdholder-daemon: private EXTRA_LIBS :=
 s6-fdholder-daemon: src/fdholder/s6-fdholder-daemon.o -lskarnet
+s6-fdholder-delete: private EXTRA_LIBS :=
+s6-fdholder-delete: src/fdholder/s6-fdholder-delete.o -lskarnet
+s6-fdholder-deletec: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-fdholder-deletec: src/fdholder/s6-fdholder-deletec.o ${LIBS6} -lskarnet
 s6-fdholder-getdump: private EXTRA_LIBS :=
 s6-fdholder-getdump: src/fdholder/s6-fdholder-getdump.o -lskarnet
 s6-fdholder-getdumpc: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}

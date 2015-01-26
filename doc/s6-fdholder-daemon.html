@@ -1,0 +1,147 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-fdholder-daemon program</title>
+    <meta name="Description" content="s6: the s6-fdholder-daemon program" />
+    <meta name="Keywords" content="s6 s6-fdholder fd-holding fd-holder fd unix socket activation server daemon" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-fdholder-daemon</tt> program </h1>
+
+<p>
+<tt>s6-fdholder-daemon</tt> is a fd-holding <em>daemon</em>, i.e. a
+long-lived program.
+It listens on a Unix domain socket, then
+accepts client connections;
+it stores file descriptors on behalf of clients, along with an identifier
+for every file descriptor stored, and possibly an expiration date (after
+which the file descriptor will be forgotten). It also allows clients to
+retrieve a file descriptor by its identifier.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-fdholder-daemon [ -1 ] [ -v <em>verbosity</em> ] [ -d | -D ] [ -c <em>maxconn</em> ] [ -n <em>maxfds</em> ] [ -b <em>backlog</em> ] [ -G <em>gidlist</em> ] [ -g <em>gid</em> ] [ -u <em>uid</em> ] [ -U ] [ -t <em>clienttimeout</em> ] [ -T <em>lameducktimeout</em> ] [ -i <em>rulesdir</em> | -x <em>rulesfile</em> ] <em>path</em>
+</pre>
+
+<ul>
+ <li> s6-fdholder-daemon parses the options and arguments it is given, and
+builds a new command line with them. It then executes into that new
+command line. </li>
+ <li> The first program s6-fdholder-daemon executes into is
+<a href="s6-ipcserver-socketbinder.html">s6-ipcserver-socketbinder</a>.
+It will create and bind a Unix domain socket to <em>path</em>, then
+execute into the rest of the command line. </li>
+ <li> If a privilege-dropping operation has been requested, the
+program that s6-ipcserver-socketbinder executes into is
+<a href="s6-applyuidgid.html">s6-applyuidgid</a>.
+It will drop the root privileges, then execute into the rest of the
+command line. </li>
+ <li> The last program in the chain is
+<a href="s6-fdholderd.html">s6-fdholderd</a>. It is executed into
+by s6-applyuidgid, or directly by s6-ipcserver-socketbinder if no
+privilege-dropping operation has been requested. s6-fdholderd is
+the long-lived process, the daemon itself, performing fd holding and
+accepting connections from clients. </li>
+</ul>
+
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-1</tt>&nbsp;: write <em>path</em>, followed by a newline,
+to stdout, before
+closing it, right after binding and listening to the Unix socket.
+If stdout is suitably redirected, this can be used by monitoring
+programs to check when the server is ready to accept connections. </li>
+ <li> <tt>-v&nbsp;<em>verbosity</em></tt>&nbsp;: be quiet, normally
+verbose, or more verbose, depending on if <em>verbosity</em> is 0,
+1, or more. The default is 1. </li>
+ <li> <tt>-d</tt>&nbsp;: allow instant rebinding to the same path
+even if it has been used not long ago - this is the SO_REUSEADDR flag to
+<a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/setsockopt.html">setsockopt()</a>
+and is generally used with server programs. This is the default. Note that
+<em>path</em> will be deleted if it already exists at program start time. </li>
+ <li> <tt>-D</tt>&nbsp;: disallow instant rebinding to the same path. </li>
+ <li> <tt>-c&nbsp;<em>maxconn</em></tt>&nbsp;: accept at most
+<em>maxconn</em> concurrent client connections. Default is 16. It is
+impossible to set it higher than the value of the S6_FDHOLDER_MAX macro,
+which is 256. Client connections to this server are short-lived, so this
+number needs not be too high. Every client connection eats up
+one available file descriptor, so it is best for <em>maxconn</em> to be
+as small as possible. </li>
+ <li> <tt>-n&nbsp;<em>maxfds</em></tt>&nbsp;: store at most
+<em>maxfds</em> file descriptors. Default is 1000.
+It is impossible to set it higher than the number of files that can
+be opened by the s6-fdholder-daemon process minus a few descriptors
+needed for correct <a href="s6-fdholderd.html">s6-fdholderd</a>
+operation. Before running s6-fdholder-daemon, make sure to
+<a href="s6-softlimit.html">properly adjust</a> the
+<a href="http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sys_resource.h.html">number
+of openable files</a> of the current process. </li>
+ <li> <tt>-b&nbsp;<em>backlog</em></tt>&nbsp;: set a maximum of
+<em>backlog</em> backlog connections on the socket. Extra
+connection attempts will rejected by the kernel. </li>
+ <li> <tt>-G&nbsp;<em>gidlist</em></tt>&nbsp;: change s6-fdholder-daemon's
+supplementary group list to <em>gidlist</em> after binding the socket.
+This is only valid when run as root. <em>gidlist</em> must be a
+comma-separated list of numerical group IDs. </li>
+ <li> <tt>-g&nbsp;<em>gid</em></tt>&nbsp;: change s6-fdholder-daemon's groupid
+to <em>gid</em> after binding the socket. This is only valid when run
+as root. </li>
+ <li> <tt>-u&nbsp;<em>uid</em></tt>&nbsp;: change s6-fdholder-daemon's userid
+to <em>uid</em> after binding the socket. This is only valid when run
+as root. </li>
+ <li> <tt>-U</tt>&nbsp;: change s6-fdholder-daemon's user id, group id and
+supplementary group list
+according to the values of the UID, GID and GIDLIST environment variables
+after binding the socket. This is only valid when run as root.
+This can be used with the
+<a href="s6-envuidgid.html">s6-envuidgid</a>
+program to easily script a service that binds to a privileged socket
+then drops its privileges to those of a named non-root account. </li>
+ <li> <tt>-t&nbsp;<em>clienttimeout</em></tt>&nbsp;: disconnect a client
+if it's in the middle of an operation and it has not written or read any
+data in <em>clienttimeout</em> milliseconds. By default, <em>clienttimeout</em>
+is 0, which means infinite. </li>
+ <li> <tt>-T&nbsp;<em>lameducktimeout</em></tt>&nbsp;: give clients
+<em>lameducktimeout</em> milliseconds to finish their current operation
+before exiting after s6-fdholderd has received a SIGTERM. By default,
+<em>lameducktimeout</em> is 0, which means infinite. </li>
+ <li> <tt>-x&nbsp;<em>rulesfile</em></tt>&nbsp;: read access rights
+configuration from CDB file <em>rulesfile</em>. </li>
+ <li> <tt>-i&nbsp;<em>rulesdir</em></tt>&nbsp;: read access rights
+configuration from the filesystem in directory <em>rulesdir</em>. </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> s6-fdholder-daemon does not interpret its options itself. It just
+dispatches them to the appropriate program on the command line that
+it builds. </li>
+ <li> From the user's point of view, s6-fdholder-daemon behaves like a
+long-lived process, even if the long-lived process itself is called
+<a href="s6-fdholderd.html">s6-fdholderd</a>. Every operational detail
+of s6-fdholderd applies to s6-fdholder-daemon as well; in particular,
+make sure to properly
+<a href="s6-fdholderd.html#configuration">configure the clients'
+access rights</a>. </li>
+ <li> s6-fdholder-daemon is meant to be used in a s6 run script, as
+a supervised local service. It does not fork itself or write to syslog.
+However, it can be run under any infrastructure, including other
+supervision infrastructures, OpenRC, systemd, or SysV scripts. </li>
+</ul>
+
+</body>
+</html>

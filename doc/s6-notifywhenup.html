@@ -74,7 +74,9 @@ achieved. <tt>s6-notifywhenup -f s6-ipcserver -1 <em>args</em></tt> will
 send a 'U' event to <tt>./event</tt> when s6-ipcserver is actually
 listening to its socket. </li>
  <li> The <a href="s6-svwait.html">s6-svwait</a> program can be used
-to wait for 'U' events. </li>
+to wait for 'U' events, as well as the
+<a href="s6-svlisten1.html">s6-svlisten1</a> and
+<a href="s6-svlisten.html">s6-svlisten</a> programs. </li>
  <li> The <tt>supervise/ready</tt> file, when created, contains at least
 the absolute time when s6-notifywhenup detected service readiness. The
 format and contents of this file are subject to change. </li>
