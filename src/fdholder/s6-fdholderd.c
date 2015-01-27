@@ -713,23 +713,30 @@ int main (int argc, char const *const *argv, char const *const *envp)
 
   {
      /* Hello, stack. I have a present for you. */
-    GENSETB_TYPE(client_t, 1+maxconn) clientblob ;
-    GENSETB_TYPE(s6_fdholder_fd_t, maxfds) fdblob ;
-    AVLTREEB_TYPE(maxfds) fdmap_id ;
-    AVLTREEB_TYPE(maxfds) fdmap_deadline ;
+    genset clientinfo, fdinfo ;
+    avltreen fdidinfo, fddeadlineinfo ;
     iopause_fd x[2 + maxconn] ;
+    client_t clientstorage[1+maxconn] ;
+    unsigned int clientfreelist[1+maxconn] ;
+    s6_fdholder_fd_t fdstorage[maxfds] ;
+    unsigned int fdfreelist[maxfds] ;
+    avlnode fdidstorage[maxfds] ;
+    unsigned int fdidfreelist[maxfds] ;
+    avlnode fddeadlinestorage[maxfds] ;
+    unsigned int fddeadlinefreelist[maxfds] ;
      /* Hope you enjoyed it! Have a nice day! */
 
-    GENSETB_init(client_t, &clientblob, 1+maxconn) ;
-    clients = &clientblob.info ;
-    sentinel = gensetb_new(&clientblob) ;
-    clientblob.storage[sentinel].next = sentinel ;
-    GENSETB_init(s6_fdholder_t, &fdblob, maxfds) ;
-    fdstore = &fdblob.info ;
-    avltreeb_init(&fdmap_id, maxfds, &fds_id_dtok, &fds_id_cmp, 0) ;
-    fds_by_id = &fdmap_id.info ;
-    avltreeb_init(&fdmap_deadline, maxfds, &fds_deadline_dtok, &fds_deadline_cmp, 0) ;
-    fds_by_deadline = &fdmap_deadline.info ;
+    GENSET_init(&clientinfo, client_t, clientstorage, clientfreelist, 1+maxconn) ;
+    clients = &clientinfo ;
+    sentinel = genset_new(clients) ;
+    clientstorage[sentinel].next = sentinel ;
+    GENSET_init(&fdinfo, s6_fdholder_fd_t, fdstorage, fdfreelist, maxfds) ;
+    fdstore = &fdinfo ;
+    avltreen_init(&fdidinfo, fdidstorage, fdidfreelist, maxfds, &fds_id_dtok, &fds_id_cmp, 0) ;
+    fds_by_id = &fdidinfo ;
+    avltreen_init(&fddeadlineinfo, fddeadlinestorage, fddeadlinefreelist, maxfds, &fds_deadline_dtok, &fds_deadline_cmp, 0) ;
+    fds_by_deadline = &fddeadlineinfo ;
+
     x[0].fd = spfd ; x[0].events = IOPAUSE_READ ;
     x[1].fd = 0 ;
       
@@ -749,9 +756,9 @@ int main (int argc, char const *const *argv, char const *const *envp)
 
       if (cont) tain_add_g(&deadline, &tain_infinite_relative) ;
       else deadline = lameduckdeadline ;
-      if (avltreeb_min(&fdmap_deadline, &i) && tain_less(&FD(i)->limit, &deadline)) deadline = FD(i)->limit ;
+      if (avltreen_min(fds_by_deadline, &i) && tain_less(&FD(i)->limit, &deadline)) deadline = FD(i)->limit ;
       x[1].events = (cont && (numconn < maxconn)) ? IOPAUSE_READ : 0 ;
-      for (i = clientblob.storage[sentinel].next ; i != sentinel ; i = clientblob.storage[i].next)
+      for (i = clientstorage[sentinel].next ; i != sentinel ; i = clientstorage[i].next)
         if (client_prepare_iopause(i, &deadline, x, &j)) r = 0 ;
       if (!cont && r) break ;
 
@@ -763,22 +770,22 @@ int main (int argc, char const *const *argv, char const *const *envp)
         if (!cont && !tain_future(&lameduckdeadline)) break ;
         for (;;)
         {
-          if (!avltreeb_min(&fdmap_deadline, &i)) break ;
+          if (!avltreen_min(fds_by_deadline, &i)) break ;
           if (tain_future(&FD(i)->limit)) break ;
           fd_close(FD(i)->fd) ;
           fds_delete(i) ;
         }
-        for (j = sentinel, i = clientblob.storage[sentinel].next ; i != sentinel ; j = i, i = clientblob.storage[i].next)
-          if (!tain_future(&clientblob.storage[i].deadline)) removeclient(&i, j) ;
+        for (j = sentinel, i = clientstorage[sentinel].next ; i != sentinel ; j = i, i = clientstorage[i].next)
+          if (!tain_future(&clientstorage[i].deadline)) removeclient(&i, j) ;
         continue ;
       }
 
       if (x[0].revents & IOPAUSE_READ) handle_signals() ;
 
-      for (j = sentinel, i = clientblob.storage[sentinel].next ; i != sentinel ; j = i, i = clientblob.storage[i].next)
+      for (j = sentinel, i = clientstorage[sentinel].next ; i != sentinel ; j = i, i = clientstorage[i].next)
         if (!client_flush(i, x)) removeclient(&i, j) ;
 
-      for (j = sentinel, i = clientblob.storage[sentinel].next ; i != sentinel ; j = i, i = clientblob.storage[i].next)
+      for (j = sentinel, i = clientstorage[sentinel].next ; i != sentinel ; j = i, i = clientstorage[i].next)
         if (!client_read(i, x)) removeclient(&i, j) ;
 
       if (x[1].revents & IOPAUSE_READ)

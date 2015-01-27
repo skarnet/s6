@@ -136,7 +136,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     {
       newargv[m++] = "-T" ;
       newargv[m++] = fmt + pos ;
-      pos += uint_fmt(fmt + pos, timeout) ;
+      pos += uint_fmt(fmt + pos, ltimeout) ;
       fmt[pos++] = 0 ;
     }
     if (rulesdir)
