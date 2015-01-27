@@ -33,6 +33,8 @@ when the service died, and s6-svstat reports that information. </li>
 use <tt>-n</tt> to get the old behaviour. </li>
  <li> s6-log now properly calls execlineb with its installation
 prefix, in the slashpackage case. </li>
+ <li> New commands: s6-svlisten and s6-svlisten1, to signal a
+service and wait on it without race condition. </li>
  <li> A brand new set of programs, <tt>s6-fdholder*</tt>, to perform
 fd-holding. </li>
  <li> Catchy blurb on intro page. </li>
