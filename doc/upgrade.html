@@ -21,17 +21,21 @@
 
 <ul>
  <li> skalibs dependency bumped to 2.2.1.0. </li>
+ <li> execline dependency bumped to 2.0.2.0. </li>
  <li> Unix domain socket utilities moved from the
 <a href="http://skarnet.org/software/s6-networking/">s6-networking</a>
 package to s6. </li>
  <li> <tt>./finish</tt> argument for "service crashed" is now 256
-instead of 255 </li>
+instead of 255. <strong>Check your finish scripts!</strong> </li>
  <li> <tt>supervise/status</tt> now includes wstat information
-when the service died, svstat reports it </li>
- <li> svstat now reports symbolic signal information by default,
-use <tt>-n</tt> to get the old behaviour </li>
+when the service died, and s6-svstat reports that information. </li>
+ <li> s6-svstat now reports symbolic signal information by default,
+use <tt>-n</tt> to get the old behaviour. </li>
  <li> s6-log now properly calls execlineb with its installation
-prefix, in the slashpackage case </li>
+prefix, in the slashpackage case. </li>
+ <li> A brand new set of programs, <tt>s6-fdholder*</tt>, to perform
+fd-holding. </li>
+ <li> Catchy blurb on intro page. </li>
 </ul>
 
 <h2> in 2.0.1.0 </h2>
