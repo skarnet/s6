@@ -71,11 +71,12 @@ takes care of all the plumbing. </li>
 requires special authorizations. Make sure the s6-fdholderd instances are
 <a href="s6-fdholderd.html#configuration">configured</a> to accept
 dump-getting and dump-setting requests from your client. </li>
- <li> The point of the
+ <li> A typical use case of
 <a href="s6-fdholder-transferdump.html">s6-fdholder-transferdump</a> and
-s6-fdholder-transferdumpc programs is to move a set of fds from one
-daemon to another, for instance in the event that the first one has to
-to shut down for an upgrade. </li>
+s6-fdholder-transferdumpc is when the main fd-holding daemon needs to
+upgrade, or restart for some reason. Transferring the file descriptors
+into another, temporary fd-holding daemon instance allows it to
+restart without losing the descriptors. </li>
 </ul>
 
 </body>

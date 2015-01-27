@@ -1,0 +1,113 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: socket activation</title>
+    <meta name="Description" content="s6: socket activation" />
+    <meta name="Keywords" content="s6 socket activation fd-holding client server socket fd passing" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> How do I perform socket activation with s6&nbsp;? </h1>
+
+<p>
+ First, it's important to realize that you don't <em>need</em>
+socket activation. It's a marketing word used by systemd
+advocates that mixes a couple useful architecture concepts and several
+horrible ideas, for a very minor speed benefit. Read
+<a href="http://skarnet.org/cgi-bin/archive.cgi?2:mss:423:oanakciaccabjicoagef">this mail</a>
+and
+<a href="http://forums.gentoo.org/viewtopic-t-994548-postdays-0-postorder-asc-start-25.html#7581522">this
+post</a> for details.
+</p>
+
+<ul>
+ <li> s6 <em>will not</em> help you implement super-servers in process 1,
+because doing so is bad engineering.
+However, it <em>will</em> help you set up super-servers. The
+<a href="s6-ipcserver.html">s6-ipcserver</a>
+program, for Unix domain sockets, as well as the
+<a href="http://skarnet.org/software/s6-networking/s6-tcpserver4.html">s6-tcpserver4</a> and
+<a href="http://skarnet.org/software/s6-networking/s6-tcpserver6.html">s6-tcpserver6</a>
+programs, for TCP INET domain sockets (available in the
+<a href="http://skarnet.org/software/s6-networking/">s6-networking</a>
+package) are super-servers you can use to
+your heart's content. They are even wrappers around simpler programs,
+and you can use their components in the way you choose: bind sockets,
+drop privileges, accept connections from clients, it's all about what you
+write in your command line. Super-servers are a good thing; using process 1
+to act as a super-server is not. s6 provides you with the tools to get
+the good without the bad. </li>
+ <li> s6 <em>will not</em> help you run all your services before their
+dependencies are met, because doing so is <em>very</em> bad engineering.
+However, it <em>will</em> provide you with:
+ <ul>
+  <li> a reliable logging infrastructure, that makes sure your services
+never lose logs:
+<a href="s6-log.html">s6-log</a>, in conjunction with
+<a href="s6-supervise.html">s6-supervise</a> and
+<a href="s6-svscan.html">s6-svscan</a>. </li>
+  <li> ways to open your sockets and bind them as early as you want in
+your boot process, and make them accept client connections later:
+<a href="s6-ipcserver-socketbinder.html">s6-ipcserver-socketbinder</a>,
+<a href="http://skarnet.org/software/s6-networking/s6-tcpserver4-socketbinder.html">s6-tcpserver4-socketbinder</a> and
+<a href="http://skarnet.org/software/s6-networking/s6-tcpserver6-socketbinder.html">s6-tcpserver4-socketbinder</a>.
+ </li>
+ <li> A supervision infrastructure that can start as many services in parallel
+as you want:
+<a href="s6-supervise.html">s6-supervise</a> and
+<a href="s6-svscan.html">s6-svscan</a>. </li>
+ </ul> </li>
+ <li> s6 <em>will not</em> help you centralize all your socket information
+in process 1, because doing so is contrary to modularity and independence
+of services. However, s6
+<em>will</em> provide you with a way to store your open sockets and
+retrieve them when you want, which it calls "fd holding":
+<a href="s6-fdholder-daemon.html">s6-fdholder-daemon</a>. </li>
+</ul>
+
+<h2> So, how do I open all my sockets first, store them, and dispatch them
+to daemons later&nbsp;? </h2>
+
+<p>
+ Again, it's not necessary to do that: you'll be fine, and quite speedy,
+just starting your
+daemons in their good time. You <em>will not</em> reap any noticeable
+benefit from performing "socket activation". But if you really want to:
+</p>
+
+<ol>
+ <li> Make sure you have an early supervision infrastructure running.
+Ideally, you would <a href="s6-svscan-1.html">make s6-svscan your
+process 1</a>. </li>
+ <li> Start an early <a href="s6-fdholder-daemon.html">fd-holding
+service</a>. Let's say the fd-holding daemon is listening on socket
+<tt>/service/fdholder/s</tt>. </li>
+ <li> For every Unix domain socket <em>/my/socket</em> you need to open, run
+<tt>s6-ipcserver-socketbinder /my/socket s6-fdholder-store /service/fdholder/s
+unix:/my/socket</tt>. You can do the same with INET domain sockets. </li>
+ <li> Proceed to your initialization. </li>
+ <li> When you want to run a daemon <em>myserverd</em> that accepts clients
+connecting to <em>/my/socket</em>, run <tt>s6-fdholder-retrieve
+/service/fdholder/s unix:/my/socket myserverd</tt>. <em>myserverd</em>
+will be executed with <em>/my/socket</em> as its standard input. </li>
+ <li> The descriptors remain safely stored in the fd-holding daemon and you
+can retrieve them again whenever you want, for instance when your service
+crashes and is restarted. </li>
+</ol>
+
+<p>
+ That is all there is to it. You don't have to use specific libraries
+or write complex unit files, you just need to understand how a command
+line works. This is Unix.
+</p>
+
+</body>
+</html>
