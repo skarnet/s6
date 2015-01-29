@@ -316,6 +316,7 @@ static int do_list (unsigned int cc, unixmessage_t const *m)
   siovec_t *vp = v + 1 ;
   char pack[5] = "" ;
   if (c->dumping || m->len || m->nfds) return (errno = EPROTO, 0) ;
+  if (!(c->flags & 4)) return answer(c, EPERM) ;
   uint32_pack_big(pack + 1, (uint32)numfds) ;
   v[0].s = pack ; v[0].len = 5 ;
   genset_iter(fdstore, &fill_siovec_with_ids_iter, &vp) ;
@@ -554,6 +555,7 @@ static inline int parse_env (char const *const *envp, regex_t *rre, regex_t *wre
   {
     if (str_start(*envp, "S6_FDHOLDER_GETDUMP=")) fl |= 1 ;
     if (str_start(*envp, "S6_FDHOLDER_SETDUMP=")) fl |= 2 ;
+    if (str_start(*envp, "S6_FDHOLDER_LIST=")) fl |= 4 ;
     if (!rre_done)
     {
       rre_done = makere(rre, *envp, "S6_FDHOLDER_RETRIEVE_REGEX") ;
@@ -675,9 +677,9 @@ int main (int argc, char const *const *argv, char const *const *envp)
       strerr_diefu1sys(111, "getrlimit") ;
     if (fdlimit.rlim_cur != RLIM_INFINITY)
     {
-      if (fdlimit.rlim_cur < 6)
+      if (fdlimit.rlim_cur < 7)
         strerr_dief1x(111, "open file limit too low") ;
-      if (maxfds > fdlimit.rlim_cur) maxfds = fdlimit.rlim_cur - 5 ;
+      if (maxfds > fdlimit.rlim_cur) maxfds = fdlimit.rlim_cur - 6 ;
     }
   }
   if (!maxfds) maxfds = 1 ;
