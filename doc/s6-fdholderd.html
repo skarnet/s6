@@ -283,10 +283,12 @@ descriptors with an identifier containing <tt>foo</tt>, then one
 character, then <tt>bar</tt>:
 <tt>mkdir -p gid/23/env ; touch gid/23/allow ; echo foo.bar &gt;
 gid/23/env/S6_FDHOLDER_RETRIEVE_REGEX</tt> </li>
- <li> To allow everyone to dump entire states into the server:
+ <li> To allow the same users to list all identifiers:
+<tt>echo &gt; gid/23/env/S6_FDHOLDER_LIST</tt> </li>
+ <li> To allow everyone to dump entire states into the server
+(<strong>never do this!</strong> it's only an example): 
 <tt>mkdir -p uid/default/env ; touch uid/default/allow ;
-echo &gt; uid/default/env/S6_FDHOLDER_SETDUMP</tt>.
-<strong>Never do this!</strong> </li>
+echo &gt; uid/default/env/S6_FDHOLDER_SETDUMP</tt>. </li>
 </ul>
 
 <h2> Notes </h2>
