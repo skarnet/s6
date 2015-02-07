@@ -53,9 +53,9 @@ exit when reading EOF on stdin. </li>
  <li> <tt>-t</tt>&nbsp;: timestamp. Prepends every log line that is written to
 a logging directory with a
 <a href="http://skarnet.org/software/skalibs/libstddjb/tai.html">TAI64N</a>
-timestamp.  </li>
+timestamp. <strong>This option is now deprecated.</strong> </li>
  <li> <tt>-e</tt>&nbsp;: timestamp alerts. Prepends every "alert" line with a
-TAI64N timestamp. </li>
+TAI64N timestamp. <strong>This option is now deprecated. </strong> </li>
  <li> <tt>-q | -v</tt>&nbsp;: quiet | verbose. Decreases | increases s6-log's
 verbosity, i.e. which messages are sent to stderr. The default verbosity is 1.
 Currently supported verbosity levels:
@@ -220,7 +220,28 @@ an unpadded, unlimited status file. By default, <em>statussize</em> is 1001. </l
 <tt>execlineb</tt> must be found in s6-log's PATH.
 If <em>processor</em> is empty, no processor will be set for the next logdirs.
 By default, no processor is set. </li>
+ <li> <strong>t</strong>: the logged line will be prepended with a
+<a href="http://skarnet.org/software/skalibs/libstddjb/tai.html">TAI64N
+timestamp</a> (and a space) before being processed by the next action
+directive. Giving the <tt>t</tt> directive several times before an action
+directive has no effect. </li>
+ <li> <strong>T</strong>: the selected line will be prepended with a
+<a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601
+timestamp</a> for combined date and time representing <em>local time</em>
+according to the system's timezone, with a space (not a 'T')
+between the date and the time and two spaces after the time, before being
+processed by the next action directive. Giving the <tt>T</tt> directive
+several times before an action directive has no effect. </li>
 </ul>
+
+<p>
+ Note that unlike the other control directives, the <tt>t</tt> and
+<tt>T</tt> directives are <em>not sticky</em>: their effect will
+disappear after the next action directive, and they need to be
+reapplied if necessary. If both a <tt>t</tt> and a <tt>T</tt>
+directives are given before an action directive, the TAI64N timestamp
+will always appear before the ISO 8601 timestamp.
+</p>
 
 <h3> Action directives </h3>
 
@@ -230,9 +251,14 @@ selected lines.
 </p>
 
 <ul>
- <li> <strong>e</strong>: alert. s6-log will print "s6-log: alert: ",
+ <li> <strong>2</strong> or <strong>e</strong>: alert. s6-log will print "s6-log: alert: ",
 possibly prepended with a timestamp, followed by the first
-<em>alertsize</em> bytes of the line. </li>
+<em>alertsize</em> bytes of the line, to its standard error.
+<strong>The <tt>e</tt> form is deprecated.</strong> </li>
+ <li> <strong>1</strong>: forward to stdout. s6-log will print the selected
+line to its stdout. If any error occurs, e.g. if stdout was a pipe and the
+reading end closed, this directive will be ignored for the rest of
+s6-log's lifetime. </li>
  <li> <strong>=<em>statusfile</em></strong>: status. s6-log will atomically
 update the <em>statusfile</em> file with the first <em>statussize</em>
 bytes of the line, and pad it with newlines. s6-log must have the right
@@ -257,25 +283,26 @@ limit. </li>
 <h2> Examples </h2>
 
 <pre>
-     s6-log -bt n20 s1000000 /var/log/services/stuff
+     s6-log -b n20 s1000000 t /var/log/services/stuff
 </pre>
 
 <p>
- Logs all of stdin, prepending every line with a timestamp, into the
+ Logs all of stdin, prepending every line with a TAI64N timestamp, into the
 <tt>/var/log/services/stuff</tt> logdir, with a maximum archive of
 20 log files of 1 MB each; makes sure every line has been written
 before reading the next one.
 </p>
 
 <pre>
-     s6-log -t n30 E500 - +fatal: e - +^STAT =/var/log/foobard/status f s10000000 S15000000 !"gzip -nq9" /var/log/foobard
+     s6-log n30 E500 - +fatal: e - +^STAT =/var/log/foobard/status f s10000000 S15000000 T !"gzip -nq9" /var/log/foobard
 </pre>
 
 <ul>
  <li> Sends alerts to stderr with the 500 first bytes of lines containing "fatal:". </li>
  <li> Maintains the <tt>/var/log/foobard/status</tt> file at 1001 bytes,
 updating it when it finds a log line starting with "STAT". </li>
- <li> Logs all other lines to logdir <tt>/var/log/foobard</tt>. When <tt>current</tt>
+ <li> Logs all other lines to logdir <tt>/var/log/foobard</tt>, prepending
+them with an ISO 8601 timestamp. When <tt>current</tt>
 reaches at least 9998 kB (i.e. 10 MB filesise minus 2kB tolerance), pipe it
 through <tt>gzip -nq9</tt> and save the result into a timestamped archive file, with
 a maximum of 30 such files or a total of 15 MB of compressed archive files. </li>
@@ -301,14 +328,15 @@ is overpowered for this. We don't need a complete shell script interpreter:
 most <em>processor</em> commands will be very simple, with only two or three
 words, and we only need a way to turn a string into an <em>argv</em>, i.e. a
 command line. </li>
- <li> <a href="http://www.skarnet.org/software/execline/execlineb.html">execlineb</a>
+ <li> <a href="http://skarnet.org/software/execline/execlineb.html">execlineb</a>
 was designed just for this: to turn simple strings into command lines.
 It is a very fast and lightweight script launcher, that does not do any heavy
 startup initialization like <tt>/bin/sh</tt> does. It happens to be the perfect
 tool for the job. </li>
- <li> Yes, I also did this on purpose so people have a reason to use the
-<a href="http://www.skarnet.org/software/execline/">execline</a> language. Do not
-look at me like that: it <em>really</em> is the perfect tool for the job. </li>
+ <li> To be perfectly honest: I also did this on purpose so people have a
+reason to use the
+<a href="http://skarnet.org/software/execline/">execline</a> language. But
+seriously, it <em>really</em> is the perfect tool for the job. </li>
 </ul>
 
 <h2> Why have another logging mechanism ? </h2>
@@ -318,7 +346,9 @@ look at me like that: it <em>really</em> is the perfect tool for the job. </li>
 I'm not being judgmental; I'm just stating the obvious.
 </p>
 
-<a name="diesyslogdiedie"><h3> The syslog design is flawed from the start </h3></a>
+<a name="diesyslogdiedie">
+<h3> The syslog design is flawed from the start </h3>
+</a>
 
 <p>
 <a href="http://blog.gerhards.net/2007/08/why-does-world-need-another-syslogd.html">When
@@ -381,7 +411,9 @@ serious alternative yet, except maybe
 s6-log improves upon.
 </p>
 
-<a name="loggingchain"><h3> A not-so-modest proposal: the logging chain </h3></a>
+<a name="loggingchain">
+<h3> A not-so-modest proposal: the logging chain </h3>
+</a>
 
 <p>
  Unix distributions already do this to some extent, but it's at best
@@ -446,7 +478,9 @@ error messages, and maybe process 1's error messages, are sent to the
 system console. </li>
 </ul>
 
-<a name="#howtouse"><h3> What does s6-log have to do with all this ? </h3></a>
+<a name="howtouse">
+<h3> What does s6-log have to do with all this ? </h3>
+</a>
 
 <p>
  In a <em>logging chain</em> situation, every service must have
@@ -473,8 +507,10 @@ your system's loggers. </li>
 </ul>
 
 
-<a name="#network"><h3> You're wrong about being as powerful as
-syslogd: s6-log does not do remote logging. </h3></a>
+<a name="network">
+<h3> You're wrong about being as powerful as
+syslogd: s6-log does not do remote logging. </h3>
+</a>
 
 <p>
  You mean you want to send, <em>live</em>, every <em>log line</em>

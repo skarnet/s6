@@ -6,8 +6,8 @@
 #include <errno.h>
 #include <signal.h>
 #include <unistd.h>
-#include <stdio.h>  /* for rename() */
-#include <stdlib.h>  /* for qsort() */
+#include <stdio.h>
+#include <stdlib.h>
 #include <regex.h>
 #include <skalibs/uint32.h>
 #include <skalibs/uint64.h>
@@ -15,28 +15,29 @@
 #include <skalibs/allreadwrite.h>
 #include <skalibs/buffer.h>
 #include <skalibs/bytestr.h>
+#include <skalibs/error.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
-#include <skalibs/fmtscan.h>
 #include <skalibs/bufalloc.h>
 #include <skalibs/stralloc.h>
-#include <skalibs/genalloc.h>
 #include <skalibs/tai.h>
-#include <skalibs/error.h>
+#include <skalibs/djbtime.h>
 #include <skalibs/iopause.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/direntry.h>
 #include <skalibs/sig.h>
 #include <skalibs/selfpipe.h>
+#include <skalibs/siovec.h>
 #include <skalibs/skamisc.h>
 #include <skalibs/environ.h>
 #include <execline/config.h>
 
-#define USAGE "s6-log [ -q | -v ] [ -b ] [ -p ] [ -t ] [ -e ] logging_script"
+#define USAGE "s6-log [ -q | -v ] [ -b ] [ -p ] [ -t ] [ -e ] [ -l linelimit ] logging_script"
+#define dieusage() strerr_dieusage(100, USAGE)
 #define dienomem() strerr_diefu1sys(111, "stralloc_catb")
 
-static int flagstampalert = 0 ;
-static int flagstamp = 0 ;
+#define LINELIMIT_MIN 48
+
 static int flagprotect = 0 ;
 static int flagexiting = 0 ;
 static unsigned int verbosity = 1 ;
@@ -44,7 +45,7 @@ static unsigned int verbosity = 1 ;
 static stralloc indata = STRALLOC_ZERO ;
 
 
-/* Begin datatypes. Get ready for some lulz. */
+ /* Data types */
 
 typedef int qcmpfunc_t (void const *, void const *) ;
 typedef qcmpfunc_t *qcmpfunc_t_ref ;
@@ -87,52 +88,30 @@ struct sel_s
 
 #define SEL_ZERO { .type = SELTYPE_PHAIL }
 
-static void sel_free (sel_t_ref s)
-{
-  if (s->type != SELTYPE_DEFAULT) regfree(&s->re) ;
-  s->type = SELTYPE_PHAIL ;
-}
-
 typedef enum acttype_e acttype_t, *acttype_t_ref ;
 enum acttype_e
 {
+  ACTTYPE_NOTHING,
+  ACTTYPE_FD1,
   ACTTYPE_FD2,
   ACTTYPE_STATUS,
   ACTTYPE_DIR,
   ACTTYPE_PHAIL
 } ;
 
-typedef struct as_fd2_s as_fd2_t, *as_fd2_t_ref ;
-struct as_fd2_s
-{
-  unsigned int size ;
-} ;
-
 typedef struct as_status_s as_status_t, *as_status_t_ref ;
 struct as_status_s
 {
-  stralloc content ;
   char const *file ;
-} ;
-
-static void as_status_free (as_status_t_ref ap)
-{
-  stralloc_free(&ap->content) ;
-  ap->file = 0 ;
-}
-
-typedef struct as_dir_s as_dir_t, *as_dir_t_ref ;
-struct as_dir_s
-{
-  unsigned int lindex ;
+  unsigned int filelen ;
 } ;
 
 typedef union actstuff_u actstuff_t, *actstuff_t_ref ;
 union actstuff_u
 {
-  as_fd2_t fd2 ;
+  unsigned int fd2_size ;
   as_status_t status ;
-  as_dir_t dir ;
+  unsigned int ld ;
 } ;
 
 typedef struct act_s act_t, *act_t_ref ;
@@ -140,48 +119,26 @@ struct act_s
 {
   acttype_t type ;
   actstuff_t data ;
+  unsigned int flags ;
 } ;
-
-static void act_free (act_t_ref ap)
-{
-  switch (ap->type)
-  {
-    case ACTTYPE_FD2 :
-      break ;
-    case ACTTYPE_STATUS :
-      as_status_free(&ap->data.status) ;
-      break ;
-    case ACTTYPE_DIR :
-      break ;
-    default : break ;
-  }
-  ap->type = ACTTYPE_PHAIL ;
-}
 
 typedef struct scriptelem_s scriptelem_t, *scriptelem_t_ref ;
 struct scriptelem_s
 {
-  genalloc selections ; /* array of sel_t */
-  genalloc actions ; /* array of act_t */
+  sel_t const *sels ;
+  unsigned int sellen ;
+  act_t const *acts ;
+  unsigned int actlen ;
 } ;
 
-#define SCRIPTELEM_ZERO { .selections = GENALLOC_ZERO, .actions = GENALLOC_ZERO }
-
-static void scriptelem_free (scriptelem_t_ref se)
-{
-  scriptelem_t zero = SCRIPTELEM_ZERO ;
-  genalloc_deepfree(sel_t, &se->selections, &sel_free) ;
-  genalloc_deepfree(act_t, &se->actions, &act_free) ;
-  *se = zero ;
-}
-
-typedef void inputprocfunc_t (scriptelem_t const *, unsigned int) ;
+typedef void inputprocfunc_t (scriptelem_t const *, unsigned int, unsigned int, unsigned int) ;
 typedef inputprocfunc_t *inputprocfunc_t_ref ;
 
 typedef struct logdir_s logdir_t, *logdir_t_ref ;
 struct logdir_s
 {
   bufalloc out ;
+  unsigned int xindex ;
   tain_t retrytto ;
   tain_t deadline ;
   uint64 maxdirsize ;
@@ -192,6 +149,7 @@ struct logdir_s
   unsigned int pid ;
   char const *dir ;
   char const *processor ;
+  unsigned int flags ;
   int fd ;
   int fdlock ;
   rotstate_t rstate ;
@@ -199,6 +157,7 @@ struct logdir_s
 
 #define LOGDIR_ZERO { \
   .out = BUFALLOC_ZERO, \
+  .xindex = 0, \
   .retrytto = TAIN_ZERO, \
   .deadline = TAIN_ZERO, \
   .maxdirsize = 0, \
@@ -214,25 +173,18 @@ struct logdir_s
   .rstate = ROTSTATE_WRITABLE \
 }
 
- /* If freeing a logdir before exiting is ever needed:
-static void logdir_free (logdir_t_ref ldp)
-{
-  bufalloc_free(&ldp->out) ;
-  fd_close(ldp->fd) ; ldp->fd = -1 ;
-  fd_close(ldp->fdlock) ; ldp->fdlock = -1 ;
-}
- */
-
-/* End datatypes. All of this was just to optimize the script interpretation. :-) */
-
-static genalloc logdirs = GENALLOC_ZERO ; /* array of logdir_t */
-
 typedef struct filesize_s filesize_t, *filesize_t_ref ;
 struct filesize_s
 {
   uint64 size ;
   char name[28] ;
 } ;
+
+
+ /* Logdirs */
+
+static logdir_t *logdirs ;
+static unsigned int llen = 0 ;
 
 static int filesize_cmp (filesize_t const *a, filesize_t const *b)
 {
@@ -241,18 +193,15 @@ static int filesize_cmp (filesize_t const *a, filesize_t const *b)
 
 static int name_is_relevant (char const *name)
 {
-  if (name[0] != '@') return 0 ;
+  tain_t dummy ;
   if (str_len(name) != 27) return 0 ;
-  {
-    char tmp[12] ;
-    if (!ucharn_scan(name+1, tmp, 12)) return 0 ;
-  }
+  if (!timestamp_scan(name, &dummy)) return 0 ;
   if (name[25] != '.') return 0 ;
   if ((name[26] != 's') && (name[26] != 'u')) return 0 ;
   return 1 ;
 }
 
-static inline int logdir_trim (logdir_t_ref ldp)
+static inline int logdir_trim (logdir_t *ldp)
 {
   unsigned int n = 0 ;
   DIR *dir = opendir(ldp->dir) ;
@@ -273,11 +222,12 @@ static inline int logdir_trim (logdir_t_ref ldp)
     return -1 ;
   }
   rewinddir(dir) ;
+  if (n)
   {
-    filesize_t blurgh[n] ;
     uint64 totalsize = 0 ;
     unsigned int dirlen = str_len(ldp->dir) ;
     unsigned int i = 0 ;
+    filesize_t blurgh[n] ;
     char fullname[dirlen + 29] ;
     byte_copy(fullname, dirlen, ldp->dir) ;
     fullname[dirlen] = '/' ;
@@ -337,7 +287,7 @@ static int finish (logdir_t *ldp, char const *name, char suffix)
   byte_copy(x, dirlen, ldp->dir) ;
   x[dirlen] = '/' ;
   byte_copy(x + dirlen + 1, namelen + 1, name) ;
-  if (stat(x, &st) < 0) return (errno == ENOENT) ;
+  if (stat(x, &st) < 0) return errno == ENOENT ;
   if (st.st_nlink == 1)
   {
     char y[dirlen + 29] ;
@@ -347,13 +297,13 @@ static int finish (logdir_t *ldp, char const *name, char suffix)
     y[dirlen + 26] = '.' ;
     y[dirlen + 27] = suffix ;
     y[dirlen + 28] = 0 ;
-    if (link(x, y) < 0) return 0 ;
+    if (link(x, y) < 0) return -1 ;
   }
-  if (unlink(x) < 0) return 0 ;
+  if (unlink(x) < 0) return -1 ;
   return logdir_trim(ldp) ;
 }
 
-static inline void exec_processor (logdir_t_ref ldp)
+static inline void exec_processor (logdir_t *ldp)
 {
   char const *cargv[4] = { EXECLINE_EXTBINPREFIX "execlineb", "-Pc", ldp->processor, 0 } ;
   unsigned int dirlen = str_len(ldp->dir) ;
@@ -383,13 +333,12 @@ static inline void exec_processor (logdir_t_ref ldp)
   strerr_dieexec(111, cargv[0]) ;
 }
 
-static int rotator (logdir_t_ref ldp)
+static int rotator (logdir_t *ldp)
 {
   unsigned int dirlen = str_len(ldp->dir) ;
   switch (ldp->rstate)
   {
     case ROTSTATE_START :
-    {
       if (fd_sync(ldp->fd) < 0)
       {
         if (verbosity) strerr_warnwu3sys("fd_sync ", ldp->dir, "/current") ;
@@ -397,7 +346,6 @@ static int rotator (logdir_t_ref ldp)
       }
       tain_now_g() ;
       ldp->rstate = ROTSTATE_RENAME ;
-    }
     case ROTSTATE_RENAME :
     {
       char current[dirlen + 9] ;
@@ -460,7 +408,6 @@ static int rotator (logdir_t_ref ldp)
       ldp->rstate = ROTSTATE_FINISHPREVIOUS ;
     }
     case ROTSTATE_FINISHPREVIOUS :
-    {
       if (finish(ldp, "previous", 's') < 0)
       {
         if (verbosity) strerr_warnwu2sys("finish previous .s to logdir ", ldp->dir) ;
@@ -469,8 +416,7 @@ static int rotator (logdir_t_ref ldp)
       tain_copynow(&ldp->deadline) ;
       ldp->rstate = ROTSTATE_WRITABLE ;
       break ;
-    }
-   runprocessor :
+   runprocessor:
       ldp->rstate = ROTSTATE_RUNPROCESSOR ;
     case ROTSTATE_RUNPROCESSOR :
     {
@@ -486,9 +432,7 @@ static int rotator (logdir_t_ref ldp)
       ldp->rstate = ROTSTATE_WAITPROCESSOR ;
     }
     case ROTSTATE_WAITPROCESSOR :
-    {
       return (errno = EAGAIN, 0) ;
-    }
     case ROTSTATE_SYNCPROCESSED :
     {
       int fd ;
@@ -528,7 +472,7 @@ static int rotator (logdir_t_ref ldp)
       byte_copy(x, dirlen, ldp->dir) ;
       byte_copy(x + dirlen, 10, "/newstate") ;
       fd = open_append(x) ;
-      if (ldp->fd < 0)
+      if (fd < 0)
       {
         if (verbosity) strerr_warnwu2sys("open_append ", x) ;
         goto fail ;
@@ -570,7 +514,6 @@ static int rotator (logdir_t_ref ldp)
       ldp->rstate = ROTSTATE_FINISHPROCESSED ;
     }
     case ROTSTATE_FINISHPROCESSED :
-    {
       if (finish(ldp, "processed", 's') < 0)
       {
         if (verbosity) strerr_warnwu2sys("finish processed .s to logdir ", ldp->dir) ;
@@ -579,7 +522,6 @@ static int rotator (logdir_t_ref ldp)
       tain_copynow(&ldp->deadline) ;
       ldp->rstate = ROTSTATE_WRITABLE ;
       break ;
-    }
     default : strerr_dief1x(101, "inconsistent state in rotator()") ;
   }
   return 1 ;
@@ -590,7 +532,7 @@ static int rotator (logdir_t_ref ldp)
 
 static int logdir_write (int i, char const *s, unsigned int len)
 {
-  logdir_t_ref ldp = genalloc_s(logdir_t, &logdirs) + (unsigned int)i ;
+  logdir_t *ldp = logdirs + i ;
   int r ;
   unsigned int n = len ;
   {
@@ -627,30 +569,32 @@ static inline void rotate_or_flush (logdir_t *ldp)
   bufalloc_flush(&ldp->out) ;
 }
 
-static inline void logdir_init (logdir_t *ap, uint32 s, uint32 n, uint32 tolerance, uint64 maxdirsize, tain_t const *retrytto, char const *processor, char const *name, unsigned int index)
+static inline void logdir_init (unsigned int index, uint32 s, uint32 n, uint32 tolerance, uint64 maxdirsize, tain_t const *retrytto, char const *processor, char const *name, unsigned int flags)
 {
+  logdir_t *ldp = logdirs + index ;
   struct stat st ;
   unsigned int dirlen = str_len(name) ;
   int r ;
   char x[dirlen + 11] ;
-  ap->s = s ;
-  ap->n = n ;
-  ap->pid = 0 ;
-  ap->tolerance = tolerance ;
-  ap->maxdirsize = maxdirsize ;
-  ap->retrytto = *retrytto ;
-  ap->processor = processor ;
-  ap->dir = name ;
-  ap->fd = -1 ;
-  ap->rstate = ROTSTATE_WRITABLE ;
-  r = mkdir(ap->dir, S_IRWXU | S_ISGID) ;
+  ldp->s = s ;
+  ldp->n = n ;
+  ldp->pid = 0 ;
+  ldp->tolerance = tolerance ;
+  ldp->maxdirsize = maxdirsize ;
+  ldp->retrytto = *retrytto ;
+  ldp->processor = processor ;
+  ldp->flags = flags ;
+  ldp->dir = name ;
+  ldp->fd = -1 ;
+  ldp->rstate = ROTSTATE_WRITABLE ;
+  r = mkdir(ldp->dir, S_IRWXU | S_ISGID) ;
   if ((r < 0) && (errno != EEXIST)) strerr_diefu2sys(111, "mkdir ", name) ;
   byte_copy(x, dirlen, name) ;
   byte_copy(x + dirlen, 6, "/lock") ;
-  ap->fdlock = open_append(x) ;
-  if ((ap->fdlock) < 0) strerr_diefu2sys(111, "open_append ", x) ;
-  if (lock_exnb(ap->fdlock) < 0) strerr_diefu2sys(111, "lock_exnb ", x) ;
-  if (coe(ap->fdlock) < 0) strerr_diefu2sys(111, "coe ", x) ;
+  ldp->fdlock = open_append(x) ;
+  if ((ldp->fdlock) < 0) strerr_diefu2sys(111, "open_append ", x) ;
+  if (lock_exnb(ldp->fdlock) < 0) strerr_diefu2sys(111, "lock_exnb ", x) ;
+  if (coe(ldp->fdlock) < 0) strerr_diefu2sys(111, "coe ", x) ;
   byte_copy(x + dirlen + 1, 8, "current") ;
   if (stat(x, &st) < 0)
   {
@@ -673,430 +617,36 @@ static inline void logdir_init (logdir_t *ap, uint32 s, uint32 n, uint32 toleran
     {
       byte_copy(x + dirlen + 1, 9, "previous") ;
       unlink(x) ;
-      if (finish(ap, "processed", 's') < 0)
-        strerr_diefu2sys(111, "finish processed .s for logdir ", ap->dir) ;
+      if (finish(ldp, "processed", 's') < 0)
+        strerr_diefu2sys(111, "finish processed .s for logdir ", ldp->dir) ;
     }
     else
     {
       unlink(x) ;
-      if (finish(ap, "previous", 'u') < 0)
-        strerr_diefu2sys(111, "finish previous .u for logdir ", ap->dir) ;
+      if (finish(ldp, "previous", 'u') < 0)
+        strerr_diefu2sys(111, "finish previous .u for logdir ", ldp->dir) ;
     }
   }
-  if (finish(ap, "current", 'u') < 0)
-    strerr_diefu2sys(111, "finish current .u for logdir ", ap->dir) ;
+  if (finish(ldp, "current", 'u') < 0)
+    strerr_diefu2sys(111, "finish current .u for logdir ", ldp->dir) ;
   byte_copy(x + dirlen + 1, 6, "state") ;
-  ap->fd = open_trunc(x) ;
-  if (ap->fd < 0) strerr_diefu2sys(111, "open_trunc ", x) ;
-  fd_close(ap->fd) ;
+  ldp->fd = open_trunc(x) ;
+  if (ldp->fd < 0) strerr_diefu2sys(111, "open_trunc ", x) ;
+  fd_close(ldp->fd) ;
   st.st_size = 0 ;
   byte_copy(x + dirlen + 1, 8, "current") ;
  opencurrent:
-  ap->fd = open_append(x) ;
-  if (ap->fd < 0) strerr_diefu2sys(111, "open_append ", x) ;
-  if (fd_chmod(ap->fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) == -1)
+  ldp->fd = open_append(x) ;
+  if (ldp->fd < 0) strerr_diefu2sys(111, "open_append ", x) ;
+  if (fd_chmod(ldp->fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) == -1)
     strerr_diefu2sys(111, "fd_chmod ", x) ;
-  if (coe(ap->fd) < 0) strerr_diefu2sys(111, "coe ", x) ;
-  ap->b = st.st_size ;
-  tain_copynow(&ap->deadline) ;
-  bufalloc_init(&ap->out, &logdir_write, (int)index) ;
+  if (coe(ldp->fd) < 0) strerr_diefu2sys(111, "coe ", x) ;
+  ldp->b = st.st_size ;
+  tain_copynow(&ldp->deadline) ;
+  bufalloc_init(&ldp->out, &logdir_write, index) ;
 }
 
-
- /* Script */
- 
-static int script_update (genalloc *sc, genalloc *sa, genalloc *aa)
-{
-  scriptelem_t foo ;
-  genalloc_shrink(sel_t, sa) ;
-  genalloc_shrink(act_t, aa) ;
-  foo.selections = *sa ;
-  foo.actions = *aa ;
-  if (!genalloc_append(scriptelem_t, sc, &foo)) return 0 ;
-  *sa = genalloc_zero ;
-  *aa = genalloc_zero ;
-  return 1 ;
-}
-
-static inline int script_init (genalloc *sc, char const *const *argv)
-{
-  tain_t cur_retrytto ;
-  unsigned int cur_fd2_size = 200 ;
-  unsigned int cur_status_size = 1001 ;
-  uint32 cur_s = 99999 ;
-  uint32 cur_n = 10 ;
-  uint32 cur_tolerance = 2000 ;
-  uint64 cur_maxdirsize = 0 ;
-  genalloc cur_selections = GENALLOC_ZERO ; /* sel_t */
-  genalloc cur_actions = GENALLOC_ZERO ; /* act_t */
-  char const *cur_processor = 0 ;
-  int flagacted = 0 ;
-  tain_uint(&cur_retrytto, 2) ;
-  
-  for (; *argv ; argv++)
-  {
-    switch (**argv)
-    {
-      case 'f' :
-      {
-        sel_t selitem ;
-        if (flagacted)
-        {
-          if (!script_update(sc, &cur_selections, &cur_actions)) return 0 ;
-          flagacted = 0 ;
-        }
-        selitem.type = SELTYPE_DEFAULT ;
-        if (!genalloc_append(sel_t, &cur_selections, &selitem)) return 0 ;
-        break ;
-      }
-      case '+' :
-      case '-' :
-      {
-        sel_t selitem ;
-        int r ;
-        if (flagacted)
-        {
-          if (!script_update(sc, &cur_selections, &cur_actions)) return 0 ;
-          flagacted = 0 ;
-        }
-        selitem.type = (**argv == '+') ? SELTYPE_PLUS : SELTYPE_MINUS ;
-        r = regcomp(&selitem.re, *argv+1, REG_EXTENDED | REG_NOSUB | REG_NEWLINE) ;
-        if (r == REG_ESPACE) return (errno = ENOMEM, 0) ;
-        if (r) goto fail ;
-        if (!genalloc_append(sel_t, &cur_selections, &selitem)) return 0 ;
-        break ;
-      }
-      case 'n' :
-      {
-        if (!uint320_scan(*argv + 1, &cur_n)) goto fail ;
-        break ;
-      }
-      case 's' :
-      {
-        if (!uint320_scan(*argv + 1, &cur_s)) goto fail ;
-        if (cur_s < 4096) cur_s = 4096 ;
-        if (cur_s > 16777215) cur_s = 16777215 ;
-        break ;
-      }
-      case 'S' :
-      {
-        if (!uint640_scan(*argv + 1, &cur_maxdirsize)) goto fail ;
-        break ;
-      }
-      case 'l' :
-      {
-        if (!uint320_scan(*argv + 1, &cur_tolerance)) goto fail ;
-        if (cur_tolerance > (cur_s >> 1))
-          strerr_dief3x(100, "directive ", *argv, " conflicts with previous s directive") ;
-        break ;
-      }
-      case 'r' :
-      {
-        uint32 t ;
-        if (!uint320_scan(*argv + 1, &t)) goto fail ;
-        if (!tain_from_millisecs(&cur_retrytto, (int)t)) return (errno = EINVAL, 0) ;
-        break ;
-      }
-      case 'E' :
-      {
-        if (!uint0_scan(*argv + 1, &cur_fd2_size)) goto fail ;
-        break ;
-      }
-      case '^' :
-      {
-        if (!uint0_scan(*argv + 1, &cur_status_size)) goto fail ;
-        break ;
-      }
-      case '!' :
-      {
-        cur_processor = (*argv)[1] ? *argv + 1 : 0 ;
-        break ;
-      }
-      case 'e' :
-      {
-        act_t a ;
-        flagacted = 1 ;
-        a.type = ACTTYPE_FD2 ;
-        a.data.fd2.size = cur_fd2_size ;
-        if (!genalloc_append(act_t, &cur_actions, &a)) return 0 ;
-        break ;
-      }
-      case '=' :
-      {
-        act_t a ;
-        flagacted = 1 ;
-        a.type = ACTTYPE_STATUS ;
-        a.data.status.file = *argv + 1 ;
-        a.data.status.content = stralloc_zero ;
-        if (cur_status_size && !stralloc_ready_tuned(&a.data.status.content, cur_status_size, 0, 0, 1)) return 0 ;
-        a.data.status.content.len = cur_status_size ;
-        if (!genalloc_append(act_t, &cur_actions, &a)) return 0 ;
-        break ;
-      }
-      case '.' : 
-      case '/' :
-      {
-        act_t a ;
-        logdir_t ld = LOGDIR_ZERO ;
-        flagacted = 1 ;
-        a.type = ACTTYPE_DIR ;
-        a.data.dir.lindex = genalloc_len(logdir_t, &logdirs) ;
-        if (!genalloc_append(act_t, &cur_actions, &a)) return 0 ;
-        logdir_init(&ld, cur_s, cur_n, cur_tolerance, cur_maxdirsize, &cur_retrytto, cur_processor, *argv, genalloc_len(logdir_t, &logdirs)) ;
-        if (!genalloc_append(logdir_t, &logdirs, &ld)) return 0 ;
-        break ;
-      }
-      default : goto fail ;
-    }
-  }
-  if (flagacted)
-  {
-    if (!script_update(sc, &cur_selections, &cur_actions)) return 0 ;
-  }
-  else
-  {
-    genalloc_deepfree(sel_t, &cur_selections, &sel_free) ;
-    if (verbosity) strerr_warnw1x("ignoring extraneous non-action directives") ;
-  }
-  genalloc_shrink(logdir_t, &logdirs) ;
-  genalloc_shrink(scriptelem_t, sc) ;
-  if (!genalloc_len(scriptelem_t, sc))
-    strerr_dief1x(100, "no action directive specified") ;
-  return 1 ;
- fail:
-  strerr_dief2x(100, "unrecognized directive: ", *argv) ;
-}
-
-static inline void doit_fd2 (as_fd2_t const *ap, char const *s, unsigned int len)
-{
-  if (flagstampalert)
-  {
-    char fmt[TIMESTAMP+1] ;
-    tain_now_g() ;
-    timestamp_g(fmt) ;
-    fmt[TIMESTAMP] = ' ' ;
-    buffer_put(buffer_2, fmt, TIMESTAMP+1) ;
-  }
-  buffer_puts(buffer_2, PROG) ;
-  buffer_puts(buffer_2, ": alert: ") ;
-  if (ap->size && len > ap->size) len = ap->size ;
-  buffer_put(buffer_2, s, len) ;
-  if (len == ap->size) buffer_puts(buffer_2, "...") ;
-  buffer_putflush(buffer_2, "\n", 1) ;
-}
-
-static inline void doit_status (as_status_t const *ap, char const *s, unsigned int len)
-{
-  if (ap->content.len)
-  {
-    register unsigned int i ;
-    if (len > ap->content.len) len = ap->content.len ;
-    byte_copy(ap->content.s, len, s) ;
-    for (i = len ; i < ap->content.len ; i++) ap->content.s[i] = '\n' ;
-    if (!openwritenclose_suffix_sync(ap->file, ap->content.s, ap->content.len, ".new"))
-      strerr_warnwu2sys("openwritenclose ", ap->file) ;
-  }
-  else if (!openwritenclose_suffix_sync(ap->file, s, len, ".new"))
-    strerr_warnwu2sys("openwritenclose ", ap->file) ;
-}
-
-static inline void doit_dir (as_dir_t const *ap, char const *s, unsigned int len)
-{
-  logdir_t_ref ldp = genalloc_s(logdir_t, &logdirs) + ap->lindex ;
-  if (!bufalloc_put(&ldp->out, s, len) || !bufalloc_put(&ldp->out, "\n", 1))
-    strerr_diefu1sys(111, "bufalloc_put") ;
-}
-
-
- /* The script interpreter. */
-
-static inline void doit (scriptelem_t const *se, unsigned int n, char const *s, unsigned int len)
-{
-  int flagselected = 1 ;
-  int flagacted = 0 ;
-  unsigned int i = 0 ;
-  for (; i < n ; i++)
-  {
-    unsigned int sellen = genalloc_len(sel_t, &se[i].selections) ;
-    sel_t *sels = genalloc_s(sel_t, &se[i].selections) ;
-    unsigned int j = 0 ;
-    for (; j < sellen ; j++)
-    {
-      switch (sels[j].type)
-      {
-        case SELTYPE_DEFAULT :
-          flagselected = !flagacted ;
-          break ;
-        case SELTYPE_PLUS :
-	  if (!flagselected && !regexec(&sels[j].re, flagstamp ? s+TIMESTAMP+1 : s, 0, 0, 0)) flagselected = 1 ;
-          break ;
-        case SELTYPE_MINUS :
-	  if (flagselected && !regexec(&sels[j].re, flagstamp ? s+TIMESTAMP+1 : s, 0, 0, 0)) flagselected = 0 ;
-          break ;
-        default :
-          strerr_dief2x(101, "internal consistency error in ", "selection type") ;
-      }
-    }
-    if (flagselected)
-    {
-      unsigned int actlen = genalloc_len(act_t, &se[i].actions) ;
-      act_t *acts = genalloc_s(act_t, &se[i].actions) ;
-      flagacted = 1 ;
-      for (j = 0 ; j < actlen ; j++)
-      {
-        switch (acts[j].type)
-        {
-          case ACTTYPE_FD2 :
-            doit_fd2(&acts[j].data.fd2, s, len) ;
-            break ;
-          case ACTTYPE_STATUS :
-            doit_status(&acts[j].data.status, s, len) ;
-            break ;
-          case ACTTYPE_DIR :
-            doit_dir(&acts[j].data.dir, s, len) ;
-            break ;
-          default :
-            strerr_dief2x(101, "internal consistency error in ", "action type") ;
-        }
-      }
-    }
-  }
-  if (flagstamp) tain_now_g() ;
-}
-
-static inline void processor_died (logdir_t_ref ldp, int wstat)
-{
-  ldp->pid = 0 ;
-  if (WIFSIGNALED(wstat))
-  {
-    if (verbosity) strerr_warnw2x("processor crashed in ", ldp->dir) ;
-    tain_add_g(&ldp->deadline, &ldp->retrytto) ;
-    ldp->rstate = ROTSTATE_RUNPROCESSOR ;
-  }
-  else if (WEXITSTATUS(wstat))
-  {
-    if (verbosity) strerr_warnw2x("processor failed in ", ldp->dir) ;
-    tain_add_g(&ldp->deadline, &ldp->retrytto) ;
-    ldp->rstate = ROTSTATE_RUNPROCESSOR ;
-  }
-  else
-  {
-    ldp->rstate = ROTSTATE_SYNCPROCESSED ;
-    rotator(ldp) ;
-  }
-}
-
-static void prepare_to_exit (void)
-{
-  fd_close(0) ;
-  flagexiting = 1 ;
-}
-
-static void stampanddoit (scriptelem_t const *se, unsigned int n)
-{
-  if (flagstamp) indata.s[timestamp_g(indata.s)] = ' ' ;
-  indata.s[indata.len] = 0 ;
-  doit(se, n, indata.s, indata.len-1) ;
-  indata.len = flagstamp ? TIMESTAMP+1 : 0 ;
-}
-
-static void normal_stdin (scriptelem_t const *se, unsigned int selen)
-{
-  int r = sanitize_read(buffer_fill(buffer_0)) ;
-  if (r < 0)
-  {
-    if ((errno != EPIPE) && verbosity) strerr_warnwu1sys("read from stdin") ;
-    prepare_to_exit() ;
-  }
-  else if (r)
-    while (skagetln_nofill(buffer_0, &indata, '\n') > 0)
-      stampanddoit(se, selen) ;
-}
-
-static void last_stdin (scriptelem_t const *se, unsigned int selen)
-{
-  int cont = 1 ;
-  while (cont)
-  {
-    char c ;
-    switch (sanitize_read(fd_read(0, &c, 1)))
-    {
-      case 0 :
-        cont = 0 ;
-        break ;
-      case -1 :
-        if ((errno != EPIPE) && verbosity) strerr_warnwu1sys("read from stdin") ;
-        if (indata.len <= (flagstamp ? TIMESTAMP+1 : 0))
-        {
-          prepare_to_exit() ;
-          cont = 0 ;
-          break ;
-        }
-        c = '\n' ;
-      case 1 :
-        if (!stralloc_catb(&indata, &c, 1)) dienomem() ;
-        if (c == '\n')
-        {
-          stampanddoit(se, selen) ;
-          prepare_to_exit() ;
-          cont = 0 ;
-        }
-        break ;
-    }
-  }
-}
-
-static inputprocfunc_t_ref handle_stdin = &normal_stdin ;
-
-static inline void handle_signals (void)
-{
-  for (;;)
-  {
-    switch (selfpipe_read())
-    {
-      case -1 : strerr_diefu1sys(111, "selfpipe_read") ;
-      case 0 : return ;
-      case SIGALRM :
-      {
-        unsigned int llen = genalloc_len(logdir_t, &logdirs) ;
-        logdir_t *ls = genalloc_s(logdir_t, &logdirs) ;
-        register unsigned int i = 0 ;
-        for (i = 0 ; i < llen ; i++)
-          if ((ls[i].rstate == ROTSTATE_WRITABLE) && ls[i].b)
-          {
-            ls[i].rstate = ROTSTATE_START ;
-            rotator(ls + i) ;
-          }
-        break ;
-      }
-      case SIGTERM :
-      {
-        if (flagprotect) break ;
-        handle_stdin = &last_stdin ;
-        if (indata.len <= (flagstamp ? TIMESTAMP+1 : 0)) prepare_to_exit() ;
-        break ;
-      }
-      case SIGCHLD :
-      {
-        unsigned int llen = genalloc_len(logdir_t, &logdirs) ;
-        logdir_t *ls = genalloc_s(logdir_t, &logdirs) ;
-        for (;;)
-        {
-          int wstat ;
-          register unsigned int i = 0 ;
-          register int r = wait_nohang(&wstat) ;
-          if (r <= 0) break ;
-          for (; i < llen ; i++) if ((unsigned int)r == ls[i].pid) break ;
-          if (i < llen) processor_died(ls + i, wstat) ;
-        }
-        break ;
-      }
-      default : strerr_dief1x(101, "internal consistency error with signal handling") ;
-    }
-  }
-}
-
-static inline int logdir_finalize (logdir_t_ref ldp)
+static inline int logdir_finalize (logdir_t *ldp)
 {
   switch (ldp->rstate)
   {
@@ -1130,8 +680,6 @@ static inline int logdir_finalize (logdir_t_ref ldp)
 
 static inline void finalize (void)
 {
-  unsigned int llen = genalloc_len(logdir_t, &logdirs) ;
-  logdir_t *ls = genalloc_s(logdir_t, &logdirs) ;
   unsigned int n = llen ;
   for (;;)
   {
@@ -1139,11 +687,11 @@ static inline void finalize (void)
     tain_t deadline ;
     tain_addsec_g(&deadline, 2) ;
     for (; i < llen ; i++)
-      if (ls[i].rstate != ROTSTATE_END)
+      if (logdirs[i].rstate != ROTSTATE_END)
       {
-        if (logdir_finalize(ls + i)) n-- ;
-        else if (tain_less(&ls[i].deadline, &deadline))
-          deadline = ls[i].deadline ;
+        if (logdir_finalize(logdirs + i)) n-- ;
+        else if (tain_less(&logdirs[i].deadline, &deadline))
+          deadline = logdirs[i].deadline ;
       }
     if (!n) break ;
     {
@@ -1153,16 +701,472 @@ static inline void finalize (void)
   }
 }
 
+
+ /* Script */
+ 
+static inline void script_firstpass (char const *const *argv, unsigned int *sellen, unsigned int *actlen, unsigned int *scriptlen, unsigned int *gflags)
+{
+  unsigned int se = 0, ac = 0, sc = 0, gf = *gflags ;
+  int flagacted = 0 ;
+  for (; *argv ; argv++)
+  {
+    switch ((*argv)[0])
+    {
+      case 'f' :
+        if ((*argv)[1]) goto fail ;
+      case '+' :
+      case '-' :
+        if (flagacted)
+        {
+          sc++ ;
+          flagacted = 0 ;
+        }
+        se++ ;
+      case 'n' :
+      case 's' :
+      case 'S' :
+      case 'l' :
+      case 'r' :
+      case 'E' :
+      case '^' :
+      case '!' :
+        break ;
+      case 't' :
+        if ((*argv)[1]) goto fail ;
+        gf |= 1 ;
+        break ;
+      case 'T' :
+        if ((*argv)[1]) goto fail ;
+        gf |= 2 ;
+        break ;
+      case 'e' :
+        if (verbosity) strerr_warnw1x("directive e is deprecated, use 2 instead") ;
+      case '1' :
+      case '2' :
+        if ((*argv)[1]) goto fail ;
+        flagacted = 1 ;
+        ac++ ;
+        break ;
+      case '.' :
+      case '/' :
+        llen++ ;
+        flagacted = 1 ;
+        ac++ ;
+        break ;
+      case '=' :
+        if (!(*argv)[1]) goto fail ;
+        flagacted = 1 ;
+        ac++ ;
+        break ;
+      default : strerr_dief2x(100, "unrecognized directive: ", *argv) ;
+    }
+  }
+  if (flagacted) sc++ ;
+  else if (sc)
+  {
+    if (verbosity)
+      strerr_warnw1x("ignoring extraneous non-action directives") ;
+  }
+  else strerr_dief1x(100, "no action directive specified") ;
+  *sellen = se ;
+  *actlen = ac ;
+  *scriptlen = sc ;
+  *gflags = gf ;
+  return ;
+ fail :
+  strerr_dief2x(100, "syntax error at directive: ", *argv) ;
+}
+
+static inline void script_secondpass (char const *const *argv, scriptelem_t *script, sel_t *selections, act_t *actions, unsigned int compat_gflags)
+{
+  tain_t retrytto ;
+  unsigned int fd2_size = 200 ;
+  unsigned int status_size = 1001 ;
+  uint32 s = 99999 ;
+  uint32 n = 10 ;
+  uint32 tolerance = 2000 ;
+  uint64 maxdirsize = 0 ;
+  char const *processor = 0 ;
+  unsigned int sel = 0, act = 0, lidx = 0, flags = 0 ;
+  int flagacted = 0 ;
+  tain_uint(&retrytto, 2) ;
+  
+  for (; *argv ; argv++)
+  {
+    switch (**argv)
+    {
+      case 'f' :
+      case '+' :
+      case '-' :
+      {
+        sel_t selitem = { .type = (*argv)[0] != 'f' ? (*argv)[0] == '+' ? SELTYPE_PLUS : SELTYPE_MINUS : SELTYPE_DEFAULT } ;
+        if ((*argv)[0] != 'f')
+        {
+          int r = regcomp(&selitem.re, *argv + 1, REG_EXTENDED | REG_NOSUB | REG_NEWLINE) ;
+          if (r == REG_ESPACE)
+          {
+            errno = ENOMEM ;
+            strerr_diefu1sys(111, "initialize script") ;
+          }
+          if (!r) goto fail ;
+        }
+        selections[sel++] = selitem ;
+        if (flagacted)
+        {
+          flagacted = 0 ;
+          script->sels = selections ;
+          script->sellen = sel ;
+          script->acts = actions ;
+          script->actlen = act ;
+          selections += sel ; sel = 0 ;
+          actions += act ; act = 0 ;
+          script++ ;
+        }
+        break ;
+      }
+      case 'n' :
+        if (!uint320_scan(*argv + 1, &n)) goto fail ;
+        break ;
+      case 's' :
+        if (!uint320_scan(*argv + 1, &s)) goto fail ;
+        if (s < 4096) s = 4096 ;
+        if (s > 16777215) s = 16777215 ;
+        break ;
+      case 'S' :
+        if (!uint640_scan(*argv + 1, &maxdirsize)) goto fail ;
+        break ;
+      case 'l' :
+        if (!uint320_scan(*argv + 1, &tolerance)) goto fail ;
+        if (tolerance > (s >> 1))
+          strerr_dief3x(100, "directive ", *argv, " conflicts with previous s directive") ;
+        break ;
+      case 'r' :
+      {
+        uint32 t ;
+        if (!uint320_scan(*argv + 1, &t)) goto fail ;
+        if (!tain_from_millisecs(&retrytto, t)) goto fail ;
+        break ;
+      }
+      case 'E' :
+        if (!uint0_scan(*argv + 1, &fd2_size)) goto fail ;
+        break ;
+      case '^' :
+        if (!uint0_scan(*argv + 1, &status_size)) goto fail ;
+        break ;
+      case '!' :
+        processor = (*argv)[1] ? *argv + 1 : 0 ;
+        break ;
+      case 't' :
+        flags |= 1 ;
+        break ;
+      case 'T' :
+        flags |= 2 ;
+        break ;
+      case '1' :
+      {
+        act_t a = { .type = ACTTYPE_FD1, .flags = flags } ;
+        actions[act++] = a ; flagacted = 1 ; flags = 0 ;
+        break ;
+      }
+      case 'e' :
+      case '2' :
+      {
+        act_t a = { .type = ACTTYPE_FD2, .flags = flags, .data = { .fd2_size = fd2_size } } ;
+        if (compat_gflags & 2) a.flags |= 1 ;
+        actions[act++] = a ; flagacted = 1 ; flags = 0 ;
+        break ;
+      }
+      case '=' :
+      {
+        act_t a = { .type = ACTTYPE_STATUS, .flags = flags, .data = { .status = { .file = *argv + 1, .filelen = status_size } } } ;
+        actions[act++] = a ; flagacted = 1 ; flags = 0 ;
+        break ;
+      }
+      case '.' : 
+      case '/' :
+      {
+        act_t a = { .type = ACTTYPE_DIR, .flags = flags, .data = { .ld = lidx } } ;
+        if (compat_gflags & 1) a.flags |= 1 ;
+        logdir_init(lidx, s, n, tolerance, maxdirsize, &retrytto, processor, *argv, flags) ;
+        lidx++ ;
+        actions[act++] = a ; flagacted = 1 ; flags = 0 ;
+        break ;
+      }
+      default : goto fail ;
+    }
+  }
+  if (flagacted)
+  {
+    script->sels = selections ;
+    script->sellen = sel ;
+    script->acts = actions ;
+    script->actlen = act ;
+  }
+  return ;
+ fail:
+  strerr_dief2x(100, "unrecognized directive: ", *argv) ;
+}
+
+static void script_run (scriptelem_t const *script, unsigned int scriptlen, char const *s, unsigned int len, unsigned int gflags)
+{
+  int flagselected = 1, flagacted = 0 ;
+  unsigned int i = 0, hlen = 0 ;
+  char hstamp[32] ;
+  char tstamp[TIMESTAMP] ;
+  if (gflags & 1)
+  {
+    timestamp_g(tstamp) ;
+    tstamp[TIMESTAMP-1] = ' ' ;
+  }
+  if (gflags & 2)
+  {
+    localtmn_t l ;
+    localtmn_from_tain_g(&l, 1) ;
+    hlen = localtmn_fmt(hstamp, &l) ;
+    hstamp[hlen++] = ' ' ;
+    hstamp[hlen++] = ' ' ;
+  }
+  
+  for (; i < scriptlen ; i++)
+  {
+    unsigned int j = 0 ;
+    for (; j < script[i].sellen ; j++)
+    {
+      switch (script[i].sels[j].type)
+      {
+        case SELTYPE_DEFAULT :
+          flagselected = !flagacted ;
+          break ;
+        case SELTYPE_PLUS :
+	  if (!flagselected && !regexec(&script[i].sels[j].re, s, 0, 0, 0)) flagselected = 1 ;
+          break ;
+        case SELTYPE_MINUS :
+	  if (flagselected && !regexec(&script[i].sels[j].re, s, 0, 0, 0)) flagselected = 0 ;
+          break ;
+        default :
+          strerr_dief2x(101, "internal consistency error in ", "selection type") ;
+      }
+    }
+    if (flagselected)
+    {
+      flagacted = 1 ;
+      for (j = 0 ; j < script[i].actlen ; j++)
+      {
+        act_t const *act = script[i].acts + j ;
+        siovec_t v[4] = { { .s = tstamp, .len = act->flags & 1 ? TIMESTAMP : 0 }, { .s = hstamp, .len = act->flags & 2 ? hlen : 0 }, { .s = (char *)s, .len = len }, { .s = "\n", .len = 1 } } ;
+        switch (act->type)
+        {
+          case ACTTYPE_FD1 :
+            if (!bufalloc_putv(bufalloc_1, v, 4)) dienomem() ;
+          case ACTTYPE_NOTHING :
+            break ;
+
+          case ACTTYPE_FD2 :
+            buffer_puts(buffer_2, PROG) ;
+            buffer_puts(buffer_2, ": alert: ") ;
+            if (act->data.fd2_size && act->data.fd2_size + 3 < len)
+            {
+              v[2].len = act->data.fd2_size ;
+              v[3].s = "...\n" ;
+              v[3].len = 4 ;
+            }
+            buffer_putv(buffer_2, v, 4) ;
+            buffer_flush(buffer_2) ; /* if it blocks, too bad */
+            break ;
+
+          case ACTTYPE_STATUS :
+            if (act->data.status.filelen)
+            {
+              unsigned int reallen = siovec_len(v, 4) ;
+              if (reallen > act->data.status.filelen)
+                siovec_trunc(v, 4, act->data.status.filelen) ;
+              else
+              {
+                register unsigned int k = act->data.status.filelen - reallen + 1 ;
+                char pad[k] ;
+                v[3].s = pad ;
+                v[3].len = k ;
+                while (k--) pad[k] = '\n' ;
+                if (!openwritevnclose_suffix(act->data.status.file, v, 4, ".new") && verbosity)
+                  strerr_warnwu2sys("write status file ", act->data.status.file) ;
+                break ;
+              }
+            }
+            if (!openwritevnclose_suffix(act->data.status.file, v, 4, ".new") && verbosity)
+              strerr_warnwu2sys("write status file ", act->data.status.file) ;
+            break ;
+
+          case ACTTYPE_DIR :
+            if (!bufalloc_putv(&logdirs[act->data.ld].out, v, 4)) dienomem() ;
+            break ;
+
+          default :
+            strerr_dief2x(101, "internal consistency error in ", "action type") ;
+        }
+      }
+    }
+  }
+}
+
+
+ /* Input */
+
+static void prepare_to_exit (void)
+{
+  fd_close(0) ;
+  flagexiting = 1 ;
+}
+
+static void normal_stdin (scriptelem_t const *script, unsigned int scriptlen, unsigned int linelimit, unsigned int gflags)
+{
+  int r = sanitize_read(buffer_fill(buffer_0)) ;
+  if (r < 0)
+  {
+    if ((errno != EPIPE) && verbosity) strerr_warnwu1sys("read from stdin") ;
+    prepare_to_exit() ;
+  }
+  else if (r)
+  {
+    while (skagetln_nofill(buffer_0, &indata, '\n') > 0)
+    {
+      indata.s[indata.len - 1] = 0 ;
+      script_run(script, scriptlen, indata.s, indata.len - 1, gflags) ;
+      indata.len = 0 ;
+    }
+    if (linelimit && indata.len > linelimit)
+    {
+      if (!stralloc_0(&indata)) dienomem() ;
+      if (verbosity) strerr_warnw2x("input line too long, ", "inserting a newline") ;
+      script_run(script, scriptlen, indata.s, indata.len - 1, gflags) ;
+      indata.len = 0 ;
+    }
+  }
+}
+
+static void last_stdin (scriptelem_t const *script, unsigned int scriptlen, unsigned int linelimit, unsigned int gflags)
+{
+  int cont = 1 ;
+  while (cont)
+  {
+    char c ;
+    switch (sanitize_read(fd_read(0, &c, 1)))
+    {
+      case 0 :
+        cont = 0 ;
+        break ;
+      case -1 :
+        if ((errno != EPIPE) && verbosity) strerr_warnwu1sys("read from stdin") ;
+        if (!indata.len)
+        {
+          prepare_to_exit() ;
+          cont = 0 ;
+          break ;
+        }
+ addfinalnewline:
+        c = '\n' ;
+      case 1 :
+        if (!stralloc_catb(&indata, &c, 1)) dienomem() ;
+        if (c == '\n')
+        {
+          script_run(script, scriptlen, indata.s, indata.len - 1, gflags) ;
+          prepare_to_exit() ;
+          cont = 0 ;
+        }
+        else if (linelimit && indata.len > linelimit)
+        {
+          if (verbosity) strerr_warnw2x("input line too long, ", "stopping before the end") ;
+          goto addfinalnewline ;
+        }
+        break ;
+    }
+  }
+}
+
+static inputprocfunc_t_ref handle_stdin = &normal_stdin ;
+
+
+ /* Signals */
+
+static inline void processor_died (logdir_t *ldp, int wstat)
+{
+  ldp->pid = 0 ;
+  if (WIFSIGNALED(wstat))
+  {
+    if (verbosity) strerr_warnw2x("processor crashed in ", ldp->dir) ;
+    tain_add_g(&ldp->deadline, &ldp->retrytto) ;
+    ldp->rstate = ROTSTATE_RUNPROCESSOR ;
+  }
+  else if (WEXITSTATUS(wstat))
+  {
+    if (verbosity) strerr_warnw2x("processor failed in ", ldp->dir) ;
+    tain_add_g(&ldp->deadline, &ldp->retrytto) ;
+    ldp->rstate = ROTSTATE_RUNPROCESSOR ;
+  }
+  else
+  {
+    ldp->rstate = ROTSTATE_SYNCPROCESSED ;
+    rotator(ldp) ;
+  }
+}
+
+static inline void handle_signals (void)
+{
+  for (;;)
+  {
+    switch (selfpipe_read())
+    {
+      case -1 : strerr_diefu1sys(111, "selfpipe_read") ;
+      case 0 : return ;
+      case SIGALRM :
+      {
+        register unsigned int i = 0 ;
+        for (i = 0 ; i < llen ; i++)
+          if ((logdirs[i].rstate == ROTSTATE_WRITABLE) && logdirs[i].b)
+          {
+            logdirs[i].rstate = ROTSTATE_START ;
+            rotator(logdirs + i) ;
+          }
+        break ;
+      }
+      case SIGTERM :
+      {
+        if (flagprotect) break ;
+        handle_stdin = &last_stdin ;
+        if (!indata.len) prepare_to_exit() ;
+        break ;
+      }
+      case SIGCHLD :
+      {
+        for (;;)
+        {
+          int wstat ;
+          register unsigned int i = 0 ;
+          register int r = wait_nohang(&wstat) ;
+          if (r <= 0) break ;
+          for (; i < llen ; i++) if ((unsigned int)r == logdirs[i].pid) break ;
+          if (i < llen) processor_died(logdirs + i, wstat) ;
+        }
+        break ;
+      }
+      default : strerr_dief1x(101, "internal consistency error with signal handling") ;
+    }
+  }
+}
+
+
+ /* Main */
+
 int main (int argc, char const *const *argv)
 {
-  genalloc logscript = GENALLOC_ZERO ; /* array of scriptelem_t */
+  unsigned int sellen, actlen, scriptlen ;
+  unsigned int linelimit = 0, gflags = 0, compat_gflags = 0 ;
   int flagblock = 0 ;
   PROG = "s6-log" ;
   {
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "qvbpte", &l) ;
+      register int opt = subgetopt_r(argc, argv, "qvbptel:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -1170,97 +1174,126 @@ int main (int argc, char const *const *argv)
         case 'v' : verbosity++ ; break ;
         case 'b' : flagblock = 1 ; break ;
         case 'p' : flagprotect = 1 ; break ;
-        case 't' : flagstamp = 1 ; break ;
-        case 'e' : flagstampalert = 1 ; break ;
-        default : strerr_dieusage(100, USAGE) ;
+        case 't' : gflags |= 1 ; compat_gflags |= 1 ; break ;
+        case 'e' : gflags |= 1 ; compat_gflags |= 2 ; break ;
+        case 'l' : if (!uint0_scan(l.arg, &linelimit)) dieusage() ; break ;
+        default : dieusage() ;
       }
     }
     argc -= l.ind ; argv += l.ind ;
   }
-  if (argc < 1) strerr_dieusage(100, USAGE) ;
-
-  fd_close(1) ;
+  if (!argc) dieusage() ;
+  if (linelimit && linelimit < LINELIMIT_MIN) linelimit = LINELIMIT_MIN ;
+  if (compat_gflags && verbosity) strerr_warnw1x("options -t and -e are deprecated") ;
+  if (!fd_sanitize()) strerr_diefu1sys(111, "ensure stdin/stdout/stderr are open") ;
+  if (!tain_now_g() && verbosity) strerr_warnwu1sys("read current time - timestamps may be wrong for a while") ;
+  if (ndelay_on(0) < 0) strerr_diefu3sys(111, "set std", "in", " non-blocking") ;
+  if (ndelay_on(1) < 0) strerr_diefu3sys(111, "set std", "out", " non-blocking") ;
+  script_firstpass(argv, &sellen, &actlen, &scriptlen, &gflags) ;
   {
-    int r = tain_now_g() ;
-    if (flagstamp)
-    {
-      char fmt[TIMESTAMP+1] ;
-      if (!stralloc_catb(&indata, fmt, TIMESTAMP+1)) dienomem() ;
-      if (!r) strerr_warnwu1sys("read current time - timestamps may be wrong for a while") ;
-    }
-  }
-  if (!script_init(&logscript, argv)) strerr_diefu1sys(111, "initialize logging script") ;
-  if (ndelay_on(0) < 0) strerr_diefu1sys(111, "ndelay_on(0)") ;
-
-  {
-    unsigned int llen = genalloc_len(logdir_t, &logdirs) ;
-    logdir_t *ls = genalloc_s(logdir_t, &logdirs) ;
-    iopause_fd x[2 + llen] ;
-    unsigned int active[llen] ;
-    x[0].fd = 0 ;
-    x[1].fd = selfpipe_init() ;
-    if (x[1].fd < 0) strerr_diefu1sys(111, "selfpipe_init") ;
+    sel_t selections[sellen] ;
+    act_t actions[actlen] ;
+    scriptelem_t script[scriptlen] ;
+    logdir_t logdirblob[llen] ;
+    iopause_fd x[3 + llen] ;
+    logdirs = logdirblob ;
+    script_secondpass(argv, script, selections, actions, compat_gflags) ;
+    x[0].fd = selfpipe_init() ;
+    if (x[0].fd < 0) strerr_diefu1sys(111, "selfpipe_init") ;
     if (sig_ignore(SIGPIPE) < 0) strerr_diefu1sys(111, "sig_ignore(SIGPIPE)") ;
     {
       sigset_t set ;
       sigemptyset(&set) ;
-      sigaddset(&set, SIGTERM) ; sigaddset(&set, SIGALRM) ; sigaddset(&set, SIGCHLD) ;
-      if (selfpipe_trapset(&set) < 0) strerr_diefu1sys(111, "selfpipe_trapset") ;
+      sigaddset(&set, SIGTERM) ;
+      sigaddset(&set, SIGALRM) ;
+      sigaddset(&set, SIGCHLD) ;
+      if (selfpipe_trapset(&set) < 0)
+        strerr_diefu1sys(111, "selfpipe_trapset") ;
     }
-    x[1].events = IOPAUSE_READ ;
+    x[0].events = IOPAUSE_READ ;
 
     for (;;)
     {
       tain_t deadline ;
       int r ;
-      unsigned int j = 0 ;
-      unsigned int i = 0 ;
-      int allflushed = 1 ;
+      unsigned int xindex0, xindex1 ;
+      unsigned int i = 0, j = 1 ;
       tain_add_g(&deadline, &tain_infinite_relative) ;
+      if (bufalloc_1->fd == 1 && bufalloc_len(bufalloc_1))
+      {
+        x[j].fd = 1 ;
+        x[j].events = IOPAUSE_EXCEPT | (bufalloc_len(bufalloc_1) ? IOPAUSE_WRITE : 0) ;
+        xindex1 = j++ ;
+      }
+      else xindex1 = 0 ;
+
       for (; i < llen ; i++)
       {
-        if (bufalloc_len(&ls[i].out) || (ls[i].rstate != ROTSTATE_WRITABLE))
+        logdirs[i].xindex = 0 ;
+        if (bufalloc_len(&logdirs[i].out) || (logdirs[i].rstate != ROTSTATE_WRITABLE))
         {
-          allflushed = 0 ;
-          if (!tain_future(&ls[i].deadline))
+          if (!tain_future(&logdirs[i].deadline))
           {
-            x[2+j].fd = ls[i].fd ;
-            x[2+j].events = IOPAUSE_WRITE ;
-            active[j++] = i ;
+            x[j].fd = logdirs[i].fd ;
+            x[j].events = IOPAUSE_WRITE ;
+            logdirs[i].xindex = j++ ;
           }
-          else if (tain_less(&ls[i].deadline, &deadline))
-              deadline = ls[i].deadline ;
+          else if (tain_less(&logdirs[i].deadline, &deadline))
+            deadline = logdirs[i].deadline ;
         }
       }
-      if (flagexiting && allflushed) break ;
-      x[0].events = (allflushed || !flagblock) ? IOPAUSE_READ : 0 ;
-      r = iopause_g(x + flagexiting, 2 - flagexiting + j, &deadline) ;
-      if (r < 0) strerr_diefu1sys(111, "iopause") ;
-      else if (r)
+      if (!flagexiting && (!flagblock || j == 1))
       {
-        if (x[1].revents & IOPAUSE_READ) handle_signals() ;
-        else if (x[1].revents & IOPAUSE_EXCEPT) strerr_dief1sys(111, "trouble with selfpipe") ;
-        for (i = 0 ; i < j ; i++)
-          if (x[2+i].revents & IOPAUSE_WRITE)
-            rotate_or_flush(ls + active[i]) ;
-        if (!flagexiting)
+        x[j].fd = 0 ;
+        x[j].events = IOPAUSE_READ ;
+        xindex0 = j++ ;
+      }
+      else xindex0 = 0 ;
+
+      if (flagexiting && j == 1) break ;
+
+      r = iopause_g(x, j, &deadline) ;
+      if (r < 0) strerr_diefu1sys(111, "iopause") ;
+      else if (!r) continue ;
+
+      if (x[0].revents & IOPAUSE_READ) handle_signals() ;
+      else if (x[0].revents & IOPAUSE_EXCEPT) strerr_dief1sys(111, "trouble with selfpipe") ;
+
+      if (xindex1 && x[xindex1].revents)
+      {
+        if (!bufalloc_flush(bufalloc_1) && !error_isagain(errno))
         {
-          if (x[0].revents & IOPAUSE_READ)
-            (*handle_stdin)(genalloc_s(scriptelem_t, &logscript), genalloc_len(scriptelem_t, &logscript)) ;
-          else if (x[0].revents & IOPAUSE_EXCEPT)
+          unsigned int i = actlen ;
+          fd_close(1) ;
+          bufalloc_1->fd = -1 ;
+          bufalloc_free(bufalloc_1) ;
+          while (i--)
+            if (actions[i].type == ACTTYPE_FD1)
+              actions[i].type = ACTTYPE_NOTHING ;
+        }
+      }
+
+      for (i = 0 ; i < llen ; i++)
+       if (logdirs[i].xindex && x[logdirs[i].xindex].revents & IOPAUSE_WRITE)
+           rotate_or_flush(logdirs + i) ;
+
+      if (xindex0 && x[xindex0].revents)
+      {
+        if (x[xindex0].revents & IOPAUSE_READ)
+          (*handle_stdin)(script, scriptlen, linelimit, gflags) ;
+        else
+        {
+          prepare_to_exit() ;
+          if (indata.len)
           {
-            prepare_to_exit() ;
-            if (indata.len > (flagstamp ? TIMESTAMP+1 : 0))
-            {
-              if (!stralloc_0(&indata)) dienomem() ;
-              stampanddoit(genalloc_s(scriptelem_t, &logscript), genalloc_len(scriptelem_t, &logscript)) ;
-            }
+            if (!stralloc_0(&indata)) dienomem() ;
+            script_run(script, scriptlen, indata.s, indata.len-1, gflags) ;
+            indata.len = 0 ;
           }
         }
       }
     }
+    finalize() ;
   }
-  genalloc_deepfree(scriptelem_t, &logscript, &scriptelem_free) ;
-  finalize() ;
   return 0 ;
 }
