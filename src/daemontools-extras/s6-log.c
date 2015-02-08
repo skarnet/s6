@@ -912,11 +912,11 @@ static void script_run (scriptelem_t const *script, unsigned int scriptlen, char
   int flagselected = 1, flagacted = 0 ;
   unsigned int i = 0, hlen = 0 ;
   char hstamp[32] ;
-  char tstamp[TIMESTAMP] ;
+  char tstamp[TIMESTAMP+1] ;
   if (gflags & 1)
   {
     timestamp_g(tstamp) ;
-    tstamp[TIMESTAMP-1] = ' ' ;
+    tstamp[TIMESTAMP] = ' ' ;
   }
   if (gflags & 2)
   {
@@ -953,7 +953,7 @@ static void script_run (scriptelem_t const *script, unsigned int scriptlen, char
       for (j = 0 ; j < script[i].actlen ; j++)
       {
         act_t const *act = script[i].acts + j ;
-        siovec_t v[4] = { { .s = tstamp, .len = act->flags & 1 ? TIMESTAMP : 0 }, { .s = hstamp, .len = act->flags & 2 ? hlen : 0 }, { .s = (char *)s, .len = len }, { .s = "\n", .len = 1 } } ;
+        siovec_t v[4] = { { .s = tstamp, .len = act->flags & 1 ? TIMESTAMP+1 : 0 }, { .s = hstamp, .len = act->flags & 2 ? hlen : 0 }, { .s = (char *)s, .len = len }, { .s = "\n", .len = 1 } } ;
         switch (act->type)
         {
           case ACTTYPE_FD1 :

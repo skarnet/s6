@@ -452,8 +452,6 @@ static int do_setdump_data (unsigned int cc, unixmessage_t const *m)
       tain_unpack(s, &p->limit) ;
       byte_copy(p->id, idlen+1, s + TAIN_PACK + 1) ;
       p->fd = m->fds[i] ;
-      char fmt[TIMESTAMP] ;
-      fmt[timestamp_fmt(fmt, &p->limit)] = 0 ;
       avltreen_insert(fds_by_id, indices[i]) ;
       avltreen_insert(fds_by_deadline, indices[i]) ;
       s += TAIN_PACK + 2 + idlen ; len -= TAIN_PACK + 2 + idlen ;
@@ -802,6 +800,6 @@ int main (int argc, char const *const *argv, char const *const *envp)
         else client_add(&i, fd, &rre, &wre, flags) ;
       }
     }
-    return (~!numfds | (!!numconn << 1)) ;
+    return (!!numfds | (!!numconn << 1)) ;
   }
 }
