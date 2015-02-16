@@ -22,9 +22,9 @@
 <a href="s6-fdholder-daemon.html">s6-fdholder-daemon</a>
 fd-holding server.
 It assumes that its stdin is a bound and listening Unix
-domain socket, and
-it accepts connections from clients connecting to it, and stores and
-retrieves file descriptors on their behalf.
+domain socket;
+it accepts connections from clients connecting to that socket,
+and stores and retrieves file descriptors on their behalf.
 </p>
 
 <h2> Interface </h2>
@@ -38,8 +38,10 @@ retrieves file descriptors on their behalf.
 bound and listening SOCK_STREAM Unix domain socket which is its
 standard input. </li>
  <li> Depending on the verbosity level, it logs what it does to stderr. </li>
- <li> It runs until killed by a signal. Depending on the received
-signal, it may kill its children before exiting. </li>
+ <li> It runs until killed by a signal (normally SIGTERM).
+When s6-fdholderd is killed, all the fds it is currently holding are
+lost; if they need to be preserved, the admin should make sure to
+<a href="s6-fdholder-transferdump.html">transfer them</a> beforehand. </li>
  <li> Client connections are short-lived. Clients generally perform
 one operation, then disconnect. </li>
  <li> Possible operations include:
@@ -149,7 +151,7 @@ stored in either a <em>rulesfile</em> in the
 <a href="http://en.wikipedia.org/wiki/Cdb_%28software%29">CDB</a> format,
 or in a <em>rulesdir</em>, i.e. a directory in the filesystem following a
 certain format. s6-fdholderd will refuse to run if neither the <tt>-i</tt>
-nor the <tt>-x</tt> option have been provided.
+nor the <tt>-x</tt> option has been provided.
 </p>
 
 <p>
@@ -173,7 +175,7 @@ the client is authorized to do.
 <p>
  By default, no client is allowed to do anything - not even
 connect to the server. Even <tt>root</tt>, the super-user, will be denied
-access. That's why
+access. That is why
 it is essential to create a sensible ruleset prior to running the server
 in order to do anything useful.
 </p>
@@ -316,7 +318,7 @@ you can always run a separate s6-fdholderd instance in a private directory
 with a configuration tailored to your needs
 - and you can even make the name of the listening socket private.
 s6-fdholderd is lightweight, you can start as many instances as you need,
-and you can run them as long as you need then kill them with SIGTERM.
+and you can run them as long as you need then kill them with SIGTERM. </li>
  <li> s6-fdholderd pre-allocates its storage at start, in the stack. It
 uses a small amount of heap memory for communication with a client, but frees
 it as soon as the client disconnects. It should never run out of memory in
