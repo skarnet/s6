@@ -29,11 +29,11 @@ describe the retrieved state.
 <h2> Interface </h2>
 
 <pre>
-     s6-fdholder-retrievec [ -t <em>timeout</em> ] <em>prog...</em>
+     s6-fdholder-getdumpc [ -t <em>timeout</em> ] <em>prog...</em>
 </pre>
 
 <ul>
- <li> s6-fdholder-retrievec expects to talk to a listening
+ <li> s6-fdholder-getdumpc expects to talk to a listening
 <a href="s6-fdholderd.html">s6-fdholderd</a> program on its descriptors 6 and 7. </li>
  <li> It retrieves a copy of the whole set of file descriptors
 stored in that daemon, including their identifiers and expiration dates. </li>
@@ -83,6 +83,10 @@ is not defined. </li>
 expects to be run as a UCSPI client, i.e. talking to the server
 over descriptors 6 and 7, instead of connecting to the server
 itself. </li>
+ <li> Getting the whole state of a s6-fdholderd daemon requires specific
+privileges. Make sure you properly
+<a href="s6-fdholderd.html#configuration">configure the s6-fdholderd
+access rights</a> so your client can perform that operation. </li>
  <li> The error messages for the s6-fdholder suite are explained
 <a href="s6-fdholder-errorcodes.html">here</a>. </li>
 </ul>

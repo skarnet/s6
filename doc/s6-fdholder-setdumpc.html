@@ -32,7 +32,7 @@ in its environment.
 </pre>
 
 <ul>
- <li> s6-fdholder-storec expects to talk to a listening
+ <li> s6-fdholder-setdumpc expects to talk to a listening
 <a href="s6-fdholderd.html">s6-fdholderd</a> program on its descriptors 6 and 7. </li>
  <li> It attempts to pass a complete state - i.e. a set of file descriptors
 with identifiers and expiration dates - to s6-fdholderd. </li>
@@ -56,6 +56,10 @@ only here to protect users against programming errors. </li>
  <li> The format of the environment variables where s6-fdholder-setdumpc
 gets its information from is the same as the one set by
 <a href="s6-fdholder-getdumpc.html">s6-fdholder-getdumpc</a>. </li>
+ <li> Getting the whole state of a s6-fdholderd daemon requires specific
+privileges. Make sure you properly
+<a href="s6-fdholderd.html#configuration">configure the s6-fdholderd
+access rights</a> so your client can perform that operation. </li>
 </ul>
 
 </body>
