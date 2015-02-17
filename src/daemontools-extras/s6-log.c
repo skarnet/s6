@@ -808,7 +808,7 @@ static inline void script_secondpass (char const *const *argv, scriptelem_t *scr
             errno = ENOMEM ;
             strerr_diefu1sys(111, "initialize script") ;
           }
-          if (!r) goto fail ;
+          if (r) goto fail ;
         }
         selections[sel++] = selitem ;
         if (flagacted)

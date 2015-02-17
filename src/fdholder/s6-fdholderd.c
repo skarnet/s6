@@ -800,6 +800,6 @@ int main (int argc, char const *const *argv, char const *const *envp)
         else client_add(&i, fd, &rre, &wre, flags) ;
       }
     }
-    return (!!numfds | (!!numconn << 1)) ;
+    return ((!!numfds) | (!!numconn << 1)) ;
   }
 }
