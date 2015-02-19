@@ -37,6 +37,6 @@ int main (int argc, char const *const *argv, char const *const *envp)
   tain_now_g() ;
   tain_add_g(&deadline, &deadline) ;
   if (!s6_fdholder_delete_g(&a, argv[0], &deadline))
-    strerr_diefu1sys(1, "delete fd") ;
+    strerr_diefu2sys(1, "delete fd for id ", argv[0]) ;
   return 0 ;
 }
