@@ -573,7 +573,7 @@ static inline int parse_env (char const *const *envp, regex_t *rre, regex_t *wre
       }
     }
   }
-  if (!rre_done) defaultre(wre) ;
+  if (!rre_done) defaultre(rre) ;
   if (!wre_done) defaultre(wre) ;
   *flags = fl ;
   return 1 ;
