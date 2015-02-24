@@ -810,7 +810,6 @@ static inline void script_secondpass (char const *const *argv, scriptelem_t *scr
           }
           if (r) goto fail ;
         }
-        selections[sel++] = selitem ;
         if (flagacted)
         {
           flagacted = 0 ;
@@ -822,6 +821,7 @@ static inline void script_secondpass (char const *const *argv, scriptelem_t *scr
           actions += act ; act = 0 ;
           script++ ;
         }
+        selections[sel++] = selitem ;
         break ;
       }
       case 'n' :
