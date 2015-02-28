@@ -20,4 +20,6 @@ foundation for a complete init system.
  Laurent Bercot <ska-skaware at skarnet.org>
 
  Please use the <skaware at list.skarnet.org> mailing-list for
-questions about s6.
+questions about the inner workings of s6, and the
+<supervision at list.skarnet.org> mailing-list for questions
+about process supervision, init systems, and so on.
