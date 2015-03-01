@@ -304,18 +304,9 @@ static void up_u (void)
   announce() ;
 }
 
-static void closethem (void)
-{
-  fd_close(0) ;
-  fd_close(1) ;
-  open_read("/dev/null") ;
-  open_write("/dev/null") ;
-}
-
 static void up_x (void)
 {
   state = LASTUP ;
-  closethem() ;
 }
 
 static void up_term (void)
@@ -350,7 +341,6 @@ static void finish_u (void)
 static void finish_x (void)
 {
   state = LASTFINISH ;
-  closethem() ;
 }
 
 static void lastup_z (void)

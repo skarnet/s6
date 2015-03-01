@@ -94,13 +94,6 @@ service. </li>
 subdirectory of <em>servicedir</em>. <em>servicedir</em> itself can be read-only,
 but both <em>servicedir</em><tt>/supervise</tt> and <em>servicedir</em><tt>/event</tt>
 need to be read-write. </li>
- <li> The <tt>./finish</tt> script is not guaranteed to have stdin and
-stdout pointing to the same locations as the <tt>./run</tt> script. More
-precisely: the stdin and stdout will be preserved for <tt>./finish</tt>
-until s6-supervise is asked to exit, but the last <tt>./finish</tt>
-execution will have its stdin and stdout redirected to <tt>/dev/null</tt>.
-(This is to avoid maintaining open descriptors when a service is down, which
-would prevent its logger from exiting cleanly.) </li>
 </ul>
 
 <h2> Implementation notes </h2>
