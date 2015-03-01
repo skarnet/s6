@@ -4,4 +4,6 @@ during stage 1 init, so the basics are covered for stage 2:
  - /tmp points to a real, writable temporary directory
  - /service points to a real, writable scan directory that
 already contains basic services (s6-svscan's own logger and
-an early getty).
+an early getty)
+ - /mnt/tmpfs/uncaught-logs is the place in RAM where the
+catch-all logger stores and rotates its logs.

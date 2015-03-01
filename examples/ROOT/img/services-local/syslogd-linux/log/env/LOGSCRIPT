@@ -3,5 +3,4 @@
 - +^user\. t /var/log/syslogd/user 
 - +^messages\. t /var/log/syslogd/messages 
 - +^daemon\. t /var/log/syslogd/daemon 
-- f t /var/log/syslogd/misc
-
+f t /var/log/syslogd/misc

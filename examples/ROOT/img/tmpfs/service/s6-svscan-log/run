@@ -3,7 +3,7 @@ redirfd -w 2 /dev/console
 redirfd -rnb 0 fifo
 s6-setuidgid nobody
 exec -c
-s6-log -bp t /tmp/uncaught-logs
+s6-log -bp t /mnt/tmpfs/uncaught-logs
 
 #  The -p option is important:
 # even if s6-svscan is told to kill everything,
