@@ -8,11 +8,11 @@
 if -nt
 {
 
-# This should be logged in /tmp/uncaught-logs/current,
+# This should be logged in /mnt/tmpfs/uncaught-logs/current,
 # NOT on /dev/console !
   if { s6-echo "* init-stage2 starting." }
 
-# Call your one-time EARLY initialization scripts (before bringing
+# Call your one-time early initialization scripts (before bringing
 # the network up) here:
 # set the hostname, mount filesystems, adjust sysctls, etc.
 # if { s6-mount -wt devpts -o noexec,nosuid,gid=0,mode=0600 devpts /dev/pts }
