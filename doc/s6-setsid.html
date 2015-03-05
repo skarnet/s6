@@ -31,7 +31,7 @@ foreground or background process group.
 <ul>
  <li> s6-setsid creates a new session, or a new process group,
 and may make that process group the foreground process group,
-depending on the options it has been given. </li>
+depending on the options it is run with. </li>
  <li> As session leader or process group leader, s6-setsid then
 executes into <em>prog...</em>. </li>
 </ul>
@@ -55,9 +55,9 @@ sent a SIGCONT to resume. To avoid that, use the next option. </li>
 not create a new session, but will create a new process group and
 attach its session's controlling terminal to the new process group
 before executing <em>prog</em>. It will forcefully grab the controlling
-terminal from the former foreground process group, which means that
-a process belonging to the former foreground process group attempting
-to read from or write to that terminal will be stopped. </li>
+terminal from the former foreground process group: a process
+belonging to that former foreground process group will be stopped if
+it attempts to read from or write to that terminal. </li>
  <li> <tt>-i</tt>&nbsp;: strict. If s6-setsid cannot perform the
 operations it needs, it will exit 111 with an error message. </li>
  <li> <tt>-I</tt>&nbsp;: loose. If s6-setsid cannot perform the operations,
@@ -66,7 +66,8 @@ This is the default. </li>
  <li> <tt>-q</tt>&nbsp;: silent. s6-setsid will not print any warning
 message; it will exec into <em>prog</em> even if it cannot perform the
 operations. </li>
- <li> <tt>-d&nbsp;<em>ctty</em></tt>&nbsp;: assume <em>ctty</em> is
+ <li> <tt>-d&nbsp;<em>ctty</em></tt>&nbsp;: assume file descriptor
+number <em>ctty</em> is
 the controlling terminal for the current session. Default is 0.
 This is only useful when used with the <tt>-f</tt> or
 <tt>-g</tt> options. </li>

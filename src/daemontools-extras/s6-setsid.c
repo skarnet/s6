@@ -19,7 +19,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "sbfgiIqt:", &l) ;
+      register int opt = subgetopt_r(argc, argv, "sbfgiIqd:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -30,7 +30,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
         case 'i' : insist = 2 ; break ;
         case 'I' : insist = 1 ; break ;
         case 'q' : insist = 0 ; break ;
-        case 't' : if (!uint0_scan(l.arg, &ctty)) dieusage() ; break ;
+        case 'd' : if (!uint0_scan(l.arg, &ctty)) dieusage() ; break ;
         default : dieusage() ;
       }
     }
