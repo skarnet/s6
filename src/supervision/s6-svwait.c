@@ -71,7 +71,7 @@ int main (int argc, char const *const *argv)
       s[len] = '/' ;
       byte_copy(s + len + 1, sizeof(S6_SUPERVISE_EVENTDIR), S6_SUPERVISE_EVENTDIR) ;
       list[i] = ftrigr_subscribe_g(&a, s, re, FTRIGR_REPEAT, &deadline) ;
-      if (!list[i]) strerr_diefu2sys(111, "subscribe to events for", argv[i]) ;
+      if (!list[i]) strerr_diefu2sys(111, "subscribe to events for ", argv[i]) ;
     }
 
     for (i = 0 ; i < (unsigned int)argc ; i++)
