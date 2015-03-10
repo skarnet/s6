@@ -1006,6 +1006,7 @@ static void script_run (scriptelem_t const *script, unsigned int scriptlen, char
       }
     }
   }
+  if (gflags & 1) tain_now_g() ;
 }
 
 
