@@ -25,12 +25,11 @@ then executes into another program.
 <h2> Interface </h2>
 
 <pre>
-     s6-envuidgid <em>account</em> <em>prog...</em>
+     s6-envuidgid [ -i | -D <em>uid</em>:<em>gid</em> ] <em>account</em> <em>prog...</em>
 </pre>
 
 <ul>
  <li> s6-envuidgid looks <em>account</em> up by name in the account database. </li>
- <li> If <em>account</em> is unknown, it exits 1. </li>
  <li> It sets the UID environment variable to <em>account</em>'s uid, and the GID
 environment variable to <em>account</em>'s gid. </li>
  <li> It also sets the GIDLIST environment variable to a comma-separated list of
@@ -40,25 +39,28 @@ primary group, GIDLIST is still set, but empty.) </li>
  <li> Then it executes into <em>prog...</em>. </li>
 </ul>
 
-<h2> Notes </h2>
-
-<p>
- s6-envuidgid behaves like
-<a href="http://cr.yp.to/daemontools/envuidgid.html">envuidgid</a>, except that:
-</p>
+<h2> Options </h2>
 
 <ul>
- <li> it also handles supplementary groups </li>
- <li> It exits 1 if <em>account</em> does not exist. </li>
+ <li> <tt>-i</tt>&nbsp;: insist. If <em>account</em> is unknown, exit 1 with
+an error message. This is the default. </li>
+ <li> <tt>-D&nbsp;<em>uid</em>:<em>gid</em></tt>&nbsp;: if <em>account</em>
+is unknown, use <em>uid</em>, <em>gid</em>, and the empty list as the values
+for UID, GID and GIDLIST. </li>
 </ul>
 
-<p>
- s6-envuidgid is useful when running a program that must start as root but can
+<h2> Notes </h2>
+
+<ul>
+ <li> s6-envuidgid without options behaves like
+<a href="http://cr.yp.to/daemontools/envuidgid.html">envuidgid</a>, except that
+the exit code is 1 if <em>account</em> doesn't exist. </li>
+ <li> s6-envuidgid is useful when running a program that must start as root but can
 drop its privileges later. Such a program can read its new uid/gid/groups info
 from the UID, GID and GIDLIST environment variables. Superservers such as
 <a href="http://skarnet.org/software/s6-networking/s6-tcpserver4.html">s6-tcpserver4</a>
-make use of this.
-</p>
+make use of this. </li>
+</ul>
 
 </body>
 </html>
