@@ -13,7 +13,7 @@
 #include <s6/ftrigw.h>
 #include <s6/s6-supervise.h>
 
-#define USAGE "s6-notifywhenup [ -d fd ] [ -e fifodir ] [ -f ] [ -t timeout ] prog..."
+#define USAGE "s6-notifywhenup [ -d fd ] [ -e fifodir ] [ -f ] [ -X ] [ -t timeout ] prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 
 static int run_child (int fd, char const *fifodir, unsigned int timeout)
@@ -50,17 +50,18 @@ int main (int argc, char const *const *argv, char const *const *envp)
 {
   unsigned int fd = 1 ;
   char const *fifodir = "event" ;
-  int df = 1 ;
+  int df = 1, fake = 0 ;
   unsigned int timeout = 0 ;
   PROG = "s6-notifywhenup" ;
   {
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "d:e:ft:", &l) ;
+      register int opt = subgetopt_r(argc, argv, "Xd:e:ft:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
+        case 'X' : fake = 1 ; break ;
         case 'd' : if (!uint0_scan(l.arg, &fd)) dieusage() ; break ;
         case 'e' : fifodir = l.arg ; break ;
         case 'f' : df = 0 ; break ;
@@ -87,6 +88,11 @@ int main (int argc, char const *const *argv, char const *const *envp)
     close(p[0]) ;
     if (fd_move((int)fd, p[1]) < 0) strerr_diefu1sys(111, "fd_move") ;
   }
+  if (fake)
+  {
+    write(fd, "\n", 1) ;
+    close(fd) ;
+  }
   pathexec_run(argv[0], argv, envp) ;
-  strerr_dieexec(111, argv[1]) ;
+  strerr_dieexec(111, argv[0]) ;
 }

@@ -27,7 +27,7 @@ knowing their PIDs, and without using horrible hacks such as .pid files.
 <h2> Interface </h2>
 
 <pre>
-     s6-svc [ -D | -U ] [ -t <em>timeout</em> ] [ -abqhkti12pcoduxO ] <em>servicedir</em>
+     s6-svc [ -D | -U ] [ -T <em>timeout</em> ] [ -abqhkti12pcoduxO ] <em>servicedir</em>
 </pre>
 
 <p>
@@ -62,8 +62,8 @@ normally never be used on a working system. </li>
  <li> <tt>-O</tt>&nbsp;: Once at most. Do not restart the supervised process
 when it dies. If it is down when the command is received, do not even start
 it. </li>
- <li> <tt>-t&nbsp;<em>timeout</em></tt>&nbsp;: if the <tt>-D</tt> or
-<tt>-U</tt> option has been given, <tt>-t</tt> specifies a timeout
+ <li> <tt>-T&nbsp;<em>timeout</em></tt>&nbsp;: if the <tt>-D</tt> or
+<tt>-U</tt> option has been given, <tt>-T</tt> specifies a timeout
 (in milliseconds) after which s6-svc will exit 1 with an error message if
 the service still hasn't reached the desired state. By default, the
 timeout is 0, which means that s6-svc will block indefinitely. </li>
@@ -96,7 +96,7 @@ typically the sshd server.
  Take down the ftpd server and block until the process is really down.
 </p>
 
-<pre> s6-svc -Uu -t 5000 /service/ftpd </pre>
+<pre> s6-svc -Uu -T 5000 /service/ftpd </pre>
 <p>
  Bring up the ftpd server and block until it has sent notification that it
 is ready. Exit 1 if it is still not ready after 5 seconds.

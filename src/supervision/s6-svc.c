@@ -8,7 +8,7 @@
 #include <s6/config.h>
 #include <s6/s6-supervise.h>
 
-#define USAGE "s6-svc [ -D | -U ] [ -t timeout ] [ -abqhkti12pcoduxO ] servicedir"
+#define USAGE "s6-svc [ -D | -U ] [ -T timeout ] [ -abqhkti12pcoduxO ] servicedir"
 #define dieusage() strerr_dieusage(100, USAGE)
 
 #define DATASIZE 63

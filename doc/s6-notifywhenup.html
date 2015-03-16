@@ -31,7 +31,7 @@ needed.
 <h2> Interface </h2>
 
 <pre>
-     s6-notifywhenup [ -d <em>fd</em> ] [ -e <em>fifodir</em> ] [ -f ] [ -t <em>timeout</em> ] <em>prog...</em>
+     s6-notifywhenup [ -d <em>fd</em> ] [ -e <em>fifodir</em> ] [ -f ] [ -X ] [ -t <em>timeout</em> ] <em>prog...</em>
 </pre>
 
 <ul>
@@ -59,6 +59,9 @@ set if <em>prog</em> reaps even children it doesn't know it has. </li>
  <li> <tt>-t&nbsp;<em>timeout</em></tt>&nbsp;: if no EOF has been received
 after <em>timeout</em> milliseconds, exit without sending the event.
 Default is 0, meaning infinite. </li>
+ <li> <tt>-X</tt>&nbsp;: fake readiness. s6-notifywhenup will actually send
+the newline itself before executing <em>prog</em>. This option should in
+principle never be used. </li>
 </ul>
 
 <h2> Notes </h2>
