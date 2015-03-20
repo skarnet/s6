@@ -67,7 +67,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     if (n < 0)
       strerr_diefu2sys(111, "get supplementary groups for ", argv[0]) ;
   }
-  else if (insist) strerr_dief2x(1, "unknown user: ", argv[1]) ;
+  else if (insist) strerr_dief2x(1, "unknown user: ", argv[0]) ;
 
   {
     unsigned int pos = 0 ;
