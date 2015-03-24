@@ -1,0 +1,462 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: an overview</title>
+    <meta name="Description" content="s6: an overview" />
+    <meta name="Keywords" content="s6 overview supervision init process unix" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> An overview of s6 </h1>
+
+<p>
+ s6 is a collection of utilities revolving around process supervision and
+management, logging, and system initialization. This page is a high-level
+description of the different parts of s6.
+</p>
+
+<h2> Process supervision </h2>
+
+<p>
+ At its core, s6 is a <em>process supervision suite</em>, like its ancestor
+<a href="http://cr.yp.to/daemontools.html">daemontools</a> and its
+close cousin
+<a href="http://smarden.org/runit/">runit</a>.
+</p>
+
+<h3> Concept </h3>
+
+<p>
+ The concept of process supervision comes from several observations:
+</p>
+
+<ul>
+ <li> Unix systems, even minimalistic ones, need to run
+<em>long-lived processes</em>, aka <em>daemons</em>. Sometimes, they
+need to run <em>a lot</em> of them.</li>
+ <li> Daemons can die unexpectedly. Maybe they are missing a vital
+resource and cannot handle a certain failure; maybe they tripped on a bug;
+maybe a misconfigured administration program killed them; maybe the
+kernel killed them. </li>
+ <li> Automatically restarting daemons when they die is generally a good
+thing. In any case, sysadmin intervention is necessary, but at least the
+daemon is providing service, or trying to, until the sysadmin can log in
+and investigate the underlying problem. </li>
+ <li> Ad-hoc shell scripts that restart daemons <strong>suck</strong>, for
+several reasons that would each justify their own page. The difficulty of
+keeping track of the PID, explained below, is one of those reasons. </li>
+ <li> It is sometimes necessary to send signals to a daemon. To kill it,
+of course, but also to make it read its config file again, for instance;
+signalling a daemon is a natural and very common way of sending it
+simple commands. </li>
+ <li> Generally, to send a signal to a daemon, you need to know its PID.
+Without a supervision suite, knowing the proper PID is hard. Most
+non-supervision systems use a hack known as <em>.pid files</em>, i.e.
+the script that starts the daemon stores its PID into a file, and other
+scripts read that file. This is a bad mechanism for several reasons, and
+the case against .pid files would also justify its own page; the most
+important drawback of .pid files is that they create race conditions
+and management scripts may kill the wrong process. </li>
+ <li> Non-supervision systems provide scripts to start and stop daemons,
+but those scripts may fail at boot time even though they work when run
+manually,
+and vice versa. If a sysadmin logs in and runs the script to restart a
+daemon that has died, the result might not be the same as if the whole
+system had been rebooted, and the daemon may exhibit strange behaviours!
+This is because the boot-time environment and the restart-time environment
+are not the same when the script is run; and a non-supervision system
+just cannot ensure reproducibility of the environment. This is a core
+problem of non-supervision systems: countless bugs have been falsely
+reported because of simple environment differences or configuration errors,
+countless man-hours have been wasted to try and understand what was
+going on. </li>
+</ul>
+
+<p>
+ A process supervision system organizes the process hierarchy in a
+radically different way.
+</p>
+
+<ul>
+ <li> A process supervision system starts an independent hierarchy of
+processes at boot time, called a <em>supervision tree</em>. This
+supervision tree never dies: when one of its components dies, it is
+restarted automatically. To ensure availability of the supervision
+tree at all times, it should be rooted in process 1, which cannot die. </li>
+ <li> A daemon is never started, either manually or in a script, as a
+scion of the script that starts it.
+ Instead, to start a daemon, you configure a
+specific directory which contains all the information about your daemon;
+then you send a command to the supervision tree. The supervision tree
+will start the daemon as a leaf. <strong>In a process supervision
+system, daemons are always spawned by the supervision tree, and
+never by an admin's shell.</strong> </li>
+ <li> The parent of your daemon is a <em>supervisor</em>. Since your
+daemon is its direct child, <strong>the supervisor always knows the
+correct PID of your daemon</strong>. </li>
+ <li> The supervisor watches your daemon and can restart it when it
+dies, automatically. </li>
+ <li> The supervision tree always has the same environment, so starting
+conditions are reproducible. Your daemon will always be started with the
+same environment, whether it is at boot time via init scripts or for the
+100th automatic - or manual - restart. </li>
+ <li> To send signals to your daemon, you send a command to its
+supervisor, which will then send a signal to the daemon on your behalf.
+Your daemon is identified by the directory containing its information,
+which is stable, instead of by its PID, which is not stable; the supervisor
+maintains the correct association without a race condition or the other
+problems of .pid files. </li>
+</ul>
+
+<h3> Implementation </h3>
+
+<p>
+ s6 is a straightforward implementation of those concepts.
+</p>
+
+<ul>
+ <li> The <a href="s6-svscan.html">s6-svscan</a> and
+<a href="s6-supervise.html">s6-supervise</a> programs are the components
+of the <em>supervision tree</em>. They are long-lived programs.
+ <ul>
+  <li> <a href="s6-supervise.html">s6-supervise</a> is a daemon's
+<em>supervisor</em>, its direct parent. For every long-lived process on a
+system, there is a corresponding <a href="s6-supervise.html">s6-supervise</a>
+process watching it. This is okay, because every instance of
+<a href="s6-supervise.html">s6-supervise</a> uses very few resources. </li>
+  <li> <a href="s6-svscan.html">s6-svscan</a> is, in a manner of speaking,
+a supervisor for the supervisors. It watches and maintains a collection of
+<a href="s6-supervise.html">s6-supervise</a> processes: it is the branch
+of the supervision tree that all supervisors are stemming from. It can be
+run and
+<a href="http://skarnet.org/software/s6/s6-svscan-not-1.html">supervised
+by your regular init process</a>, or it can
+<a href="http://skarnet.org/software/s6/s6-svscan-1.html">run as
+process 1 itself</a>. Running s6-svscan as process 1 currently requires
+some manual effort from the user, because of the inherent non-portability
+of init processes; future versions of s6 will automate that effort and
+provide users with ready-to-run "init" commands. </li>
+  <li> The configuration of a daemon to be supervised by
+<a href="s6-supervise.html">s6-supervise</a> is done via a
+<a href="servicedir.html">service directory</a>. </li>
+  <li> The place to gather all service directories to be watched by a
+<a href="s6-svscan.html">s6-svscan</a> instance is called a
+<a href="scandir.html">scan directory</a>. </li>
+ </ul>
+ <li> The command that controls a single supervisor, and allows you to
+send signals to a daemon, is
+<a href="s6-svc.html">s6-svc</a>. It is a short-lived program. </li>
+ <li> The command that controls a set of supervisors, and allows you to
+start and stop supervision trees, is
+<a href="s6-svscanctl.html">s6-svscanctl</a>. It is a short-lived
+program. </li>
+</ul>
+
+<p>
+ These four programs,
+<a href="s6-svscan.html">s6-svscan</a>,
+<a href="s6-supervise.html">s6-supervise</a>,
+<a href="s6-svscanctl.html">s6-svscanctl</a> and
+<a href="s6-svc.html">s6-svc</a>,
+are the very core of s6. Technically, once you have them, you have a
+functional s6 installation, and the other utilities are just a bonus.
+</p>
+
+<h3> Practical usage </h3>
+
+<p>
+ To use s6's supervision features, you need to perform the following steps:
+</p>
+
+<ul>
+ <li> For every daemon you potentially want supervised, write a
+<a href="servicedir.html">service directory</a>. Make sure that
+your daemon does not background itself when started in the
+<tt>./run</tt> script! Auto-backgrounding is a historical hack
+that was implemented when supervision suites did not exist; since
+you're using a supervision suite, auto-backgrounding is unnecessary
+and in this case detrimental. </li>
+ <li> Write a single <a href="scandir.html">scan directory</a> for
+the set of daemons you want to actually run. This set can be modified
+at run time. </li>
+ <li> At some point in your initialization scripts, run
+<a href="s6-svscan.html">s6-svscan</a> on the scan directory. This will
+start the supervision tree, including your set of daemons. The exact
+way of running s6-svscan depends on your system: it is not quite the same
+when you want to run it as process 1 on a real machine, or under another
+init on a real machine, or as process 1 in a
+<a href="https://www.docker.com/">Docker</a> container, or in another
+context entirely. </li>
+ <li> Alternatively, you can start <a href="s6-svscan.html">s6-svscan</a>
+on an empty scan directory, then populate it step by step and send an
+update command to s6-svscan via
+<a href="s6-svscanctl.html">s6-svscanctl</a> whenever the supervision
+tree should pick up the differences and start the services you added. </li>
+ <li> That's it, your services are running. To control them manually,
+you can use the <a href="s6-svc.html">s6-svc</a> command. </li>
+ <li> At the end of the system's lifetime, you can use
+<a href="s6-svscanctl.html">s6-svscanctl</a> to bring down the supervision
+tree. </li>
+</ul>
+
+<h2> Service-specific logging </h2>
+
+<p>
+<a href="s6-svscan.html">s6-svscan</a> can monitor a supervision tree,
+but it can also do one more thing. It can ensure that a daemon's log,
+i.e. what the daemon outputs to its stdout (or stderr if you redirect it),
+gets processed by another, supervised, long-lived process, called a
+<em>logger</em>; and it can make sure that the logs are never lost
+between the daemon and the logger - even if the daemon dies, even if the
+logger dies.
+</p>
+
+<p>
+ If your daemon is outputting messages, you have a decision to make
+about where to send them.
+</p>
+
+<ul>
+ <li> You can do as non-supervision systems do, and send the messages
+to syslog. It's entirely possible with a supervision system too.
+However, like auto-backgrounding, syslog is a historical mechanism that
+predates supervision suites, and is technically inferior; it is
+recommended that you do not use it whenever you can avoid it. </li>
+ <li> You can send them to the daemon's stdout/stderr and do nothing special
+about it. The logs will then be sent to s6-svscan's stdout/stderr;
+what mechanism will read them depends on how you started s6-svscan. </li>
+ <li> You can use s6-svscan's service-specific logging mechanism and
+dedicate a logger process to your daemon's messages. </li>
+</ul>
+
+<p>
+ s6 provides you with a long-lived process to use as a logger:
+<a href="s6-log.html">s6-log</a>. It will store your logs in one (or
+more) specific directory of your choice, and rotate them automatically.
+</p>
+
+<h2> Helpers for run scripts </h2>
+
+<p>
+ Creating a working
+<a href="servicedir.html">service directory</a>, and especially a good
+<em>run script</em>, is the most important part of the work when
+adapting a daemon to a supervision framework.
+</p>
+
+<p>
+ If you can find your daemon's invocation script on a non-supervision system,
+for instance a System V-style init script, you can see the exact
+options that the daemon is being run with: environment variables,
+uid and gid, open descriptors, etc. This is what you
+need to replicate in your run script.
+</p>
+
+<p>
+ (Do not replicate the auto-backgrounding, or things like
+<a href="http://man.he.net/man8/start-stop-daemon">start-stop-daemon</a>
+invocation: start-stop-daemon and its friends are hideous and kludgy
+attempts to work around the lack of proper supervision mechanisms. Now
+that you have s6, you should remove them from your system, throw them
+into a bonfire, and dance and laugh while they burn.)
+</p>
+
+<p>
+ The vast majority of the tools provided by s6 are meant to be used in
+run scripts: they help you control the process state and
+environment in your script before it executes into your daemon. Or,
+sometimes, they are daemons themselves, designed to be supervised.
+</p>
+
+<p>
+ s6, like other <a href="http://skarnet.org/software/">skarnet.org
+software</a>, makes heavy use of
+<a href="http://en.wikipedia.org/wiki/Chain_loading#Chain_loading_in_Unix">chain
+loading</a>, also known as "Bernstein chaining": a lot of s6 tools will
+perform some action that changes the process state, then execute into the
+rest of their command line. This allows the user to change the process state
+in a very flexible way, by combining the right components in the right
+order. Very often, a run script can be reduced to a single command line -
+likely a long one, but still a single one. (That is the main reason why
+using the
+<a href="http://skarnet.org/software/execline/">execline</a> language
+to write run scripts is recommended: execline makes it natural to handle
+long command lines made of massive amounts of chain loading. This is by no
+means mandatory, though: a run script can be any executable file you want,
+provided that running it eventually results in a long-lived process with
+the same PID.)
+</p>
+
+<p>
+</p>
+
+<p>
+ Some examples of s6 programs meant to be used in run scripts:
+</p>
+
+<ul>
+ <li> The <a href="s6-log.html">s6-log</a> program is a long-lived
+process. It is meant to be executed into by a <tt>./log/run</tt>
+script: it will be supervised, and will process what it reads on
+its stdin (i.e. the output of the <tt>./run</tt> daemon). </li>
+ <li> The <a href="s6-envdir.html">s6-envdir</a> program is a
+short-lived process that will update its current environment according
+to what it reads in a given directory, then execute into the rest of its
+command line. It is meant to be used in a run script to adjust the
+environment with which the final daemon will be executed into. </li>
+ <li> Similarly, the <a href="s6-softlimit.html">s6-softlimit</a> program
+adjusts its resource limits, then executes into the rest of its command
+line: it is meant to set the resources the final daemon will have
+access to. </li>
+ <li> The <a href="s6-applyuidgid.html">s6-applyuidgid</a> program,
+part of the <tt>s6-*uidgid</tt> family, drops root privileges before
+executing into the rest of its command line: it is meant to be used
+in run scripts that need root privileges when starting but do not
+need it for the execution of the long-lived process. </li>
+ <li> <a href="s6-ipcserverd.html">s6-ipcserverd</a> is a daemon that
+listens to a Unix socket and spawns a program for every connection.
+It is meant to be supervised, so it should be used in a run script,
+and it's also meant to be a flexible super-server that you can use
+for different applications: so it is a building block that may appear in
+several of your run scripts defining
+<a href="localservice.html">local services</a>. </li>
+</ul>
+
+<h2> Readiness notification and dependency management </h2>
+
+<p>
+ Now that you have a supervision tree, and long-lived processes running
+supervised, you may want to introduce dependencies between them: do not
+perform an action (e.g. start (with <a href="s6-svc.html">s6-svc -u</a>)
+the Web server connecting to a database)
+before a given daemon is up and running (e.g. the database server).
+s6 provides tools to do that:
+</p>
+
+<ul>
+ <li> The <a href="s6-svwait.html">s6-svwait</a>,
+<a href="s6-svlisten1.html">s6-svlisten1</a> and
+<a href="s6-svlisten.html">s6-svlisten</a> programs will wait until a set of
+daemons is up, ready or down. </li>
+ <li> Unfortunately, a daemon being <em>up</em> does not mean that it is
+<em>ready</em>:
+<a href="notifywhenup.html">this page</a> goes into the details. s6
+gives you <a href="s6-notifywhenup.html">a tool to use in your run
+scripts</a> so the supervisor knows when a service is <em>ready</em>. </li>
+</ul>
+
+<p>
+ For now, s6 does not provide a complete dependency management framework,
+i.e. a program to automatically start (or stop) a set of services in a
+specific order - that order being automatically computed from a graph of
+dependencies between services.
+ That functionality is planned for a future version of s6.
+</p>
+
+<h2> Additional utilities </h2>
+
+<p>
+ The other programs in the s6 package are various utilities that may be
+useful in designing servers, and more generally multi-process software.
+They can be used with or without a supervision environment, although
+it is of course recommended to have one; but they are not part of the core s6
+functionality, and you may safely ignore them for now if you are just getting
+into the supervision world.
+</p>
+
+<h3> Generic inter-process notification </h3>
+
+<p>
+ The <tt>s6-ftrig*</tt> family of programs allows notifications between
+unrelated processes: a set of processes can subscribe to a certain
+channel - identified by a directory in the filesystem - and ask to be
+notified of certain events on that channel; another set of processes can
+send events to the channel.
+</p>
+
+<p>
+ The underlying mechanism is the same as the one used by the supervision
+tree for readiness notification, but the <tt>s6-ftrig*</tt> tools provide
+a more generic access to that mechanism.
+</p>
+
+<h3> Helpers for designing local services </h3>
+
+<p>
+ Local services, i.e. daemons listening to a Unix domain socket, are a
+powerful and flexible mechanism, especially with modern Unix systems
+that allow client authentication. s6 includes tools to take advantage
+of that mechanism.
+</p>
+
+<ul>
+ <li> The <tt>s6-ipc*</tt> family of programs is about designing clients
+or servers that communicate over Unix domain sockets. </li>
+ <li> The <tt>s6-*access*</tt> and <a href="s6-connlimit.html">s6-connlimit</a>
+family of programs is about client access control. </li>
+ <li> The <tt>s6-sudo*</tt> family of programs is about using a local
+service in order to give selected
+clients the ability to run a command line with the privileges of the
+server, without using suid programs. </li>
+</ul>
+
+<h3> Keeping file descriptors open </h3>
+
+<p>
+ Sometimes you want to keep a file descriptor open, even if the program
+normally using it dies - so the program can restart and use the same
+file descriptor without losing any data. To do that, you need to
+<em>hold</em> the descriptor in another process, i.e. that process
+should have it open but do nothing with it.
+</p>
+
+<p>
+<a href="s6-svscan.html">s6-svscan</a>, for instance, holds the pipe
+existing between a supervised daemon and its logger, so even if the
+daemon or the logger dies while there are logs in the pipe, the pipe
+remains open and the logs are not lost.
+</p>
+
+<p>
+ s6 provides a mechanism to store and retrieve open file descriptors
+in a totally generic way: the <tt>s6-fdholder*</tt> family of programs.
+</p>
+
+<ul>
+ <li> The <a href="s6-fdholder-daemon.html">s6-fdholder-daemon</a> program
+is a daemon (or, rather, executes into the
+<a href="s6-fdholderd.html">s6-fdholderd</a> daemon), meant to be
+supervised, that will hold file descriptors on its clients' behalf. </li>
+ <li> Other programs in the family, such as
+<a href="s6-fdholder-store.html">s6-fdholder-store</a>, are client
+programs that interact with this daemon to store and retrieve file
+descriptors. </li>
+</ul>
+
+<p>
+ Note that "socket activation", one of the main advertised benefits of the
+<a href="http://www.freedesktop.org/wiki/Software/systemd/">systemd</a>
+init system, sounds similar to fd-holding.
+The reality is that socket activation is a mixture of several different
+mechanisms, one of which is fd-holding; s6 allows you to implement the
+<a href="socket-activation.html">healthy parts</a> of socket activation.
+</p>
+
+<h3> Other miscellaneous utilities </h3>
+
+<p>
+ This page does not list or classify every s6 tool. Please
+explore the "Reference" section of the
+<a href="index.html">main s6 page</a> for details on a specific program.
+</p>
+
+</body>
+</html>

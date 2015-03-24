@@ -61,6 +61,18 @@ to stderr and exit 1. By default, <em>timeout</em> is 0, which means no time
 limit. </li>
 </ul>
 
+<h2> Notes <h2>
+
+<ul>
+ <li> s6-svwait should be given one or more <em>service directories</em> as
+arguments, not a <em>scan directory</em>. If you need to wait for a whole
+scan directory, give all its contents as arguments to s6-svwait. </li>
+ <li> s6-svwait will only work on service directories that are already
+active, i.e. have a <a href="s6-supervise.html">s6-supervise</a> process
+running on them. It will not work on a service directory where
+s6-supervise has not been started yet. </li>
+</ul>
+
 <h2> Internals </h2>
 
 <p>
