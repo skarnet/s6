@@ -54,7 +54,8 @@ much against:
 <ul>
  <li> The Unix philosophy, which is to do one job and do it well; </li>
  <li> The <a href="http://www.catb.org/esr/writings/cathedral-bazaar/">bazaar</a>
-approach that has made the free software ecosystem what it is today; </li>
+approach that has made the free software ecosystem what it is today - see
+below; </li>
  <li> Cross-platform compatibility. BSD is not dead, Solaris is not dead,
 but systemd ignores Unix. It even ignores Linux to some extent: the systemd
 authors had the guts to ask for specific kernel interfaces! </li>
@@ -69,8 +70,56 @@ distribution model of systemd, made of lobbying and bullying, is much more
 akin to the distribution model of Microsoft Windows than the one of GNU/Linux.
 </p>
 
+<h3> Project development vs. ecosystem development </h3>
+
 <p>
- Which says something.
+I claim that systemd goes against the bazaar approach; someone noted that
+the s6 development model is cathedral-like, and found it confusing. How
+can I blame systemd for not embracing the bazaar when I myself don't
+either? My answer was the following:
+</p>
+
+<p>
+ I actually do not support bazaar as a <em>development model for a
+project</em>.
+I believe that quality software can only be written by keeping a tight grip
+on what goes in, with a clear vision about the scope and design of the
+project,
+and that can only be achieved with very small teams. Free software following
+the bazaar development model is notoriously bad at quality control; the
+only way to have a project working is to have a small lead team
+performing integration control - this is the way the Linux kernel works, for
+instance, and it has a <em>huge</em> developer base.
+</p>
+
+<p>
+(The other more or less viable development model for a project is to be
+company-driven: making up for the lack of technical excellence with
+manpower and procedures. Needless to say, companies usually do not
+produce either free or good software, and they are not efficient at
+doing so.)
+</p>
+
+<p>
+ However, I also believe that the scope of a project should be clearly
+defined and limited, and I very
+much support the blossoming of as many well-scoped projects as can be, and
+total freedom about the interfaces and communication points between all those
+projects. I support bazaar as a <em>development model for a software
+ecosystem</em>:
+everybody can write software that interacts
+with other software on their machine, in the way they choose.
+To me, that is entirely what free software is about.
+</p>
+
+<p>
+ systemd gets it wrong on all levels. It has a large developer
+base, so no really coherent vision (and the vision it has is technically
+inept, see below); its quality control is company-driven, with
+all the drawbacks that it has; <em>and</em> it has an insanely
+large scope and tries to enforce the use of its own interfaces for new
+software development, essentially proprietarizing the ecosystem, which is
+very much the opposite of bazaar.
 </p>
 
 <h2> The technical issue </h2>
@@ -96,13 +145,15 @@ aims to make the machine work and that application software depends upon.
 The goal of an operating system is to make it possible to run <em>applications</em>,
 and system software should always partake in that goal. <strong>System software
 should stay the heck out of the way</strong>, which is exactly what systemd does
-not.
+not. In that respect, it is very similar to Microsoft Windows. Again.
 </p>
 
 <p>
- Technically as well as politically, systemd is actually very similar to
-Microsoft Windows. If it is not fought, it is going to cause a lot of harm
-to the Linux ecosystem. It has already begun.
+Listing all the technical flaws of systemd is a lifetime's work; some
+people have pointed out the most glaring ones - there are a few links
+below. My point is that the "we will solve problems by doing more"
+approach chosen by the systemd developers is a newbie mistake, and the
+root cause of all those flaws; systemd is technically unsustainable.
 </p>
 
 <p>
