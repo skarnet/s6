@@ -45,7 +45,7 @@ int s6_fdholder_getdump (s6_fdholder_t *a, genalloc *g, tain_t const *deadline, 
         tain_unpack(m.s, &tab[i].limit) ;
         m.s += TAIN_PACK ; m.len -= TAIN_PACK + 1 ;
         thislen = *m.s++ ;
-        if (thislen > m.len - 1 || thislen > S6_FDHOLDER_ID_SIZE || m.s[thislen]) goto droperr ;
+        if (thislen > m.len - 1 || m.s[thislen]) goto droperr ;
         byte_copy(tab[i].id, thislen, m.s) ;
         byte_zero(tab[i].id + thislen, S6_FDHOLDER_ID_SIZE + 1 - thislen) ;
         m.s += (unsigned int)thislen + 1 ; m.len -= (unsigned int)thislen + 1 ;
