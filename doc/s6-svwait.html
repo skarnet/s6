@@ -48,8 +48,9 @@ support in the service programs. See <a href="notifywhenup.html">this page</a>
 for details. </li>
  <li> <tt>-U</tt>&nbsp;: really up. s6-svwait will wait until the services are
 up <em>and</em> ready as reported by the services themselves. This requires
-specific support in the service programs, and the use of
-<a href="s6-notifywhenup.html">s6-notifywhenup</a> in the service's run script.
+specific support in the service programs, and the use of the
+<tt>notification-fd</tt> file in the
+<a href="servicedir.html">service directory</a>.
 See the explanation on <a href="notifywhenup.html">this page</a>. </li>
  <li> <tt>-d</tt>&nbsp;: down. s6-svwait will wait until the services are down. </li>
  <li> <tt>-o</tt>&nbsp;: or. s6-svwait will wait until <em>one</em> of the

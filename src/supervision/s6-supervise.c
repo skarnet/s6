@@ -1,7 +1,6 @@
 /* ISC license. */
 
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <errno.h>
@@ -47,8 +46,8 @@ typedef action_t *action_t_ref ;
 static tain_t deadline ;
 static s6_svstatus_t status = { .stamp = TAIN_ZERO, .pid = 0, .flagwant = 1, .flagwantup = 1, .flagpaused = 0, .flagfinishing = 0, .wstat = 0 } ;
 static state_t state = DOWN ;
-static int flagsetsid = 1 ;
 static int cont = 1 ;
+static int notifyfd = -1 ;
 
 static inline void settimeout (int secs)
 {
@@ -137,21 +136,64 @@ static void killc (void)
   announce() ;
 }
 
+static void failcoe (int fd)
+{
+  register int e = errno ;
+  fd_write(fd, "", 1) ;
+  errno = e ;
+}
+
+static int maybesetsid (void)
+{
+  if (access("nosetsid", F_OK) < 0)
+  {
+    if (errno != ENOENT) return 0 ;
+    setsid() ;
+  }
+  return 1 ;
+}
+
 static void trystart (void)
 {
   int p[2] ;
+  int notifyp[2] = { -1, -1 } ;
+  unsigned int fd ;
   pid_t pid ;
   if (pipecoe(p) < 0)
   {
     settimeout(60) ;
-    strerr_warnwu1sys("pipecoe (waiting 60 seconds)") ;
+    strerr_warnwu1sys("pipe (waiting 60 seconds)") ;
     return ;
+  }
+  {
+    char buf[UINT_FMT + 1] ;
+    register int r = openreadnclose("notification-fd", buf, UINT_FMT) ;
+    if (r < 0)
+    {
+      if (errno != ENOENT)
+        strerr_warnwu1sys("open notification-fd") ;
+    }
+    else
+    {
+      buf[byte_chr(buf, r, '\n')] = 0 ;
+      if (!uint0_scan(buf, &fd))
+        strerr_warnw1x("invalid notification-fd") ;
+      else if (pipe(notifyp) < 0)
+      {
+        settimeout(60) ;
+        strerr_warnwu1sys("pipe (waiting 60 seconds)") ;
+        fd_close(p[1]) ; fd_close(p[0]) ;
+        return ;
+      }
+    }
   }
   pid = fork() ;
   if (pid < 0)
   {
     settimeout(60) ;
     strerr_warnwu1sys("fork (waiting 60 seconds)") ;
+    if (notifyp[1] >= 0) fd_close(notifyp[1]) ;
+    if (notifyp[0] >= 0) fd_close(notifyp[0]) ;
     fd_close(p[1]) ; fd_close(p[0]) ;
     return ;
   }
@@ -160,14 +202,25 @@ static void trystart (void)
     char const *cargv[2] = { "run", 0 } ;
     PROG = "s6-supervise (child)" ;
     selfpipe_finish() ;
-    fd_close(p[0]) ;
+    if (notifyp[0] >= 0) close(notifyp[0]) ;
+    close(p[0]) ;
     if (unlink(S6_SUPERVISE_READY_FILENAME) < 0 && errno != ENOENT)
       strerr_warnwu1sys("unlink " S6_SUPERVISE_READY_FILENAME) ;
-    if (flagsetsid) setsid() ;
+    if (notifyp[1] >= 0 && fd_move((int)fd, notifyp[1]) < 0)
+    {
+      failcoe(p[1]) ;
+      strerr_diefu1sys(127, "move notification descriptor") ;
+    }
+    if (!maybesetsid())
+    {
+      failcoe(p[1]) ;
+      strerr_diefu1sys(127, "access ./nosetsid") ;
+    }
     execve("./run", (char *const *)cargv, (char *const *)environ) ;
-    fd_write(p[1], "", 1) ;
+    failcoe(p[1]) ;
     strerr_dieexec(127, "run") ;
   }
+  if (notifyp[1] >= 0) fd_close(notifyp[1]) ;
   fd_close(p[1]) ;
   {
     char c ;
@@ -189,6 +242,7 @@ static void trystart (void)
     }
   }
   fd_close(p[0]) ;
+  notifyfd = notifyp[0] ;
   settimeout_infinite() ;
   state = UP ;
   status.pid = pid ;
@@ -249,7 +303,7 @@ static inline void tryfinish (int islast)
     selfpipe_finish() ;
     fmt0[uint_fmt(fmt0, WIFSIGNALED(status.wstat) ? 256 : WEXITSTATUS(status.wstat))] = 0 ;
     fmt1[uint_fmt(fmt1, WTERMSIG(status.wstat))] = 0 ;
-    if (flagsetsid) setsid() ;
+    maybesetsid() ;
     execve("./finish", cargv, (char *const *)environ) ;
     _exit(127) ;
   }
@@ -269,6 +323,11 @@ static void uplastup_z (int islast)
   status.wstat = status.pid ;
   status.pid = 0 ;
   tain_copynow(&status.stamp) ;
+  if (notifyfd >= 0)
+  {
+    fd_close(notifyfd) ;
+    notifyfd = -1 ;
+  }
   tryfinish(islast) ;
   announce() ;
   ftrigw_notifyb_nosig(S6_SUPERVISE_EVENTDIR, "d", 1) ;
@@ -368,11 +427,36 @@ static action_t_ref const actions[5][23] =
 } ;
 
 
+
 /* The main loop.
    It just loops around the iopause(), calling snippets of code in "actions" when needed. */
 
 
-static void handle_signals (void)
+static inline void handle_notifyfd (void)
+{
+  char buf[4096] ;
+  register int r = 1 ;
+  while (r > 0)
+  {
+    r = sanitize_read(fd_read(notifyfd, buf, 4096)) ;
+    if (r > 0 && byte_chr(buf, r, '\n') < r)
+    {
+      char pack[TAIN_PACK] ;
+      tain_pack(pack, &STAMP) ;
+      if (!openwritenclose_suffix(S6_SUPERVISE_READY_FILENAME, pack, TAIN_PACK, ".new"))
+        strerr_warnwu3sys("open ", S6_SUPERVISE_READY_FILENAME, " for writing") ;
+      ftrigw_notifyb_nosig(S6_SUPERVISE_EVENTDIR, "U", 1) ;
+      r = -1 ;
+    }
+    if (r < 0)
+    {
+      fd_close(notifyfd) ;
+      notifyfd = -1 ;
+    }
+  }
+}
+
+static inline void handle_signals (void)
 {
   for (;;)
   {
@@ -410,7 +494,7 @@ static void handle_signals (void)
   }
 }
 
-static void handle_control (int fd)
+static inline void handle_control (int fd)
 {
   for (;;)
   {
@@ -428,7 +512,7 @@ static void handle_control (int fd)
 
 int main (int argc, char const *const *argv)
 {
-  iopause_fd x[2] = { { -1, IOPAUSE_READ, 0 }, { -1, IOPAUSE_READ, 0 } } ;
+  iopause_fd x[3] = { { -1, IOPAUSE_READ, 0 }, { -1, IOPAUSE_READ, 0 }, { -1, IOPAUSE_READ, 0 } } ;
   PROG = "s6-supervise" ;
   if (argc < 2) strerr_dieusage(100, USAGE) ;
   if (chdir(argv[1]) < 0) strerr_diefu2sys(111, "chdir to ", argv[1]) ;
@@ -460,21 +544,9 @@ int main (int argc, char const *const *argv)
     if (!ftrigw_clean(S6_SUPERVISE_EVENTDIR))
       strerr_warnwu2sys("ftrigw_clean ", S6_SUPERVISE_EVENTDIR) ;
 
-    {
-      struct stat st ;
-      if (stat("down", &st) == -1)
-      {
-        if (errno != ENOENT)
-          strerr_diefu1sys(111, "stat down") ;
-      }
-      else status.flagwantup = 0 ;
-      if (stat("nosetsid", &st) == -1)
-      {
-        if (errno != ENOENT)
-          strerr_diefu1sys(111, "stat nosetsid") ;
-      }
-      else flagsetsid = 0 ;
-    }
+    if (access("down", F_OK) == 0) status.flagwantup = 0 ;
+    else if (errno != ENOENT)
+      strerr_diefu1sys(111, "access ./down") ;
 
     tain_now_g() ;
     settimeout(0) ;
@@ -484,13 +556,16 @@ int main (int argc, char const *const *argv)
 
     while (cont)
     {
-      register int r = iopause_g(x, 2, &deadline) ;
+      register int r ;
+      x[2].fd = notifyfd ;
+      r = iopause_g(x, 2 + (notifyfd >= 0), &deadline) ;
       if (r < 0) strerr_diefu1sys(111, "iopause") ;
       else if (!r) (*actions[state][V_TIMEOUT])() ;
       else
       {
         if ((x[0].revents | x[1].revents) & IOPAUSE_EXCEPT)
           strerr_diefu1x(111, "iopause: trouble with pipes") ;
+        if (notifyfd >= 0 && x[2].revents & IOPAUSE_READ) handle_notifyfd() ;
         if (x[0].revents & IOPAUSE_READ) handle_signals() ;
         else if (x[1].revents & IOPAUSE_READ) handle_control(x[1].fd) ;
       }

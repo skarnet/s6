@@ -59,6 +59,47 @@ if <tt>./run</tt> exits too quickly. </li>
 sends a <tt>'x'</tt> event to <tt>./event</tt> before exiting 0. </li>
 </ul>
 
+<h2> Options </h2>
+
+<p>
+ s6-supervise does not support options, because it is normally not run
+manually via a command line; it is usually launched by its own
+supervisor, <a href="s6-svscan.html">s6-svscan</a>.
+ However, the behaviour of an instance of s6-supervise can be tuned via
+various configuration files in the service directory. These files, and
+what they do, are listed on the
+<a href="servicedir.html">service directory documentation page</a>.
+</p>
+
+<h2> Readiness notification support </h2>
+
+<p>
+ If the <a href="servicedir.html">service directory</a> contains a valid
+<tt>notification-fd</tt> file when the service is started, or restarted,
+s6-supervise creates and listens to an additional pipe from the service
+for <a href="notifywhenup.html">readiness notification</a>. When the
+notification occurs, s6-supervise creates a <tt>./supervise/ready</tt>
+file containing the absolute time when readiness occurred, then sends
+a <tt>'U'</tt> event to <tt>./event</tt>. The <tt>./supervise/ready</tt>
+file is deleted on service death.
+</p>
+
+<p>
+ If the service is logged, i.e. if the service directory has a
+<tt>log</tt> subdirectory that is also a service directory, and the
+s6-supervise process has been launched by
+that is also <a href="s6-svscan.html">s6-svscan</a>, then by default
+the service's stdout goes into the logging pipe. If you set
+<tt>notification-fd</tt> to 1, the logging pipe will be overwritten
+by the notification pipe, which is probably not what you want. Instead,
+if your daemon writes a notification message to its stdout, you should
+set <tt>notification-fd</tt> to (for instance) 3, and redirect outputs
+in your run script. For instance, to redirect stderr to the logger and
+stdout to a <tt>notification-fd</tt> set to 3, you would start your
+daemon as <tt>fdmove -c 2 1 fdmove 1 3 prog...</tt> (in execline), or
+<tt>exec 2&gt;&amp;1 1&gt;&amp;3 3&lt;&amp;- prog...</tt> (in shell).
+</p>
+
 <h2> Signals </h2>
 
 <p>

@@ -72,6 +72,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     argc -= l.ind ; argv += l.ind ;
   }
   if (!argc) dieusage() ;
+  strerr_warnw1x("this program is deprecated. Use a notification-fd file instead.") ;
 
   {
     int p[2] ;

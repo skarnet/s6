@@ -52,8 +52,9 @@ support in the service programs. See <a href="notifywhenup.html">this page</a>
 for details. </li>
  <li> <tt>-U</tt>&nbsp;: really up. s6-svlisten1 will wait until the service is
 up <em>and</em> ready as reported by the daemon itself. This requires
-specific support in the daemon program, and the use of
-<a href="s6-notifywhenup.html">s6-notifywhenup</a> in the service's run script.
+specific support in the service programs, and the use of the
+<tt>notification-fd</tt> file in the
+<a href="servicedir.html">service directory</a>.
 See the explanation on <a href="notifywhenup.html">this page</a>. </li>
  <li> <tt>-d</tt>&nbsp;: down. s6-svlisten1 will wait until the service is down. </li>
  <li> <tt>-t&nbsp;<em>timeout</em></tt>&nbsp;: if the requested event has not

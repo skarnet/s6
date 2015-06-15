@@ -103,6 +103,20 @@ automatically start it until it receives a <tt>s6-svc -u</tt> command. If no
 s6-supervise will not make the service a process group and session leader; the service
 will be run in the same process group as s6-supervise. If no <tt>nosetsid</tt> file
 exists, the service has its own process group and is started as a session leader. </li>
+ <li> An optional regular file named <tt>notification-fd</tt>. If such a file
+exists, it means that the service supports
+<a href="notifywhenup.html">readiness notification</a>. The file must only
+ contain an unsigned integer, which is the number of the file descriptor that
+the service writes its readiness notification to. (For instance, it should
+be 1 if the daemon is <a href="s6-ipcserverd">s6-ipcserverd</a> run with the
+<tt>-1</tt> option.) </li>
+  when a service is started, or restarted, by s6-supervise, if this file
+exists and contains a valid descriptor number, s6-supervise will wait for the
+notification from the service and broadcast readiness, i.e. any
+<a href="s6-svwait.html">s6-svwait -U</a>,
+<a href="s6-svlisten1.html">s6-svlisten1 -U</a> or
+<a href="s6-svlisten.html">s6-svlisten -U</a> processes will be
+triggered. </li>
  <li> A <a href="fifodir.html">fifodir</a> named <tt>event</tt>. It is automatically
 created by <a href="s6-supervise.html">s6-supervise</a> if it does not exist.
 <em>foo</em><tt>/event</tt>
