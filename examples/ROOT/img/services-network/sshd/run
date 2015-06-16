@@ -1,6 +1,6 @@
 #!/command/execlineb -P
 fdmove -c 2 1
-s6-notifywhenup -f
+fdmove 1 3
 s6-tcpserver4 -1 -- 0.0.0.0 22
 s6-tcpserver-access -vvDRl0 -t 5000 -i rules
 dropbear -iEg
