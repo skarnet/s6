@@ -44,10 +44,18 @@ typedef void action_t (void) ;
 typedef action_t *action_t_ref ;
 
 static tain_t deadline ;
+static tain_t dontrespawnbefore = TAIN_EPOCH ;
 static s6_svstatus_t status = { .stamp = TAIN_ZERO, .pid = 0, .flagwant = 1, .flagwantup = 1, .flagpaused = 0, .flagfinishing = 0, .wstat = 0 } ;
 static state_t state = DOWN ;
 static int cont = 1 ;
 static int notifyfd = -1 ;
+
+static inline void down_and_delay (void)
+{
+  state = DOWN ;
+  if (tain_future(&dontrespawnbefore)) deadline = dontrespawnbefore ;
+  else tain_copynow(&deadline) ;
+}
 
 static inline void settimeout (int secs)
 {
@@ -247,6 +255,7 @@ static void trystart (void)
   state = UP ;
   status.pid = pid ;
   tain_copynow(&status.stamp) ;
+  tain_addsec_g(&dontrespawnbefore, 1) ;
   announce() ;
   ftrigw_notifyb_nosig(S6_SUPERVISE_EVENTDIR, "u", 1) ;
 }
@@ -291,8 +300,7 @@ static inline void tryfinish (int islast)
   {
     strerr_warnwu2sys("fork for ", "./finish") ;
     if (islast) bail() ;
-    state = DOWN ;
-    settimeout(1) ;
+    down_and_delay() ;
     return ;
   }
   else if (!pid)
@@ -385,9 +393,8 @@ static void finish_z (void)
 {
   status.pid = 0 ;
   status.flagfinishing = 0 ;
-  state = DOWN ;
+  down_and_delay() ;
   announce() ;
-  settimeout(1) ;
 }
 
 static void finish_u (void)

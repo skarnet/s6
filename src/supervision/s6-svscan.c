@@ -109,6 +109,12 @@ static void intr (void)
   term() ;
 }
 
+static void usr1 (void)
+{
+  finish_arg = "poweroff" ;
+  term() ;
+}
+
 static void handle_signals (void)
 {
   for (;;)
@@ -124,6 +130,7 @@ static void handle_signals (void)
       case SIGQUIT : quit() ; break ;
       case SIGABRT : cont = 0 ; break ;
       case SIGINT : intr() ; break ;
+      case SIGUSR1 : usr1() ; break ;
     }
   }
 }
@@ -152,7 +159,7 @@ static void handle_control (int fd)
       case 'i' : intr() ; return ;
       case 'q' : quit() ; return ;
       case '0' : finish_arg = "halt" ; term() ; return ;
-      case '7' : finish_arg = "poweroff" ; term() ; return ;
+      case '7' : usr1() ; return ;
       case '8' : finish_arg = "other" ; term() ; return ;
       default :
       {
@@ -446,6 +453,7 @@ int main (int argc, char const *const *argv)
     sigaddset(&set, SIGQUIT) ;
     sigaddset(&set, SIGABRT) ;
     sigaddset(&set, SIGINT) ;
+    sigaddset(&set, SIGUSR1) ;
     if (selfpipe_trapset(&set) < 0) strerr_diefu1sys(111, "trap signals") ;
   }
 
