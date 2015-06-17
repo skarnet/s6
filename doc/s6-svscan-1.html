@@ -19,12 +19,21 @@
 <h1> How to run s6-svscan as process 1 </h1>
 
 <p>
+ <em> Since 2015-06-17, if you're a Linux user, you can use the
+<a href="http://skarnet.org/software/s6-linux-init/">s6-linux-init</a>
+package to help you do so! Please read this documentation page first,
+though, it will help you understand what s6-linux-init does. </em>
+</p>
+
+<p>
  It is possible to run s6-svscan as process 1, i.e. the <tt>init</tt>
 process. However, that does not mean you can directly <em>boot</em>
 on s6-svscan; that little program cannot do everything
 your stock init does. Replacing the <tt>init</tt> process requires a
 bit of understanding of what is going on.
 </p>
+
+<h2> A working example: s6-linux-init </h2>
 
 <a name="stages">
 <h2> The three stages of init </h2>
@@ -126,12 +135,21 @@ needed. Fortunately, those processes are very easy to design! The only
 difficulty here is that they're heavily system-dependent, so it's not possible
 to provide a stage 1 init and a stage 3 init that will work everywhere.
 s6 was designed to be as portable as possible, and it should run on virtually
-every Unix platform; but outside of stage 2 is where portability stops, and
-the s6 package can't help you there.
+every Unix platform; but outside of stage 2 is where portability stops.
 </p>
 
 <p>
- Here are some tips though.
+ The <a href="http://skarnet.org/software/s6-linux-init/">s6-linux-init</a>
+package provides a tool, <tt>s6-linux-init-maker</tt>, to automatically
+create a suitable stage 1 init (so, the <tt>/sbin/init</tt> binary) for
+Linux.
+It is also possible to write similar tools for other operating systems,
+but the details are heavily system-dependent.
+</p>
+
+<p>
+ For the adventurous and people who need to do this by hand, though, here are
+are some general design tips.
 </p>
 
 <a name="stage1">
@@ -205,7 +223,7 @@ init a script.
 <p>
  Of course, most people will use the <em>shell</em> as scripting
 language; however, I advocate the use of
-<a href="http://www.skarnet.org/software/execline/">execline</a>
+<a href="http://skarnet.org/software/execline/">execline</a>
 for this, and not only for the obvious reasons. Piping s6-svscan's
 stderr to a logging service before said service is even up requires
 some <a href="#log">tricky fifo handling</a> that execline can do
