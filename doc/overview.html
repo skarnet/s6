@@ -350,8 +350,11 @@ daemons is up, ready or down. </li>
  <li> Unfortunately, a daemon being <em>up</em> does not mean that it is
 <em>ready</em>:
 <a href="notifywhenup.html">this page</a> goes into the details. s6
-gives you <a href="s6-notifywhenup.html">a tool to use in your run
-scripts</a> so the supervisor knows when a service is <em>ready</em>. </li>
+supports a simple mechanism: when a daemon wants to signal that it is
+<em>ready</em>, it simply writes a newline to a file descriptor of its
+choice, and <a href="s6-supervise.html">s6-supervise</a> will pick that
+notification up and broadcast the information to processes waiting for
+it. </li>
 </ul>
 
 <p>
