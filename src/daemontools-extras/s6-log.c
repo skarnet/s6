@@ -1130,12 +1130,11 @@ static inline void handle_signals (void)
         break ;
       }
       case SIGTERM :
-      {
         if (flagprotect) break ;
+      case SIGHUP :
         handle_stdin = &last_stdin ;
         if (!indata.len) prepare_to_exit() ;
         break ;
-      }
       case SIGCHLD :
       {
         for (;;)
@@ -1206,6 +1205,7 @@ int main (int argc, char const *const *argv)
       sigset_t set ;
       sigemptyset(&set) ;
       sigaddset(&set, SIGTERM) ;
+      sigaddset(&set, SIGHUP) ;
       sigaddset(&set, SIGALRM) ;
       sigaddset(&set, SIGCHLD) ;
       if (selfpipe_trapset(&set) < 0)
