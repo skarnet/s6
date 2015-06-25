@@ -60,6 +60,13 @@ Automatically restart it when it dies. </li>
  <li> <tt>-x</tt>&nbsp;: exit. When the service is asked to be down and
 the supervised process dies, s6-supervise will exit too. This command should
 normally never be used on a working system. </li>
+ <li> <tt>-X</tt>&nbsp;: close fds and exit. Like <tt>-x</tt>, but
+<a href="s6-supervise.html">s6-supervise</a> will immediately close its
+stdin, stdout and stderr. This is useful when s6-supervise has descriptors
+open to the service it is supervising and the service is waiting for them
+to close before exiting. Note that if this option is used, the last
+execution of the service's <tt>finish</tt> script will be run with
+stdin, stdout and stderr redirected to <tt>/dev/null</tt>. </li>
  <li> <tt>-O</tt>&nbsp;: Once at most. Do not restart the supervised process
 when it dies. If it is down when the command is received, do not even start
 it. </li>
@@ -71,9 +78,10 @@ timeout is 0, which means that s6-svc will block indefinitely. </li>
  <li> <tt>-D</tt>&nbsp;: s6-svc will not exit until the service is down. </li>
  <li> <tt>-U</tt>&nbsp;: s6-svc will not exit until the service is up and
 <a href="notifywhenup.html">ready</a> as notified by the daemon itself.
-Be careful to only use this command on services that send readiness
-notifications and are managed by <a href="s6-notifywhenup.html">s6-notifywhenup</a>,
-else the command will never be successful. </li>
+If the <a href="servicedir.html">service directory</a> does not contain
+a <tt>notification-fd</tt> file to tell
+<a href="s6-supervise.html">s6-supervise</a> to accept readiness
+notification, s6-svc will print a warning and ignore the command. </li>
 </ul>
 
 <h2> Usage examples </h2>

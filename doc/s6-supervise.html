@@ -111,7 +111,9 @@ daemon as <tt>fdmove -c 2 1 fdmove 1 3 prog...</tt> (in execline), or
 <a href="s6-svc.html">s6-svc -xd</a> command had been received </li>
  <li> SIGHUP: exit as soon as the service stops, as if a
 <a href="s6-svc.html">s6-svc -x</a> command had been received </li>
- <li> SIGQUIT: currently like SIGTERM, but this might change in the future </li>
+ <li> SIGQUIT: close stdin, stdout and stderr and exit as soon as
+the service stops, as if a
+<a href="s6-svc.html">s6-svc -X</a> command had been received </li>
 </ul>
 
 <h2> Usage notes </h2>

@@ -1,5 +1,7 @@
 /* ISC license. */
 
+#include <unistd.h>
+#include <errno.h>
 #include <skalibs/uint.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/sgetopt.h>
@@ -8,7 +10,7 @@
 #include <s6/config.h>
 #include <s6/s6-supervise.h>
 
-#define USAGE "s6-svc [ -D | -U ] [ -T timeout ] [ -abqhkti12pcoduxO ] servicedir"
+#define USAGE "s6-svc [ -D | -U ] [ -T timeout ] [ -abqhkti12pcoduxOX ] servicedir"
 #define dieusage() strerr_dieusage(100, USAGE)
 
 #define DATASIZE 63
@@ -24,7 +26,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "DUabqhkti12pcoduxOT:", &l) ;
+      register int opt = subgetopt_r(argc, argv, "DUabqhkti12pcoduxOXT:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -46,6 +48,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
         case 'u' :
         case 'x' :
         case 'O' :
+        case 'X' :
         {
           if (datalen >= DATASIZE) strerr_dief1x(100, "too many commands") ;
           data[datalen++] = opt ;
@@ -59,6 +62,21 @@ int main (int argc, char const *const *argv, char const *const *envp)
   }
   if (!argc) dieusage() ;
   if (argc > 1) strerr_warn1x("ignoring extra arguments") ;
+
+  if (updown[1] == 'U')
+  {
+    unsigned int arglen = str_len(argv[0]) ;
+    char fn[arglen + 17] ;
+    byte_copy(fn, arglen, argv[0]) ;
+    byte_copy(fn + arglen, 17, "/notification-fd") ;
+    if (access(fn, F_OK) < 0)
+    {
+      if (errno != ENOENT) strerr_diefu2sys(111, "access ", fn) ;
+      updown[1] = 0 ;
+      strerr_warnw2x(fn, "not present - ignoring -U option") ;
+    }
+  }
+
   if (updown[1])
   {
     char const *newargv[11] ;

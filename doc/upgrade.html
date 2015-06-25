@@ -18,6 +18,17 @@
 
 <h1> What has changed in s6 </h1>
 
+<h2> in 2.1.6.0 </h2>
+
+<ul>
+ <li> <a href="s6-svc.html">s6-svc</a> now checks for the existence
+of <tt>notification-fd</tt> before accepting a <tt>U</tt> command. </li>
+ <li> New <tt>-X</tt> option to <a href="s6-svc.html">s6-svc</a>. </li>
+ <li> Different meaning of SIGQUIT for
+<a href="s6-supervise">s6-supervise</a>: now the same as
+<tt>s6-svc -X</tt>. </li>
+</ul>
+
 <h2> in 2.1.5.0 </h2>
 
 <ul>

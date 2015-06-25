@@ -65,10 +65,9 @@ state </li>
  <li> <tt>-1</tt>&nbsp;: write a newline to stdout, and close stdout,
 right before entering the client-accepting loop.
 If stdout is suitably redirected, this can be used by monitoring
-programs to check when the server is accepting connections.
-The <a href="s6-notifywhenup.html">s6-notifywhenup</a>
-program can be used before the s6-ipcserver
-invocation to notify listeners when the server is ready. </li>
+programs to check when the server is accepting connections. See
+The <a href="notifywhenup.html">this page</a> for more information on
+readiness notification. </li>
  <li> <tt>-v&nbsp;<em>verbosity</em></tt>&nbsp;: be more or less
 verbose. <em>verbosity</em> can be 0 (quiet), 1 (normal), or 2 or more
 (verbose). </li>
