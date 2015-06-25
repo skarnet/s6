@@ -35,7 +35,7 @@ s6-log reads and compiles <em>logging script</em> to an internal
 form. Then it reads its standard input, line by line, and performs actions
 on it, following the script it is given. It does its best to ensure there
 is <em>never any log loss</em>. It exits cleanly when stdin closes or when
-it receives SIGTERM.
+it receives a SIGTERM or a SIGHUP.
 </p>
 
 <h2> Options </h2>
@@ -49,8 +49,10 @@ By default, s6-log keeps reading from stdin even if its buffers still
 contain data. <tt>-b</tt> is safer, but may slow down your service; the default
 is faster, but may lead to unbound memory use if you have a lot of output to
 write to a slow file system. </li>
- <li> <tt>-p</tt>&nbsp;: protect. Do not exit on receipt of a SIGTERM; only
-exit when reading EOF on stdin. </li>
+ <li> <tt>-p</tt>&nbsp;: protect against SIGTERM. Do not exit on receipt of a
+SIGTERM; only exit on a SIGHUP or when reading EOF on stdin. This is useful
+for a logger that you really do not want to lose even if automated
+administration (e.g. the downing of a supervision tree) would kill it. </li>
  <li> <tt>-t</tt>&nbsp;: timestamp. Prepends every log line that is written to
 a logging directory with a
 <a href="http://skarnet.org/software/skalibs/libstddjb/tai.html">TAI64N</a>
