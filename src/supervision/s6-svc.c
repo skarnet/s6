@@ -73,7 +73,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     {
       if (errno != ENOENT) strerr_diefu2sys(111, "access ", fn) ;
       updown[1] = 0 ;
-      strerr_warnw2x(fn, "not present - ignoring -U option") ;
+      strerr_warnw2x(fn, " not present - ignoring -U option") ;
     }
   }
 
