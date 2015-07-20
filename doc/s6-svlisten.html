@@ -34,7 +34,7 @@ a collection of supervised services, and blocks until they all go up, or down.
 </p>
 
 <pre>
-     s6-svlisten [ -U | -u | -d ] [ -a | -o ] [ -t <em>timeout</em> ] { <em>servicedir</em> <em>servicedir...</em> } <em>prog...</em>
+     s6-svlisten [ -U | -u | -D | -d ] [ -a | -o ] [ -t <em>timeout</em> ] { <em>servicedir</em> <em>servicedir...</em> } <em>prog...</em>
 </pre>
 
 <p>
@@ -42,7 +42,7 @@ a collection of supervised services, and blocks until they all go up, or down.
 </p>
 
 <pre>
-     s6-svlisten [ -U | -u | -d ] [ -a | -o ] [ -t <em>timeout</em> ] <em>servicedir</em> <em>servicedir...</em> "" <em>prog...</em>
+     s6-svlisten [ -U | -u | -D | -d ] [ -a | -o ] [ -t <em>timeout</em> ] <em>servicedir</em> <em>servicedir...</em> "" <em>prog...</em>
 </pre>
 
 <ul>
@@ -69,6 +69,10 @@ specific support in the service programs, and the use of the
 <a href="servicedir.html">service directory</a>.
 See the explanation on <a href="notifywhenup.html">this page</a>. </li>
  <li> <tt>-d</tt>&nbsp;: down. s6-svlisten will wait until the services are down. </li>
+ <li> <tt>-D</tt>&nbsp;: really down. s6-svlisten will wait until the
+services are down and the cleanup scripts in <tt><em>servicedir</em>/finish</tt>
+for every <em>servicedir</em>
+have finished executing (or have timed out and been killed). </li>
  <li> <tt>-o</tt>&nbsp;: or. s6-svlisten will wait until <em>one</em> of the
 given services comes up or down. </li>
  <li> <tt>-a</tt>&nbsp;: and. s6-svlisten will wait until <em>all</em> of the

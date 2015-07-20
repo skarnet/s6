@@ -67,16 +67,16 @@ a generic mechanism that some daemons already implement.
 <a href="servicedir.html">service directory</a> for the daemon contains
 a valid <tt>notification-fd</tt> file, the daemon's supervisor, i.e. the
 <a href="s6-supervise.html">s6-supervise</a> program, will properly catch
-the daemon's message, update a state file (<tt>supervise/ready</tt>), then
+the daemon's message, update the status file (<tt>supervise/status</tt>),
 then notify all the subscribers
-with a 'U' event, meaning that the service is now up and ready.
+with a <tt>'U'</tt> event, meaning that the service is now up and ready.
 </p>
 
 <p>
  This method should really be implemented in every long-running
 program providing a service. When it is not the case, it's impossible
 to provide reliable startup notifications, and subscribers should then
-be content with the unreliable 'u' events provided by s6-supervise.
+be content with the unreliable <tt>'u'</tt> events provided by s6-supervise.
 </p>
 
 </body>

@@ -26,6 +26,7 @@ s6_accessrules_uidgid_fs.o
 s6_supervise_lock.o
 s6_supervise_lock_mode.o
 s6_svc_write.o
+s6_svc_writectl.o
 s6_svstatus_pack.o
 s6_svstatus_read.o
 s6_svstatus_unpack.o

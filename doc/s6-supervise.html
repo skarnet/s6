@@ -44,15 +44,18 @@ If it already exists, it uses it as is, without modifying the subscription right
  <li> If the default service state is up, s6-supervise spawns <tt>./run</tt>. </li>
  <li> s6-supervise sends a <tt>'u'</tt> event to <tt>./event</tt> whenever it
 successfully spawns <tt>./run</tt>. </li>
- <li> When <tt>./run</tt> dies, s6-supervise sends a <tt>'d'</tt> event to <tt>./event</tt>. </li>
- <li> When <tt>./run</tt> dies, s6-supervise spawns <tt>./finish</tt> if it exists.
+ <li> When <tt>./run</tt> dies, s6-supervise sends a <tt>'d'</tt> event to <tt>./event</tt>.
+It then spawns <tt>./finish</tt> if it exists.
 <tt>./finish</tt> will have <tt>./run</tt>'s exit code as first argument, or 256 if
 <tt>./run</tt> was signaled; it will have the number of the signal that killed <tt>./run</tt>
 as second argument, or an undefined number if <tt>./run</tt> was not signaled. </li>
- <li> <tt>./finish</tt> must exit in less than 5 seconds. If it takes more than that,
-s6-supervise kills it with a SIGKILL. </li>
- <li> When <tt>./finish</tt> dies, s6-supervise restarts <tt>./run</tt> unless it has been
-told not to. </li>
+ <li> By default, <tt>./finish</tt> must exit in less than 5 seconds. If it takes more than that,
+s6-supervise kills it with a SIGKILL. This can be configured via the
+<tt>./timeout-finish</tt> file, see the description in the
+<a href="servicedir.html">service directory page</a>. </li>
+ <li> When <tt>./finish</tt> dies (or is killed),
+s6-supervise sends a <tt>'D'</tt> event to <tt>./event</tt>. Then
+it restarts <tt>./run</tt> unless it has been told not to. </li>
  <li> There is a minimum 1-second delay between two <tt>./run</tt> spawns, to avoid busylooping
 if <tt>./run</tt> exits too quickly. </li>
  <li> When killed or asked to exit, it waits for the service to go down one last time, then
@@ -78,10 +81,9 @@ what they do, are listed on the
 <tt>notification-fd</tt> file when the service is started, or restarted,
 s6-supervise creates and listens to an additional pipe from the service
 for <a href="notifywhenup.html">readiness notification</a>. When the
-notification occurs, s6-supervise creates a <tt>./supervise/ready</tt>
-file containing the absolute time when readiness occurred, then sends
-a <tt>'U'</tt> event to <tt>./event</tt>. The <tt>./supervise/ready</tt>
-file is deleted on service death.
+notification occurs, s6-supervise updates the <tt>./supervise/status</tt>
+file accordingly, then sends
+a <tt>'U'</tt> event to <tt>./event</tt>.
 </p>
 
 <p>

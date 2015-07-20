@@ -1,3 +1,5 @@
+s6_svlisten_signal_handler.o
+s6_svlisten_loop.o
 ${LIBS6}
 -lexecline
 -lskarnet

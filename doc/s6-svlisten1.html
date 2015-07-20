@@ -30,7 +30,7 @@ supervised service, and blocks until said service goes up, or down.
 <h2> Interface </h2>
 
 <pre>
-     s6-svlisten [ -U | -u | -d ] [ -t <em>timeout</em> ] <em>servicedir</em> <em>prog...</em>
+     s6-svlisten [ -U | -u | -D | -d ] [ -t <em>timeout</em> ] <em>servicedir</em> <em>prog...</em>
 </pre>
 
 <ul>
@@ -57,6 +57,9 @@ specific support in the service programs, and the use of the
 <a href="servicedir.html">service directory</a>.
 See the explanation on <a href="notifywhenup.html">this page</a>. </li>
  <li> <tt>-d</tt>&nbsp;: down. s6-svlisten1 will wait until the service is down. </li>
+ <li> <tt>-D</tt>&nbsp;: really down. s6-svlisten1 will wait until the
+service is down and the cleanup script in <tt><em>servicedir</em>/finish</tt>
+has finished executing (or has timed out and been killed). </li>
  <li> <tt>-t&nbsp;<em>timeout</em></tt>&nbsp;: if the requested event has not
 happened after <em>timeout</em> milliseconds, s6-svlisten1 will print a message
 to stderr and exit 1. By default, <em>timeout</em> is 0, which means no time

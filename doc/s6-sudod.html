@@ -91,8 +91,8 @@ will set up a privileged program:
 <pre>
 #!/command/execlineb -P
 fdmove -c 2 1
+fdmove 1 3
 s6-envuidgid serveruser
-s6-notifywhenup -f
 s6-ipcserver -U -1 -- serversocket
 s6-ipcserver-access -v2 -l0 -i rules --
 exec -c
@@ -106,12 +106,15 @@ sargv
 executes the script. </li>
  <li> <a href="http://skarnet.org/software/execline/fdmove.html">fdmove</a> makes
 sure the script's error messages are sent to the service's logger. </li>
+ <li> <a href="http://skarnet.org/software/execline/fdmove.html">fdmove</a>
+redirects the script's stdout to file descriptor 3. This is useful if
+the service directory contains a <tt>notification-fd</tt> file containing
+<tt>3</tt>, so the daemon can perform
+<a href="notifywhenup.html">readiness notification</a> by writing a
+newline to its stdout. (The
+<tt>-1</tt> option to s6-ipcserver tells it to do this.) </li>
  <li> <a href="s6-envuidgid.html">s6-envuidgid</a>
 sets the UID, GID and GIDLIST environment variables for s6-ipcserver to interpret. </li>
- <li> <a href="s6-notifywhenup.html">s6-notifywhenup</a> primes the
-service for readiness notification (and the
-<tt>-1</tt> option to s6-ipcserver tells the daemon to actually
-notify when it's ready). </li>
  <li> <a href="s6-ipcserver.html">s6-ipcserver</a> binds to <em>serversocket</em>,
 drops its privileges to those of <em>serveruser</em>, and announces its
 readiness. Then, for every client connecting to <em>serversocket</em>:

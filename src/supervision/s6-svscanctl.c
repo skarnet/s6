@@ -52,14 +52,8 @@ int main (int argc, char const *const *argv)
   }
   if (!argc) dieusage() ;
 
-  {
-    unsigned int arglen = str_len(*argv) ;
-    char tmp[arglen + 20] ;
-    byte_copy(tmp, arglen, *argv) ;
-    byte_copy(tmp + arglen, 20, "/.s6-svscan/control") ;
-    r = s6_svc_write(tmp, data, datalen) ;
-  }
-  if (r < 0) strerr_diefu2sys(111, "control ", *argv) ;
-  else if (!r) strerr_diefu3x(100, "control ", *argv, ": supervisor not listening") ;
+  r = s6_svc_writectl(argv[0], S6_SVSCAN_CTLDIR, data, datalen) ;
+  if (r < 0) strerr_diefu2sys(111, "control ", argv[0]) ;
+  else if (!r) strerr_diefu3x(100, "control ", argv[0], ": supervisor not listening") ;
   return 0 ;
 }

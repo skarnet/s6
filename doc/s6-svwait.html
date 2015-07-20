@@ -29,7 +29,7 @@ s6-svwait only waits for notifications; it never polls.
 <h2> Interface </h2>
 
 <pre>
-     s6-svwait [ -U | -u | -d ] [ -a | -o ] [ -t <em>timeout</em> ] <em>servicedir...</em>
+     s6-svwait [ -U | -u | -D | -d ] [ -a | -o ] [ -t <em>timeout</em> ] <em>servicedir...</em>
 </pre>
 
 <p>
@@ -53,6 +53,11 @@ specific support in the service programs, and the use of the
 <a href="servicedir.html">service directory</a>.
 See the explanation on <a href="notifywhenup.html">this page</a>. </li>
  <li> <tt>-d</tt>&nbsp;: down. s6-svwait will wait until the services are down. </li>
+ <li> <tt>-D</tt>&nbsp;: really down. s6-svwait will wait until the
+services are down and the cleanup scripts in
+<tt><em>servicedir</em>/finish</tt>
+for every <em>servicedir</em>
+have finished executing (or have timed out and been killed). </li>
  <li> <tt>-o</tt>&nbsp;: or. s6-svwait will wait until <em>one</em> of the
 given services comes up or down. </li>
  <li> <tt>-a</tt>&nbsp;: and. s6-svwait will wait until <em>all</em> of the
@@ -80,8 +85,7 @@ s6-supervise has not been started yet. </li>
 <p>
 s6-svwait spawns a <a href="libs6/s6-ftrigrd.html">s6-ftrigrd</a> child to
 listen to notifications sent by <a href="s6-supervise.html">s6-supervise</a>.
-It also checks <tt>supervise/status</tt> files, as well as the
-<tt>supervise/ready</tt> files if necessary, to get the current service
+It also checks <tt>supervise/status</tt> files to get the current service
 states, so it is immune to race conditions.
 </p>
 

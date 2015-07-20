@@ -8,7 +8,6 @@ s6-ftrig-wait \
 s6lockd \
 s6-cleanfifodir \
 s6-mkfifodir \
-s6-notifywhenup \
 s6-svscan \
 s6-supervise \
 s6-svc \

@@ -28,7 +28,7 @@ knowing their PIDs, and without using horrible hacks such as .pid files.
 <h2> Interface </h2>
 
 <pre>
-     s6-svc [ -D | -U ] [ -T <em>timeout</em> ] [ -abqhkti12pcoduxO ] <em>servicedir</em>
+     s6-svc [ -wu | -wU | -wd | -wD ] [ -T <em>timeout</em> ] [ -abqhkti12pcoduxO ] <em>servicedir</em>
 </pre>
 
 <p>
@@ -75,13 +75,20 @@ it. </li>
 (in milliseconds) after which s6-svc will exit 1 with an error message if
 the service still hasn't reached the desired state. By default, the
 timeout is 0, which means that s6-svc will block indefinitely. </li>
- <li> <tt>-D</tt>&nbsp;: s6-svc will not exit until the service is down. </li>
- <li> <tt>-U</tt>&nbsp;: s6-svc will not exit until the service is up and
+ <li> <tt>-wd</tt>&nbsp;: s6-svc will not exit until the service is down,
+i.e. until the <tt>run</tt> process has died. </li>
+ <li> <tt>-wD</tt>&nbsp;: s6-svc will not exit until the service is down
+<em>and</em> ready to be brought up, i.e. a possible <tt>finish</tt> script has
+exited. </li>
+ <li> <tt>-wu</tt>&nbsp;: s6-svc will not exit until the service is up,
+i.e. there is a process running the <tt>run</tt> executable. </li>
+ <li> <tt>-wU</tt>&nbsp;: s6-svc will not exit until the service is up <em>and</em>
 <a href="notifywhenup.html">ready</a> as notified by the daemon itself.
 If the <a href="servicedir.html">service directory</a> does not contain
 a <tt>notification-fd</tt> file to tell
 <a href="s6-supervise.html">s6-supervise</a> to accept readiness
-notification, s6-svc will print a warning and ignore the command. </li>
+notification, s6-svc will print a warning and act as if the <tt>-wu</tt>
+option had been given instead. </li>
 </ul>
 
 <h2> Usage examples </h2>
@@ -100,12 +107,13 @@ the process represented by the <tt>/service/sshd</tt> service directory -
 typically the sshd server.
 </p>
 
-<pre> s6-svc -Dd /service/ftpd </pre>
+<pre> s6-svc -wD -d /service/ftpd </pre>
 <p>
- Take down the ftpd server and block until the process is really down.
+ Take down the ftpd server and block until the process is down and
+the finish script has completed.
 </p>
 
-<pre> s6-svc -Uu -T 5000 /service/ftpd </pre>
+<pre> s6-svc -wU -T 5000 -u /service/ftpd </pre>
 <p>
  Bring up the ftpd server and block until it has sent notification that it
 is ready. Exit 1 if it is still not ready after 5 seconds.
@@ -123,10 +131,10 @@ process is <a href="s6-log.html">s6-log</a>, this triggers a log rotation.
  <li> s6-svc writes control commands into the <tt><em>servicedir</em>/supervise/control</tt>
 FIFO. A s6-supervise process running on <em>servicedir</em> will be listening to this FIFO,
 and will read and interpret those commands. </li>
- <li> When invoked with the <tt>-D</tt> or <tt>-U</tt> option, s6-svc executes into
+ <li> When invoked with one of the <tt>-w</tt> options, s6-svc executes into
 <a href="s6-svlisten1.html">s6-svlisten1</a>, which will listen to service state
-changes and spawn another s6-svc instance (without the <tt>-D</tt> or <tt>-U</tt>
-option) that will send the commands to the service. Any error message written during
+changes and spawn another s6-svc instance (without the <tt>-w</tt> option)
+that will send the commands to the service. Any error message written during
 the waiting period will mention it is being written by s6-svlisten1; this is normal. </li>
 </ul>
 

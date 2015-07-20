@@ -45,17 +45,10 @@ typedef action_t *action_t_ref ;
 
 static tain_t deadline ;
 static tain_t dontrespawnbefore = TAIN_EPOCH ;
-static s6_svstatus_t status = { .stamp = TAIN_ZERO, .pid = 0, .flagwant = 1, .flagwantup = 1, .flagpaused = 0, .flagfinishing = 0, .wstat = 0 } ;
+static s6_svstatus_t status = S6_SVSTATUS_ZERO ;
 static state_t state = DOWN ;
 static int cont = 1 ;
 static int notifyfd = -1 ;
-
-static inline void down_and_delay (void)
-{
-  state = DOWN ;
-  if (tain_future(&dontrespawnbefore)) deadline = dontrespawnbefore ;
-  else tain_copynow(&deadline) ;
-}
 
 static inline void settimeout (int secs)
 {
@@ -71,6 +64,37 @@ static inline void announce (void)
 {
   if (!s6_svstatus_write(".", &status))
     strerr_warnwu1sys("write status file") ;
+}
+
+static int read_uint (char const *file, unsigned int *fd)
+{
+  char buf[UINT_FMT + 1] ;
+  register int r = openreadnclose_nb(file, buf, UINT_FMT) ;
+  if (r < 0)
+  {
+    if (errno != ENOENT) strerr_warnwu2sys("open ", file) ;
+    return 0 ;
+  }
+  buf[byte_chr(buf, r, '\n')] = 0 ;
+  if (!uint0_scan(buf, fd))
+  {
+    strerr_warnw2x("invalid ", file) ;
+    return 0 ;
+  }
+  return 1 ;
+}
+
+static void set_down_and_ready (char const *s, unsigned int n)
+{
+  status.pid = 0 ;
+  status.flagfinishing = 0 ;
+  status.flagready = 1 ;
+  tain_copynow(&status.readystamp) ;
+  state = DOWN ;
+  if (tain_future(&dontrespawnbefore)) deadline = dontrespawnbefore ;
+  else tain_copynow(&deadline) ;
+  announce() ;
+  ftrigw_notifyb_nosig(S6_SUPERVISE_EVENTDIR, s, n) ;
 }
 
 
@@ -183,27 +207,12 @@ static void trystart (void)
     strerr_warnwu1sys("pipe (waiting 60 seconds)") ;
     return ;
   }
+  if (read_uint("notification-fd", &fd) && pipe(notifyp) < 0)
   {
-    char buf[UINT_FMT + 1] ;
-    register int r = openreadnclose("notification-fd", buf, UINT_FMT) ;
-    if (r < 0)
-    {
-      if (errno != ENOENT)
-        strerr_warnwu1sys("open notification-fd") ;
-    }
-    else
-    {
-      buf[byte_chr(buf, r, '\n')] = 0 ;
-      if (!uint0_scan(buf, &fd))
-        strerr_warnw1x("invalid notification-fd") ;
-      else if (pipe(notifyp) < 0)
-      {
-        settimeout(60) ;
-        strerr_warnwu1sys("pipe (waiting 60 seconds)") ;
-        fd_close(p[1]) ; fd_close(p[0]) ;
-        return ;
-      }
-    }
+    settimeout(60) ;
+    strerr_warnwu1sys("pipe (waiting 60 seconds)") ;
+    fd_close(p[1]) ; fd_close(p[0]) ;
+    return ;
   }
   pid = fork() ;
   if (pid < 0)
@@ -222,8 +231,6 @@ static void trystart (void)
     selfpipe_finish() ;
     if (notifyp[0] >= 0) close(notifyp[0]) ;
     close(p[0]) ;
-    if (unlink(S6_SUPERVISE_READY_FILENAME) < 0 && errno != ENOENT)
-      strerr_warnwu1sys("unlink " S6_SUPERVISE_READY_FILENAME) ;
     if (notifyp[1] >= 0 && fd_move((int)fd, notifyp[1]) < 0)
     {
       failcoe(p[1]) ;
@@ -264,6 +271,7 @@ static void trystart (void)
   settimeout_infinite() ;
   state = UP ;
   status.pid = pid ;
+  status.flagready = 0 ;
   tain_copynow(&status.stamp) ;
   tain_addsec_g(&dontrespawnbefore, 1) ;
   announce() ;
@@ -303,17 +311,25 @@ static void down_d (void)
   announce() ;
 }
 
-static inline void tryfinish (int islast)
+static int uplastup_z (void)
 {
-  register pid_t pid = fork() ;
-  if (pid < 0)
+  status.wstat = (int)status.pid ;
+  status.flagpaused = 0 ;
+  status.flagready = 0 ;
+  tain_copynow(&status.stamp) ;
+  if (notifyfd >= 0)
+  {
+    fd_close(notifyfd) ;
+    notifyfd = -1 ;
+  }
+  status.pid = fork() ;
+  if (status.pid < 0)
   {
     strerr_warnwu2sys("fork for ", "./finish") ;
-    if (islast) bail() ;
-    down_and_delay() ;
-    return ;
+    set_down_and_ready("dD", 2) ;
+    return 0 ;
   }
-  else if (!pid)
+  else if (!status.pid)
   {
     char fmt0[UINT_FMT] ;
     char fmt1[UINT_FMT] ;
@@ -325,39 +341,35 @@ static inline void tryfinish (int islast)
     execve("./finish", cargv, (char *const *)environ) ;
     _exit(127) ;
   }
-  status.pid = pid ;
   status.flagfinishing = 1 ;
-  state = islast ? LASTFINISH : FINISH ;
+  announce() ;
+  ftrigw_notifyb_nosig(S6_SUPERVISE_EVENTDIR, "d", 1) ;
+  {
+    tain_t tto ;
+    unsigned int timeout ;
+    if (!read_uint("timeout-finish", &timeout)) timeout = 5000 ;
+    if (timeout && tain_from_millisecs(&tto, timeout))
+      tain_add_g(&deadline, &tto) ;
+    else settimeout_infinite() ;
+  }
+  return 1 ;
+}
+
+static void up_z (void)
+{
+  if (uplastup_z()) state = FINISH ;
+}
+
+static void lastup_z (void)
+{
+  if (uplastup_z()) state = LASTFINISH ;
+  else bail() ;
 }
 
 static void uptimeout (void)
 {
   settimeout_infinite() ;
   strerr_warnw1x("can't happen: timeout while the service is up!") ;
-}
-
-static void uplastup_z (int islast)
-{
-  status.wstat = status.pid ;
-  status.pid = 0 ;
-  tain_copynow(&status.stamp) ;
-  if (notifyfd >= 0)
-  {
-    fd_close(notifyfd) ;
-    notifyfd = -1 ;
-  }
-  tryfinish(islast) ;
-  announce() ;
-  ftrigw_notifyb_nosig(S6_SUPERVISE_EVENTDIR, "d", 1) ;
-  if (unlink(S6_SUPERVISE_READY_FILENAME) < 0 && errno != ENOENT)
-    strerr_warnwu1sys("unlink " S6_SUPERVISE_READY_FILENAME) ;
-  settimeout(5) ;
-}
-
-static void up_z (void)
-{
-  status.flagpaused = 0 ;
-  uplastup_z(0) ;
 }
 
 static void up_o (void)
@@ -400,17 +412,14 @@ static void up_term (void)
 
 static void finishtimeout (void)
 {
-  strerr_warnw1x("finish script takes too long - killing it") ;
+  strerr_warnw1x("finish script lifetime reached maximum value - sending it a SIGKILL") ;
   killc() ; killk() ;
-  settimeout(3) ;
+  settimeout(5) ;
 }
 
 static void finish_z (void)
 {
-  status.pid = 0 ;
-  status.flagfinishing = 0 ;
-  down_and_delay() ;
-  announce() ;
+  set_down_and_ready("D", 1) ;
 }
 
 static void finish_u (void)
@@ -429,11 +438,6 @@ static void finish_X (void)
 {
   closethem() ;
   finish_x() ;
-}
-
-static void lastup_z (void)
-{
-  uplastup_z(1) ;
 }
 
 static action_t_ref const actions[5][24] =
@@ -470,10 +474,9 @@ static inline void handle_notifyfd (void)
     r = sanitize_read(fd_read(notifyfd, buf, 4096)) ;
     if (r > 0 && byte_chr(buf, r, '\n') < r)
     {
-      char pack[TAIN_PACK] ;
-      tain_pack(pack, &STAMP) ;
-      if (!openwritenclose_suffix(S6_SUPERVISE_READY_FILENAME, pack, TAIN_PACK, ".new"))
-        strerr_warnwu3sys("open ", S6_SUPERVISE_READY_FILENAME, " for writing") ;
+      tain_copynow(&status.readystamp) ;
+      status.flagready = 1 ;
+      announce() ;
       ftrigw_notifyb_nosig(S6_SUPERVISE_EVENTDIR, "U", 1) ;
       r = -1 ;
     }
@@ -504,7 +507,7 @@ static inline void handle_signals (void)
             if (errno != ECHILD) strerr_diefu1sys(111, "wait_pid_nohang") ;
             else break ;
           else if (!r) break ;
-          status.pid = wstat ; /* don't overwrite status.wstat if it's ./finish */
+          status.pid = (pid_t)wstat ; /* don't overwrite status.wstat if it's ./finish */
           (*actions[state][V_CHLD])() ;
         }
         break ;

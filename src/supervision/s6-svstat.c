@@ -1,8 +1,8 @@
 /* ISC license. */
 
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <sys/wait.h>
+#include <unistd.h>
 #include <errno.h>
 #include <skalibs/uint64.h>
 #include <skalibs/uint.h>
@@ -23,7 +23,6 @@ int main (int argc, char const *const *argv)
   s6_svstatus_t status ;
   int flagnum = 0 ;
   int isup, normallyup ;
-  tain_t readytime = TAIN_ZERO ;
   char fmt[UINT_FMT] ;
   PROG = "s6-svstat" ;
   {
@@ -49,26 +48,14 @@ int main (int argc, char const *const *argv)
   if (tain_future(&status.stamp)) tain_copynow(&status.stamp) ;
 
   {
-    char pack[TAIN_PACK] ;
-    struct stat st ;
     unsigned int dirlen = str_len(*argv) ;
-    char fn[dirlen + sizeof(S6_SUPERVISE_READY_FILENAME) + 1] ;
+    char fn[dirlen + 6] ;
     byte_copy(fn, dirlen, *argv) ;
     byte_copy(fn + dirlen, 6, "/down") ;
-    if (stat(fn, &st) == -1)
-      if (errno != ENOENT) strerr_diefu2sys(111, "stat ", fn) ;
+    if (access(fn, F_OK) < 0)
+      if (errno != ENOENT) strerr_diefu2sys(111, "access ", fn) ;
       else normallyup = 1 ;
     else normallyup = 0 ;
-    byte_copy(fn + dirlen, sizeof(S6_SUPERVISE_READY_FILENAME) + 1, "/" S6_SUPERVISE_READY_FILENAME) ;
-    if (openreadnclose(fn, pack, TAIN_PACK) < TAIN_PACK)
-    {
-      if (errno != ENOENT) strerr_warnwu2sys("read ", fn) ;
-    }
-    else
-    {
-      tain_unpack(pack, &readytime) ;
-      if (tain_future(&readytime)) tain_copynow(&readytime) ;
-    }
   }
 
   isup = status.pid && !status.flagfinishing ;
@@ -110,16 +97,16 @@ int main (int argc, char const *const *argv)
     buffer_putnoflush(buffer_1small, ", normally up", 13) ;
   if (isup && status.flagpaused)
     buffer_putnoflush(buffer_1small, ", paused", 8) ;
-  if (!isup && (status.flagwant == 'u'))
+  if (!isup && status.flagwant)
     buffer_putnoflush(buffer_1small, ", want up", 10) ;
-  if (isup && (status.flagwant == 'd'))
+  if (isup && !status.flagwant)
     buffer_putnoflush(buffer_1small, ", want down", 12) ;
 
-  if (readytime.sec.x)
+  if (status.flagready)
   {
-    tain_sub(&readytime, &STAMP, &readytime) ;
+    tain_sub(&status.readystamp, &STAMP, &status.readystamp) ;
     buffer_putnoflush(buffer_1small, ", ready ", 8) ;
-    buffer_putnoflush(buffer_1small, fmt, uint64_fmt(fmt, readytime.sec.x)) ;
+    buffer_putnoflush(buffer_1small, fmt, uint64_fmt(fmt, status.readystamp.sec.x)) ;
     buffer_putnoflush(buffer_1small, " seconds", 8) ;
   }
   if (buffer_putflush(buffer_1small, "\n", 1) < 0)

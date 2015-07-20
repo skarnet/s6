@@ -18,6 +18,27 @@
 
 <h1> What has changed in s6 </h1>
 
+<h2> in 2.2.0.0 </h2>
+
+<ul>
+ <li> skalibs dependency bumped to 2.3.6.0. </li>
+ <li> The internals of <a href="s6-supervise.html">s6-supervise</a> have
+changed; the <tt>supervise/status</tt> file ABI has changed and is not
+compatible with the daemontools/runit <tt>supervise/status</tt> files
+anymore. (This should not impact anything.) </li>
+ <li> <a href="s6-supervise.html">s6-supervise</a> features a
+configurable timeout for <tt>./finish</tt> scripts, via the
+<a href="servicedir.html"><tt>./timeout-finish</tt></a> file. </li>
+ <li> <a href="s6-svwait.html">s6-svwait</a>,
+<a href="s6-svlisten1.html">s6-svlisten1</a> and
+<a href="s6-svlisten.html">s6-svlisten</a> can now wait for a <tt>'D'</tt>
+event, which means the <tt>./finish</tt> script has terminated. </li>
+ <li> The deprecated <tt>s6-notifywhenup</tt> program has been
+removed. </li>
+ <li> The syntax for synchronous <a href="s6-svc.html">s6-svc</a>
+waiting has changed. </li>
+</ul>
+
 <h2> in 2.1.6.0 </h2>
 
 <ul>

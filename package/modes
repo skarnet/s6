@@ -8,7 +8,6 @@ s6lockd				0755
 s6lockd-helper			0755
 s6-cleanfifodir			0755
 s6-mkfifodir			0755
-s6-notifywhenup			0755
 s6-svscan			0755
 s6-supervise			0755
 s6-svc				0755

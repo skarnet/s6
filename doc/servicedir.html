@@ -117,6 +117,12 @@ notification from the service and broadcast readiness, i.e. any
 <a href="s6-svlisten1.html">s6-svlisten1 -U</a> or
 <a href="s6-svlisten.html">s6-svlisten -U</a> processes will be
 triggered. </li>
+ <li> An optional regular file named <tt>timeout-finish</tt>. If such a file
+exists, it must only contain an unsigned integer, which is the number of
+milliseconds after which the <tt>./finish</tt> script, if it exists, will
+be killed with a SIGKILL. The default is 5000: finish scripts are killed
+if they're still alive after 5 seconds. A value of 0 allows finish scripts
+to run forever. </li>
  <li> A <a href="fifodir.html">fifodir</a> named <tt>event</tt>. It is automatically
 created by <a href="s6-supervise.html">s6-supervise</a> if it does not exist.
 <em>foo</em><tt>/event</tt>

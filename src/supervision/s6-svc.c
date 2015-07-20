@@ -10,7 +10,7 @@
 #include <s6/config.h>
 #include <s6/s6-supervise.h>
 
-#define USAGE "s6-svc [ -D | -U ] [ -T timeout ] [ -abqhkti12pcoduxOX ] servicedir"
+#define USAGE "s6-svc [ -wu | -wU | -wd | -wD ] [ -T timeout ] [ -abqhkti12pcoduxOX ] servicedir"
 #define dieusage() strerr_dieusage(100, USAGE)
 
 #define DATASIZE 63
@@ -26,12 +26,10 @@ int main (int argc, char const *const *argv, char const *const *envp)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "DUabqhkti12pcoduxOXT:", &l) ;
+      register int opt = subgetopt_r(argc, argv, "abqhkti12pcoduxOXT:w:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
-        case 'D' : updown[1] = 'd' ; break ;
-        case 'U' : updown[1] = 'U' ; break ;
         case 'a' :
         case 'b' :
         case 'q' :
@@ -55,6 +53,12 @@ int main (int argc, char const *const *argv, char const *const *envp)
           break ;
         }
         case 'T' : if (!uint0_scan(l.arg, &timeout)) dieusage() ; break ;
+        case 'w' :
+        {
+          if (byte_chr("dDuU", 4, l.arg[0]) >= 4) dieusage() ;
+          updown[1] = l.arg[0] ;
+          break ;
+        }
         default : dieusage() ;
       }
     }
@@ -63,6 +67,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (!argc) dieusage() ;
   if (argc > 1) strerr_warn1x("ignoring extra arguments") ;
 
+  if (datalen <= 1) return 0 ;
   if (updown[1] == 'U')
   {
     unsigned int arglen = str_len(argv[0]) ;
@@ -72,8 +77,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
     if (access(fn, F_OK) < 0)
     {
       if (errno != ENOENT) strerr_diefu2sys(111, "access ", fn) ;
-      updown[1] = 0 ;
-      strerr_warnw2x(fn, " not present - ignoring -U option") ;
+      updown[1] = 'u' ;
+      strerr_warnw2x(fn, " not present - converting -wU to -wu") ;
     }
   }
 
@@ -100,15 +105,9 @@ int main (int argc, char const *const *argv, char const *const *envp)
     pathexec_run(newargv[0], newargv, envp) ;
     strerr_dieexec(111, newargv[0]) ;
   }
-  else if (datalen > 1)
+  else
   {
-    unsigned int arglen = str_len(argv[0]) ;
-    char tmp[arglen + 9 + sizeof(S6_SUPERVISE_CTLDIR)] ;
-    register int r ;
-    byte_copy(tmp, arglen, argv[0]) ;
-    tmp[arglen] = '/' ;
-    byte_copy(tmp + arglen + 1, 8 + sizeof(S6_SUPERVISE_CTLDIR), S6_SUPERVISE_CTLDIR "/control") ;
-    r = s6_svc_write(tmp, data + 1, datalen - 1) ;
+    register int r = s6_svc_writectl(argv[0], S6_SUPERVISE_CTLDIR, data + 1, datalen - 1) ;
     if (r < 0) strerr_diefu2sys(111, "control ", argv[0]) ;
     else if (!r) strerr_diefu3x(100, "control ", argv[0], ": supervisor not listening") ;
   }

@@ -46,7 +46,11 @@ signal, if it is down </li>
 kernel's scheduler picks up s6-supervise </li>
  <li> whether the service is <a href="notifywhenup.html">ready</a>,
 as notified by the daemon itself, and
-if it is, the number of seconds that it has been. </li>
+if it is, the number of seconds that it has been.
+A service reported as down and ready simply means that it is ready
+to be brought up. A service is down and not ready when it is in the
+cleanup phase, i.e. the <tt>./finish</tt> script is still being executed. </li>
+ </li>
 </ul>
 
 <h2> Options </h2>
