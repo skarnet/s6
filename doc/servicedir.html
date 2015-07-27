@@ -139,6 +139,30 @@ service is said to be <em>logged</em>; the <em>foo</em><tt>/log</tt> service is 
 <em>foo</em><tt>/log/log</tt> exists, nothing special happens. </li>
 </ul>
 
+ <h3> Stability </h3>
+
+<p>
+ With the evolution of s6, it is possible that 
+ <a href="s6-supervise.html">s6-supervise</a> configuration uses more and more
+files in the service directory. The
+<tt>notification-fd</tt> and <tt>timeout-finish</tt> files, for
+instance, have appeared in 2015; users who previously had files
+with the same name had to change them. There is no guarantee that
+<a href="s6-supervise.html">s6-supervise</a> will not use additional
+names in the service directory in the same fashion in the future.
+</p>
+
+<p>
+ There <em>is</em>, however, a guarantee that
+<a href="s6-supervise.html">s6-supervise</a> will never touch
+subdirectories named <tt>data</tt> or <tt>env</tt>. So if you
+need to store user information in the service directory with
+the guarantee that it will never be mistaken for a configuration
+file, no matter the version of s6, you should store that information in
+the <tt>data</tt> or <tt>env</tt> subdirectories of the service
+directory.
+</p>
+
 <a name="where">
  <h2> Where to store my service directories&nbsp;? </h2>
 </a>
@@ -184,7 +208,9 @@ amounts to less than a megabyte of data - sometimes much less. Knowing this,
 it makes sense to have an image of your service directories in the
 (possibly read-only) root filesystem, and <em>copy it all</em>
 to a scan directory located on a RAM filesystem that is mounted at boot time.
-This is the setup I recommend. It has several advantages:
+This is the setup I recommend, and the one used by the
+<a href="http://skarnet.org/software/s6-rc/">s6-rc</a> service manager.
+ It has several advantages:
  <ul>
   <li> Your service directories reside on the root filesystem and are not
 modified during the lifetime of the system. If your root filesystem is

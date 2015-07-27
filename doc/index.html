@@ -33,7 +33,7 @@ a very small amount of code.
 
 <p>
  Examples of things you can do by assembling together several programs
-provided by s6:
+provided by s6 - besides process supervision:
 </p>
 
 <ul>
@@ -309,7 +309,9 @@ is a package to help you create a <tt>/sbin/init</tt> binary booting a
 Linux system with s6-svscan as process 1. </li>
  <li> <a href="https://github.com/just-containers/s6-overlay">s6-overlay</a>
 is a project that automates integration of s6 into Docker images. </li>
- <li> <a href="http://jjacky.com/anopa">anopa</a> is a dependency-based
+ <li> <a href="http://skarnet.org/software/s6-rc/">s6-rc</a> is a
+dependency-based service manager for s6. </li>
+ <li> <a href="http://jjacky.com/anopa">anopa</a> is another dependency-based
 service manager for s6. </li>
 </ul>
 
@@ -318,7 +320,7 @@ service manager for s6. </li>
 
 <ul>
  <li> <tt>s6</tt> is discussed on the
-<a href="http://www.skarnet.org/lists.html#supervision">supervision</a> mailing-list. </li>
+<a href="http://skarnet.org/lists.html#supervision">supervision</a> mailing-list. </li>
 </ul>
 
 <h3> Similar work </h3>
@@ -346,6 +348,12 @@ different way than the previous items on this list. </li>
 <ul>
  <li> Felix von Leitner's <a href="http://www.fefe.de/minit/">minit</a> is an
 init system for Linux, with process supervision capabilities. </li>
+ <li> <a href="http://git.suckless.org/sinit">suckless init</a> is
+considered by many as the smallest possible init. I disagree: suckless
+init is incorrect, because it
+has no supervision capabilities, and thus, killing all processes but init
+can brick the machine. Nevertheless, suckless init, like many other
+suckless projects, is a neat exercise in minimalism. </li>
  <li> <a href="http://freshmeat.net/projects/sysvinit/">sysvinit</a> is the
 traditional init system for Linux. </li>
  <li> <a href="http://upstart.ubuntu.com/">Upstart</a> is a well-known init system

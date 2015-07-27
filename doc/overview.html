@@ -346,7 +346,8 @@ s6 provides tools to do that:
  <li> The <a href="s6-svwait.html">s6-svwait</a>,
 <a href="s6-svlisten1.html">s6-svlisten1</a> and
 <a href="s6-svlisten.html">s6-svlisten</a> programs will wait until a set of
-daemons is up, ready or down. </li>
+daemons is up, ready, down (as soon as the <tt>./run</tt> process dies) or
+really down (when the <tt>./finish</tt> process has also died). </li>
  <li> Unfortunately, a daemon being <em>up</em> does not mean that it is
 <em>ready</em>:
 <a href="notifywhenup.html">this page</a> goes into the details. s6
@@ -358,11 +359,13 @@ it. </li>
 </ul>
 
 <p>
- For now, s6 does not provide a complete dependency management framework,
+ s6 does not provide a complete dependency management framework,
 i.e. a program to automatically start (or stop) a set of services in a
 specific order - that order being automatically computed from a graph of
 dependencies between services.
- That functionality is planned for a future version of s6.
+ That functionality belongs to a <em>service manager</em>, and is
+implemented for instance in the
+<a href="http://skarnet.org/software/s6-rc/">s6-rc</a> package.
 </p>
 
 <h2> Additional utilities </h2>
