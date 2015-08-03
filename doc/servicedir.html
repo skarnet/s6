@@ -109,8 +109,8 @@ exists, it means that the service supports
  contain an unsigned integer, which is the number of the file descriptor that
 the service writes its readiness notification to. (For instance, it should
 be 1 if the daemon is <a href="s6-ipcserverd">s6-ipcserverd</a> run with the
-<tt>-1</tt> option.) </li>
-  when a service is started, or restarted, by s6-supervise, if this file
+<tt>-1</tt> option.)
+  When a service is started, or restarted, by s6-supervise, if this file
 exists and contains a valid descriptor number, s6-supervise will wait for the
 notification from the service and broadcast readiness, i.e. any
 <a href="s6-svwait.html">s6-svwait -U</a>,
