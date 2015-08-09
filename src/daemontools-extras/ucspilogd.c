@@ -160,7 +160,11 @@ int main (int argc, char const *const *argv, char const *const *envp)
       satmp.len = 0 ;
       {
         register int r = skagetlnsep(buffer_0f1, &satmp, "\n", 2) ;
-        if (r < 0) strerr_diefu1sys(111, "read from stdin") ;
+        if (r < 0)
+        {
+          if (errno != EPIPE || !stralloc_0(&satmp))
+            strerr_diefu1sys(111, "read from stdin") ;
+        }
         if (!r) break ;
       }
       if (!satmp.len) continue ;
