@@ -6,6 +6,7 @@
 #endif
 
 #include <skalibs/nonposix.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <syslog.h>
 #include <skalibs/uint.h>
