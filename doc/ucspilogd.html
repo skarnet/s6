@@ -26,7 +26,7 @@ numbers and alert levels into names.
 <h2> Interface </h2>
 
 <pre>
-     ucspilogd [ <em>var</em> ... ]
+     ucspilogd [ -d <em>undef</em> ] [ <em>var</em> ... ]
 </pre>
 
 <ul>
@@ -40,6 +40,17 @@ alert level in the syslog format, it converts them into a
 human-readable name in the syslogd fashion. </li>
  <li> It then writes the processed line to stdout. </li>
 </ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-d&nbsp;<em>undef</em></tt>&nbsp;: when a variable
+<em>var</em> given on the command line is actually undefined at
+ucspilogd execution time, print <em>undef</em> in place of what
+would be the variable's value on every line. Default is the
+string <tt>&lt;undefined&gt;</tt>. </li>
+</ul>
+
 
 <h2> Common use </h2>
 
