@@ -23,6 +23,7 @@ Fine tuning of the installation directories:
   --libexecdir=DIR              package-scoped executables [EPREFIX/libexec]
   --libdir=DIR                  static library files [PREFIX/lib/$package]
   --includedir=DIR              C header files [PREFIX/include]
+  --datadir=DIR                 global configuration files [PREFIX/etc]
 
  If no --prefix option is given, by default libdir (but not dynlibdir) will be
  /usr/lib/$package, and includedir will be /usr/include.
@@ -132,6 +133,7 @@ bindir='$exec_prefix/bin'
 sbindir='$exec_prefix/sbin'
 libdir='$prefix/lib/$package'
 includedir='$prefix/include'
+datadir='$prefix/etc'
 sysdeps='$prefix/lib/skalibs/sysdeps'
 manualsysdeps=false
 shared=false
@@ -160,6 +162,7 @@ for arg ; do
     --sbindir=*) sbindir=${arg#*=} ;;
     --libdir=*) libdir=${arg#*=} ;;
     --includedir=*) includedir=${arg#*=} ;;
+    --datadir=*) datadir=${arg#*=} ;;
     --with-sysdeps=*) sysdeps=${arg#*=} manualsysdeps=true ;;
     --with-include=*) var=${arg#*=} ; stripdir var ; addincpath="$addincpath -I$var" ;;
     --with-lib=*) var=${arg#*=} ; stripdir var ; addlibspath="$addlibspath -L$var" ; vpaths="$vpaths $var" ;;
@@ -201,7 +204,7 @@ fi
 
 # Expand installation directories
 stripdir prefix
-for i in exec_prefix dynlibdir libexecdir bindir sbindir libdir includedir sysdeps sproot skalibs ; do
+for i in exec_prefix dynlibdir libexecdir bindir sbindir libdir includedir datadir sysdeps sproot skalibs ; do
   eval tmp=\${$i}
   eval $i=$tmp
   stripdir $i
@@ -335,6 +338,7 @@ bindir := $bindir
 sbindir := $sbindir
 libdir := $libdir
 includedir := $includedir
+datadir := $datadir
 sysdeps := $sysdeps
 slashpackage := $slashpackage
 sproot := $sproot
@@ -354,14 +358,15 @@ LDFLAGS := $LDFLAGS_AUTO
 LDFLAGS_NOSHARED := $LDFLAGS_NOSHARED
 CROSS_COMPILE := $cross
 
-vpath lib%a$vpaths
+vpath lib%.a$vpaths
+vpath lib%.so$vpathd
 EOF
 if $allstatic ; then
   echo ".LIBPATTERNS := lib%.a"
   echo "DO_ALLSTATIC := 1"
-  vpathd=
+else
+  echo ".LIBPATTERNS := lib%.so"
 fi
-  echo "vpath lib%.so$vpathd"
 if $static ; then
   echo "DO_STATIC := 1"
 else
@@ -388,6 +393,7 @@ cat <<EOF
 #define ${package_macro_name}_CONFIG_H
 
 #define ${package_macro_name}_VERSION "$version"
+#define ${package_macro_name}_ETC "$datadir"
 EOF
 if $slashpackage ; then
   echo "#define ${package_macro_name}_BINPREFIX \"$binprefix/\""

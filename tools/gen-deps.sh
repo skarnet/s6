@@ -60,8 +60,8 @@ for dir in $(ls -1 src | grep -v ^include) ; do
     while read dep ; do
       deps="$deps src/$dir/$dep"
     done < src/$dir/deps-lib/$file
-    echo "lib$file.a: $deps"
-    echo "lib${file}.so: $(echo "$deps" | sed 's/\.o/.lo/g')"
+    echo "lib$file.a.xyzzy: $deps"
+    echo "lib${file}.so.xyzzy: $(echo "$deps" | sed 's/\.o/.lo/g')"
   done
 
   for file in $(ls -1 src/$dir/deps-exe) ; do
