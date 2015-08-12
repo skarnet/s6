@@ -20,8 +20,6 @@ INTERNAL_LIBS :=
 EXTRA_TARGETS :=
 LIB_DEFS :=
 
--include config.mak
-
 define library_definition =
 LIB$(firstword $(subst =, ,$(1))) := lib$(lastword $(subst =, ,$(1))).$(if $(DO_ALLSTATIC),a,so).xyzzy
 ifdef DO_SHARED
@@ -32,6 +30,7 @@ STATIC_LIBS += lib$(lastword $(subst =, ,$(1))).a.xyzzy
 endif
 endef
 
+-include config.mak
 include package/targets.mak
 
 $(foreach var,$(LIB_DEFS),$(eval $(call library_definition,$(var))))
@@ -45,8 +44,6 @@ CPPFLAGS_ALL := -iquote src/include-local -Isrc/include $(CPPFLAGS)
 CFLAGS_ALL := $(CFLAGS) -pipe -Wall
 CFLAGS_SHARED := -fPIC
 LDFLAGS_ALL := $(LDFLAGS)
-LDFLAGS_SHARED := -shared
-LDLIBS_ALL := $(LDLIBS)
 REALCC = $(CROSS_COMPILE)$(CC)
 AR := $(CROSS_COMPILE)ar
 RANLIB := $(CROSS_COMPILE)ranlib
@@ -95,12 +92,12 @@ ifneq ($(exthome),)
 update:
 	exec $(INSTALL) -l $(notdir $(home)) $(DESTDIR)$(exthome)
 
-global-links: $(DESTDIR)$(exthome) $(SHARED_LIBS:lib%.so.xyzzy=$(DESTDIR)$(sproot)/library.so/lib%.so) $(BIN_TARGETS:%=$(DESTDIR)$(sproot)/command/%) $(SBIN_TARGETS:%=$(DESTDIR)$(sproot)/command/%)
+global-links: $(DESTDIR)$(exthome) $(SHARED_LIBS:lib%.so.xyzzy=$(DESTDIR)$(sproot)/library.so/lib%.so.$(version_M)) $(BIN_TARGETS:%=$(DESTDIR)$(sproot)/command/%) $(SBIN_TARGETS:%=$(DESTDIR)$(sproot)/command/%)
 
 $(DESTDIR)$(sproot)/command/%: $(DESTDIR)$(home)/command/%
 	exec $(INSTALL) -D -l ..$(subst $(sproot),,$(exthome))/command/$(<F) $@
 
-$(DESTDIR)$(sproot)/library.so/lib%.so: $(DESTDIR)$(dynlibdir)/lib%.so
+$(DESTDIR)$(sproot)/library.so/lib%.so.$(version_M): $(DESTDIR)$(dynlibdir)/lib%.so.$(version_M)
 	exec $(INSTALL) -D -l ..$(subst $(sproot),,$(exthome))/library.so/$(<F) $@
 
 .PHONY: update global-links
@@ -136,14 +133,14 @@ $(DESTDIR)$(includedir)/$(package)/%.h: src/include/$(package)/%.h
 	exec $(REALCC) $(CPPFLAGS_ALL) $(CFLAGS_ALL) $(CFLAGS_SHARED) -c -o $@ $<
 
 $(ALL_BINS):
-	exec $(REALCC) -o $@ $(CFLAGS_ALL) $(LDFLAGS_ALL) $(LDFLAGS_NOSHARED) $^ $(EXTRA_LIBS) $(LDLIBS_ALL)
+	exec $(REALCC) -o $@ $(CFLAGS_ALL) $(LDFLAGS_ALL) $(LDFLAGS_NOSHARED) $^ $(EXTRA_LIBS) $(LDLIBS)
 
 lib%.a.xyzzy:
 	exec $(AR) rc $@ $^
 	exec $(RANLIB) $@
 
 lib%.so.xyzzy:
-	exec $(REALCC) -o $@ $(CFLAGS_ALL) $(CFLAGS_SHARED) $(LDFLAGS_ALL) $(LDFLAGS_SHARED) -Wl,-soname,$(patsubst lib%.so.xyzzy,lib%.so.$(version_l),$@) $^
+	exec $(REALCC) -o $@ $(CFLAGS_ALL) $(CFLAGS_SHARED) $(LDFLAGS_ALL) $(LDFLAGS_SHARED) -Wl,-soname,$(patsubst lib%.so.xyzzy,lib%.so.$(version_M),$@) $^ $(EXTRA_LIBS) $(LDLIBS)
 
 .PHONY: it all clean distclean tgz strip install install-dynlib install-bin install-sbin install-lib install-include install-data
 

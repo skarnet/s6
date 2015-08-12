@@ -53,3 +53,4 @@ s6_fdholder_retrieve_cb.o
 s6_fdholder_setdump.o
 s6_fdholder_store.o
 s6_fdholder_store_async.o
+-lskarnet

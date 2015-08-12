@@ -124,6 +124,7 @@ CC_AUTO="$CC"
 CFLAGS_AUTO="$CFLAGS"
 CPPFLAGS_AUTO="-D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -O2 $CPPFLAGS"
 LDFLAGS_AUTO="$LDFLAGS"
+LDFLAGS_SHARED=-shared
 LDFLAGS_NOSHARED=
 prefix=
 exec_prefix='$prefix'
@@ -245,10 +246,8 @@ if $slashpackage ; then
     addincpath="$addincpath -I${sproot}${dep}/include"
     vpaths="$vpaths ${sproot}${dep}/library"
     addlibspath="$addlibspath -L${sproot}${dep}/library"
-    if $allstatic ; then : ; else
-      vpathd="$vpathd ${sproot}${dep}/library.so"
-      addlibdpath="$addlibdpath -L${sproot}${dep}/library.so"
-    fi
+    vpathd="$vpathd ${sproot}${dep}/library.so"
+    addlibdpath="$addlibdpath -L${sproot}${dep}/library.so"
   done < package/deps-build
 fi
 
@@ -305,6 +304,15 @@ fi
 
 if $shared ; then
   tryldflag LDFLAGS_AUTO -Wl,--hash-style=both
+  tryldflag LDFLAGS_SHARED -Wl,-Bsymbolic
+fi
+
+LDFLAGS_SHARED="${LDFLAGS_SHARED}${addlibdpath}"
+
+if $allstatic ; then
+  LDFLAGS_NOSHARED="${LDFLAGS_NOSHARED}${addlibspath}"
+else
+  LDFLAGS_NOSHARED="${LDFLAGS_NOSHARED}${addlibdpath}"
 fi
 
 if test -z "$vpaths" ; then
@@ -316,8 +324,6 @@ if test -z "$vpaths" ; then
 fi
 
 CPPFLAGS_AUTO="$CPPFLAGS_AUTO $addincpath"
-LDFLAGS_AUTO="$LDFLAGS_AUTO $addlibspath"
-$allstatic || LDFLAGS_AUTO="$LDFLAGS_AUTO $addlibdpath"
 
 echo "creating config.mak..."
 cmdline=$(quote "$0")
@@ -355,6 +361,7 @@ CC := $CC_AUTO
 CFLAGS := $CFLAGS_AUTO
 CPPFLAGS := $CPPFLAGS_AUTO
 LDFLAGS := $LDFLAGS_AUTO
+LDFLAGS_SHARED := $LDFLAGS_SHARED
 LDFLAGS_NOSHARED := $LDFLAGS_NOSHARED
 CROSS_COMPILE := $cross
 

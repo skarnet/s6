@@ -57,11 +57,17 @@ echo
 for dir in $(ls -1 src | grep -v ^include) ; do
   for file in $(ls -1 src/$dir/deps-lib) ; do
     deps=
+    libs=
     while read dep ; do
-      deps="$deps src/$dir/$dep"
+      if echo $dep | grep -q -e ^-l -e '^\${.*_LIB}' ; then
+        libs="$libs $dep"
+      else
+        deps="$deps src/$dir/$dep"
+      fi
     done < src/$dir/deps-lib/$file
-    echo "lib$file.a.xyzzy: $deps"
-    echo "lib${file}.so.xyzzy: $(echo "$deps" | sed 's/\.o/.lo/g')"
+    echo "lib${file}.a.xyzzy:$deps"
+    echo "lib${file}.so.xyzzy: private EXTRA_LIBS :=$libs"
+    echo "lib${file}.so.xyzzy:$(echo "$deps" | sed 's/\.o/.lo/g')"
   done
 
   for file in $(ls -1 src/$dir/deps-exe) ; do
@@ -71,7 +77,7 @@ for dir in $(ls -1 src | grep -v ^include) ; do
       if echo $dep | grep -q -- \\.o$ ; then
         dep="src/$dir/$dep"
       fi
-      if echo $dep | grep -q '^\${.*_LIB}' ; then
+      if echo $dep | grep -q -- '^\${.*_LIB}' ; then
         libs="$libs $dep"
       else
         deps="$deps $dep"
