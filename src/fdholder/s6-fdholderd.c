@@ -82,6 +82,7 @@ static void handle_signals (void)
   }
 }
 
+
  /* fd store */
 
 static genset *fdstore ;
@@ -122,6 +123,12 @@ static void fds_delete (unsigned int pp)
   avltreen_delete(fds_by_id, fds_id_dtok(pp, 0)) ;
   avltreen_delete(fds_by_deadline, fds_deadline_dtok(pp, 0)) ;
   genset_delete(fdstore, pp) ;
+}
+
+static void fds_close_and_delete (unsigned int pp)
+{
+  fd_close(FD(pp)->fd) ;
+  fds_delete(pp) ;
 }
 
 
@@ -276,8 +283,7 @@ static int do_delete (unsigned int cc, unixmessage_t const *m)
   if (regexec(&c->wre, m->s + 1, 0, 0, 0)) return answer(c, EPERM) ;
   if (!avltreen_search(fds_by_id, m->s + 1, &pp)) return answer(c, ENOENT) ;
   if (!answer(c, 0)) return 0 ;
-  fd_close(FD(pp)->fd) ;
-  fds_delete(pp) ;
+  fds_close_and_delete(pp) ;
   return 1 ;
 }
 
@@ -443,6 +449,7 @@ static int do_setdump_data (unsigned int cc, unixmessage_t const *m)
     for (; i < m->nfds ; i++)
     {
       s6_fdholder_fd_t *p ;
+      unsigned int oldid ;
       unsigned int idlen ;
       if (len < TAIN_PACK + 3) break ;
       idlen = (unsigned char)s[TAIN_PACK] ;
@@ -452,6 +459,7 @@ static int do_setdump_data (unsigned int cc, unixmessage_t const *m)
       tain_unpack(s, &p->limit) ;
       byte_copy(p->id, idlen+1, s + TAIN_PACK + 1) ;
       p->fd = m->fds[i] ;
+      if (avltreen_search(fds_by_id, p->id, &oldid)) fds_close_and_delete(oldid) ;
       avltreen_insert(fds_by_id, indices[i]) ;
       avltreen_insert(fds_by_deadline, indices[i]) ;
       s += TAIN_PACK + 2 + idlen ; len -= TAIN_PACK + 2 + idlen ;
@@ -635,6 +643,7 @@ static inline int new_connection (int fd, regex_t *rre, regex_t *wre, unsigned i
   return 1 ;
 }
 
+
 int main (int argc, char const *const *argv, char const *const *envp)
 {
   int spfd ;
@@ -772,8 +781,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
         {
           if (!avltreen_min(fds_by_deadline, &i)) break ;
           if (tain_future(&FD(i)->limit)) break ;
-          fd_close(FD(i)->fd) ;
-          fds_delete(i) ;
+          fds_close_and_delete(i) ;
         }
         for (j = sentinel, i = clientstorage[sentinel].next ; i != sentinel ; j = i, i = clientstorage[i].next)
           if (!tain_future(&clientstorage[i].deadline)) removeclient(&i, j) ;
