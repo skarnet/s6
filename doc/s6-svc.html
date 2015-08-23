@@ -70,8 +70,8 @@ stdin, stdout and stderr redirected to <tt>/dev/null</tt>. </li>
  <li> <tt>-O</tt>&nbsp;: Once at most. Do not restart the supervised process
 when it dies. If it is down when the command is received, do not even start
 it. </li>
- <li> <tt>-T&nbsp;<em>timeout</em></tt>&nbsp;: if the <tt>-D</tt> or
-<tt>-U</tt> option has been given, <tt>-T</tt> specifies a timeout
+ <li> <tt>-T&nbsp;<em>timeout</em></tt>&nbsp;: if the <tt>-w<em>state</em></tt>
+option has been given, <tt>-T</tt> specifies a timeout
 (in milliseconds) after which s6-svc will exit 1 with an error message if
 the service still hasn't reached the desired state. By default, the
 timeout is 0, which means that s6-svc will block indefinitely. </li>
