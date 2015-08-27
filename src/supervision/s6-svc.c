@@ -10,7 +10,7 @@
 #include <s6/config.h>
 #include <s6/s6-supervise.h>
 
-#define USAGE "s6-svc [ -wu | -wU | -wd | -wD ] [ -T timeout ] [ -abqhkti12pcoduxOX ] servicedir"
+#define USAGE "s6-svc [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T timeout ] [ -abqhkti12pcoduxOX ] servicedir"
 #define dieusage() strerr_dieusage(100, USAGE)
 
 #define DATASIZE 63
@@ -55,7 +55,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
         case 'T' : if (!uint0_scan(l.arg, &timeout)) dieusage() ; break ;
         case 'w' :
         {
-          if (byte_chr("dDuU", 4, l.arg[0]) >= 4) dieusage() ;
+          if (byte_chr("dDuUrR", 6, l.arg[0]) >= 6) dieusage() ;
           updown[1] = l.arg[0] ;
           break ;
         }
@@ -68,7 +68,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (argc > 1) strerr_warn1x("ignoring extra arguments") ;
 
   if (datalen <= 1) return 0 ;
-  if (updown[1] == 'U')
+  if (updown[1] == 'U' || updown[1] == 'R')
   {
     unsigned int arglen = str_len(argv[0]) ;
     char fn[arglen + 17] ;
@@ -77,8 +77,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
     if (access(fn, F_OK) < 0)
     {
       if (errno != ENOENT) strerr_diefu2sys(111, "access ", fn) ;
-      updown[1] = 'u' ;
-      strerr_warnw2x(fn, " not present - converting -wU to -wu") ;
+      updown[1] = updown[1] == 'U' ? 'u' : 'r' ;
+      strerr_warnw2x(fn, " not present - ignoring request for readiness notification") ;
     }
   }
 

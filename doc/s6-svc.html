@@ -28,7 +28,7 @@ knowing their PIDs, and without using horrible hacks such as .pid files.
 <h2> Interface </h2>
 
 <pre>
-     s6-svc [ -wu | -wU | -wd | -wD ] [ -T <em>timeout</em> ] [ -abqhkti12pcoduxO ] <em>servicedir</em>
+     s6-svc [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T <em>timeout</em> ] [ -abqhkti12pcoduxO ] <em>servicedir</em>
 </pre>
 
 <p>
@@ -89,6 +89,11 @@ a <tt>notification-fd</tt> file to tell
 <a href="s6-supervise.html">s6-supervise</a> to accept readiness
 notification, s6-svc will print a warning and act as if the <tt>-wu</tt>
 option had been given instead. </li>
+ <li> <tt>-wr</tt>&nbsp;: s6-svc will not exit until the service has been
+started or restarted. </li>
+ <li> <tt>-wR</tt>&nbsp;: s6-svc will not exit until the service has been
+started or restarted and has notified readiness. </li>
+
 </ul>
 
 <h2> Usage examples </h2>
@@ -117,6 +122,13 @@ the finish script has completed.
 <p>
  Bring up the ftpd server and block until it has sent notification that it
 is ready. Exit 1 if it is still not ready after 5 seconds.
+</p>
+
+<pre> s6-svc -wR -t /service/ftpd </pre>
+<p>
+ Send a SIGTERM to the ftpd server; wait for
+<a href="s6-supervise.html">s6-supervise</a> to restart it, and block
+until it has notified that it is ready to serve again.
 </p>
 
 <pre> s6-svc -a /service/httpd/log </pre>

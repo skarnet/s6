@@ -34,7 +34,7 @@ a collection of supervised services, and blocks until they all go up, or down.
 </p>
 
 <pre>
-     s6-svlisten [ -U | -u | -D | -d ] [ -a | -o ] [ -t <em>timeout</em> ] { <em>servicedir</em> <em>servicedir...</em> } <em>prog...</em>
+     s6-svlisten [ -U | -u | -D | -d | -r | -R ] [ -a | -o ] [ -t <em>timeout</em> ] { <em>servicedir</em> <em>servicedir...</em> } <em>prog...</em>
 </pre>
 
 <p>
@@ -42,7 +42,7 @@ a collection of supervised services, and blocks until they all go up, or down.
 </p>
 
 <pre>
-     s6-svlisten [ -U | -u | -D | -d ] [ -a | -o ] [ -t <em>timeout</em> ] <em>servicedir</em> <em>servicedir...</em> "" <em>prog...</em>
+     s6-svlisten [ -U | -u | -D | -d | -r | -R ] [ -a | -o ] [ -t <em>timeout</em> ] <em>servicedir</em> <em>servicedir...</em> "" <em>prog...</em>
 </pre>
 
 <ul>
@@ -73,6 +73,11 @@ See the explanation on <a href="notifywhenup.html">this page</a>. </li>
 services are down and the cleanup scripts in <tt><em>servicedir</em>/finish</tt>
 for every <em>servicedir</em>
 have finished executing (or have timed out and been killed). </li>
+ <li> <tt>-r</tt>&nbsp;: restart. s6-svlisten will wait until all
+the services have been started or restarted. </li>
+ <li> <tt>-R</tt>&nbsp;: restart and ready. s6-svlisten will wait until
+all the services have been started or restarted and have notified
+readiness. </li>
  <li> <tt>-o</tt>&nbsp;: or. s6-svlisten will wait until <em>one</em> of the
 given services comes up or down. </li>
  <li> <tt>-a</tt>&nbsp;: and. s6-svlisten will wait until <em>all</em> of the
@@ -100,6 +105,8 @@ to only use it in execline scripts (only the execline syntax is guaranteed
 not to change). There is a variant of s6-svlisten that does not use execline
 syntax, but only handles one service directory:
 <a href="s6-svlisten1.html">s6-svlisten1</a>. </li>
+ <li> The <tt>-R</tt> or <tt>-r</tt> options imply the <tt>-a</tt> option.
+It is not possible to wait for one of the listed services to restart. </li>
 </ul>
 
 </body>
