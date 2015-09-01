@@ -240,7 +240,7 @@ static void reap (void)
           }
           else if (services[i].p[0] == -2) wantscan = 1 ;
         }
-        if (!services[i].pid[0] && !services[i].pid[1])
+        if (!services[i].pid[0] && (!services[i].flaglog || !services[i].pid[1]))
           services[i] = services[--n] ;
       }
     }
@@ -376,6 +376,7 @@ static void check (char const *name)
 
 static void scan (void)
 {
+  unsigned int i = 0 ;
   DIR *dir ;
   if (!wantscan) return ;
   wantscan = 0 ;
@@ -386,10 +387,7 @@ static void scan (void)
     retrydirlater() ;
     return ;
   }
-  {
-    register unsigned int i = 0 ;
-    for (; i < n ; i++) services[i].flagactive = 0 ;
-  }
+  for (; i < n ; i++) services[i].flagactive = 0 ;
   for (;;)
   {
     direntry *d ;
@@ -404,6 +402,19 @@ static void scan (void)
     retrydirlater() ;
   }
   dir_close(dir) ;
+  for (i = 0 ; i < n ; i++) if (!services[i].flagactive && !services[i].pid[0])
+  {
+    if (services[i].flaglog)
+    {
+      if (services[i].pid[1]) continue ;
+      if (services[i].p[0] >= 0)
+      {
+        fd_close(services[i].p[1]) ; services[i].p[1] = -1 ;
+        fd_close(services[i].p[0]) ; services[i].p[0] = -1 ;
+      }
+    }
+    services[i] = services[--n] ;
+  }
 }
 
 
