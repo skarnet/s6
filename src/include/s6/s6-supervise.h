@@ -12,6 +12,7 @@
 #define S6_SVSTATUS_FILENAME S6_SUPERVISE_CTLDIR "/status"
 #define S6_SVSTATUS_SIZE 35
 
+extern int s6_svc_ok (char const *) ;
 extern int s6_svc_write (char const *, char const *, unsigned int) ;
 extern int s6_svc_writectl (char const *, char const *, char const *, unsigned int) ;
 extern int s6_svc_main (int, char const *const *, char const *, char const *, char const *) ;
