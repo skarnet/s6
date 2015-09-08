@@ -43,6 +43,9 @@ int main (int argc, char const *const *argv)
 
   if (!s6_svstatus_read(*argv, &status))
     strerr_diefu2sys(111, "read status for ", *argv) ;
+  isup = s6_svc_ok(argv[0]) ;
+  if (isup < 0) strerr_diefu2sys(111, "check ", argv[0]) ;
+  if (!isup) strerr_diefu3x(1, "read status for ", argv[0], ": s6-supervise not running") ;
 
   tain_now_g() ;
   if (tain_future(&status.stamp)) tain_copynow(&status.stamp) ;
