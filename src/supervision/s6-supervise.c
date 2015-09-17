@@ -583,6 +583,7 @@ int main (int argc, char const *const *argv)
     tain_now_g() ;
     settimeout(0) ;
     tain_copynow(&status.stamp) ;
+    status.readystamp = status.stamp ;
     announce() ;
     ftrigw_notifyb_nosig(S6_SUPERVISE_EVENTDIR, "s", 1) ;
 
