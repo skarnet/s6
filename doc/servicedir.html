@@ -87,10 +87,12 @@ is executed everytime the <tt>run</tt> script dies. Generally, its main
 purpose is to clean up non-volatile data such as the filesystem after the supervised
 process has been killed. If the <em>foo</em> service is supposed to be up,
 <em>foo</em><tt>/run</tt> is restarted
-after <em>foo</em><tt>/finish</tt> dies. A finish script must do its work and exit in less than                              
-3 seconds; if it takes more than that, it is killed. (The point is that the run
+after <em>foo</em><tt>/finish</tt> dies. By default, a finish script must do
+its work and exit in less than                              
+5 seconds; if it takes more than that, it is killed. (The point is that the run
 script, not the finish script, should be running; the finish script should really
-be short-lived.) </li>
+be short-lived.) The maximum duration of a <tt>finish</tt> execution can be
+configured via the <tt>timeout-finish</tt> file, see below. </li>
  <li> A directory named <tt>supervise</tt>. It is automatically created by
 <a href="s6-supervise.html">s6-supervise</a> if it does not exist. This is where
 <a href="s6-supervise.html">s6-supervise</a> stores its information. The directory
