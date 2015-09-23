@@ -47,7 +47,7 @@ extern int s6_fdholder_retrieve_maybe_delete (s6_fdholder_t *, char const *, int
 #define s6_fdholder_retrieve(a, id, deadline, stamp) s6_fdholder_retrieve_maybe_delete(a, id, 0, deadline, stamp)
 #define s6_fdholder_retrieve_g(a, id, deadline) s6_fdholder_retrieve(a, id, (deadline), &STAMP)
 #define s6_fdholder_retrieve_delete(a, id, deadline, stamp) s6_fdholder_retrieve_maybe_delete(a, id, 1, deadline, stamp)
-#define s6_fdholder_retrieve_delete_g(a, id, deadline) s6_fdholder_retrieve(a, id, (deadline), &STAMP)
+#define s6_fdholder_retrieve_delete_g(a, id, deadline) s6_fdholder_retrieve_delete(a, id, (deadline), &STAMP)
 
 typedef struct s6_fdholder_list_result_s s6_fdholder_list_result_t, *s6_fdholder_list_result_t_ref ;
 struct s6_fdholder_list_result_s
