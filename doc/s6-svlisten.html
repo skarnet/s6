@@ -74,7 +74,8 @@ services are down and the cleanup scripts in <tt><em>servicedir</em>/finish</tt>
 for every <em>servicedir</em>
 have finished executing (or have timed out and been killed). </li>
  <li> <tt>-r</tt>&nbsp;: restart. s6-svlisten will wait until all
-the services have been started or restarted. </li>
+the services have been started or restarted, i.e. they have been in
+the down state, then the up state. </li>
  <li> <tt>-R</tt>&nbsp;: restart and ready. s6-svlisten will wait until
 all the services have been started or restarted and have notified
 readiness. </li>
