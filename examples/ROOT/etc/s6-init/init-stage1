@@ -5,6 +5,7 @@
 # Edit it to suit your needs.
 
 # Make sure everything is sane and ignore input
+s6-setsid -qb
 cd /
 umask 022
 fdclose 0

@@ -23,6 +23,7 @@
 
 #define USAGE "s6-svscan [ -c maxservices ] [ -t timeout ] [ dir ]"
 
+#define SHUTDOWN_PROG S6_SVSCAN_CTLDIR "/shutdown"
 #define FINISH_PROG S6_SVSCAN_CTLDIR "/finish"
 #define CRASH_PROG S6_SVSCAN_CTLDIR "/crash"
 

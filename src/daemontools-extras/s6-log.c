@@ -287,7 +287,7 @@ static int finish (logdir_t *ldp, char const *name, char suffix)
   byte_copy(x, dirlen, ldp->dir) ;
   x[dirlen] = '/' ;
   byte_copy(x + dirlen + 1, namelen + 1, name) ;
-  if (stat(x, &st) < 0) return errno == ENOENT ;
+  if (stat(x, &st) < 0) return errno == ENOENT ? 0 : -1 ;
   if (st.st_nlink == 1)
   {
     char y[dirlen + 29] ;
