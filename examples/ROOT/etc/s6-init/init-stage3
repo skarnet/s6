@@ -13,7 +13,7 @@ foreground { s6-echo "Syncing disks." }
 foreground { s6-sync }
 
 
-# Even if s6-svscan properly brought all the services down
+# Even if s6-rc and s6-svscan properly brought all the services down
 # before exec'ing into this script, users might have launched
 # background nohup processes, so we have to kill everything.
 

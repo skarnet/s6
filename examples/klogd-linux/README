@@ -1,3 +1,5 @@
+This is an example of a service directory for process supervision by s6.
+
 This klogd emulation is only valid under Linux.
 The service only processes logs from /proc/kmsg and
 sends them to stdout, i.e. its own logger.

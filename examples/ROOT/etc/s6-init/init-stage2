@@ -4,7 +4,6 @@
 # starts. It should perform all the remaining one-time initialization
 # tasks.
 
-
 if -nt
 {
 
@@ -12,22 +11,9 @@ if -nt
 # NOT on /dev/console !
   if { s6-echo "* init-stage2 starting." }
 
-# Call your one-time early initialization scripts (before bringing
-# the network up) here:
-# set the hostname, mount filesystems, adjust sysctls, etc.
-# if { s6-mount -wt devpts -o noexec,nosuid,gid=0,mode=0600 devpts /dev/pts }
-# if { s6-mount -wt ext4 /dev/sda3 /mnt/rwfs }
-
-# Start the local services
-  if { s6-hiercopy /img/services-local /service }
-  if { s6-svscanctl -a /service }
-
-# Bring up the network
-  if { /etc/s6-init/network-config }
-
-# Start the late services
-  if { s6-hiercopy /img/services-network /service }
-  if { s6-svscanctl -a /service }
+# Call your service manager commands here to run the boot scripts.
+  if { s6-rc-init /service }
+  if { s6-rc -u change normal-state }
 
 # We're done and the machine is fully operational.
   s6-echo "* init-stage2 completed."

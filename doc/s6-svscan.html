@@ -27,7 +27,7 @@ the root or a branch of a <em>supervision tree</em>.
 <h2> Interface </h2>
 
 <pre>
-     s6-svscan [ -c max ] [ -t <em>rescan</em> ] [ <em>scandir</em> ]
+     s6-svscan [ -S | -s ] [ -c max ] [ -t <em>rescan</em> ] [ <em>scandir</em> ]
 </pre>
 
 <ul>
@@ -59,6 +59,9 @@ execution. </li>
 <h2> Options </h2>
 
 <ul>
+ <li> <tt>-S&nbsp;</tt>&nbsp;: do not divert signals. This is the default for now;
+it may change in a future version of s6. </li>
+ <li> <tt>-s&nbsp;</tt>&nbsp;: divert signals - see below. </li>
  <li> <tt>-c&nbsp;<em>max</em></tt>&nbsp;: maintain services for up to <em>max</em>
 service directories. Default is 500. Lower limit is 2. There is no upper limit, but:
  <ul>
@@ -82,19 +85,66 @@ scan (and a reap) every 5 seconds. It is <em>strongly</em> discouraged to set
 <h2> Signals </h2>
 
 <p>
- s6-svscan reacts to the following signals:
+ s6-svscan always reacts to the following signals:
 </p>
 
 <ul>
  <li> SIGCHLD&nbsp;: triggers the reaper. </li>
  <li> SIGALRM&nbsp;: triggers the scanner. </li>
+ <li> SIGABRT&nbsp;: acts as if a <tt>s6-svscanctl -b</tt> command had been received. </li>
+</ul>
+
+<p>
+ By default, it also reacts to the following signals:
+</p>
+
+<ul>
  <li> SIGTERM&nbsp;: acts as if a <tt>s6-svscanctl -t</tt> command had been received. </li>
  <li> SIGHUP&nbsp;: acts as if a <tt>s6-svscanctl -h</tt> command had been received. </li>
  <li> SIGQUIT&nbsp;: acts as if a <tt>s6-svscanctl -q</tt> command had been received. </li>
- <li> SIGABRT&nbsp;: acts as if a <tt>s6-svscanctl -b</tt> command had been received. </li>
  <li> SIGINT&nbsp;: acts as if a <tt>s6-svscanctl -6</tt> command had been received. </li>
- <li> SIGUSR1&nbsp;: acts as if a <tt>s6-svscanctl -7</tt> command had been received. </li>
 </ul>
+
+<p>
+ But if the <tt>-s</tt> option was given, then instead of those default actions,
+s6-svscan uses configurable handlers: it forks and executes a program every time
+it receives one of the following signals.
+</p>
+
+<ul>
+ <li> SIGTERM&nbsp;: fork and execute <tt>.s6-svscan/SIGTERM</tt> </li>
+ <li> SIGHUP&nbsp;: fork and execute <tt>.s6-svscan/SIGHUP</tt> </li>
+ <li> SIGQUIT&nbsp;: fork and execute <tt>.s6-svscan/SIGQUIT</tt> </li>
+ <li> SIGINT&nbsp;: fork and execute <tt>.s6-svscan/SIGINT</tt> </li>
+ <li> SIGUSR1&nbsp;: fork and execute <tt>.s6-svscan/SIGUSR1</tt> </li>
+ <li> SIGUSR2&nbsp;: fork and execute <tt>.s6-svscan/SIGUSR2</tt> </li>
+</ul>
+
+<p>
+ If an action cannot be taken (the relevant file doesn't exist, or isn't
+executable, or any kind of error happens), s6-svscan prints a warning
+message to its standard error but does nothing else with the signal.
+</p>
+
+<p>
+ The <tt>-s</tt> mechanism is useful, for instance, when s6-svscan is running as
+process 1 and needs to trap signals such as SIGINT (sent on some systems by
+a Ctrl-Alt-Del press) in order to perform some specific work instead of
+executing into <tt>.s6-svscan/finish</tt> on the spot.
+</p>
+
+<p>
+ s6-svscan will not exit its loop on its own when it receives a signal such as
+SIGINT and the <tt>-s</tt> option has been given. To make it exit its loop,
+invoke a <a href="s6-svscanctl.html">s6-svscanctl</a> command from the signal
+handling script. For instance, a <tt>.s6-svscan/SIGINT</tt> script could look
+like this:
+</p>
+
+<pre>  #!/command/execlineb -P
+  foreground { shutdown-the-services }
+  s6-svscanctl -i .
+</pre>
 
 <h2> The reaper </h2>
 

@@ -1,4 +1,0 @@
-#!/command/execlineb -P
-s6-setuidgid log
-exec -c
-s6-log t s1000000 n20 /var/log/sshd

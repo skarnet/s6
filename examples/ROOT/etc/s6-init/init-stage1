@@ -56,4 +56,4 @@ background
 unexport !
 
 # Start stage 2.
-s6-svscan -t0 /service
+s6-svscan -st0 /service

@@ -1,0 +1,3 @@
+#!/command/execlineb -P
+foreground { s6-rc -da change }
+s6-svscanctl -6 .

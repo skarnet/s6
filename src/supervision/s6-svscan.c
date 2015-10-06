@@ -21,11 +21,12 @@
 #include <s6/config.h>
 #include <s6/s6-supervise.h>
 
-#define USAGE "s6-svscan [ -c maxservices ] [ -t timeout ] [ dir ]"
+#define USAGE "s6-svscan [ -S | -s ] [ -c maxservices ] [ -t timeout ] [ dir ]"
 
-#define SHUTDOWN_PROG S6_SVSCAN_CTLDIR "/shutdown"
 #define FINISH_PROG S6_SVSCAN_CTLDIR "/finish"
 #define CRASH_PROG S6_SVSCAN_CTLDIR "/crash"
+#define SIGNAL_PROG S6_SVSCAN_CTLDIR "/SIG"
+#define SIGNAL_PROG_LEN (sizeof(SIGNAL_PROG) - 1)
 
 #define DIR_RETRY_TIMEOUT 3
 #define CHECK_RETRY_TIMEOUT 4
@@ -126,12 +127,38 @@ static void handle_signals (void)
       case 0 : return ;
       case SIGCHLD : wantreap = 1 ; break ;
       case SIGALRM : wantscan = 1 ; break ;
+      case SIGABRT : cont = 0 ; break ;
       case SIGTERM : term() ; break ;
       case SIGHUP : hup() ; break ;
       case SIGQUIT : quit() ; break ;
-      case SIGABRT : cont = 0 ; break ;
       case SIGINT : intr() ; break ;
-      case SIGUSR1 : usr1() ; break ;
+    }
+  }
+}
+
+static void handle_diverted_signals (void)
+{
+  for (;;)
+  {
+    register int sig = selfpipe_read() ;
+    switch (sig)
+    {
+      case -1 : panic("selfpipe_read") ;
+      case 0 : return ;
+      case SIGCHLD : wantreap = 1 ; break ;
+      case SIGALRM : wantscan = 1 ; break ;
+      case SIGABRT : cont = 0 ; break ;
+      default :
+      {
+        char const *name = sig_name(sig) ;
+        unsigned int len = str_len(name) ;
+        char fn[SIGNAL_PROG_LEN + len + 1] ;
+        char const *const newargv[2] = { fn, 0 } ;
+        byte_copy(fn, SIGNAL_PROG_LEN, SIGNAL_PROG) ;
+        byte_copy(fn + SIGNAL_PROG_LEN, len + 1, name) ;
+        if (!child_spawn0(newargv[0], newargv, (char const **)environ))
+          strerr_warnwu2sys("spawn ", newargv[0]) ;
+      }
     }
   }
 }
@@ -422,16 +449,19 @@ static void scan (void)
 int main (int argc, char const *const *argv)
 {
   iopause_fd x[2] = { { -1, IOPAUSE_READ, 0 }, { -1, IOPAUSE_READ, 0 } } ;
+  int divertsignals = 0 ;
   PROG = "s6-svscan" ;
   {
     subgetopt_t l = SUBGETOPT_ZERO ;
     unsigned int t = 5000 ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "t:c:", &l) ;
+      register int opt = subgetopt_r(argc, argv, "Sst:c:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
+        case 'S' : divertsignals = 0 ; break ;
+        case 's' : divertsignals = 1 ; break ;
         case 't' : if (uint0_scan(l.arg, &t)) break ;
         case 'c' : if (uint0_scan(l.arg, &max)) break ;
         default : strerr_dieusage(100, USAGE) ;
@@ -465,7 +495,11 @@ int main (int argc, char const *const *argv)
     sigaddset(&set, SIGQUIT) ;
     sigaddset(&set, SIGABRT) ;
     sigaddset(&set, SIGINT) ;
-    sigaddset(&set, SIGUSR1) ;
+    if (divertsignals)
+    {
+      sigaddset(&set, SIGUSR1) ;
+      sigaddset(&set, SIGUSR2) ;
+    }
     if (selfpipe_trapset(&set) < 0) strerr_diefu1sys(111, "trap signals") ;
   }
 
@@ -497,7 +531,8 @@ int main (int argc, char const *const *argv)
           errno = EIO ;
           panic("check internal pipes") ;
         }
-        if (x[0].revents & IOPAUSE_READ) handle_signals() ;
+        if (x[0].revents & IOPAUSE_READ)
+          divertsignals ? handle_diverted_signals() : handle_signals() ;
         if (x[1].revents & IOPAUSE_READ) handle_control(x[1].fd) ;
       }
     }
