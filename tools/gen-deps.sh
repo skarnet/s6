@@ -66,7 +66,7 @@ for dir in $(ls -1 src | grep -v ^include) ; do
       fi
     done < src/$dir/deps-lib/$file
     echo "lib${file}.a.xyzzy:$deps"
-    echo "lib${file}.so.xyzzy: private EXTRA_LIBS :=$libs"
+    echo "lib${file}.so.xyzzy: EXTRA_LIBS :=$libs"
     echo "lib${file}.so.xyzzy:$(echo "$deps" | sed 's/\.o/.lo/g')"
   done
 
@@ -83,7 +83,7 @@ for dir in $(ls -1 src | grep -v ^include) ; do
         deps="$deps $dep"
       fi
     done < src/$dir/deps-exe/$file
-    echo "$file: private EXTRA_LIBS :=$libs"
+    echo "$file: EXTRA_LIBS :=$libs"
     echo "$file: src/$dir/$file.o$deps"
   done
 done

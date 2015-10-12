@@ -7,7 +7,7 @@
 
 it: all
 
-make_need := 4.0
+make_need := 3.81
 ifeq "" "$(strip $(filter $(make_need), $(firstword $(sort $(make_need) $(MAKE_VERSION)))))"
 fail := $(error Your make ($(MAKE_VERSION)) is too old. You need $(make_need) or newer)
 endif
@@ -20,7 +20,7 @@ INTERNAL_LIBS :=
 EXTRA_TARGETS :=
 LIB_DEFS :=
 
-define library_definition =
+define library_definition
 LIB$(firstword $(subst =, ,$(1))) := lib$(lastword $(subst =, ,$(1))).$(if $(DO_ALLSTATIC),a,so).xyzzy
 ifdef DO_SHARED
 SHARED_LIBS += lib$(lastword $(subst =, ,$(1))).so.xyzzy
