@@ -28,7 +28,7 @@ knowing their PIDs, and without using horrible hacks such as .pid files.
 <h2> Interface </h2>
 
 <pre>
-     s6-svc [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T <em>timeout</em> ] [ -abqhkti12pcoduxO ] <em>servicedir</em>
+     s6-svc [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T <em>timeout</em> ] [ -abqhkti12pcyoduxO ] <em>servicedir</em>
 </pre>
 
 <p>
@@ -52,6 +52,7 @@ a command, or 100 if no s6-supervise process is running on <em>servicedir</em>.
  <li> <tt>-2</tt>&nbsp;: send a SIGUSR2 to the supervised process </li>
  <li> <tt>-p</tt>&nbsp;: send a SIGSTOP to the supervised process </li>
  <li> <tt>-c</tt>&nbsp;: send a SIGCONT to the supervised process </li>
+ <li> <tt>-y</tt>&nbsp;: send a SIGWINCH to the supervised process </li>
  <li> <tt>-o</tt>&nbsp;: once. Equivalent to "-uO". </li>
  <li> <tt>-d</tt>&nbsp;: down. If the supervised process is up, send it
 a SIGTERM and a SIGCONT. Do not restart it. </li>

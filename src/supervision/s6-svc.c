@@ -26,7 +26,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "abqhkti12pcoduxOXT:w:", &l) ;
+      register int opt = subgetopt_r(argc, argv, "abqhkti12pcoduxOXyT:w:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -47,6 +47,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
         case 'x' :
         case 'O' :
         case 'X' :
+        case 'y' :
         {
           if (datalen >= DATASIZE) strerr_dief1x(100, "too many commands") ;
           data[datalen++] = opt ;

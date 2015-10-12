@@ -26,7 +26,7 @@ typedef enum trans_e trans_t, *trans_t_ref ;
 enum trans_e
 {
   V_TIMEOUT, V_CHLD, V_TERM, V_HUP, V_QUIT,
-  V_a, V_b, V_q, V_h, V_k, V_t, V_i, V_1, V_2, V_f, V_F, V_p, V_c,
+  V_a, V_b, V_q, V_h, V_k, V_t, V_i, V_1, V_2, V_f, V_F, V_p, V_c, V_y,
   V_o, V_d, V_u, V_x, V_O, V_X
 } ;
 
@@ -176,6 +176,11 @@ static void killc (void)
   kill(status.pid, SIGCONT) ;
   status.flagpaused = 0 ;
   announce() ;
+}
+
+static void killy (void)
+{
+  kill(status.pid, SIGWINCH) ;
 }
 
 static void failcoe (int fd)
@@ -440,22 +445,22 @@ static void finish_X (void)
   finish_x() ;
 }
 
-static action_t_ref const actions[5][24] =
+static action_t_ref const actions[5][25] =
 {
   { &downtimeout, &nop, &bail, &bail, &bail,
-    &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop,
+    &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop,
     &down_o, &down_d, &down_u, &bail, &down_O, &bail },
   { &uptimeout, &up_z, &up_term, &up_x, &up_X,
-    &killa, &killb, &killq, &killh, &killk, &killt, &killi, &kill1, &kill2, &nop, &nop, &killp, &killc,
+    &killa, &killb, &killq, &killh, &killk, &killt, &killi, &kill1, &kill2, &nop, &nop, &killp, &killc, &killy,
     &up_o, &up_d, &up_u, &up_x, &up_o, &up_X },
   { &finishtimeout, &finish_z, &finish_x, &finish_x, &finish_X,
-    &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop,
+    &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop,
     &up_o, &down_d, &finish_u, &finish_x, &up_o, &finish_X },
   { &uptimeout, &lastup_z, &up_d, &nop, &closethem,
-    &killa, &killb, &killq, &killh, &killk, &killt, &killi, &kill1, &kill2, &nop, &nop, &killp, &killc,
+    &killa, &killb, &killq, &killh, &killk, &killt, &killi, &kill1, &kill2, &nop, &nop, &killp, &killc, &killy,
     &up_o, &up_d, &nop, &nop, &up_o, &closethem },
   { &finishtimeout, &bail, &nop, &nop, &closethem,
-    &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop,
+    &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop,
     &nop, &nop, &nop, &nop, &nop, &closethem }
 } ;
 
@@ -536,8 +541,8 @@ static inline void handle_control (int fd)
     else if (!r) break ;
     else
     {
-      register unsigned int pos = byte_chr("abqhkti12fFpcoduxOX", 19, c) ;
-      if (pos < 19) (*actions[state][V_a + pos])() ;
+      register unsigned int pos = byte_chr("abqhkti12fFpcyoduxOX", 20, c) ;
+      if (pos < 20) (*actions[state][V_a + pos])() ;
     }
   }
 }
