@@ -1216,12 +1216,13 @@ int main (int argc, char const *const *argv)
     for (;;)
     {
       tain_t deadline ;
-      int r ;
+      int r = 0 ;
       unsigned int xindex0, xindex1 ;
       unsigned int i = 0, j = 1 ;
       tain_add_g(&deadline, &tain_infinite_relative) ;
       if (bufalloc_1->fd == 1 && bufalloc_len(bufalloc_1))
       {
+        r = 1 ;
         x[j].fd = 1 ;
         x[j].events = IOPAUSE_EXCEPT | (bufalloc_len(bufalloc_1) ? IOPAUSE_WRITE : 0) ;
         xindex1 = j++ ;
@@ -1233,6 +1234,7 @@ int main (int argc, char const *const *argv)
         logdirs[i].xindex = 0 ;
         if (bufalloc_len(&logdirs[i].out) || (logdirs[i].rstate != ROTSTATE_WRITABLE))
         {
+          r = 1 ;
           if (!tain_future(&logdirs[i].deadline))
           {
             x[j].fd = logdirs[i].fd ;
@@ -1243,7 +1245,7 @@ int main (int argc, char const *const *argv)
             deadline = logdirs[i].deadline ;
         }
       }
-      if (!flagexiting && (!flagblock || j == 1))
+      if (!flagexiting && !(flagblock && r))
       {
         x[j].fd = 0 ;
         x[j].events = IOPAUSE_READ ;
@@ -1251,7 +1253,7 @@ int main (int argc, char const *const *argv)
       }
       else xindex0 = 0 ;
 
-      if (flagexiting && j == 1) break ;
+      if (flagexiting && !r) break ;
 
       r = iopause_g(x, j, &deadline) ;
       if (r < 0) strerr_diefu1sys(111, "iopause") ;
