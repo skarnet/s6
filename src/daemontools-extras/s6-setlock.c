@@ -61,8 +61,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
     if (!tain_now_g()) strerr_diefu1sys(111, "tain_now") ;
     tain_from_millisecs(&deadline, timeout) ;
     tain_add_g(&deadline, &deadline) ;
-    pid = child_spawn(S6_BINPREFIX "s6lockd-helper", cargv, cenvp, p, 2) ;
-    if (!pid) strerr_diefu2sys(111, "spawn ", S6_BINPREFIX "s6lockd-helper") ;
+    pid = child_spawn(S6_LIBEXECPREFIX "s6lockd-helper", cargv, cenvp, p, 2) ;
+    if (!pid) strerr_diefu2sys(111, "spawn ", S6_LIBEXECPREFIX "s6lockd-helper") ;
     x.fd = p[0] ;
     for (;;)
     {
