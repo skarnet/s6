@@ -58,7 +58,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     int p[2] ;
     unsigned int pid ;
     char c ;
-    if (!tain_now_g()) strerr_diefu1sys(111, "tain_now") ;
+    tain_now_g() ;
     tain_from_millisecs(&deadline, timeout) ;
     tain_add_g(&deadline, &deadline) ;
     pid = child_spawn(S6_LIBEXECPREFIX "s6lockd-helper", cargv, cenvp, p, 2) ;
