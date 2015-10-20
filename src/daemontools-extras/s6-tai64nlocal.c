@@ -34,7 +34,6 @@ int main (void)
         unsigned int len ;
         localtmn_from_tain(&local, &a, 1) ;
         len = localtmn_fmt(fmt, &local) ;
-        fmt[len++] = ' ' ;
         if (buffer_put(buffer_1, fmt, len) < 0)
           strerr_diefu1sys(111, "write to stdout") ;
       }
