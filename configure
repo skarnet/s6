@@ -297,6 +297,11 @@ tryflag CPPFLAGS_AUTO -Werror=implicit-function-declaration
 tryflag CPPFLAGS_AUTO -Werror=implicit-int
 tryflag CPPFLAGS_AUTO -Werror=pointer-sign
 tryflag CPPFLAGS_AUTO -Werror=pointer-arith
+tryflag CFLAGS_AUTO -ffunction-sections
+tryflag CFLAGS_AUTO -fdata-sections
+
+tryldflag LDFLAGS_AUTO -Wl,--sort-section=alignment
+tryldflag LDFLAGS_AUTO -Wl,--sort-common
 
 if $evenmorestatic ; then
   LDFLAGS_NOSHARED=-static
@@ -310,6 +315,7 @@ LDFLAGS_SHARED="${LDFLAGS_SHARED}${addlibdpath}"
 
 if $allstatic ; then
   LDFLAGS_NOSHARED="${LDFLAGS_NOSHARED}${addlibspath}"
+  tryldflag LDFLAGS_NOSHARED -Wl,--gc-sections
 else
   LDFLAGS_NOSHARED="${LDFLAGS_NOSHARED}${addlibdpath}"
 fi
