@@ -394,10 +394,11 @@ kept separate, there is a race condition: a log file can grow and fill
 up a disk before a rotation occurs. I am all for separating tasks that
 can be separated, but there is no choice here: <em>logging and log
 rotation management must be done <strong>by the same tool</strong></em>.
-Only the Busybox implementation of syslogd does this, and that is a
+Only a few non-mainstream implementations of syslogd do this, including the
+<a href="http://busybox.net/">Busybox</a> one - and that is a
 feature added by the Busybox developers who are aware of the problem
 but want to maintain compatibility with the historical syslogd.
-No other syslogd implementation I know of manages its log files: that's a
+Neither syslogd (-ng or not) nor rsyslogd manages its log files: that's a
 flaw that no amount of external tools is going to fix. </li>
  <li> syslogd is a complex process that runs as root. We all know what
 complex processes running as root mean: bugs turning into security holes. </li>
