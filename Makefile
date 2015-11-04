@@ -60,22 +60,21 @@ clean:
 	@exec rm -f $(ALL_LIBS) $(ALL_BINS) $(wildcard src/*/*.o src/*/*.lo) $(EXTRA_TARGETS)
 
 distclean: clean
-	@exec rm -f config.mak src/include/${package}/config.h
+	@exec rm -f config.mak src/include/$(package)/config.h
 
 tgz: distclean
-	@. package/info && \
-	rm -rf /tmp/$$package-$$version && \
-	cp -a . /tmp/$$package-$$version && \
+	@rm -rf /tmp/$(package)-$(version) && \
+	cp -a . /tmp/$(package)-$(version) && \
 	cd /tmp && \
-	tar -zpcv --owner=0 --group=0 --numeric-owner --exclude=.git* -f /tmp/$$package-$$version.tar.gz $$package-$$version && \
-	exec rm -rf /tmp/$$package-$$version
+	tar -zpcv --owner=0 --group=0 --numeric-owner --exclude=.git* -f /tmp/$(package)-$(version).tar.gz $(package)-$(version) && \
+	exec rm -rf /tmp/$(package)-$(version)
 
 strip: $(ALL_LIBS) $(ALL_BINS)
-ifneq ($(strip $(ALL_LIBS)),)
-	exec ${STRIP} -x -R .note -R .comment -R .note.GNU-stack $(ALL_LIBS)
+ifneq ($(strip $(STATIC_LIBS)),)
+	exec $(STRIP) -x -R .note -R .comment -R .note.GNU-stack $(STATIC_LIBS)
 endif
-ifneq ($(strip $(ALL_BINS)),)
-	exec ${STRIP} -R .note -R .comment -R .note.GNU-stack $(ALL_BINS)
+ifneq ($(strip $(ALL_BINS)$(SHARED_LIBS)),)
+	exec $(STRIP) -R .note -R .comment -R .note.GNU-stack $(ALL_BINS) $(SHARED_LIBS)
 endif
 
 install: install-dynlib install-libexec install-bin install-sbin install-lib install-include
@@ -111,8 +110,7 @@ $(DESTDIR)$(dynlibdir)/lib%.so: lib%.so.xyzzy
 	$(INSTALL) -D -m 755 $< $@.$(version) && \
 	$(INSTALL) -l $(@F).$(version) $@.$(version_m) && \
 	$(INSTALL) -l $(@F).$(version_m) $@.$(version_M) && \
-	$(INSTALL) -l $(@F).$(version_M) $@.$(version_l) && \
-	exec $(INSTALL) -l $(@F).$(version_l) $@
+	exec $(INSTALL) -l $(@F).$(version_M) $@
 
 $(DESTDIR)$(libexecdir)/% $(DESTDIR)$(bindir)/% $(DESTDIR)$(sbindir)/%: % package/modes
 	exec $(INSTALL) -D -m 600 $< $@
