@@ -2,6 +2,7 @@
 
 #include <sys/types.h>
 #include <pwd.h>
+#include <grp.h>
 #include <limits.h>
 #include <skalibs/uint64.h>
 #include <skalibs/gidstuff.h>
@@ -12,26 +13,27 @@
 #include <skalibs/fmtscan.h>
 #include <skalibs/djbunix.h>
 
-#define USAGE "s6-envuidgid [ -i | -D defaultuid:defaultgid ] username prog..."
+#define USAGE "s6-envuidgid [ -i | -D defaultuid:defaultgid ] [ -g ] username prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 
 int main (int argc, char const *const *argv, char const *const *envp)
 {
-  struct passwd *pw ;
   uint64 uid ;
   gid_t gid ;
   gid_t tab[NGROUPS_MAX] ;
   int n = 0 ;
+  int dogroup = 0 ;
   int insist = 1 ;
   PROG = "s6-envuidgid" ;
   {
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "iD:", &l) ;
+      register int opt = subgetopt_r(argc, argv, "giD:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
+        case 'g' : dogroup = 1 ; break ;
         case 'i' : insist = 1 ; break ;
         case 'D' :
         {
@@ -58,28 +60,42 @@ int main (int argc, char const *const *argv, char const *const *envp)
   }
   if (argc < 2) dieusage() ;
 
-  pw = getpwnam(argv[0]) ;
-  if (pw)
+  if (dogroup)
   {
-    uid = pw->pw_uid ;
-    gid = pw->pw_gid ;
-    n = prot_readgroups(argv[0], tab, NGROUPS_MAX) ;
-    if (n < 0)
-      strerr_diefu2sys(111, "get supplementary groups for ", argv[0]) ;
-  }
-  else if (insist) strerr_dief2x(1, "unknown user: ", argv[0]) ;
-
-  {
-    unsigned int pos = 0 ;
-    char fmt[19 + UINT64_FMT + (n+1) * GID_FMT] ;
-    byte_copy(fmt + pos, 4, "UID=") ; pos += 4 ;
-    pos += uint64_fmt(fmt + pos, uid) ;
-    byte_copy(fmt + pos, 5, "\0GID=") ; pos += 5 ;
+    struct group *gr = getgrnam(argv[0]) ;
+    unsigned int pos = 4 ;
+    char fmt[4 + GID_FMT] = "GID=" ;
+    if (gr) gid = gr->gr_gid ;
+    else if (insist) strerr_dief2x(1, "unknown group: ", argv[0]) ;
     pos += gid_fmt(fmt + pos, gid) ;
-    byte_copy(fmt + pos, 9, "\0GIDLIST=") ; pos += 9 ;
-    pos += gid_fmtlist(fmt + pos, tab, n) ;
     fmt[pos++] = 0 ;
     pathexec_r(argv+1, envp, env_len(envp), fmt, pos) ;
+  }
+  else
+  {
+    struct passwd *pw = getpwnam(argv[0]) ;
+    if (pw)
+    {
+      uid = pw->pw_uid ;
+      gid = pw->pw_gid ;
+      n = prot_readgroups(argv[0], tab, NGROUPS_MAX) ;
+      if (n < 0)
+        strerr_diefu2sys(111, "get supplementary groups for ", argv[0]) ;
+    }
+    else if (insist) strerr_dief2x(1, "unknown user: ", argv[0]) ;
+
+    {
+      unsigned int pos = 0 ;
+      char fmt[19 + UINT64_FMT + (n+1) * GID_FMT] ;
+      byte_copy(fmt + pos, 4, "UID=") ; pos += 4 ;
+      pos += uint64_fmt(fmt + pos, uid) ;
+      byte_copy(fmt + pos, 5, "\0GID=") ; pos += 5 ;
+      pos += gid_fmt(fmt + pos, gid) ;
+      byte_copy(fmt + pos, 9, "\0GIDLIST=") ; pos += 9 ;
+      pos += gid_fmtlist(fmt + pos, tab, n) ;
+      fmt[pos++] = 0 ;
+      pathexec_r(argv+1, envp, env_len(envp), fmt, pos) ;
+    }
   }
   strerr_dieexec(111, argv[1]) ;
 }

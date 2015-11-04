@@ -128,7 +128,8 @@ occurs, <tt>current</tt> (which has then been renamed <tt>previous</tt>) is
 fed to <em>processor</em>'s stdin, and <em>processor</em>'s stdout is saved
 and archived. <em>processor</em> can also read the <tt>state</tt> file
 on its fd 4; what it writes to its fd 5 will be saved as the next
-<tt>state</tt> file, for the next rotation.
+<tt>state</tt> file, for the next rotation. A processor script runs with
+the logdir as its working directory.
 </p>
 
 <p>

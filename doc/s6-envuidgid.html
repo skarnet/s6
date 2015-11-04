@@ -26,7 +26,7 @@ then executes into another program.
 <h2> Interface </h2>
 
 <pre>
-     s6-envuidgid [ -i | -D <em>uid</em>:<em>gid</em> ] <em>account</em> <em>prog...</em>
+     s6-envuidgid [ -g ] [ -i | -D <em>uid</em>:<em>gid</em> ] <em>account</em> <em>prog...</em>
 </pre>
 
 <ul>
@@ -43,6 +43,9 @@ primary group, GIDLIST is still set, but empty.) </li>
 <h2> Options </h2>
 
 <ul>
+ <li> <tt>-g</tt>&nbsp;: group. <em>account</em> will be interpreted as a
+group name instead of a user name; the GID environment variable will be set
+to its numerical value, and the UID and GIDLIST variables will not be touched. </li>
  <li> <tt>-i</tt>&nbsp;: insist. If <em>account</em> is unknown, exit 1 with
 an error message. This is the default. </li>
  <li> <tt>-D&nbsp;<em>uid</em>:<em>gid</em></tt>&nbsp;: if <em>account</em>
