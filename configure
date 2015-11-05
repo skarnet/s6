@@ -205,7 +205,7 @@ fi
 
 # Expand installation directories
 stripdir prefix
-for i in exec_prefix dynlibdir libexecdir bindir sbindir libdir includedir datadir sysdeps sproot skalibs ; do
+for i in exec_prefix dynlibdir libexecdir bindir sbindir libdir includedir datadir sysdeps sproot ; do
   eval tmp=\${$i}
   eval $i=$tmp
   stripdir $i
