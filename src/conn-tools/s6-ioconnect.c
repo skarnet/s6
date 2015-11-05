@@ -104,7 +104,7 @@ int main (int argc, char const *const *argv)
   {
     for (j = 0 ; j < 2 ; j++)
       if (ndelay_on(a[i][j].fd) == -1) strerr_diefu1sys(111, "ndelay_on") ;
-    if (!iobuffer_init(&b[i], a[i][0].fd, a[i][1].fd) < 0) strerr_diefu1sys(111, "iobuffer_init") ;
+    if (!iobuffer_init(&b[i], a[i][0].fd, a[i][1].fd)) strerr_diefu1sys(111, "iobuffer_init") ;
   }
   if (sig_ignore(SIGPIPE) == -1) strerr_diefu1sys(111, "sig_ignore") ;
   tain_now_g() ;
