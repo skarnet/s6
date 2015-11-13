@@ -84,6 +84,7 @@ int main (int argc, char *const *argv, char const *const *envp)
         argv[0][pos] = 0 ;
         group = argv[0] + pos + 1 ;
         if (!pos) user = 0 ;
+        if (!group[0]) group = 0 ;
       }
       break ;
     default : strerr_dief1x(101, "inconsistent option management - please submit a bug-report") ;
