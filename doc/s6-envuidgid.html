@@ -19,14 +19,15 @@
 <h1> The s6-envuidgid program </h1>
 
 <p>
-s6-envuidgid sets the UID, GID and GIDLIST environment variables,
-then executes into another program.
+s6-envuidgid potentially sets the UID, GID and GIDLIST environment
+variables according to the options and arguments it is given; then it
+executes into another program.
 </p>
 
 <h2> Interface </h2>
 
 <pre>
-     s6-envuidgid [ -g ] [ -i | -D <em>uid</em>:<em>gid</em> ] <em>account</em> <em>prog...</em>
+     s6-envuidgid [ -u | -g | -B ] [ -n ] [ -i | -D <em>uid</em>:<em>gid</em> ] <em>account</em> <em>prog...</em>
 </pre>
 
 <ul>
@@ -43,14 +44,26 @@ primary group, GIDLIST is still set, but empty.) </li>
 <h2> Options </h2>
 
 <ul>
+ <li> <tt>-u</tt>&nbsp;: user. <em>account</em> will be interpreted as a
+user name; the UID environment variable will be set to its numerical
+value, and the GID and GIDLIST variables will not be touched. </li>
  <li> <tt>-g</tt>&nbsp;: group. <em>account</em> will be interpreted as a
 group name instead of a user name; the GID environment variable will be set
 to its numerical value, and the UID and GIDLIST variables will not be touched. </li>
+ <li> <tt>-B</tt>&nbsp;: both user and group. <em>account</em> will be
+interpreted as <em>user<tt>:</tt>group</em>. The GIDLIST variable will not be
+touched. If <em>user</em> exists, the UID variable will be set; if
+<em>group</em> exists, the GID variable will be set. </li>
+ <li> <tt>-n</tt>&nbsp;: numerical fallback. If <em>account</em> cannot be
+found in the user or group database, try to interpret the given values literally.
+For instance, <tt>s6-envuidgid -B root:42</tt> will fail if there's no group
+named <tt>42</tt> in the group database, but <tt>s6-envuidgid -nB root:42</tt>
+will set UID to 0 and GID to 42. This option implies <tt>-B</tt>. </li>
  <li> <tt>-i</tt>&nbsp;: insist. If <em>account</em> is unknown, exit 1 with
 an error message. This is the default. </li>
  <li> <tt>-D&nbsp;<em>uid</em>:<em>gid</em></tt>&nbsp;: if <em>account</em>
-is unknown, use <em>uid</em>, <em>gid</em>, and the empty list as the values
-for UID, GID and GIDLIST. </li>
+is unknown, use <em>uid</em> and <em>gid</em> as the values for UID and GID.
+This options implies <tt>-B</tt>. </li>
 </ul>
 
 <h2> Notes </h2>
@@ -64,6 +77,11 @@ drop its privileges later. Such a program can read its new uid/gid/groups info
 from the UID, GID and GIDLIST environment variables. Superservers such as
 <a href="http://skarnet.org/software/s6-networking/s6-tcpserver4.html">s6-tcpserver4</a>
 make use of this. </li>
+ <li> s6-envuidgid only sets GIDLIST when no option (or only <tt>-i</tt>) is
+given. If s6-envuidgid risks defaulting to a given numerical value for
+UID or GID, it will not interpret <em>account</em> as a complete account name
+with uid, gid and supplementary group list; instead, it interprets it as an
+arbitrary combination of user name and group name. </li>
 </ul>
 
 </body>
