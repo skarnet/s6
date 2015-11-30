@@ -500,8 +500,7 @@ static inline void handle_signals (void)
 {
   for (;;)
   {
-    char c = selfpipe_read() ;
-    switch (c)
+    switch (selfpipe_read())
     {
       case -1 : strerr_diefu1sys(111, "selfpipe_read") ;
       case 0 : return ;

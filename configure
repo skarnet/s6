@@ -120,7 +120,7 @@ tryldflag () {
 
 # Actual script
 
-CC_AUTO="$CC"
+CC_AUTO=
 CFLAGS_AUTO="$CFLAGS"
 CPPFLAGS_AUTO="-D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -O2 $CPPFLAGS"
 LDFLAGS_AUTO="$LDFLAGS"
@@ -253,6 +253,7 @@ fi
 
 # Find a C compiler to use
 echo "checking for C compiler..."
+trycc ${cross}${CC}
 trycc ${cross}gcc
 trycc ${cross}c99
 trycc ${cross}cc
@@ -362,7 +363,7 @@ SYSCLOCK_LIB := ${sysclock_lib}
 TAINNOW_LIB := ${tainnow_lib}
 UTIL_LIB := ${util_lib}
 
-CC := $CC_AUTO
+CC := ${CC_AUTO##${cross}}
 CFLAGS := $CFLAGS_AUTO
 CPPFLAGS := $CPPFLAGS_AUTO
 LDFLAGS := $LDFLAGS_AUTO
