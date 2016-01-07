@@ -39,7 +39,6 @@ struct ftrigio_s
   uint16 id ; /* given by client */
 } ;
 #define FTRIGIO_ZERO { .xindex = 0, .trig = FTRIG1_ZERO, .b = BUFFER_INIT(0, -1, 0, 0), .buf = "", .sa = STRALLOC_ZERO, .options = 0, .id = 0 }
-static ftrigio_t const ftrigio_zero = FTRIGIO_ZERO ;
 
 static ftrigio_t a[FTRIGR_MAX] ;
 static unsigned int n = 0 ;
@@ -49,7 +48,6 @@ static void ftrigio_deepfree (ftrigio_t *p)
   ftrig1_free(&p->trig) ;
   stralloc_free(&p->sa) ;
   regfree(&p->re) ;
-  *p = ftrigio_zero ;
 }
 
 static void cleanup (void)
@@ -130,8 +128,12 @@ static int parse_protocol (unixmessage_t const *m, void *context)
     {
       register unsigned int i = 0 ;
       for (; i < n ; i++) if (a[i].id == id) break ;
-      if (i < n) remove(i) ;
-      answer(0) ;
+      if (i < n)
+      {
+        remove(i) ;
+        answer(0) ;
+      }
+      else answer(EINVAL) ;
       break ;
     }
     case 'L' : /* subscribe to path and match re */
@@ -156,8 +158,6 @@ static int parse_protocol (unixmessage_t const *m, void *context)
         answer(ENFILE) ;
         break ;
       }
-      a[n].options = options ;
-      a[n].id = id ;
       r = regcomp(&a[n].re, m->s + 16 + pathlen, REG_EXTENDED) ;
       if (r)
       {
@@ -170,12 +170,10 @@ static int parse_protocol (unixmessage_t const *m, void *context)
         answer(errno) ;
         break ;
       }
-      if (!buffer_init(&a[n].b, &buffer_read, a[n].trig.fd, a[n].buf, FTRIGRD_BUFSIZE))
-      {
-        ftrigio_deepfree(a + n) ;
-        answer(errno) ;
-        break ;
-      }
+      buffer_init(&a[n].b, &buffer_read, a[n].trig.fd, a[n].buf, FTRIGRD_BUFSIZE) ;
+      a[n].options = options ;
+      a[n].id = id ;
+      a[n].sa = stralloc_zero ;
       n++ ;
       answer(0) ;
       break ;
