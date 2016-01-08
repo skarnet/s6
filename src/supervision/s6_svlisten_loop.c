@@ -29,7 +29,7 @@ void s6_svlisten_init (int argc, char const *const *argv, s6_svlisten_t *foo, ui
     byte_copy(s, len, argv[i]) ;
     s[len] = '/' ;
     byte_copy(s + len + 1, sizeof(S6_SUPERVISE_EVENTDIR), S6_SUPERVISE_EVENTDIR) ;
-    foo->ids[i] = ftrigr_subscribe_g(&foo->a, s, "D|u|U|d", FTRIGR_REPEAT, deadline) ;
+    foo->ids[i] = ftrigr_subscribe_g(&foo->a, s, "[DuUd]", FTRIGR_REPEAT, deadline) ;
     if (!foo->ids[i]) strerr_diefu2sys(111, "subscribe to events for ", argv[i]) ;
     if (!s6_svstatus_read(argv[i], &status)) strerr_diefu1sys(111, "s6_svstatus_read") ;
     bitarray_poke(foo->upstate, i, status.pid && !status.flagfinishing) ;
