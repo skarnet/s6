@@ -41,7 +41,7 @@ struct CODE_s
   unsigned int c_val ;
 } ;
 
-static const CODE prioritynames[] =
+static CODE const prioritynames[] =
 {
   { "emerg", LOG_EMERG },
   { "alert", LOG_ALERT },
@@ -54,7 +54,7 @@ static const CODE prioritynames[] =
   { 0, -1 }
 } ;
 
-static const CODE facilitynames[] =
+static CODE const facilitynames[] =
 {
   { "kern", LOG_KERN },
   { "user", LOG_USER },
@@ -92,7 +92,7 @@ static unsigned int syslog_names (char const *line)
 {
   unsigned int fpr, i ;
   int fp ;
-  CODE *p = facilitynames ;
+  CODE const *p = facilitynames ;
 
   if (line[0] != '<') return 0 ;
   i = uint_scan(line+1, &fpr) ;
