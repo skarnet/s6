@@ -103,13 +103,17 @@ Process 1 should be <em>absolutely stable</em>, it should be guaranteed
 to never crash, so the whole of its source code should be under control. At
 Upstart's level of complexity, those goals are outright impossible to achieve,
 so this approach is flawed by design. </li>
- <li> launchd suffers from the same kind of problem. Regardless of how
-things are actually implemented inside (which I have no idea about), services
+ <li> launchd suffers from the same kind of problems. Example: Services
 running under launchd must be configured
 <a href="https://developer.apple.com/library/mac/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html">using
-XML</a>. That means there is an XML parser in process 1.
-<a href="https://software.intel.com/sites/default/files/race.jpg">What
-could possibly go wrong&nbsp;?</a> </li>
+XML</a>; the launchctl process interprets the XML, converts it into a
+key-value store (which is strictly
+less powerful than XML, so why do they even use XML in the first place?)
+and sends it to launchd via a Mach-specific IPC. Process 1 needs to be
+linked against the library that handles the Mach IPC, it needs to decode
+the key-value store, and use it to run and supervise a daemon. And it
+needs to keep everything in memory. This is
+a lot more complex and resource-consuming than it needs to be. </li>
  <li> systemd is much, much worse than the other ones, and a real danger
 for the future of GNU/Linux. I have a <a href="systemd.html">special page</a>
 dedicated to it. </li>
