@@ -89,8 +89,10 @@ install-data: $(ALL_DATA:src/etc/%=$(DESTDIR)$(datadir)/%)
 
 ifneq ($(exthome),)
 
-update:
+$(DESTDIR)$(exthome): $(home)
 	exec $(INSTALL) -l $(notdir $(home)) $(DESTDIR)$(exthome)
+
+update: $(DESTDIR)$(exthome)
 
 global-links: $(DESTDIR)$(exthome) $(SHARED_LIBS:lib%.so.xyzzy=$(DESTDIR)$(sproot)/library.so/lib%.so.$(version_M)) $(BIN_TARGETS:%=$(DESTDIR)$(sproot)/command/%) $(SBIN_TARGETS:%=$(DESTDIR)$(sproot)/command/%)
 
