@@ -89,7 +89,7 @@ install-data: $(ALL_DATA:src/etc/%=$(DESTDIR)$(datadir)/%)
 
 ifneq ($(exthome),)
 
-$(DESTDIR)$(exthome): $(home)
+$(DESTDIR)$(exthome): $(DESTDIR)$(home)
 	exec $(INSTALL) -l $(notdir $(home)) $(DESTDIR)$(exthome)
 
 update: $(DESTDIR)$(exthome)
