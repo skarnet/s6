@@ -73,12 +73,10 @@ approximately 50 bytes per service. </li>
 descriptors to function properly and does not exceed its stack limit. The default
 of 500 is safe and provides enough room for every reasonable system. </li>
  <li> <tt>-t&nbsp;<em>rescan</em></tt>&nbsp;: perform a scan every <em>rescan</em>
-milliseconds. If <em>rescan</em> is 0, automatic scans are never performed after
+milliseconds. If <em>rescan</em> is 0 (the default), automatic scans are never performed after
 the first one and s6-svscan will only detect new services when told to via a
-<a href="s6-svscanctl.html">s6-svscanctl -a</a> command. The default <em>rescan</em>
-value is 5000, for compatibility with daemontools'
-<a href="http://cr.yp.to/daemontools/svscan.html">svscan</a>, which performs a
-scan (and a reap) every 5 seconds. It is <em>strongly</em> discouraged to set
+<a href="s6-svscanctl.html">s6-svscanctl -a</a> command.
+It is <em>strongly</em> discouraged to set
 <em>rescan</em> to a positive value under 500. </li>
 </ul>
 

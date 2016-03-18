@@ -453,7 +453,7 @@ int main (int argc, char const *const *argv)
   PROG = "s6-svscan" ;
   {
     subgetopt_t l = SUBGETOPT_ZERO ;
-    unsigned int t = 5000 ;
+    unsigned int t = 0 ;
     for (;;)
     {
       register int opt = subgetopt_r(argc, argv, "Sst:c:", &l) ;
