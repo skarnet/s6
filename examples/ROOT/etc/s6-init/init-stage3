@@ -43,4 +43,4 @@ foreground { s6-echo "Unmounting disks." }
 # Reboot, halt or poweroff the machine, depending on the parameter
 # that was given to the script.
 foreground { s6-echo "\nPerforming "${1}"." }
-s6-${1}
+s6-${1} -f
