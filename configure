@@ -43,7 +43,6 @@ Optional features:
   --disable-allstatic           do not prefer linking against static libraries [enabled]
   --enable-static-libc          make entirely static binaries [disabled]
   --enable-slashpackage[=ROOT]  assume /package installation at ROOT [disabled]
-  --enable-cross=CROSS          prefix toolchain executable names with CROSS [none]
 
 EOF
 exit 0
@@ -150,7 +149,7 @@ addlibspath=''
 addlibdpath=''
 vpaths=''
 vpathd=''
-cross="$CROSS_COMPILE"
+build=
 
 for arg ; do
   case "$arg" in
@@ -179,11 +178,9 @@ for arg ; do
     --enable-slashpackage=*) sproot=${arg#*=} ; slashpackage=true ; ;;
     --enable-slashpackage) sproot= ; slashpackage=true ;;
     --disable-slashpackage) sproot= ; slashpackage=false ;;
-    --enable-cross=*) cross=${arg#*=} ;;
-    --enable-cross) ;;
-    --disable-cross) cross= ;;
-    --enable-*|--disable-*|--with-*|--without-*|--*dir=*|--build=*) ;;
+    --enable-*|--disable-*|--with-*|--without-*|--*dir=*) ;;
     --host=*|--target=*) target=${arg#*=} ;;
+    --build=*) build=${arg#*=} ;;
     -* ) echo "$0: unknown option $arg" ;;
     *=*) ;;
     *) target=$arg ;;
@@ -252,6 +249,11 @@ if $slashpackage ; then
 fi
 
 # Find a C compiler to use
+if test -n "$target" && test x${build} != x${target} ; then
+  cross=${target}-
+else
+  cross=
+fi
 echo "checking for C compiler..."
 trycc ${cross}${CC}
 trycc ${cross}gcc
@@ -270,7 +272,13 @@ else
 fi
 
 echo "checking target system type..."
-test -n "$target" || target=$($CC_AUTO -dumpmachine 2>/dev/null) || target=unknown
+if test -z "$target" ; then
+  if test -n "$build" ; then
+    target=$build ;
+  else
+    target=$($CC_AUTO -dumpmachine 2>/dev/null) || target=unknown
+  fi
+fi
 echo "  ... $target"
 if test ! -d $sysdeps || test ! -f $sysdeps/target ; then
   echo "$0: error: $sysdeps is not a valid sysdeps directory"
