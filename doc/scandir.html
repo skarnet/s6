@@ -108,9 +108,12 @@ service repository can be safely stored on the root filesystem, and the
 needed directories copied to a RAM filesystem at boot time. The scan
 directory can be either the place where the working copies are written,
 or another directory containing symlinks to those working copies. (The
-latter is useful if you are not using <tt>s6-svscan -t0</tt>: copying a
+latter is useful if you are using the <tt>-t</tt> option to
+<a href="s6-svscan.html">s6-svscan</a> with a nonzero argument: copying a
 directory is not atomic, but making a symlink is, so there is no risk
-of your scanner finding an incomplete directory.)
+of your scanner finding a directory while it is being copied - which
+could result in <a href="s6-supervise.html">s6-supervise</a> getting
+the wrong information and not managing the service properly.)
 </p>
 
 <p>
