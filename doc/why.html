@@ -55,9 +55,9 @@ there is no design flaw in runit that prevents it from passing the test. </li>
  <li> Upstart works. I have no idea what other integrated init systems do: it's much too difficult to strace them
 to see exactly where they're spending their time, and when it is possible, the trace output is so big that it's
 hard to extract any valuable information from it. </li>
- <li> s6 works. By default, s6-svscan wakes up every 5 seconds, to emulate
-<a href="http://cr.yp.to/daemontools/svscan.html">svscan</a> behaviour; but it
-can be told not to do so. (<tt>s6-svscan -t0</tt>) </li>
+ <li> s6 works. The <tt>-t</tt> option to s6-svscan makes it check its services
+with a configurable timeout; by default, this timeout is infinite, i.e. it
+never wakes up unless it receives a command via s6-svscanctl. </li>
 </ul>
 
 
