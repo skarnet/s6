@@ -5,3 +5,4 @@ ${LIBS6}
 -lskarnet
 ${SOCKET_LIB}
 ${TAINNOW_LIB}
+${SPAWN_LIB}

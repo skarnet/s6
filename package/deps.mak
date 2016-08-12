@@ -159,7 +159,7 @@ s6-fghack: EXTRA_LIBS :=
 s6-fghack: src/daemontools-extras/s6-fghack.o -lskarnet
 s6-log: EXTRA_LIBS := ${TAINNOW_LIB}
 s6-log: src/daemontools-extras/s6-log.o -lskarnet
-s6-setlock: EXTRA_LIBS := ${TAINNOW_LIB}
+s6-setlock: EXTRA_LIBS := ${TAINNOW_LIB} ${SPAWN_LIB}
 s6-setlock: src/daemontools-extras/s6-setlock.o -lskarnet
 s6-setsid: EXTRA_LIBS :=
 s6-setsid: src/daemontools-extras/s6-setsid.o -lskarnet
@@ -210,19 +210,19 @@ libs6.so.xyzzy: EXTRA_LIBS := -lskarnet
 libs6.so.xyzzy: src/libs6/ftrigr1_zero.lo src/libs6/ftrigr_check.lo src/libs6/ftrigr_end.lo src/libs6/ftrigr_start.lo src/libs6/ftrigr_startf.lo src/libs6/ftrigr_subscribe.lo src/libs6/ftrigr_unsubscribe.lo src/libs6/ftrigr_update.lo src/libs6/ftrigr_wait_and.lo src/libs6/ftrigr_wait_or.lo src/libs6/ftrigr_zero.lo src/libs6/ftrigw_clean.lo src/libs6/ftrigw_fifodir_make.lo src/libs6/ftrigw_notify.lo src/libs6/ftrigw_notifyb.lo src/libs6/ftrigw_notifyb_nosig.lo src/libs6/s6_accessrules_backend_cdb.lo src/libs6/s6_accessrules_backend_fs.lo src/libs6/s6_accessrules_keycheck_ip4.lo src/libs6/s6_accessrules_keycheck_ip6.lo src/libs6/s6_accessrules_keycheck_reversedns.lo src/libs6/s6_accessrules_keycheck_uidgid.lo src/libs6/s6_accessrules_params_free.lo src/libs6/s6_accessrules_uidgid_cdb.lo src/libs6/s6_accessrules_uidgid_fs.lo src/libs6/s6_supervise_lock.lo src/libs6/s6_supervise_lock_mode.lo src/libs6/s6_svc_ok.lo src/libs6/s6_svc_write.lo src/libs6/s6_svc_writectl.lo src/libs6/s6_svstatus_pack.lo src/libs6/s6_svstatus_read.lo src/libs6/s6_svstatus_unpack.lo src/libs6/s6_svstatus_write.lo src/libs6/s6lock_acquire.lo src/libs6/s6lock_check.lo src/libs6/s6lock_end.lo src/libs6/s6lock_release.lo src/libs6/s6lock_start.lo src/libs6/s6lock_startf.lo src/libs6/s6lock_update.lo src/libs6/s6lock_wait_and.lo src/libs6/s6lock_wait_or.lo src/libs6/s6lock_zero.lo src/libs6/s6_fdholder_delete.lo src/libs6/s6_fdholder_delete_async.lo src/libs6/s6_fdholder_getdump.lo src/libs6/s6_fdholder_list.lo src/libs6/s6_fdholder_list_async.lo src/libs6/s6_fdholder_list_cb.lo src/libs6/s6_fdholder_retrieve.lo src/libs6/s6_fdholder_retrieve_async.lo src/libs6/s6_fdholder_retrieve_cb.lo src/libs6/s6_fdholder_setdump.lo src/libs6/s6_fdholder_store.lo src/libs6/s6_fdholder_store_async.lo
 s6-ftrigrd: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
 s6-ftrigrd: src/libs6/s6-ftrigrd.o src/libs6/ftrig1_free.o src/libs6/ftrig1_make.o -lskarnet
-s6lockd: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6lockd: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB} ${SPAWN_LIB}
 s6lockd: src/libs6/s6lockd.o -lskarnet
 s6lockd-helper: EXTRA_LIBS :=
 s6lockd-helper: src/libs6/s6lockd-helper.o -lskarnet
 s6-cleanfifodir: EXTRA_LIBS :=
 s6-cleanfifodir: src/pipe-tools/s6-cleanfifodir.o ${LIBS6} -lskarnet
-s6-ftrig-listen: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-ftrig-listen: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB} ${SPAWN_LIB}
 s6-ftrig-listen: src/pipe-tools/s6-ftrig-listen.o ${LIBS6} -lexecline -lskarnet
-s6-ftrig-listen1: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-ftrig-listen1: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB} ${SPAWN_LIB}
 s6-ftrig-listen1: src/pipe-tools/s6-ftrig-listen1.o ${LIBS6} -lskarnet
 s6-ftrig-notify: EXTRA_LIBS :=
 s6-ftrig-notify: src/pipe-tools/s6-ftrig-notify.o ${LIBS6} -lskarnet
-s6-ftrig-wait: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-ftrig-wait: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB} ${SPAWN_LIB}
 s6-ftrig-wait: src/pipe-tools/s6-ftrig-wait.o ${LIBS6} -lskarnet
 s6-mkfifodir: EXTRA_LIBS :=
 s6-mkfifodir: src/pipe-tools/s6-mkfifodir.o ${LIBS6} -lskarnet
@@ -230,13 +230,13 @@ s6-supervise: EXTRA_LIBS := ${TAINNOW_LIB}
 s6-supervise: src/supervision/s6-supervise.o ${LIBS6} -lskarnet
 s6-svc: EXTRA_LIBS :=
 s6-svc: src/supervision/s6-svc.o ${LIBS6} -lskarnet
-s6-svlisten: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-svlisten: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB} ${SPAWN_LIB}
 s6-svlisten: src/supervision/s6-svlisten.o src/supervision/s6_svlisten_signal_handler.o src/supervision/s6_svlisten_loop.o ${LIBS6} -lexecline -lskarnet
-s6-svlisten1: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-svlisten1: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB} ${SPAWN_LIB}
 s6-svlisten1: src/supervision/s6-svlisten1.o src/supervision/s6_svlisten_signal_handler.o src/supervision/s6_svlisten_loop.o ${LIBS6} -lskarnet
 s6-svok: EXTRA_LIBS :=
 s6-svok: src/supervision/s6-svok.o ${LIBS6} -lskarnet
-s6-svscan: EXTRA_LIBS := ${TAINNOW_LIB}
+s6-svscan: EXTRA_LIBS := ${TAINNOW_LIB} ${SPAWN_LIB}
 s6-svscan: src/supervision/s6-svscan.o ${LIBS6} -lskarnet
 s6-svscanctl: EXTRA_LIBS :=
 s6-svscanctl: src/supervision/s6-svscanctl.o ${LIBS6} -lskarnet

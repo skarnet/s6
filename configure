@@ -18,12 +18,12 @@ Installation directories:
 
 Fine tuning of the installation directories:
   --dynlibdir=DIR               shared library files [PREFIX/lib]
-  --bindir=DIR                  user executables [EPREFIX/bin]
+  --bindir=BINDIR               user executables [EPREFIX/bin]
   --sbindir=DIR                 admin executables [EPREFIX/sbin]
   --libexecdir=DIR              package-scoped executables [EPREFIX/libexec]
   --libdir=DIR                  static library files [PREFIX/lib/$package]
   --includedir=DIR              C header files [PREFIX/include]
-  --datadir=DIR                 global configuration files [PREFIX/etc]
+  --shebangdir=DIR              absolute path for #! invocations [BINDIR]
 
  If no --prefix option is given, by default libdir (but not dynlibdir) will be
  /usr/lib/$package, and includedir will be /usr/include.
@@ -133,7 +133,7 @@ bindir='$exec_prefix/bin'
 sbindir='$exec_prefix/sbin'
 libdir='$prefix/lib/$package'
 includedir='$prefix/include'
-datadir='$prefix/etc'
+shebangdir='$bindir'
 sysdeps='$prefix/lib/skalibs/sysdeps'
 manualsysdeps=false
 shared=false
@@ -162,7 +162,7 @@ for arg ; do
     --sbindir=*) sbindir=${arg#*=} ;;
     --libdir=*) libdir=${arg#*=} ;;
     --includedir=*) includedir=${arg#*=} ;;
-    --datadir=*) datadir=${arg#*=} ;;
+    --shebangdir=*) shebangdir=${arg#*=} ;;
     --with-sysdeps=*) sysdeps=${arg#*=} manualsysdeps=true ;;
     --with-include=*) var=${arg#*=} ; stripdir var ; addincpath="$addincpath -I$var" ;;
     --with-lib=*) var=${arg#*=} ; stripdir var ; addlibspath="$addlibspath -L$var" ; vpaths="$vpaths $var" ;;
@@ -202,7 +202,7 @@ fi
 
 # Expand installation directories
 stripdir prefix
-for i in exec_prefix dynlibdir libexecdir bindir sbindir libdir includedir datadir sysdeps sproot ; do
+for i in exec_prefix dynlibdir libexecdir bindir sbindir libdir includedir shebangdir sysdeps sproot ; do
   eval tmp=\${$i}
   eval $i=$tmp
   stripdir $i
@@ -289,7 +289,7 @@ if [ "x$target" != "x$(cat $sysdeps/target)" ] ; then
   exit 1
 fi
 
-rt_lib=$(cat $sysdeps/rt.lib)
+spawn_lib=$(cat $sysdeps/spawn.lib)
 socket_lib=$(cat $sysdeps/socket.lib)
 sysclock_lib=$(cat $sysdeps/sysclock.lib)
 tainnow_lib=$(cat $sysdeps/tainnow.lib)
@@ -311,6 +311,8 @@ tryflag CFLAGS_AUTO -fdata-sections
 
 tryldflag LDFLAGS_AUTO -Wl,--sort-section=alignment
 tryldflag LDFLAGS_AUTO -Wl,--sort-common
+
+CPPFLAGS_AUTO="${CPPFLAGS_AUTO}${addincpath}"
 
 if $evenmorestatic ; then
   LDFLAGS_NOSHARED=-static
@@ -337,8 +339,6 @@ if test -z "$vpaths" ; then
   done < package/deps-build  
 fi
 
-CPPFLAGS_AUTO="$CPPFLAGS_AUTO $addincpath"
-
 echo "creating config.mak..."
 cmdline=$(quote "$0")
 for i ; do cmdline="$cmdline $(quote "$i")" ; done
@@ -358,14 +358,13 @@ bindir := $bindir
 sbindir := $sbindir
 libdir := $libdir
 includedir := $includedir
-datadir := $datadir
 sysdeps := $sysdeps
 slashpackage := $slashpackage
 sproot := $sproot
 version := $version
 home := $home
 exthome := $exthome
-RT_LIB := ${rt_lib}
+SPAWN_LIB := ${spawn_lib}
 SOCKET_LIB := ${socket_lib}
 SYSCLOCK_LIB := ${sysclock_lib}
 TAINNOW_LIB := ${tainnow_lib}
@@ -414,16 +413,17 @@ cat <<EOF
 #define ${package_macro_name}_CONFIG_H
 
 #define ${package_macro_name}_VERSION "$version"
-#define ${package_macro_name}_ETC "$datadir"
 EOF
 if $slashpackage ; then
   echo "#define ${package_macro_name}_BINPREFIX \"$binprefix/\""
   echo "#define ${package_macro_name}_EXTBINPREFIX \"$extbinprefix/\""
   echo "#define ${package_macro_name}_LIBEXECPREFIX \"$binprefix/\""
+  echo "#define ${package_macro_name}_SHEBANGPREFIX \"$extbinprefix/\""
 else
   echo "#define ${package_macro_name}_BINPREFIX \"\""
   echo "#define ${package_macro_name}_EXTBINPREFIX \"\""
   echo "#define ${package_macro_name}_LIBEXECPREFIX \"$libexecdir/\""
+  echo "#define ${package_macro_name}_SHEBANGPREFIX \"$shebangdir/\""
 fi
 echo
 echo "#endif"

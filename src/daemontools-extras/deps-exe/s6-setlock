@@ -1,2 +1,3 @@
 -lskarnet
 ${TAINNOW_LIB}
+${SPAWN_LIB}
