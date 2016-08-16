@@ -242,5 +242,5 @@ s6-svscanctl: EXTRA_LIBS :=
 s6-svscanctl: src/supervision/s6-svscanctl.o ${LIBS6} -lskarnet
 s6-svstat: EXTRA_LIBS := ${SYSCLOCK_LIB}
 s6-svstat: src/supervision/s6-svstat.o ${LIBS6} -lskarnet
-s6-svwait: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-svwait: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB} ${SPAWN_LIB}
 s6-svwait: src/supervision/s6-svwait.o src/supervision/s6_svlisten_loop.o ${LIBS6} -lskarnet
