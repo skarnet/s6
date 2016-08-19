@@ -92,7 +92,10 @@ its work and exit in less than
 5 seconds; if it takes more than that, it is killed. (The point is that the run
 script, not the finish script, should be running; the finish script should really
 be short-lived.) The maximum duration of a <tt>finish</tt> execution can be
-configured via the <tt>timeout-finish</tt> file, see below. </li>
+configured via the <tt>timeout-finish</tt> file, see below. The finish script is
+executed with two arguments: the exit code from the run script (resp. 256 if the
+run script was killed by a signal), and an undefined number (resp. the number of
+the signal that killed the run script). </li>
  <li> A directory named <tt>supervise</tt>. It is automatically created by
 <a href="s6-supervise.html">s6-supervise</a> if it does not exist. This is where
 <a href="s6-supervise.html">s6-supervise</a> stores its information. The directory
