@@ -65,6 +65,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     if (!flagreuse) newargv[m++] = "-D" ;
     if (backlog != (unsigned int)-1)
     {
+      if (!backlog) backlog = 1 ;
       newargv[m++] = "-b" ;
       newargv[m++] = fmt + pos ;
       pos += uint_fmt(fmt + pos, backlog) ;
