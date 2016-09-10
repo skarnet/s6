@@ -26,11 +26,11 @@ socket, then executes a program.
 <h2> Interface </h2>
 
 <pre>
-     s6-ipcserver-socketbinder [ -d | -D ] [ -b <em>backlog</em> ] <em>path</em> <em>prog...</em>
+     s6-ipcserver-socketbinder [ -d | -D ] [ -b <em>backlog</em> ] [ -M | -m ] <em>path</em> <em>prog...</em>
 </pre>
 
 <ul>
- <li> s6-ipcserver-socketbinder creates a Unix domain socket of type SOCK_STREAM
+ <li> s6-ipcserver-socketbinder creates a Unix domain socket
 and binds it to <em>path</em>. It prepares the socket to accept
 connections by calling
 <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/listen.html">listen()</a>. </li>
@@ -48,8 +48,17 @@ and is generally used with server programs. This is the default. Note that
 <em>path</em> will be deleted if it already exists at program start time. </li>
  <li> <tt>-D</tt>&nbsp;: disallow instant rebinding to the same path. </li>
  <li> <tt>-b&nbsp;<em>backlog</em></tt>&nbsp;: set a maximum of
-<em>backlog</em> backlog connections on the socket. Extra
-connection attempts will rejected by the kernel. </li>
+<em>backlog</em> backlog connections on the socket - extra
+connection attempts will rejected by the kernel. The default is SOMAXCONN,
+i.e. the maximum number allowed by the system. If <em>backlog</em>
+is 0, then the socket will be created, but it <strong>will not be
+listening</em>. </li>
+ <li> <tt>-M</tt>&nbsp;: the type of the socket will be SOCK_STREAM. This is
+the default. </li>
+ <li> <tt>-m</tt>&nbsp;: the type of the socket will be SOCK_DGRAM. Note
+that by default SOCK_DGRAM sockets are not connection-mode, and <tt>listen()</tt>
+will fail - so you should always give the <tt>-b0</tt> option to
+s6-ipcserver-socketbinder along with <tt>-m</tt>. </li>
 </ul>
 
 <h2> Notes </h2>
