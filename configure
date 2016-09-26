@@ -254,7 +254,7 @@ fi
 echo "checking for C compiler..."
 trycc ${cross}${CC}
 trycc ${cross}gcc
-trycc ${cross}c99
+trycc ${cross}clang
 trycc ${cross}cc
 test -n "$CC_AUTO" || { echo "$0: cannot find a C compiler" ; exit 1 ; }
 echo "  ... $CC_AUTO"
