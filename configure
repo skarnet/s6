@@ -297,7 +297,7 @@ tryflag CFLAGS_AUTO -fomit-frame-pointer
 tryflag CFLAGS_AUTO -fno-exceptions
 tryflag CFLAGS_AUTO -fno-unwind-tables
 tryflag CFLAGS_AUTO -fno-asynchronous-unwind-tables
-tryflag CFLAGS_AUTO -Wa,--noexecstack
+tryflag CPPFLAGS_AUTO -Wa,--noexecstack
 tryflag CFLAGS_AUTO -fno-stack-protector
 tryflag CPPFLAGS_AUTO -Werror=implicit-function-declaration
 tryflag CPPFLAGS_AUTO -Werror=implicit-int
