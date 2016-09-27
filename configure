@@ -78,7 +78,7 @@ cmdexists () {
 }
 
 trycc () {
-  test -z "$CC_AUTO" && cmdexists "$1" && CC_AUTO=$1
+  test -z "$CC_AUTO" && cmdexists "$1" && CC_AUTO="$*"
 }
 
 stripdir () {
