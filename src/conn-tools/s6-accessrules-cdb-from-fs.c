@@ -110,8 +110,10 @@ int main (int argc, char const *const *argv)
   int fd ;
   PROG = "s6-accessrules-cdb-from-fs" ;
   if (argc < 3) strerr_dieusage(100, USAGE) ;
+  if (!random_init())
+    strerr_diefu1sys(111, "init random generator") ;
   if (!stralloc_cats(&tmp, argv[1])) return 0 ;
-  if (random_sauniquename(&tmp, 8) < 0)
+  if (!random_sauniquename(&tmp, 8))
     strerr_diefu1sys(111, "random_sauniquename") ;
   if (!stralloc_readyplus(&tmp, 8210))
     strerr_diefu1sys(111, "stralloc_catb") ;

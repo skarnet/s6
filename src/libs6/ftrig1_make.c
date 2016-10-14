@@ -25,7 +25,7 @@ int ftrig1_make (ftrig1_t *f, char const *path)
   tmp[pathlen + 2 + FTRIG1_PREFIXLEN] = ':' ;
   if (!timestamp(tmp + pathlen + 3 + FTRIG1_PREFIXLEN)) return 0 ;
   tmp[pathlen + 28 + FTRIG1_PREFIXLEN] = ':' ;
-  if (random_name(tmp + pathlen + 29 + FTRIG1_PREFIXLEN, 16) < 16) return 0 ;
+  random_name(tmp + pathlen + 29 + FTRIG1_PREFIXLEN, 16) ;
   tmp[pathlen + 45 + FTRIG1_PREFIXLEN] = 0 ;
   
   {
