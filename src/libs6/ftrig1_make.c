@@ -9,8 +9,25 @@
 #include <skalibs/tai.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/djbunix.h>
+#include <skalibs/surf.h>
 #include <skalibs/random.h>
 #include "ftrig1.h"
+
+static SURFSchedule surf_ctx = SURFSCHEDULE_ZERO ;
+
+void ftrig1_init (void)
+{
+  char seed[160] ;
+  random_makeseed(seed) ;
+  surf_init(&surf_ctx, seed) ;
+}
+
+static inline void surfname (char *s, unsigned int n)
+{
+  static char const oklist[64] = "ABCDEFGHIJKLMNOPQRSTUVWXYZghijklmnopqrstuvwxyz-_0123456789abcdef" ;
+  surf(&surf_ctx, s, n) ;
+  while (n--) s[n] = oklist[s[n] & 63] ;
+}
 
 int ftrig1_make (ftrig1_t *f, char const *path)
 {
@@ -25,7 +42,7 @@ int ftrig1_make (ftrig1_t *f, char const *path)
   tmp[pathlen + 2 + FTRIG1_PREFIXLEN] = ':' ;
   if (!timestamp(tmp + pathlen + 3 + FTRIG1_PREFIXLEN)) return 0 ;
   tmp[pathlen + 28 + FTRIG1_PREFIXLEN] = ':' ;
-  random_name(tmp + pathlen + 29 + FTRIG1_PREFIXLEN, 16) ;
+  surfname(tmp + pathlen + 29 + FTRIG1_PREFIXLEN, 16) ;
   tmp[pathlen + 45 + FTRIG1_PREFIXLEN] = 0 ;
   
   {

@@ -13,7 +13,6 @@
 #include <skalibs/stralloc.h>
 #include <skalibs/sig.h>
 #include <skalibs/tai.h>
-#include <skalibs/random.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/iopause.h>
 #include <skalibs/unixmessage.h>
@@ -195,8 +194,7 @@ int main (void)
   if (ndelay_on(0) < 0) strerr_diefu2sys(111, "ndelay_on ", "0") ;
   if (ndelay_on(1) < 0) strerr_diefu2sys(111, "ndelay_on ", "1") ;
   if (sig_ignore(SIGPIPE) < 0) strerr_diefu1sys(111, "ignore SIGPIPE") ;
-  if (!random_init())
-    strerr_diefu1sys(111, "init random generator") ;
+  ftrig1_init() ;
 
   {
     tain_t deadline ;
