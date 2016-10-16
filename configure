@@ -19,7 +19,6 @@ Installation directories:
 Fine tuning of the installation directories:
   --dynlibdir=DIR               shared library files [PREFIX/lib]
   --bindir=BINDIR               user executables [EPREFIX/bin]
-  --sbindir=DIR                 admin executables [EPREFIX/sbin]
   --libexecdir=DIR              package-scoped executables [EPREFIX/libexec]
   --libdir=DIR                  static library files [PREFIX/lib/$package]
   --includedir=DIR              C header files [PREFIX/include]
@@ -42,6 +41,8 @@ Optional features:
   --disable-allstatic           do not prefer linking against static libraries [enabled]
   --enable-static-libc          make entirely static binaries [disabled]
   --enable-slashpackage[=ROOT]  assume /package installation at ROOT [disabled]
+  --enable-absolute-paths       do not rely on PATH to access this package's binaries,
+                                  hardcode absolute BINDIR/foobar paths instead [disabled]
 
 EOF
 exit 0
@@ -129,7 +130,6 @@ exec_prefix='$prefix'
 dynlibdir='$prefix/lib'
 libexecdir='$exec_prefix/libexec'
 bindir='$exec_prefix/bin'
-sbindir='$exec_prefix/sbin'
 libdir='$prefix/lib/$package'
 includedir='$prefix/include'
 sysdeps='$prefix/lib/skalibs/sysdeps'
@@ -137,6 +137,7 @@ manualsysdeps=false
 shared=false
 static=true
 slashpackage=false
+abspath=false
 sproot=
 home=
 exthome=
@@ -157,7 +158,6 @@ for arg ; do
     --dynlibdir=*) dynlibdir=${arg#*=} ;;
     --libexecdir=*) libexecdir=${arg#*=} ;;
     --bindir=*) bindir=${arg#*=} ;;
-    --sbindir=*) sbindir=${arg#*=} ;;
     --libdir=*) libdir=${arg#*=} ;;
     --includedir=*) includedir=${arg#*=} ;;
     --with-sysdeps=*) sysdeps=${arg#*=} manualsysdeps=true ;;
@@ -175,6 +175,8 @@ for arg ; do
     --enable-slashpackage=*) sproot=${arg#*=} ; slashpackage=true ; ;;
     --enable-slashpackage) sproot= ; slashpackage=true ;;
     --disable-slashpackage) sproot= ; slashpackage=false ;;
+    --enable-absolute-paths|--enable-absolute-paths=yes) abspath=true ;;
+    --disable-absolute-paths|--enable-absolute-paths=no) abspath=false ;;
     --enable-*|--disable-*|--with-*|--without-*|--*dir=*) ;;
     --host=*|--target=*) target=${arg#*=} ;;
     --build=*) build=${arg#*=} ;;
@@ -199,7 +201,7 @@ fi
 
 # Expand installation directories
 stripdir prefix
-for i in exec_prefix dynlibdir libexecdir bindir sbindir libdir includedir sysdeps sproot ; do
+for i in exec_prefix dynlibdir libexecdir bindir libdir includedir sysdeps sproot ; do
   eval tmp=\${$i}
   eval $i=$tmp
   stripdir $i
@@ -228,13 +230,11 @@ if $slashpackage ; then
   else
     sysdeps=${sproot}/package/prog/skalibs/sysdeps
   fi
-  binprefix=${home}/command
   extbinprefix=${exthome}/command
   dynlibdir=${home}/library.so
-  libexecdir=$binprefix
-  bindir=$binprefix
-  sbindir=$binprefix
+  bindir=${home}/command
   libdir=${home}/library
+  libexecdir=$bindir
   includedir=${home}/include
   while read dep ; do
     addincpath="$addincpath -I${sproot}${dep}/include"
@@ -352,7 +352,6 @@ exec_prefix := $exec_prefix
 dynlibdir := $dynlibdir
 libexecdir := $libexecdir
 bindir := $bindir
-sbindir := $sbindir
 libdir := $libdir
 includedir := $includedir
 sysdeps := $sysdeps
@@ -412,14 +411,16 @@ cat <<EOF
 #define ${package_macro_name}_VERSION "$version"
 EOF
 if $slashpackage ; then
-  echo "#define ${package_macro_name}_BINPREFIX \"$binprefix/\""
+  echo "#define ${package_macro_name}_BINPREFIX \"$bindir/\""
   echo "#define ${package_macro_name}_EXTBINPREFIX \"$extbinprefix/\""
-  echo "#define ${package_macro_name}_LIBEXECPREFIX \"$binprefix/\""
+elif $abspath ; then
+  echo "#define ${package_macro_name}_BINPREFIX \"$bindir/\""
+  echo "#define ${package_macro_name}_EXTBINPREFIX \"$bindir/\""
 else
   echo "#define ${package_macro_name}_BINPREFIX \"\""
   echo "#define ${package_macro_name}_EXTBINPREFIX \"\""
-  echo "#define ${package_macro_name}_LIBEXECPREFIX \"$libexecdir/\""
 fi
+echo "#define ${package_macro_name}_LIBEXECPREFIX \"$libexecdir/\""
 echo
 echo "#endif"
 exec 1>&3 3>&-

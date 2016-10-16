@@ -53,9 +53,7 @@ s6-fdholder-getdumpc \
 s6-fdholder-setdump \
 s6-fdholder-setdumpc \
 s6-fdholder-transferdump \
-s6-fdholder-transferdumpc
-
-SBIN_TARGETS := \
+s6-fdholder-transferdumpc \
 s6-applyuidgid \
 s6-setuidgid
 
