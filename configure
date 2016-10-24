@@ -290,6 +290,7 @@ spawn_lib=$(cat $sysdeps/spawn.lib)
 socket_lib=$(cat $sysdeps/socket.lib)
 sysclock_lib=$(cat $sysdeps/sysclock.lib)
 tainnow_lib=$(cat $sysdeps/tainnow.lib)
+timer_lib=$(cat $sysdeps/timer.lib)
 util_lib=$(cat $sysdeps/util.lib)
 
 tryflag CFLAGS_AUTO -std=c99
@@ -364,6 +365,7 @@ SPAWN_LIB := ${spawn_lib}
 SOCKET_LIB := ${socket_lib}
 SYSCLOCK_LIB := ${sysclock_lib}
 TAINNOW_LIB := ${tainnow_lib}
+TIMER_LIB := ${timer_lib}
 UTIL_LIB := ${util_lib}
 
 CC := ${CC_AUTO##${cross}}
