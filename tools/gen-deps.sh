@@ -60,6 +60,9 @@ for dir in $(ls -1 src | grep -v ^include) ; do
     libs=
     while read dep ; do
       if echo $dep | grep -q -e ^-l -e '^\${.*_LIB}' ; then
+        if test $dep = '-lskarnet' ; then
+          dep='-lskarnet ${SPAWN_LIB} ${SOCKET_LIB} ${SYSCLOCK_LIB} ${TAINNOW_LIB} ${TIMER_LIB} ${UTIL_LIB}'
+        fi
         libs="$libs $dep"
       else
         deps="$deps src/$dir/$dep"
