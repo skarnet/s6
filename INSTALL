@@ -153,6 +153,18 @@ behaviour is to check the pointed file's timestamp and not the symlink's
 timestamp.
 
 
+* Absolute pathnames
+  ------------------
+
+ You may want to use fixed absolute pathnames even if you're not
+following the slashpackage convention: for instance, the Nix packaging
+system prefers calling binaries with immutable paths rather than rely on
+PATH resolution. If you are in that case, use the --enable-absolute-paths
+option to configure. This will ensure that programs calling binaries from
+this package will call them with their full installation path (in bindir)
+without relying on a PATH search.
+
+
 * Out-of-tree builds
   ------------------
 
