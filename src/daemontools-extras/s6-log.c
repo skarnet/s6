@@ -824,7 +824,7 @@ static inline void script_secondpass (char const *const *argv, scriptelem_t *scr
       case 's' :
         if (!uint320_scan(*argv + 1, &s)) goto fail ;
         if (s < 4096) s = 4096 ;
-        if (s > 16777215) s = 16777215 ;
+        if (s > 268435455) s = 268435455 ;
         break ;
       case 'S' :
         if (!uint640_scan(*argv + 1, &maxdirsize)) goto fail ;

@@ -195,7 +195,7 @@ By default, <em>number</em> is 10. </li>
  <li> <strong>s<em>filesize</em></strong>: next rotations will occur when
 <tt>current</tt> log files approach <em>filesize</em> bytes. By default,
 <em>filesize</em> is 99999; it cannot be set lower than 4096 or
-higher than 16777215. </li>
+higher than 268435455. </li>
  <li> <strong>S<em>totalsize</em></strong>: next logdirs will contain up
 to <em>totalsize</em> bytes of archived (and maybe processed) log files. If
 archived log files take more space than that, the older ones are suppressed
