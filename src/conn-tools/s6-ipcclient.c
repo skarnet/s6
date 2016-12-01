@@ -36,7 +36,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   {
     char modif[24 + IPCPATH_MAX] = "PROTO=IPC\0IPCLOCALPATH=" ;
     unsigned int i = 23 ;
-    int s = ipc_stream() ;
+    int s = ipc_stream_b() ;
     if (s < 0) strerr_diefu1sys(111, "create socket") ;
     if (bindpath && (ipc_bind(s, bindpath) == -1))
       strerr_diefu2sys(111, "bind socket to ", bindpath) ;
