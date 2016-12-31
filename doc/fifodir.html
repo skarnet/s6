@@ -29,12 +29,14 @@ create fifodirs in a RAM filesystem.
 
 <h3> C API </h3>
 
+<h4> For the notifier </h4>
+
 <ul>
  <li> You can create fifodirs via the
 <tt>ftrigw_fifodir_create()</tt> function in
 <a href="libs6/ftrigw.html">libftrig</a>. </li>
  <li> You can send an event to a fifodir via the
-<tt>ftrigw_notify()</tt> function in 
+<tt>ftrigw_notify()</tt> function in the notifier part of the
 <a href="libs6/ftrigw.html">libftrig</a>. </li>
  <li> You can clean up a fifodir via the
 <tt>ftrigw_clean()</tt> function in
@@ -44,7 +46,18 @@ create fifodirs in a RAM filesystem.
 <a href="http://skarnet.org/software/skalibs/doc/libstddjb/djbunix.html">libstddjb</a>. </li>
 </ul>
 
+<h4> For a listener </h4>
+
+<ul>
+ <li> You can subscribe to a fifodir via the <tt>ftrigr_subscribe()</tt>
+function in the listener part of the <a href="libs6/ftrigr.html">libftrig</a>. </li>
+ <li> Other functions in the <a href="libs6/ftrigr.html">libftrig</a> allow
+you to receive and handle events synchronously or asynchronously. </li>
+</ul>
+
 <h3> Unix API </h3>
+
+<h4> For the notifier </h4>
 
 <ul>
  <li> You can create fifodirs with the
@@ -55,6 +68,20 @@ create fifodirs in a RAM filesystem.
 <a href="s6-cleanfifodir.html">s6-cleanfifodir</a> command. </li>    
  <li> You can destroy fifodirs with the <tt>rm -rf</tt> command. </li>
 </ul>  
+
+<h4> For a listener </h4>
+
+<ul>
+ <li> You can subscribe to a fifodir and wait for an event, or a series
+or events, with the
+<a href="s6-ftrig-wait.html">s6-ftrig-wait</a> command. </li>
+ <li> You can subscribe to a fifodir, then trigger a program, then
+wait for an event, with the
+<a href="s6-ftrig-listen1.html">s6-ftrig-listen1</a> and
+<a href="s6-ftrig-listen.html">s6-ftrig-listen</a> commands. This
+makes it possible to only send a notification after you're sure
+a notifier is actually listening, in order to prevent race conditions. </li>
+</ul>
     
 <h2> Internals and Unix permissions </h2>
 
@@ -70,6 +97,15 @@ all the named pipes in the directory. Credit for this idea goes to Stefan
 Karrmann. </li>
  <li> To unsubscribe, a listener unlinks his named pipe from the directory. </li>
 </ul>  
+
+<p>
+ Note that in the s6 implementation of fifodirs, there are a few additional
+details: for instance, the named pipes created in a fifodir by a listener
+follow a strict naming convention, for efficiency and safety reasons. If
+you are using fifodirs, it is recommended that you use the provided C library
+functions or the <tt>s6-ftrig-*</tt> command line utilities instead of
+directly hacking into the fifodir internals.
+</p>
 
 <p>
 Fifodirs are created by, so they always originally have the same uid and gid as,
