@@ -36,7 +36,7 @@ struct svinfo_s
   dev_t dev ;
   ino_t ino ;
   tain_t restartafter[2] ;
-  int pid[2] ;
+  pid_t pid[2] ;
   int p[2] ;
   unsigned int flagactive : 1 ;
   unsigned int flaglog : 1 ;
@@ -151,7 +151,7 @@ static void handle_diverted_signals (void)
       default :
       {
         char const *name = sig_name(sig) ;
-        unsigned int len = str_len(name) ;
+        size_t len = str_len(name) ;
         char fn[SIGNAL_PROG_LEN + len + 1] ;
         char const *const newargv[2] = { fn, 0 } ;
         byte_copy(fn, SIGNAL_PROG_LEN, SIGNAL_PROG) ;
@@ -168,8 +168,8 @@ static void handle_control (int fd)
   for (;;)
   {
     char c ;
-    int r = sanitize_read(fd_read(fd, &c, 1)) ;
-    if (r == -1) panic("read control pipe") ;
+    ssize_t r = sanitize_read(fd_read(fd, &c, 1)) ;
+    if (r < 0) panic("read control pipe") ;
     else if (!r) break ;
     else switch (c)
     {
@@ -282,7 +282,7 @@ static void reap (void)
 
 static void trystart (unsigned int i, char const *name, int islog)
 {
-  int pid = fork() ;
+  pid_t pid = fork() ;
   switch (pid)
   {
     case -1 :
@@ -314,7 +314,7 @@ static void retrydirlater (void)
 static void check (char const *name)
 {
   struct stat st ;
-  unsigned int namelen ;
+  size_t namelen ;
   unsigned int i = 0 ;
   if (name[0] == '.') return ;
   if (stat(name, &st) == -1)

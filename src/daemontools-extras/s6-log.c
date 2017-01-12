@@ -103,13 +103,13 @@ typedef struct as_status_s as_status_t, *as_status_t_ref ;
 struct as_status_s
 {
   char const *file ;
-  unsigned int filelen ;
+  size_t filelen ;
 } ;
 
 typedef union actstuff_u actstuff_t, *actstuff_t_ref ;
 union actstuff_u
 {
-  unsigned int fd2_size ;
+  size_t fd2_size ;
   as_status_t status ;
   unsigned int ld ;
 } ;
@@ -131,7 +131,7 @@ struct scriptelem_s
   unsigned int actlen ;
 } ;
 
-typedef void inputprocfunc_t (scriptelem_t const *, unsigned int, unsigned int, unsigned int) ;
+typedef void inputprocfunc_t (scriptelem_t const *, unsigned int, size_t, unsigned int) ;
 typedef inputprocfunc_t *inputprocfunc_t_ref ;
 
 typedef struct logdir_s logdir_t, *logdir_t_ref ;
@@ -146,7 +146,7 @@ struct logdir_s
   uint32 n ;
   uint32 s ;
   uint32 tolerance ;
-  unsigned int pid ;
+  pid_t pid ;
   char const *dir ;
   char const *processor ;
   unsigned int flags ;
@@ -176,7 +176,7 @@ struct logdir_s
 typedef struct filesize_s filesize_t, *filesize_t_ref ;
 struct filesize_s
 {
-  uint64 size ;
+  size_t size ;
   char name[28] ;
 } ;
 
@@ -225,7 +225,7 @@ static inline int logdir_trim (logdir_t *ldp)
   if (n)
   {
     uint64 totalsize = 0 ;
-    unsigned int dirlen = str_len(ldp->dir) ;
+    size_t dirlen = str_len(ldp->dir) ;
     unsigned int i = 0 ;
     filesize_t blurgh[n] ;
     char fullname[dirlen + 29] ;
@@ -281,8 +281,8 @@ static inline int logdir_trim (logdir_t *ldp)
 static int finish (logdir_t *ldp, char const *name, char suffix)
 {
   struct stat st ;
-  unsigned int dirlen = str_len(ldp->dir) ;
-  unsigned int namelen = str_len(name) ;
+  size_t dirlen = str_len(ldp->dir) ;
+  size_t namelen = str_len(name) ;
   char x[dirlen + namelen + 2] ;
   byte_copy(x, dirlen, ldp->dir) ;
   x[dirlen] = '/' ;
@@ -329,7 +329,7 @@ static inline void exec_processor (logdir_t *ldp)
 
 static int rotator (logdir_t *ldp)
 {
-  unsigned int dirlen = str_len(ldp->dir) ;
+  size_t dirlen = str_len(ldp->dir) ;
   switch (ldp->rstate)
   {
     case ROTSTATE_START :
@@ -414,14 +414,14 @@ static int rotator (logdir_t *ldp)
       ldp->rstate = ROTSTATE_RUNPROCESSOR ;
     case ROTSTATE_RUNPROCESSOR :
     {
-      int pid = fork() ;
+      pid_t pid = fork() ;
       if (pid < 0)
       {
         if (verbosity) strerr_warnwu2sys("fork processor for logdir ", ldp->dir) ;
         goto fail ;
       }
       else if (!pid) exec_processor(ldp) ;
-      ldp->pid = (unsigned int)pid ;
+      ldp->pid = pid ;
       tain_add_g(&ldp->deadline, &tain_infinite_relative) ;
       ldp->rstate = ROTSTATE_WAITPROCESSOR ;
     }
@@ -524,13 +524,13 @@ static int rotator (logdir_t *ldp)
    return 0 ;
 }
 
-static int logdir_write (int i, char const *s, unsigned int len)
+static int logdir_write (int i, char const *s, size_t len)
 {
   logdir_t *ldp = logdirs + i ;
-  int r ;
-  unsigned int n = len ;
+  ssize_t r ;
+  size_t n = len ;
   {
-    unsigned int m = byte_rchr(s, n, '\n') ;
+    size_t m = byte_rchr(s, n, '\n') ;
     if (m < n) n = m+1 ;
   }
   r = fd_write(ldp->fd, s, n) ;
@@ -563,11 +563,11 @@ static inline void rotate_or_flush (logdir_t *ldp)
   bufalloc_flush(&ldp->out) ;
 }
 
-static inline void logdir_init (unsigned int index, uint32 s, uint32 n, uint32 tolerance, uint64 maxdirsize, tain_t const *retrytto, char const *processor, char const *name, unsigned int flags)
+static inline void logdir_init (unsigned int index, uint32_t s, uint32_t n, uint32_t tolerance, uint64 maxdirsize, tain_t const *retrytto, char const *processor, char const *name, unsigned int flags)
 {
   logdir_t *ldp = logdirs + index ;
   struct stat st ;
-  unsigned int dirlen = str_len(name) ;
+  size_t dirlen = str_len(name) ;
   int r ;
   char x[dirlen + 11] ;
   ldp->s = s ;
@@ -776,9 +776,9 @@ static inline void script_secondpass (char const *const *argv, scriptelem_t *scr
   tain_t retrytto ;
   unsigned int fd2_size = 200 ;
   unsigned int status_size = 1001 ;
-  uint32 s = 99999 ;
-  uint32 n = 10 ;
-  uint32 tolerance = 2000 ;
+  uint32_t s = 99999 ;
+  uint32_t n = 10 ;
+  uint32_t tolerance = 2000 ;
   uint64 maxdirsize = 0 ;
   char const *processor = 0 ;
   unsigned int sel = 0, act = 0, lidx = 0, flags = 0 ;
@@ -836,7 +836,7 @@ static inline void script_secondpass (char const *const *argv, scriptelem_t *scr
         break ;
       case 'r' :
       {
-        uint32 t ;
+        uint32_t t ;
         if (!uint320_scan(*argv + 1, &t)) goto fail ;
         if (!tain_from_millisecs(&retrytto, t)) goto fail ;
         break ;
@@ -901,10 +901,11 @@ static inline void script_secondpass (char const *const *argv, scriptelem_t *scr
   strerr_dief2x(100, "unrecognized directive: ", *argv) ;
 }
 
-static void script_run (scriptelem_t const *script, unsigned int scriptlen, char const *s, unsigned int len, unsigned int gflags)
+static void script_run (scriptelem_t const *script, unsigned int scriptlen, char const *s, size_t len, unsigned int gflags)
 {
   int flagselected = 1, flagacted = 0 ;
-  unsigned int i = 0, hlen = 0 ;
+  unsigned int i = 0 ;
+  size_t hlen = 0 ;
   char hstamp[32] ;
   char tstamp[TIMESTAMP+1] ;
   if (gflags & 1)
@@ -971,12 +972,12 @@ static void script_run (scriptelem_t const *script, unsigned int scriptlen, char
           case ACTTYPE_STATUS :
             if (act->data.status.filelen)
             {
-              unsigned int reallen = siovec_len(v, 4) ;
+              size_t reallen = siovec_len(v, 4) ;
               if (reallen > act->data.status.filelen)
                 siovec_trunc(v, 4, act->data.status.filelen) ;
               else
               {
-                register unsigned int k = act->data.status.filelen - reallen + 1 ;
+                register size_t k = act->data.status.filelen - reallen + 1 ;
                 char pad[k] ;
                 v[3].s = pad ;
                 v[3].len = k ;
@@ -1012,9 +1013,9 @@ static void prepare_to_exit (void)
   flagexiting = 1 ;
 }
 
-static void normal_stdin (scriptelem_t const *script, unsigned int scriptlen, unsigned int linelimit, unsigned int gflags)
+static void normal_stdin (scriptelem_t const *script, unsigned int scriptlen, size_t linelimit, unsigned int gflags)
 {
-  int r = sanitize_read(buffer_fill(buffer_0)) ;
+  ssize_t r = sanitize_read(buffer_fill(buffer_0)) ;
   if (r < 0)
   {
     if ((errno != EPIPE) && verbosity) strerr_warnwu1sys("read from stdin") ;
@@ -1038,7 +1039,7 @@ static void normal_stdin (scriptelem_t const *script, unsigned int scriptlen, un
   }
 }
 
-static void last_stdin (scriptelem_t const *script, unsigned int scriptlen, unsigned int linelimit, unsigned int gflags)
+static void last_stdin (scriptelem_t const *script, unsigned int scriptlen, size_t linelimit, unsigned int gflags)
 {
   int cont = 1 ;
   while (cont)
@@ -1135,9 +1136,9 @@ static inline void handle_signals (void)
         {
           int wstat ;
           register unsigned int i = 0 ;
-          register int r = wait_nohang(&wstat) ;
+          register pid_t r = wait_nohang(&wstat) ;
           if (r <= 0) break ;
-          for (; i < llen ; i++) if ((unsigned int)r == logdirs[i].pid) break ;
+          for (; i < llen ; i++) if (r == logdirs[i].pid) break ;
           if (i < llen) processor_died(logdirs + i, wstat) ;
         }
         break ;

@@ -23,6 +23,7 @@
 #include <skalibs/selfpipe.h>
 #include <skalibs/siovec.h>
 #include <skalibs/cdb.h>
+#include <skalibs/getpeereid.h>
 #include <skalibs/webipc.h>
 #include <skalibs/genset.h>
 #include <skalibs/avltreen.h>
@@ -323,7 +324,7 @@ static int do_list (unsigned int cc, unixmessage_t const *m)
   char pack[5] = "" ;
   if (c->dumping || m->len || m->nfds) return (errno = EPROTO, 0) ;
   if (!(c->flags & 4)) return answer(c, EPERM) ;
-  uint32_pack_big(pack + 1, (uint32)numfds) ;
+  uint32_pack_big(pack + 1, (uint32_t)numfds) ;
   v[0].s = pack ; v[0].len = 5 ;
   genset_iter(fdstore, &fill_siovec_with_ids_iter, &vp) ;
   if (!unixmessage_putv(&c->connection.out, &ans)) return answer(c, errno) ;
@@ -363,8 +364,8 @@ static int do_getdump (unsigned int cc, unixmessage_t const *m)
   {
     char pack[9] = "" ;
     unixmessage_t ans = { .s = pack, .len = 9, .fds = 0, .nfds = 0 } ;
-    uint32_pack_big(pack+1, (uint32)n) ;
-    uint32_pack_big(pack+5, (uint32)numfds) ;
+    uint32_pack_big(pack+1, (uint32_t)n) ;
+    uint32_pack_big(pack+5, (uint32_t)numfds) ;
     if (!unixmessage_put(&c->connection.out, &ans)) return answer(c, errno) ;
   }
   if (n)
@@ -412,7 +413,7 @@ static int do_getdump (unsigned int cc, unixmessage_t const *m)
 static int do_setdump (unsigned int cc, unixmessage_t const *m)
 {
   char pack[5] = "" ;
-  uint32 n ;
+  uint32_t n ;
   unixmessage_t ans = { .s = pack, .len = 5, .fds = 0, .nfds = 0 } ;
   client_t *c = CLIENT(cc) ;
   if (c->dumping || m->len != 4 || m->nfds) return (errno = EPROTO, 0) ;
@@ -443,7 +444,7 @@ static int do_setdump_data (unsigned int cc, unixmessage_t const *m)
   }
   {
     char const *s = m->s ;
-    unsigned int len = m->len ;
+    size_t len = m->len ;
     unsigned int i = 0 ;
     unsigned int indices[m->nfds] ;
     for (; i < m->nfds ; i++)
@@ -523,7 +524,7 @@ static inline int client_read (unsigned int cc, iopause_fd const *x)
 
 static int makere (regex_t *re, char const *s, char const *var)
 {
-  register unsigned int varlen = str_len(var) ;
+  register size_t varlen = str_len(var) ;
   if (str_start(s, var) && (s[varlen] == '='))
   {
     int r = regcomp(re, s + varlen + 1, REG_EXTENDED | REG_NOSUB) ;
@@ -591,9 +592,10 @@ static inline int new_connection (int fd, regex_t *rre, regex_t *wre, unsigned i
 {
   s6_accessrules_params_t params = S6_ACCESSRULES_PARAMS_ZERO ;
   s6_accessrules_result_t result = S6_ACCESSRULES_ERROR ;
-  unsigned int uid, gid ;
+  uid_t uid ;
+  gid_t gid ;
 
-  if (ipc_eid(fd, &uid, &gid) < 0)
+  if (getpeereid(fd, &uid, &gid) < 0)
   {
     if (verbosity) strerr_warnwu1sys("getpeereid") ;
     return 0 ;
@@ -623,7 +625,7 @@ static inline int new_connection (int fd, regex_t *rre, regex_t *wre, unsigned i
   }
   if (params.env.s)
   {
-    unsigned int n = byte_count(params.env.s, params.env.len, '\0') ;
+    size_t n = byte_count(params.env.s, params.env.len, '\0') ;
     char const *envp[n+1] ;
     if (!env_make(envp, n, params.env.s, params.env.len))
     {

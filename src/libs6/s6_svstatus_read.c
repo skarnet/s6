@@ -1,12 +1,13 @@
 /* ISC license. */
 
+#include <sys/types.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/djbunix.h>
 #include <s6/s6-supervise.h>
 
 int s6_svstatus_read (char const *dir, s6_svstatus_t *status)
 {
-  unsigned int n = str_len(dir) ;
+  size_t n = str_len(dir) ;
   char pack[S6_SVSTATUS_SIZE] ;
   char tmp[n + 1 + sizeof(S6_SVSTATUS_FILENAME)] ;
   byte_copy(tmp, n, dir) ;

@@ -1,5 +1,7 @@
 /* ISC license. */
 
+#include <sys/types.h>
+#include <limits.h>
 #include <skalibs/uint.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/strerr2.h>
@@ -46,16 +48,18 @@ int main (int argc, char const *const *argv, char const *const *envp)
   tain_half(&halfinfinite, &tain_infinite_relative) ;
   tain_add_g(&halfinfinite, &halfinfinite) ;
   {
-    unsigned int n = genalloc_len(s6_fdholder_fd_t, &dump) ;
-    unsigned int pos = 0, i = 0 ;
+    size_t n = genalloc_len(s6_fdholder_fd_t, &dump) ;
+    size_t pos = 0 ;
+    unsigned int i = 0 ;
     char modifs[7 + UINT_FMT + (25 + TIMESTAMP + 4 * UINT_FMT) * n] ;
+    if (n > UINT_MAX) strerr_dief1x(100, "dump exceeds maximum size") ;
     byte_copy(modifs + pos, 7, "S6_FD#=") ; pos += 7 ;
     pos += uint_fmt(modifs + pos, n) ;
     modifs[pos++] = 0 ;
     for (; i < n ; i++)
     {
       s6_fdholder_fd_t *p = genalloc_s(s6_fdholder_fd_t, &dump) + i ;
-      unsigned int len = str_len(p->id) + 1 ;
+      size_t len = str_len(p->id) + 1 ;
       if (uncoe(p->fd) < 0) strerr_diefu1sys(111, "uncoe") ;
       byte_copy(modifs + pos, 6, "S6_FD_") ; pos += 6 ;
       pos += uint_fmt(modifs + pos, i) ;

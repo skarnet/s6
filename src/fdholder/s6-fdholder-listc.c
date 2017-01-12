@@ -1,5 +1,6 @@
 /* ISC license. */
 
+#include <sys/types.h>
 #include <skalibs/uint.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/buffer.h>
@@ -17,7 +18,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
 {
   s6_fdholder_t a = S6_FDHOLDER_ZERO ;
   stralloc sa = STRALLOC_ZERO, sb = STRALLOC_ZERO ;
-  unsigned int pos = 0 ;
+  size_t pos = 0 ;
   int n ;
   tain_t deadline ;
   PROG = "s6-fdholder-listc" ;
@@ -46,7 +47,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (n < 0) strerr_diefu1sys(1, "get fd list") ;
   while (n--)
   {
-    register unsigned int len = str_len(sa.s + pos) ;
+    register size_t len = str_len(sa.s + pos) ;
     sb.len = 0 ;
     if (!string_quote_nodelim_mustquote(&sb, sa.s + pos, len, 0, 0))
       strerr_diefu1sys(111, "quote string") ;

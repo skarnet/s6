@@ -1,11 +1,12 @@
 /* ISC license. */
 
+#include <sys/types.h>
 #include <errno.h>
 #include <signal.h>
 #include <skalibs/sig.h>
 #include <s6/ftrigw.h>
 
-int ftrigw_notifyb (char const *path, char const *s, unsigned int len)
+int ftrigw_notifyb (char const *path, char const *s, size_t len)
 {
   struct skasigaction old ;
   int r ;

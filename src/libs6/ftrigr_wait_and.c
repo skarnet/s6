@@ -1,12 +1,12 @@
 /* ISC license. */
 
+#include <stdint.h>
 #include <errno.h>
-#include <skalibs/uint16.h>
 #include <skalibs/tai.h>
 #include <skalibs/iopause.h>
 #include <s6/ftrigr.h>
 
-int ftrigr_wait_and (ftrigr_t *a, uint16 const *idlist, unsigned int n, tain_t const *deadline, tain_t *stamp)
+int ftrigr_wait_and (ftrigr_t *a, uint16_t const *idlist, unsigned int n, tain_t const *deadline, tain_t *stamp)
 {
   iopause_fd x = { -1, IOPAUSE_READ, 0 } ;
   x.fd = ftrigr_fd(a) ;

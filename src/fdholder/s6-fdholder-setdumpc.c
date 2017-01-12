@@ -1,5 +1,6 @@
 /* ISC license. */
 
+#include <sys/types.h>
 #include <skalibs/uint.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/env.h>
@@ -49,7 +50,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
     tain_add_g(&deadline, &deadline) ;
     for (; i < dumplen ; i++)
     {
-      unsigned int fd, len ;
+      size_t len ;
+      unsigned int fd ;
       byte_copy(s, 6, "S6_FD_") ;
       s[6 + uint_fmt(s+6, i)] = 0 ;
       x = env_get2(envp, s) ;

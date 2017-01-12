@@ -1,5 +1,7 @@
  /* ISC license. */
 
+#include <sys/types.h>
+#include <stdint.h>
 #include <errno.h>
 #include <skalibs/uint32.h>
 #include <skalibs/allreadwrite.h>
@@ -12,12 +14,12 @@
 
 int s6_fdholder_setdump (s6_fdholder_t *a, s6_fdholder_fd_t const *list, unsigned int ntot, tain_t const *deadline, tain_t *stamp)
 {
-  uint32 trips ;
+  uint32_t trips ;
   if (!ntot) return 1 ;
   unsigned int i = 0 ;
   for (; i < ntot ; i++)
   {
-    unsigned int zpos = byte_chr(list[i].id, S6_FDHOLDER_ID_SIZE + 1, 0) ;
+    size_t zpos = byte_chr(list[i].id, S6_FDHOLDER_ID_SIZE + 1, 0) ;
     if (!zpos || zpos >= S6_FDHOLDER_ID_SIZE + 1) return (errno = EINVAL, 0) ;
   }
   {
@@ -45,7 +47,7 @@ int s6_fdholder_setdump (s6_fdholder_t *a, s6_fdholder_fd_t const *list, unsigne
       v[0].s = "." ; v[0].len = 1 ;
       for (; j < n ; j++, list++, ntot--)
       {
-        unsigned int len = str_len(list->id) ;
+        size_t len = str_len(list->id) ;
         v[1 + (j<<1)].s = pack + j * (TAIN_PACK+1) ;
         v[1 + (j<<1)].len = TAIN_PACK + 1 ;
         tain_pack(pack + j * (TAIN_PACK+1), &list->limit) ;

@@ -1,7 +1,7 @@
 /* ISC license. */
 
+#include <stdint.h>
 #include <skalibs/sgetopt.h>
-#include <skalibs/uint16.h>
 #include <skalibs/uint.h>
 #include <skalibs/bitarray.h>
 #include <skalibs/tai.h>
@@ -46,7 +46,7 @@ int main (int argc, char const *const *argv)
 
   {
     s6_svlisten_t foo = S6_SVLISTEN_ZERO ;
-    uint16 ids[argc] ;
+    uint16_t ids[argc] ;
     unsigned char upstate[bitarray_div8(argc)] ;
     unsigned char readystate[bitarray_div8(argc)] ;
     s6_svlisten_init(argc, argv, &foo, ids, upstate, readystate, &deadline) ;

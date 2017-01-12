@@ -1,5 +1,6 @@
 /* ISC license. */
 
+#include <sys/types.h>
 #include <skalibs/uint.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/strerr2.h>
@@ -9,7 +10,7 @@
 int main (int argc, char const *const *argv, char const *const *envp)
 {
   char const *x ;
-  unsigned int protolen ;
+  size_t protolen ;
   PROG = "s6-connlimit" ;
   x = env_get2(envp, "PROTO") ;
   if (!x) strerr_dienotset(100, "PROTO") ;

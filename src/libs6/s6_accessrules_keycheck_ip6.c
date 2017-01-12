@@ -1,5 +1,6 @@
 /* ISC license. */
 
+#include <sys/types.h>
 #include <skalibs/uint.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/bitarray.h>
@@ -14,7 +15,7 @@ s6_accessrules_result_t s6_accessrules_keycheck_ip6 (void const *key, void *data
   byte_copy(ip6, 16, (char const *)key) ;
   for (; i <= 128 ; i++)
   {
-    unsigned int len ;
+    size_t len ;
     register s6_accessrules_result_t r ;
     if (i) bitarray_clear(ip6, 128 - i) ;
     len = 4 + ip6_fmt(fmt+4, ip6) ;

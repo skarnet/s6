@@ -1,5 +1,7 @@
 /* ISC license. */
 
+#include <sys/types.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
 #include <skalibs/bytestr.h>
@@ -8,11 +10,12 @@
 #include <skalibs/stralloc.h>
 #include <s6/accessrules.h>
 
-s6_accessrules_result_t s6_accessrules_backend_cdb (char const *key, unsigned int keylen, void *data, s6_accessrules_params_t *params)
+s6_accessrules_result_t s6_accessrules_backend_cdb (char const *key, size_t keylen, void *data, s6_accessrules_params_t *params)
 {
   struct cdb *c = data ;
-  unsigned int execbase, n ;
-  uint16 envlen, execlen ;
+  size_t execbase ;
+  unsigned int n ;
+  uint16_t envlen, execlen ;
   register int r = cdb_find(c, key, keylen) ;
   if (r < 0) return S6_ACCESSRULES_ERROR ;
   else if (!r) return S6_ACCESSRULES_NOTFOUND ;

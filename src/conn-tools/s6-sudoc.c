@@ -1,9 +1,11 @@
 /* ISC license. */
 
+#include <stdint.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <skalibs/uint32.h>
 #include <skalibs/uint.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/bytestr.h>
@@ -70,12 +72,12 @@ int main (int argc, char const *const *argv, char const *const *envp)
       { .s = 0, .len = 0 } } ;
     unixmessage_v_t mv = { .v = v, .vlen = 4, .fds = fds, .nfds = 3 } ;
     stralloc sa = STRALLOC_ZERO ;
-    unsigned int envlen = doenv ? env_len(envp) : 0 ;
-    uint32_pack_big(pack, (uint32)argc) ;
-    uint32_pack_big(pack + 4, (uint32)envlen) ;
+    size_t envlen = doenv ? env_len(envp) : 0 ;
+    uint32_pack_big(pack, (uint32_t)argc) ;
+    uint32_pack_big(pack + 4, (uint32_t)envlen) ;
     if (!env_string(&sa, argv, argc)) dienomem() ;
     v[2].len = sa.len ;
-    uint32_pack_big(pack + 8, (uint32)v[2].len) ;
+    uint32_pack_big(pack + 8, (uint32_t)v[2].len) ;
     if (doenv)
     {
       if (!env_string(&sa, envp, envlen)) dienomem() ;

@@ -31,7 +31,7 @@ int main (void)
       {
         char fmt[LOCALTMN_FMT+1] ;
         localtmn_t local ;
-        unsigned int len ;
+        size_t len ;
         localtmn_from_tain(&local, &a, 1) ;
         len = localtmn_fmt(fmt, &local) ;
         if (buffer_put(buffer_1, fmt, len) < 0)

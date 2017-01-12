@@ -22,7 +22,7 @@ void ftrig1_init (void)
   surf_init(&surf_ctx, seed) ;
 }
 
-static inline void surfname (char *s, unsigned int n)
+static inline void surfname (char *s, size_t n)
 {
   static char const oklist[64] = "ABCDEFGHIJKLMNOPQRSTUVWXYZghijklmnopqrstuvwxyz-_0123456789abcdef" ;
   surf(&surf_ctx, s, n) ;
@@ -32,7 +32,7 @@ static inline void surfname (char *s, unsigned int n)
 int ftrig1_make (ftrig1_t *f, char const *path)
 {
   ftrig1_t ff = FTRIG1_ZERO ;
-  unsigned int pathlen = str_len(path) ;
+  size_t pathlen = str_len(path) ;
   int e = 0 ;
   char tmp[pathlen + 46 + FTRIG1_PREFIXLEN] ;
   

@@ -1,10 +1,12 @@
 /* ISC license. */
 
 #include <sys/types.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <skalibs/uint32.h>
 #include <skalibs/uint.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/sgetopt.h>
@@ -31,8 +33,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
   unixmessage_t m ;
   unsigned int nullfds = 0, t = 2000 ;
   pid_t pid ;
-  uint32 envc = env_len(envp) ;
-  uint32 cargc, cenvc, carglen, cenvlen ;
+  size_t envc = env_len(envp) ;
+  uint32_t cargc, cenvc, carglen, cenvlen ;
   int spfd ;
   tain_t deadline = TAIN_INFINITE_RELATIVE ;
   PROG = "s6-sudod" ;
@@ -123,7 +125,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     {
       char const *var = tenvp[envc + 1 + i] ;
       register unsigned int j = 0 ;
-      register unsigned int len = str_chr(var, '=') ;
+      register size_t len = str_chr(var, '=') ;
       if (!var[len])
       {
         char c = EINVAL ;
@@ -165,7 +167,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     fd_close(p[1]) ;
     {
       char c ;
-      register int r = fd_read(p[0], &c, 1) ;
+      register ssize_t r = fd_read(p[0], &c, 1) ;
       if (r < 0) strerr_diefu1sys(111, "read from child") ;
       if (r)
       {
@@ -201,10 +203,10 @@ int main (int argc, char const *const *argv, char const *const *envp)
           else if (c == SIGCHLD)
           {
             int wstat ;
-            register int r = wait_pid_nohang(pid, &wstat) ;
-            if ((r < 0) && (errno != ECHILD))
+            c = wait_pid_nohang(pid, &wstat) ;
+            if ((c < 0) && (errno != ECHILD))
               strerr_diefu1sys(111, "wait_pid_nohang") ;
-            else if (r > 0)
+            else if (c > 0)
             {
               char pack[UINT_PACK] ;
               uint_pack_big(pack, (unsigned int)wstat) ;

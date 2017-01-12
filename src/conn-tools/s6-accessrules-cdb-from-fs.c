@@ -1,5 +1,7 @@
 /* ISC license. */
 
+#include <sys/types.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
 #include <stdio.h>  /* for rename() */
@@ -31,9 +33,9 @@ static void dienomem (void)
   strerr_diefu1sys(111, "stralloc_catb") ;
 }
 
-static void doit (struct cdb_make *c, stralloc *sa, unsigned int start)
+static void doit (struct cdb_make *c, stralloc *sa, size_t start)
 {
-  unsigned int tmpbase = tmp.len ;
+  size_t tmpbase = tmp.len ;
   unsigned int k = sa->len ;
   if (!stralloc_readyplus(sa, 10)) dienomem() ;
   stralloc_catb(sa, "/allow", 7) ;
@@ -62,9 +64,9 @@ static void doit (struct cdb_make *c, stralloc *sa, unsigned int start)
   }
   else
   {
-    uint16 envlen = 0 ;
-    uint16 execlen = 0 ;
-    register int r ;
+    uint16_t envlen = 0 ;
+    uint16_t execlen = 0 ;
+    register ssize_t r ;
     tmp.s[tmpbase] = 'A' ;
     sa->len = k+1 ;
     stralloc_catb(sa, "env", 4) ;
@@ -106,7 +108,7 @@ int main (int argc, char const *const *argv)
   stralloc sa = STRALLOC_ZERO ;
   struct cdb_make c = CDB_MAKE_ZERO ;
   DIR *dir ;
-  unsigned int start ;
+  size_t start ;
   int fd ;
   PROG = "s6-accessrules-cdb-from-fs" ;
   if (argc < 3) strerr_dieusage(100, USAGE) ;
@@ -138,7 +140,7 @@ int main (int argc, char const *const *argv)
   {
     DIR *subdir ;
     direntry *d ;
-    unsigned int base ;
+    size_t base ;
     errno = 0 ;
     d = readdir(dir) ;
     if (!d) break ;

@@ -57,8 +57,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
   }
 
   {
+    size_t pos = 0 ;
     unsigned int m = 0 ;
-    unsigned int pos = 0 ;
     char fmt[UINT_FMT * 5 + GID_FMT * NGROUPS_MAX] ;
     char const *newargv[24 + argc] ;
     newargv[m++] = S6_BINPREFIX "s6-ipcserver-socketbinder" ;

@@ -1,12 +1,12 @@
 /* ISC license. */
 
+#include <stdint.h>
 #include <errno.h>
 #include <skalibs/error.h>
-#include <skalibs/uint16.h>
 #include <skalibs/gensetdyn.h>
 #include <s6/s6lock.h>
 
-int s6lock_check (s6lock_t *a, uint16 id)
+int s6lock_check (s6lock_t *a, uint16_t id)
 {
   char *p = GENSETDYN_P(char, &a->data, id) ;
   switch (*p)

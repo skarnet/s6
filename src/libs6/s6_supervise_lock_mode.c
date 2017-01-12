@@ -10,7 +10,7 @@
 
 int s6_supervise_lock_mode (char const *subdir, unsigned int subdirmode, unsigned int controlmode)
 {
-  unsigned int subdirlen = str_len(subdir) ;
+  size_t subdirlen = str_len(subdir) ;
   int fdctl, fdctlw, fdlock ;
   char control[subdirlen + 9] ;
   char lock[subdirlen + 6] ;

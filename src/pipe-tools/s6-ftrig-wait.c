@@ -1,5 +1,6 @@
 /* ISC license. */
 
+#include <stdint.h>
 #include <errno.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/sgetopt.h>
@@ -14,7 +15,7 @@ int main (int argc, char const *const *argv)
 {
   tain_t deadline, tto ;
   ftrigr_t a = FTRIGR_ZERO ;
-  uint16 id ;
+  uint16_t id ;
   char pack[2] = " \n" ;
   PROG = "s6-ftrig-wait" ;
   {

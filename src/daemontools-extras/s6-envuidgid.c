@@ -16,9 +16,9 @@
 #define USAGE "s6-envuidgid [ -i | -D defaultuid:defaultgid ] [ -u | -g | -B ] [ -n ] account prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 
-static inline unsigned int scan_defaults (char const *s, uint64 *uid, gid_t *gid, unsigned int *n, gid_t *tab)
+static inline size_t scan_defaults (char const *s, uint64 *uid, gid_t *gid, unsigned int *n, gid_t *tab)
 {
-  unsigned int pos = uint64_scan(s, uid) ;
+  size_t pos = uint64_scan(s, uid) ;
   if (!pos)
   {
     if (*s != ':') return 0 ;
@@ -94,7 +94,7 @@ int main (int argc, char *const *argv, char const *const *envp)
       break ;
     case 3 : /* both */
     {
-      unsigned int pos = str_chr(argv[0], ':') ;
+      size_t pos = str_chr(argv[0], ':') ;
       user = argv[0] ;
       if (argv[0][pos])
       {
@@ -136,7 +136,7 @@ int main (int argc, char *const *argv, char const *const *envp)
   }
 
   {
-    unsigned int pos = 0 ;
+    size_t pos = 0 ;
     char fmt[19 + UINT64_FMT + (NGROUPS_MAX+1) * GID_FMT] ;
     if (what & 1)
     {

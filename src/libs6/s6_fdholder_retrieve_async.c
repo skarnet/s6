@@ -1,5 +1,6 @@
  /* ISC license. */
 
+#include <sys/types.h>
 #include <errno.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/tai.h>
@@ -9,7 +10,7 @@
 
 int s6_fdholder_retrieve_maybe_delete_async (s6_fdholder_t *a, char const *id, int dodelete)
 {
-  unsigned int idlen = str_len(id) ;
+  size_t idlen = str_len(id) ;
   char pack[3] = "R" ;
   siovec_t v[2] = { { .s = pack, .len = 3 }, { .s = (char *)id, .len = idlen + 1 } } ;
   unixmessage_v_t m = { .v = v, .vlen = 2, .fds = 0, .nfds = 0 } ;

@@ -1,5 +1,7 @@
 /* ISC license. */
 
+#include <sys/types.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
 #include <skalibs/bytestr.h>
@@ -13,7 +15,7 @@
 #include <s6/s6-supervise.h>
 #include "s6-svlisten.h"
 
-void s6_svlisten_init (int argc, char const *const *argv, s6_svlisten_t *foo, uint16 *ids, unsigned char *upstate, unsigned char *readystate, tain_t const *deadline)
+void s6_svlisten_init (int argc, char const *const *argv, s6_svlisten_t *foo, uint16_t *ids, unsigned char *upstate, unsigned char *readystate, tain_t const *deadline)
 {
   register unsigned int i = 0 ;
   foo->n = (unsigned int)argc ;
@@ -24,7 +26,7 @@ void s6_svlisten_init (int argc, char const *const *argv, s6_svlisten_t *foo, ui
   for (; i < foo->n ; i++)
   {
     s6_svstatus_t status = S6_SVSTATUS_ZERO ;
-    unsigned int len = str_len(argv[i]) ;
+    size_t len = str_len(argv[i]) ;
     char s[len + 1 + sizeof(S6_SUPERVISE_EVENTDIR)] ;
     byte_copy(s, len, argv[i]) ;
     s[len] = '/' ;

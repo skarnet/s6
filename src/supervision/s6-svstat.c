@@ -51,7 +51,7 @@ int main (int argc, char const *const *argv)
   if (tain_future(&status.stamp)) tain_copynow(&status.stamp) ;
 
   {
-    unsigned int dirlen = str_len(*argv) ;
+    size_t dirlen = str_len(*argv) ;
     char fn[dirlen + 6] ;
     byte_copy(fn, dirlen, *argv) ;
     byte_copy(fn + dirlen, 6, "/down") ;

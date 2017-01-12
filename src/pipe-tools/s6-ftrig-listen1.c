@@ -1,5 +1,7 @@
 /* ISC license. */
 
+#include <sys/types.h>
+#include <stdint.h>
 #include <errno.h>
 #include <signal.h>
 #include <unistd.h>
@@ -31,8 +33,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
   iopause_fd x[2] = { { -1, IOPAUSE_READ, 0 }, { -1, IOPAUSE_READ, 0 } } ;
   tain_t deadline, tto ;
   ftrigr_t a = FTRIGR_ZERO ;
-  int pid ;
-  uint16 id ;
+  pid_t pid ;
+  uint16_t id ;
   PROG = "s6-ftrig-listen1" ;
   {
     unsigned int t = 0 ;

@@ -3,9 +3,18 @@
 #ifndef S6_ACCESSRULES_H
 #define S6_ACCESSRULES_H
 
+#include <sys/types.h>
 #include <skalibs/cdb.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/ip46.h>
+
+
+typedef struct uidgid_s uidgid_t, *uidgid_t_ref ;
+struct uidgid_s
+{
+  uid_t left ;
+  gid_t right ;
+} ;
 
 typedef struct s6_accessrules_params_s s6_accessrules_params_t, *s6_accessrules_params_t_ref ;
 struct s6_accessrules_params_s
@@ -26,7 +35,7 @@ enum s6_accessrules_result_e
   S6_ACCESSRULES_NOTFOUND = 2
 } ;
 
-typedef s6_accessrules_result_t s6_accessrules_backend_func_t (char const *, unsigned int, void *, s6_accessrules_params_t *) ;
+typedef s6_accessrules_result_t s6_accessrules_backend_func_t (char const *, size_t, void *, s6_accessrules_params_t *) ;
 typedef s6_accessrules_backend_func_t *s6_accessrules_backend_func_t_ref ;
 
 extern s6_accessrules_backend_func_t s6_accessrules_backend_fs ;
@@ -41,8 +50,8 @@ extern s6_accessrules_keycheck_func_t s6_accessrules_keycheck_ip6 ;
 extern s6_accessrules_keycheck_func_t s6_accessrules_keycheck_reversedns ;
 #define s6_accessrules_keycheck_ip46(key, data, params, f) (ip46_is6((ip46_t const *)(key)) ? s6_accessrules_keycheck_ip6(((ip46_t const *)(key))->ip, data, params, f) : s6_accessrules_keycheck_ip4(((ip46_t const *)(key))->ip, data, params, f))
 
-extern s6_accessrules_result_t s6_accessrules_uidgid_cdb (unsigned int, unsigned int, struct cdb *, s6_accessrules_params_t *) ;
-extern s6_accessrules_result_t s6_accessrules_uidgid_fs (unsigned int, unsigned int, char const *, s6_accessrules_params_t *) ;
+extern s6_accessrules_result_t s6_accessrules_uidgid_cdb (uid_t, gid_t, struct cdb *, s6_accessrules_params_t *) ;
+extern s6_accessrules_result_t s6_accessrules_uidgid_fs (uid_t, gid_t, char const *, s6_accessrules_params_t *) ;
 #define s6_accessrules_ip4_cdb(ip4, c, params) s6_accessrules_keycheck_ip4(ip4, c, (params), &s6_accessrules_backend_cdb)
 #define s6_accessrules_ip4_fs(ip4, rulesdir, params) s6_accessrules_keycheck_ip4(ip4, rulesdir, (params), &s6_accessrules_backend_fs)
 #define s6_accessrules_ip6_cdb(ip6, c, params) s6_accessrules_keycheck_ip6(ip6, c, (params), &s6_accessrules_backend_cdb)

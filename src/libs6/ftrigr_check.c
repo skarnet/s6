@@ -1,11 +1,11 @@
 /* ISC license. */
 
+#include <stdint.h>
 #include <errno.h>
-#include <skalibs/uint16.h>
 #include <skalibs/gensetdyn.h>
 #include <s6/ftrigr.h>
 
-int ftrigr_check (ftrigr_t *a, uint16 id, char *c)
+int ftrigr_check (ftrigr_t *a, uint16_t id, char *c)
 {
   ftrigr1_t *p ;
   if (!id--) return (errno = EINVAL, -1) ;

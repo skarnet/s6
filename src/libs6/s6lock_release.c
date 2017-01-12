@@ -1,5 +1,6 @@
 /* ISC license. */
 
+#include <stdint.h>
 #include <errno.h>
 #include <skalibs/error.h>
 #include <skalibs/uint16.h>
@@ -8,7 +9,7 @@
 #include <skalibs/skaclient.h>
 #include <s6/s6lock.h>
 
-int s6lock_release (s6lock_t *a, uint16 i, tain_t const *deadline, tain_t *stamp)
+int s6lock_release (s6lock_t *a, uint16_t i, tain_t const *deadline, tain_t *stamp)
 {
   char *p = GENSETDYN_P(char, &a->data, i) ;
   if ((*p != EBUSY) && !error_isagain(*p))

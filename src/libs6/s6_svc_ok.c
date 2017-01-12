@@ -1,5 +1,6 @@
 /* ISC license. */
 
+#include <sys/types.h>
 #include <errno.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/djbunix.h>
@@ -7,8 +8,8 @@
 
 int s6_svc_ok (char const *dir)
 {
+  size_t dirlen = str_len(dir) ;
   int fd ;
-  unsigned int dirlen = str_len(dir) ;
   char fn[dirlen + 9 + sizeof(S6_SUPERVISE_CTLDIR)] ;
   byte_copy(fn, dirlen, dir) ;
   fn[dirlen] = '/' ;

@@ -1,5 +1,6 @@
  /* ISC license. */
 
+#include <sys/types.h>
 #include <errno.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/tai.h>
@@ -9,7 +10,7 @@
 
 int s6_fdholder_store_async (s6_fdholder_t *a, int fd, char const *id, tain_t const *limit)
 {
-  unsigned int idlen = str_len(id) ;
+  size_t idlen = str_len(id) ;
   char pack[2 + TAIN_PACK] = "S" ;
   siovec_t v[2] = { { .s = pack, .len = 2 + TAIN_PACK }, { .s = (char *)id, .len = idlen + 1 } } ;
   unixmessage_v_t m = { .v = v, .vlen = 2, .fds = &fd, .nfds = 1 } ;

@@ -1,6 +1,6 @@
 /* ISC license. */
 
-#include <sys/types.h>
+#include <stdint.h>
 #include <skalibs/uint16.h>
 #include <skalibs/uint64.h>
 #include <skalibs/tai.h>
@@ -9,7 +9,7 @@
 void s6_svstatus_unpack (char const *pack, s6_svstatus_t *sv)
 {
   uint64 pid ;
-  uint16 wstat ;
+  uint16_t wstat ;
   tain_unpack(pack, &sv->stamp) ;
   tain_unpack(pack + 12, &sv->readystamp) ;
   uint64_unpack_big(pack + 24, &pid) ;

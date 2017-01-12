@@ -1,8 +1,8 @@
 /* ISC license. */
 
 #include <sys/types.h>
+#include <stdint.h>
 #include <skalibs/sgetopt.h>
-#include <skalibs/uint16.h>
 #include <skalibs/uint.h>
 #include <skalibs/tai.h>
 #include <skalibs/strerr2.h>
@@ -19,7 +19,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   pid_t pid ;
   int spfd ;
   int wantup = 1, wantready = 0, wantrestart = 0 ;
-  uint16 id ;
+  uint16_t id ;
   unsigned char upstate, readystate ;
   PROG = "s6-svlisten1" ;
   {

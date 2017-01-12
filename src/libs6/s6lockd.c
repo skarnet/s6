@@ -1,5 +1,7 @@
 /* ISC license. */
 
+#include <sys/types.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
 #include <signal.h>
@@ -28,14 +30,14 @@ struct s6lockio_s
   unsigned int pid ;
   tain_t limit ;
   int p[2] ;
-  uint16 id ; /* given by client */
+  uint16_t id ; /* given by client */
 } ;
 #define S6LOCKIO_ZERO { 0, 0, TAIN_ZERO, { -1, -1 }, 0 }
 static s6lockio_t const szero = S6LOCKIO_ZERO ;
 
 static genalloc a = GENALLOC_ZERO ; /* array of s6lockio_t */
 
-static void s6lockio_free (s6lockio_t_ref p)
+static void s6lockio_free (s6lockio_t *p)
 {
   register int e = errno ;
   fd_close(p->p[1]) ;
@@ -47,12 +49,12 @@ static void s6lockio_free (s6lockio_t_ref p)
 
 static void cleanup (void)
 {
-  register unsigned int i = genalloc_len(s6lockio_t, &a) ;
+  register size_t i = genalloc_len(s6lockio_t, &a) ;
   for (; i ; i--) s6lockio_free(genalloc_s(s6lockio_t, &a) + i - 1) ;
   genalloc_setlen(s6lockio_t, &a, 0) ;
 }
  
-static void trig (uint16 id, char e)
+static void trig (uint16_t id, char e)
 {
   char pack[3] ;
   unixmessage_t m = { .s = pack, .len = 3, .fds = 0, .nfds = 0 } ;
@@ -77,7 +79,7 @@ static void answer (char c)
 
 static void remove (unsigned int i)
 {
-  register unsigned int n = genalloc_len(s6lockio_t, &a) - 1 ;
+  register size_t n = genalloc_len(s6lockio_t, &a) - 1 ;
   s6lockio_free(genalloc_s(s6lockio_t, &a) + i) ;
   genalloc_s(s6lockio_t, &a)[i] = genalloc_s(s6lockio_t, &a)[n] ;
   genalloc_setlen(s6lockio_t, &a, n) ;
@@ -104,7 +106,7 @@ static void handle_signals (void)
 
 static int parse_protocol (unixmessage_t const *m, void *context)
 {
-  uint16 id ;
+  uint16_t id ;
   if (m->len < 3 || m->nfds)
   {
     cleanup() ;
@@ -115,7 +117,7 @@ static int parse_protocol (unixmessage_t const *m, void *context)
   {
     case '>' : /* release */
     {
-      register unsigned int i = genalloc_len(s6lockio_t, &a) ;
+      register size_t i = genalloc_len(s6lockio_t, &a) ;
       for (; i ; i--) if (genalloc_s(s6lockio_t, &a)[i-1].id == id) break ;
       if (i)
       {
@@ -130,7 +132,7 @@ static int parse_protocol (unixmessage_t const *m, void *context)
       s6lockio_t f = S6LOCKIO_ZERO ;
       char const *cargv[3] = { S6LOCKD_HELPER_PROG, 0, 0 } ;
       char const *cenvp[2] = { 0, 0 } ;
-      uint32 options, pathlen ;
+      uint32_t options, pathlen ;
       if (m->len < 23)
       {
         answer(EPROTO) ;
@@ -209,7 +211,7 @@ int main (int argc, char const *const *argv)
 
   for (;;)
   {
-    register unsigned int n = genalloc_len(s6lockio_t, &a) ;
+    register size_t n = genalloc_len(s6lockio_t, &a) ;
     iopause_fd x[4 + n] ;
     unsigned int i = 0 ;
     int r ;
@@ -272,12 +274,12 @@ int main (int argc, char const *const *argv)
    /* scan children for successes */
     for (i = 0 ; i < genalloc_len(s6lockio_t, &a) ; i++)
     {
-      register s6lockio_t_ref p = genalloc_s(s6lockio_t, &a) + i ;
+      register s6lockio_t *p = genalloc_s(s6lockio_t, &a) + i ;
       if (p->p[0] < 0) continue ;
       if (x[p->xindex].revents & IOPAUSE_READ)
       {
         char c ;
-        register int r = sanitize_read(fd_read(p->p[0], &c, 1)) ;
+        register ssize_t r = sanitize_read(fd_read(p->p[0], &c, 1)) ;
         if (!r) continue ;
         if (r < 0)
         {

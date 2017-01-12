@@ -6,6 +6,7 @@
 #endif
 
 #include <skalibs/nonposix.h>
+#include <sys/types.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <syslog.h>
@@ -88,9 +89,10 @@ static CODE const facilitynames[] =
 #endif
 
 
-static unsigned int syslog_names (char const *line)
+static size_t syslog_names (char const *line)
 {
-  unsigned int fpr, i ;
+  size_t i ;
+  unsigned int fpr ;
   int fp ;
   CODE const *p = facilitynames ;
 
@@ -157,7 +159,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     }
     for (;;)
     {
-      unsigned int pos = 0 ;
+      size_t pos = 0 ;
       satmp.len = 0 ;
       {
         register int r = skagetlnsep(buffer_0f1, &satmp, "\n", 2) ;

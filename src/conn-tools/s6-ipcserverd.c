@@ -7,17 +7,18 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <skalibs/uint.h>
+#include <skalibs/gidstuff.h>
 #include <skalibs/gccattributes.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
-#include <skalibs/diuint.h>
 #include <skalibs/env.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/sig.h>
 #include <skalibs/selfpipe.h>
 #include <skalibs/iopause.h>
+#include <skalibs/getpeereid.h>
 #include <skalibs/webipc.h>
 
 #define USAGE "s6-ipcserverd [ -v verbosity ] [ -1 ] [ -P | -p ] [ -c maxconn ] [ -C localmaxconn ] prog..."
@@ -32,9 +33,23 @@ static int flaglookup = 1 ;
 static unsigned int verbosity = 1 ;
 static int cont = 1 ;
 
-static diuint *piduid ;
+typedef struct piduid_s piduid_t, *piduid_t_ref ;
+struct piduid_s
+{
+  pid_t left ;
+  uid_t right ;
+} ;
+
+typedef struct uidnum_s uidnum_t, *uidnum_t_ref ;
+struct uidnum_s
+{
+  uid_t left ;
+  unsigned int right ;
+} ;
+
+static piduid_t *piduid ;
 static unsigned int numconn = 0 ;
-static diuint *uidnum ;
+static uidnum_t *uidnum ;
 static unsigned int uidlen = 0 ;
 
 
@@ -53,21 +68,18 @@ static inline void X (void)
 
  /* Lookup primitives */
 
-static unsigned int lookup_diuint (diuint const *tab, unsigned int tablen, unsigned int key)
+static unsigned int lookup_pid (pid_t pid)
 {
   register unsigned int i = 0 ;
-  for (; i < tablen ; i++) if (key == tab[i].left) break ;
+  for (; i < numconn ; i++) if (pid == piduid[i].left) break ;
   return i ;
 }
 
-static inline unsigned int lookup_pid (unsigned int pid)
+static inline unsigned int lookup_uid (uid_t uid)
 {
-  return lookup_diuint(piduid, numconn, pid) ;
-}
-
-static inline unsigned int lookup_uid (unsigned int uid)
-{
-  return lookup_diuint(uidnum, uidlen, uid) ;
+  register unsigned int i = 0 ;
+  for (; i < uidlen ; i++) if (uid == uidnum[i].left) break ;
+  return i ;
 }
 
 
@@ -90,44 +102,44 @@ static void log_status (void)
   strerr_warni3x("status: ", fmt, fmtmaxconn) ;
 }
 
-static void log_deny (unsigned int uid, unsigned int gid, unsigned int num)
+static void log_deny (uid_t uid, gid_t gid, unsigned int num)
 {
-  char fmtuid[UINT_FMT] = "?" ;
-  char fmtgid[UINT_FMT] = "?" ;
+  char fmtuid[UINT64_FMT] = "?" ;
+  char fmtgid[GID_FMT] = "?" ;
   char fmtnum[UINT_FMT] = "?" ;
   if (flaglookup)
   {
-    fmtuid[uint_fmt(fmtuid, uid)] = 0 ;
-    fmtgid[uint_fmt(fmtgid, gid)] = 0 ;
+    fmtuid[uint64_fmt(fmtuid, (uint64)uid)] = 0 ;
+    fmtgid[gid_fmt(fmtgid, gid)] = 0 ;
     fmtnum[uint_fmt(fmtnum, num)] = 0 ;
   }
   strerr_warni7sys("deny ", fmtuid, ":", fmtgid, " count ", fmtnum, fmtlocalmaxconn) ;
 }
 
-static void log_accept (unsigned int pid, unsigned int uid, unsigned int gid, unsigned int num)
+static void log_accept (pid_t pid, uid_t uid, gid_t gid, unsigned int num)
 {
-  char fmtuidgid[UINT_FMT * 2 + 1] = "?:?" ;
+  char fmtuidgid[UINT64_FMT + GID_FMT + 1] = "?:?" ;
   char fmtpid[UINT_FMT] ;
   char fmtnum[UINT_FMT] = "?" ;
   if (flaglookup)
   {
-    register unsigned int n = uint_fmt(fmtuidgid, uid) ;
+    register size_t n = uint64_fmt(fmtuidgid, (uint64)uid) ;
     fmtuidgid[n++] = ':' ;
-    n += uint_fmt(fmtuidgid + n, gid) ;
+    n += gid_fmt(fmtuidgid + n, gid) ;
     fmtuidgid[n] = 0 ;
     fmtnum[uint_fmt(fmtnum, num)] = 0 ;
   }
-  fmtpid[uint_fmt(fmtpid, pid)] = 0 ;
+  fmtpid[uint_fmt(fmtpid, (unsigned int)pid)] = 0 ;
   strerr_warni7x("allow ", fmtuidgid, " pid ", fmtpid, " count ", fmtnum, fmtlocalmaxconn) ;
 }
 
-static void log_close (unsigned int pid, unsigned int uid, int w)
+static void log_close (pid_t pid, uid_t uid, int w)
 {
   char fmtpid[UINT_FMT] ;
-  char fmtuid[UINT_FMT] = "?" ;
+  char fmtuid[UINT64_FMT] = "?" ;
   char fmtw[UINT_FMT] ;
-  fmtpid[uint_fmt(fmtpid, pid)] = 0 ;
-  if (flaglookup) fmtuid[uint_fmt(fmtuid, uid)] = 0 ;
+  fmtpid[uint_fmt(fmtpid, (unsigned int)pid)] = 0 ;
+  if (flaglookup) fmtuid[uint64_fmt(fmtuid, (uint64)uid)] = 0 ;
   fmtw[uint_fmt(fmtw, WIFSIGNALED(w) ? WTERMSIG(w) : WEXITSTATUS(w))] = 0 ;
   strerr_warni6x("end pid ", fmtpid, " uid ", fmtuid, WIFSIGNALED(w) ? " signal " : " exitcode ", fmtw) ;
 }
@@ -155,7 +167,7 @@ static void wait_children (void)
     i = lookup_pid(pid) ;
     if (i < numconn)
     {
-      unsigned int uid = piduid[i].right ;
+      uid_t uid = piduid[i].right ;
       register unsigned int j = lookup_uid(uid) ;
       if (j >= uidlen) X() ;
       if (!--uidnum[j].right) uidnum[j] = uidnum[--uidlen] ;
@@ -218,7 +230,7 @@ static void handle_signals (void)
 static void run_child (int, unsigned int, unsigned int, unsigned int, char const *, char const *const *, char const *const *) gccattr_noreturn ;
 static void run_child (int s, unsigned int uid, unsigned int gid, unsigned int num, char const *remotepath, char const *const *argv, char const *const *envp)
 {
-  unsigned int rplen = str_len(remotepath) + 1 ;
+  size_t rplen = str_len(remotepath) + 1 ;
   unsigned int n = 0 ;
   char fmt[65 + UINT_FMT * 3 + rplen] ;
   PROG = "s6-ipcserver (child)" ;
@@ -249,12 +261,13 @@ static void run_child (int s, unsigned int uid, unsigned int gid, unsigned int n
 
 static void new_connection (int s, char const *remotepath, char const *const *argv, char const *const *envp)
 {
-  unsigned int uid = 0, gid = 0 ;
+  uid_t uid = 0 ;
+  gid_t gid = 0 ;
   unsigned int num, i ;
   register pid_t pid ;
-  if (flaglookup && (ipc_eid(s, &uid, &gid) < 0))
+  if (flaglookup && (getpeereid(s, &uid, &gid) < 0))
   {
-    if (verbosity) strerr_warnwu1sys("ipc_eid") ;
+    if (verbosity) strerr_warnwu1sys("getpeereid") ;
     return ;
   }
   i = lookup_uid(uid) ;
@@ -282,17 +295,15 @@ static void new_connection (int s, char const *remotepath, char const *const *ar
     uidnum[uidlen].left = uid ;
     uidnum[uidlen++].right = 1 ;
   }
-  piduid[numconn].left = (unsigned int)pid ;
+  piduid[numconn].left = pid ;
   piduid[numconn++].right = uid ;
   if (verbosity >= 2)
   {
-    log_accept((unsigned int)pid, uid, gid, uidnum[i].right) ;
+    log_accept(pid, uid, gid, uidnum[i].right) ;
     log_status() ;
   }
 }
 
-
- /* And the main */
 
 int main (int argc, char const *const *argv, char const *const *envp)
 {
@@ -363,8 +374,10 @@ int main (int argc, char const *const *argv, char const *const *envp)
   }
 
   {
-    diuint inyostack[maxconn + (flaglookup ? maxconn : 1)] ;
-    piduid = inyostack ; uidnum = inyostack + maxconn ;
+    piduid_t inyostack0[maxconn] ;
+    uidnum_t inyostack1[flaglookup ? maxconn : 1] ;
+    piduid = inyostack0 ;
+    uidnum = inyostack1 ;
 
     while (cont)
     {

@@ -61,7 +61,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (!rulesdir && !rulesfile) strerr_dief1x(100, "no access rights specified!") ;
  
   {
-    unsigned int m = 0, pos = 0 ;
+    size_t pos = 0 ;
+    unsigned int m = 0 ;
     char const *newargv[30] ;
     char fmt[UINT_FMT * 8 + GID_FMT * NGROUPS_MAX] ;
     newargv[m++] = S6_BINPREFIX "s6-ipcserver-socketbinder" ;

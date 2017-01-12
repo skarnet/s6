@@ -1,5 +1,6 @@
 /* ISC license. */
 
+#include <sys/types.h>
 #include <unistd.h>
 #include <errno.h>
 #include <skalibs/direntry.h>
@@ -10,7 +11,7 @@
 
 int ftrigw_clean (char const *path)
 {
-  unsigned int pathlen = str_len(path) ;
+  size_t pathlen = str_len(path) ;
   int e = 0 ;
   DIR *dir = opendir(path) ;
   if (!dir) return 0 ;

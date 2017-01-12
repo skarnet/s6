@@ -72,7 +72,7 @@ static inline void announce (void)
 static int read_uint (char const *file, unsigned int *fd)
 {
   char buf[UINT_FMT + 1] ;
-  register int r = openreadnclose_nb(file, buf, UINT_FMT) ;
+  register ssize_t r = openreadnclose_nb(file, buf, UINT_FMT) ;
   if (r < 0)
   {
     if (errno != ENOENT) strerr_warnwu2sys("open ", file) ;
@@ -476,7 +476,7 @@ static action_t_ref const actions[5][25] =
 static inline void handle_notifyfd (void)
 {
   char buf[4096] ;
-  register int r = 1 ;
+  register ssize_t r = 1 ;
   while (r > 0)
   {
     r = sanitize_read(fd_read(notifyfd, buf, 4096)) ;
@@ -538,12 +538,12 @@ static inline void handle_control (int fd)
   for (;;)
   {
     char c ;
-    register int r = sanitize_read(fd_read(fd, &c, 1)) ;
+    register ssize_t r = sanitize_read(fd_read(fd, &c, 1)) ;
     if (r < 0) strerr_diefu1sys(111, "read " S6_SUPERVISE_CTLDIR "/control") ;
     else if (!r) break ;
     else
     {
-      register unsigned int pos = byte_chr("abqhkti12fFpcyoduxOX", 20, c) ;
+      register size_t pos = byte_chr("abqhkti12fFpcyoduxOX", 20, c) ;
       if (pos < 20) (*actions[state][V_a + pos])() ;
     }
   }
@@ -556,8 +556,8 @@ int main (int argc, char const *const *argv)
   if (argc < 2) strerr_dieusage(100, USAGE) ;
   if (chdir(argv[1]) < 0) strerr_diefu2sys(111, "chdir to ", argv[1]) ;
   {
-    register unsigned int proglen = str_len(PROG) ;
-    register unsigned int namelen = str_len(argv[1]) ;
+    size_t proglen = str_len(PROG) ;
+    size_t namelen = str_len(argv[1]) ;
     char progname[proglen + namelen + 2] ;
     byte_copy(progname, proglen, PROG) ;
     progname[proglen] = ' ' ;

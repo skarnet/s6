@@ -1,7 +1,8 @@
 /* ISC license. */
 
+#include <sys/types.h>
 #include <skalibs/sgetopt.h>
-#include <skalibs/uint.h>
+#include <skalibs/gidstuff.h>
 #include <skalibs/strerr2.h>
 #include <s6/ftrigw.h>
 
@@ -10,7 +11,7 @@
 int main (int argc, char const *const *argv)
 {
   subgetopt_t l = SUBGETOPT_ZERO ;
-  int gid = -1 ;
+  gid_t gid = -1 ;
   int force = 0 ;
   PROG = "s6-mkfifodir" ;
   for (;;)
@@ -20,13 +21,7 @@ int main (int argc, char const *const *argv)
     switch (opt)
     {
       case 'f' : force = 1 ; break ;
-      case 'g' :
-      {
-        unsigned int g ;
-        if (!uint0_scan(l.arg, &g)) strerr_dieusage(100, USAGE) ;
-        gid = (int)g ;
-        break ;
-      }
+      case 'g' : if (!gid0_scan(l.arg, &gid)) strerr_dieusage(100, USAGE) ; break ;
       default : strerr_dieusage(100, USAGE) ;
     }
   }

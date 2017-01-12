@@ -1,5 +1,6 @@
 /* ISC license. */
 
+#include <sys/types.h>
 #include <skalibs/uint.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/env.h>
@@ -29,7 +30,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
       {
         case 't' :
         {
-          unsigned int pos = uint_scan(l.arg, &timeoutfrom) ;
+          size_t pos = uint_scan(l.arg, &timeoutfrom) ;
           if (!pos)
           {
             if (l.arg[pos] != ':') dieusage() ;

@@ -1,5 +1,6 @@
 /* ISC license. */
 
+#include <sys/types.h>
 #include <unistd.h>
 #include <errno.h>
 #include <skalibs/uint.h>
@@ -71,7 +72,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (datalen <= 1) return 0 ;
   if (updown[1] == 'U' || updown[1] == 'R')
   {
-    unsigned int arglen = str_len(argv[0]) ;
+    size_t arglen = str_len(argv[0]) ;
     char fn[arglen + 17] ;
     byte_copy(fn, arglen, argv[0]) ;
     byte_copy(fn + arglen, 17, "/notification-fd") ;

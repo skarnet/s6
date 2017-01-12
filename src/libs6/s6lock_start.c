@@ -1,7 +1,5 @@
 /* ISC license. */
 
-#include <errno.h>
-#include <skalibs/environ.h>
 #include <skalibs/tai.h>
 #include <skalibs/skaclient.h>
 #include <s6/s6lock.h>

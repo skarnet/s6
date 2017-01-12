@@ -1,5 +1,7 @@
  /* ISC license. */
 
+#include <sys/types.h>
+#include <stdint.h>
 #include <errno.h>
 #include <skalibs/uint32.h>
 #include <skalibs/allreadwrite.h>
@@ -14,7 +16,7 @@
 int s6_fdholder_getdump (s6_fdholder_t *a, genalloc *g, tain_t const *deadline, tain_t *stamp)
 {
   unixmessage_t m  = { .s = "?", .len = 1, .fds = 0, .nfds = 0 } ;
-  uint32 ntot, n ;
+  uint32_t ntot, n ;
   unsigned int oldlen = genalloc_len(s6_fdholder_fd_t, g) ;
   unsigned int i = 0 ;
   int ok ;
@@ -37,19 +39,19 @@ int s6_fdholder_getdump (s6_fdholder_t *a, genalloc *g, tain_t const *deadline, 
     if (ok)
     {
       s6_fdholder_fd_t *tab = genalloc_s(s6_fdholder_fd_t, g) + genalloc_len(s6_fdholder_fd_t, g) ;
-      unsigned int i = 0 ;
-      for (; i < m.nfds ; i++)
+      unsigned int j = 0 ;
+      for (; j < m.nfds ; i++)
       {
         unsigned char thislen ;
         if (m.len < TAIN_PACK + 3) goto droperr ;
-        tain_unpack(m.s, &tab[i].limit) ;
+        tain_unpack(m.s, &tab[j].limit) ;
         m.s += TAIN_PACK ; m.len -= TAIN_PACK + 1 ;
         thislen = *m.s++ ;
         if (thislen > m.len - 1 || m.s[thislen]) goto droperr ;
-        byte_copy(tab[i].id, thislen, m.s) ;
-        byte_zero(tab[i].id + thislen, S6_FDHOLDER_ID_SIZE + 1 - thislen) ;
-        m.s += (unsigned int)thislen + 1 ; m.len -= (unsigned int)thislen + 1 ;
-        tab[i].fd = m.fds[i] ;
+        byte_copy(tab[j].id, thislen, m.s) ;
+        byte_zero(tab[j].id + thislen, S6_FDHOLDER_ID_SIZE + 1 - thislen) ;
+        m.s += (size_t)thislen + 1 ; m.len -= (size_t)thislen + 1 ;
+        tab[j].fd = m.fds[j] ;
       }
       genalloc_setlen(s6_fdholder_fd_t, g, genalloc_len(s6_fdholder_fd_t, g) + m.nfds) ;
     }
@@ -65,8 +67,8 @@ int s6_fdholder_getdump (s6_fdholder_t *a, genalloc *g, tain_t const *deadline, 
  err:
   {
     int e = errno ;
-    i = genalloc_len(s6_fdholder_fd_t, g) ;
-    while (i-- > oldlen) fd_close(genalloc_s(s6_fdholder_fd_t, g)[i].fd) ;
+    size_t j = genalloc_len(s6_fdholder_fd_t, g) ;
+    while (j-- > oldlen) fd_close(genalloc_s(s6_fdholder_fd_t, g)[j].fd) ;
     genalloc_setlen(s6_fdholder_fd_t, g, oldlen) ;
     errno = e ;
   }

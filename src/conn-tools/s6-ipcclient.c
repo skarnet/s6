@@ -1,5 +1,6 @@
 /* ISC license. */
 
+#include <sys/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/env.h>
@@ -35,7 +36,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (argc < 2) strerr_dieusage(100, USAGE) ;
   {
     char modif[24 + IPCPATH_MAX] = "PROTO=IPC\0IPCLOCALPATH=" ;
-    unsigned int i = 23 ;
+    size_t i = 23 ;
     int s = ipc_stream_b() ;
     if (s < 0) strerr_diefu1sys(111, "create socket") ;
     if (bindpath && (ipc_bind(s, bindpath) == -1))
@@ -45,7 +46,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     if (verbosity >= 2) strerr_warn3x(PROG, ": connected to ", argv[0]) ;
     if (localname)
     {
-      register unsigned int n = str_len(localname) ;
+      register size_t n = str_len(localname) ;
       if (n > IPCPATH_MAX) n = IPCPATH_MAX ;
       byte_copy(modif + i, n, localname) ;
       i += n ; modif[i++] = 0 ;

@@ -1,5 +1,6 @@
 /* ISC license. */
 
+#include <sys/types.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/djbunix.h>
@@ -11,8 +12,8 @@
 int main (int argc, char *const *argv, char const *const *envp)
 {
   char const *newargv[argc + 7] ;
+  size_t pos ;
   unsigned int m = 0 ;
-  unsigned int pos ;
   PROG = "s6-setuidgid" ;
   if (argc < 3) dieusage() ;
   argv++ ;

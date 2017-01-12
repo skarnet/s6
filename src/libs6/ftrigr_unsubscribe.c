@@ -1,5 +1,6 @@
 /* ISC license. */
 
+#include <stdint.h>
 #include <errno.h>
 #include <skalibs/uint16.h>
 #include <skalibs/tai.h>
@@ -7,7 +8,7 @@
 #include <skalibs/skaclient.h>
 #include <s6/ftrigr.h>
 
-int ftrigr_unsubscribe (ftrigr_ref a, uint16 i, tain_t const *deadline, tain_t *stamp)
+int ftrigr_unsubscribe (ftrigr_t *a, uint16_t i, tain_t const *deadline, tain_t *stamp)
 {
   ftrigr1_t *p ;
   if (!i--) return (errno = EINVAL, 0) ;

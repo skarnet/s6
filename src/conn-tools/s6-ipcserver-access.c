@@ -1,9 +1,12 @@
 /* ISC license. */
 
+#include <sys/types.h>
 #include <unistd.h>
 #include <errno.h>
 #include <skalibs/gccattributes.h>
+#include <skalibs/uint64.h>
 #include <skalibs/uint.h>
+#include <skalibs/gidstuff.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/cdb.h>
@@ -40,24 +43,24 @@ static inline void X ()
 
  /* Logging */
 
-static void logit (unsigned int pid, unsigned int uid, unsigned int gid, int h)
+static void logit (pid_t pid, uid_t uid, gid_t gid, int h)
 {
   char fmtpid[UINT_FMT] ;
-  char fmtuid[UINT_FMT] ;
-  char fmtgid[UINT_FMT] ;
-  fmtpid[uint_fmt(fmtpid, pid)] = 0 ;
-  fmtuid[uint_fmt(fmtuid, uid)] = 0 ;
-  fmtgid[uint_fmt(fmtgid, gid)] = 0 ;
+  char fmtuid[UINT64_FMT] ;
+  char fmtgid[GID_FMT] ;
+  fmtpid[uint_fmt(fmtpid, (unsigned int)pid)] = 0 ;
+  fmtuid[uint64_fmt(fmtuid, (uint64)uid)] = 0 ;
+  fmtgid[gid_fmt(fmtgid, gid)] = 0 ;
   if (h) strerr_warni7x("allow", " pid ", fmtpid, " uid ", fmtuid, " gid ", fmtgid) ;
   else strerr_warni7sys("deny", " pid ", fmtpid, " uid ", fmtuid, " gid ", fmtgid) ;
 }
 
-static inline void log_accept (unsigned int pid, unsigned int uid, unsigned int gid)
+static inline void log_accept (pid_t pid, uid_t uid, gid_t gid)
 {
   logit(pid, uid, gid, 1) ;
 }
 
-static inline void log_deny (unsigned int pid, unsigned int uid, unsigned int gid)
+static inline void log_deny (pid_t pid, uid_t uid, gid_t gid)
 {
   logit(pid, uid, gid, 0) ;
 }
@@ -65,7 +68,7 @@ static inline void log_deny (unsigned int pid, unsigned int uid, unsigned int gi
 
  /* Checking */
 
-static s6_accessrules_result_t check_cdb (unsigned int uid, unsigned int gid, char const *file, s6_accessrules_params_t *params)
+static s6_accessrules_result_t check_cdb (uid_t uid, gid_t gid, char const *file, s6_accessrules_params_t *params)
 {
   struct cdb c = CDB_ZERO ;
   int fd = open_readb(file) ;
@@ -78,7 +81,7 @@ static s6_accessrules_result_t check_cdb (unsigned int uid, unsigned int gid, ch
   return r ;
 }
 
-static inline int check (s6_accessrules_params_t *params, char const *rules, unsigned int rulestype, unsigned int uid, unsigned int gid)
+static inline int check (s6_accessrules_params_t *params, char const *rules, unsigned int rulestype, uid_t uid, gid_t gid)
 {
   char const *x = "" ;
   s6_accessrules_result_t r ;
@@ -114,8 +117,9 @@ int main (int argc, char const *const *argv, char const *const *envp)
   char const *rules = 0 ;
   char const *localname = 0 ;
   char const *proto ;
-  unsigned int protolen ;
-  unsigned int uid = 0, gid = 0 ;
+  size_t protolen ;
+  uid_t uid = 0 ;
+  gid_t gid = 0 ;
   unsigned int rulestype = 0 ;
   int doenv = 1 ;
   PROG = "s6-ipcserver-access" ;
@@ -146,17 +150,20 @@ int main (int argc, char const *const *argv, char const *const *envp)
   protolen = str_len(proto) ;
 
   {
+    uint64 u ;
     char const *x ;
     char tmp[protolen + 11] ;
     byte_copy(tmp, protolen, proto) ;
     byte_copy(tmp + protolen, 11, "REMOTEEUID") ;
     x = env_get2(envp, tmp) ;
     if (!x) strerr_dienotset(100, tmp) ;
-    if (!uint0_scan(x, &uid)) strerr_dieinvalid(100, tmp) ;
+    if (!uint640_scan(x, &u)) strerr_dieinvalid(100, tmp) ;
+    if (u > (uint64)(uid_t)-1) strerr_dieinvalid(100, tmp) ;
+    uid = (uid_t)u ;
     tmp[protolen + 7] = 'G' ;
     x = env_get2(envp, tmp) ;
     if (!x) strerr_dienotset(100, tmp) ;
-    if (!uint0_scan(x, &gid)) strerr_dieinvalid(100, tmp) ;
+    if (!gid0_scan(x, &gid)) strerr_dieinvalid(100, tmp) ;
   }
 
   if (!check(&params, rules, rulestype, uid, gid))

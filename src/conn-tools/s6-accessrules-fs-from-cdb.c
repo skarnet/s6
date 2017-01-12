@@ -1,12 +1,12 @@
 /* ISC license. */
 
 #include <sys/types.h>
+#include <stdint.h>
 #include <sys/stat.h>
 #include <errno.h>
 #include <unistd.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/uint16.h>
-#include <skalibs/uint32.h>
 #include <skalibs/cdb.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/djbunix.h>
@@ -14,7 +14,7 @@
 #define USAGE "s6-accessrules-fs-from-cdb dir cdbfile"
 
 static char const *basedir ;
-unsigned int basedirlen ;
+size_t basedirlen ;
 
 static void cleanup ()
 {
@@ -31,8 +31,8 @@ static int domkdir (char const *s)
 static void mkdirp (char *s)
 {
   mode_t m = umask(0) ;
-  unsigned int len = str_len(s) ;
-  register unsigned int i = basedirlen + 1 ;
+  size_t len = str_len(s) ;
+  register size_t i = basedirlen + 1 ;
   for (; i < len ; i++) if (s[i] == '/')
   {
     s[i] = 0 ;
@@ -55,10 +55,10 @@ static void touchtrunc (char const *file)
   fd_close(fd) ;
 }
 
-static int doenv (char const *dir, unsigned int dirlen, char *env, unsigned int envlen)
+static int doenv (char const *dir, size_t dirlen, char *env, size_t envlen)
 {
   mode_t m = umask(0) ;
-  unsigned int i = 0 ;
+  size_t i = 0 ;
   if (!domkdir(dir))
   {
     cleanup() ;
@@ -67,10 +67,10 @@ static int doenv (char const *dir, unsigned int dirlen, char *env, unsigned int 
   umask(m) ;
   while (i < envlen)
   {
-    unsigned int n = byte_chr(env + i, envlen - i, 0) ;
+    size_t n = byte_chr(env + i, envlen - i, 0) ;
     if (i + n >= envlen) return 0 ;
     {
-      unsigned int p = byte_chr(env + i, n, '=') ;
+      size_t p = byte_chr(env + i, n, '=') ;
       char tmp[dirlen + p + 2] ;
       byte_copy(tmp, dirlen, dir) ;
       tmp[dirlen] = '/' ;
@@ -97,7 +97,7 @@ static int doit (struct cdb *c)
   unsigned int klen = cdb_keylen(c) ;
   unsigned int dlen = cdb_datalen(c) ;
   {
-    uint16 envlen, execlen ;
+    uint16_t envlen, execlen ;
     char name[basedirlen + klen + 8] ;
     char data[dlen] ;
     byte_copy(name, basedirlen, basedir) ;
@@ -145,7 +145,7 @@ static int doit (struct cdb *c)
 int main (int argc, char const *const *argv)
 {
   struct cdb c = CDB_ZERO ;
-  uint32 kpos ;
+  uint32_t kpos ;
   PROG = "s6-accessrules-fs-from-cdb" ;
   if (argc < 3) strerr_dieusage(100, USAGE) ;
   if (cdb_mapfile(&c, argv[2]) < 0) strerr_diefu1sys(111, "cdb_mapfile") ;

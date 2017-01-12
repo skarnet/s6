@@ -1,5 +1,7 @@
 /* ISC license. */
 
+#include <sys/types.h>
+#include <stdint.h>
 #include <errno.h>
 #include <signal.h>
 #include <unistd.h>
@@ -69,9 +71,9 @@ int main (int argc, char const **argv, char const *const *envp)
   x[1].fd = ftrigr_fd(&a) ;
 
   {
-    int pid = 0 ;
+    pid_t pid = 0 ;
     unsigned int idlen = argc1 >> 1 ;
-    uint16 ids[idlen] ;
+    uint16_t ids[idlen] ;
     for (; i < idlen ; i++)
     {
       ids[i] = ftrigr_subscribe_g(&a, argv[i<<1], argv[(i<<1)+1], 0, &deadline) ;

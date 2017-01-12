@@ -1,5 +1,6 @@
 /* ISC license. */
 
+#include <sys/types.h>
 #include <unistd.h>
 #include <errno.h>
 #include <signal.h>
@@ -56,7 +57,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     iopause_fd x = { .events = IOPAUSE_READ } ;
     tain_t deadline ;
     int p[2] ;
-    unsigned int pid ;
+    pid_t pid ;
     char c ;
     tain_now_g() ;
     tain_from_millisecs(&deadline, timeout) ;
@@ -66,6 +67,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     x.fd = p[0] ;
     for (;;)
     {
+      ssize_t rr ;
       register int r = iopause_g(&x, 1, &deadline) ;
       if (r < 0) strerr_diefu1sys(111, "iopause") ;
       if (!r)
@@ -74,9 +76,9 @@ int main (int argc, char const *const *argv, char const *const *envp)
         errno = ETIMEDOUT ;
         strerr_diefu1sys(1, "acquire lock") ;
       }
-      r = sanitize_read(fd_read(p[0], &c, 1)) ;
-      if (r < 0) strerr_diefu1sys(111, "read ack from helper") ;
-      if (r) break ;
+      rr = sanitize_read(fd_read(p[0], &c, 1)) ;
+      if (rr < 0) strerr_diefu1sys(111, "read ack from helper") ;
+      if (rr) break ;
     }
     if (c != '!') strerr_dief1x(111, "helper sent garbage ack") ;
     fd_close(p[0]) ;

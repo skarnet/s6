@@ -1,11 +1,12 @@
 /* ISC license. */
 
+#include <sys/types.h>
 #include <errno.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/djbunix.h>
 #include <s6/s6-supervise.h>
 
-int s6_svc_write (char const *fifo, char const *data, unsigned int datalen)
+int s6_svc_write (char const *fifo, char const *data, size_t datalen)
 {
   int fd = open_write(fifo) ;
   if (fd < 0) return (errno == ENXIO) ? 0 : -1 ;

@@ -1,5 +1,6 @@
 /* ISC license. */
 
+#include <sys/types.h>
 #include <unistd.h>
 #include <errno.h>
 #include <skalibs/direntry.h>
@@ -9,13 +10,13 @@
 #include "ftrig1.h"
 #include <s6/ftrigw.h>
 
-int ftrigw_notifyb_nosig (char const *path, char const *s, unsigned int len)
+int ftrigw_notifyb_nosig (char const *path, char const *s, size_t len)
 {
   unsigned int i = 0 ;
   DIR *dir = opendir(path) ;
   if (!dir) return -1 ;
   {
-    unsigned int pathlen = str_len(path) ;
+    size_t pathlen = str_len(path) ;
     char tmp[pathlen + FTRIG1_PREFIXLEN + 45] ;
     byte_copy(tmp, pathlen, path) ;
     tmp[pathlen] = '/' ; tmp[pathlen + FTRIG1_PREFIXLEN + 44] = 0 ;
@@ -36,8 +37,8 @@ int ftrigw_notifyb_nosig (char const *path, char const *s, unsigned int len)
       }
       else
       {
-        register int r = fd_write(fd, s, len) ;
-        if ((r < 0) || (unsigned int)r < len)
+        register ssize_t r = fd_write(fd, s, len) ;
+        if ((r < 0) || (size_t)r < len)
         {
           if (errno == EPIPE) unlink(tmp) ;
            /* what to do if EGAIN ? full fifo -> fix the reader !

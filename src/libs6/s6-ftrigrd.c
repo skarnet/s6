@@ -1,5 +1,7 @@
 /* ISC license. */
 
+#include <sys/types.h>
+#include <stdint.h>
 #include <errno.h>
 #include <signal.h>
 #include <regex.h>
@@ -34,8 +36,8 @@ struct ftrigio_s
   char buf[FTRIGRD_BUFSIZE] ;
   regex_t re ;
   stralloc sa ;
-  uint32 options ;
-  uint16 id ; /* given by client */
+  uint32_t options ;
+  uint16_t id ; /* given by client */
 } ;
 #define FTRIGIO_ZERO { .xindex = 0, .trig = FTRIG1_ZERO, .b = BUFFER_INIT(0, -1, 0, 0), .buf = "", .sa = STRALLOC_ZERO, .options = 0, .id = 0 }
 
@@ -56,7 +58,7 @@ static void cleanup (void)
   n = 0 ;
 }
 
-static void trig (uint16 id, char what, char info)
+static void trig (uint16_t id, char what, char info)
 {
   char pack[4] ;
   unixmessage_t m = { .s = pack, .len = 4, .fds = 0, .nfds = 0 } ;
@@ -92,8 +94,8 @@ static inline int ftrigio_read (ftrigio_t *p)
   while (i--)
   {
     regmatch_t pmatch ;
-    unsigned int blen ;
-    register int r = sanitize_read(buffer_fill(&p->b)) ;
+    size_t blen ;
+    register ssize_t r = sanitize_read(buffer_fill(&p->b)) ;
     if (!r) break ;
     if (r < 0) return (trig(p->id, 'd', errno), 0) ;
     blen = buffer_len(&p->b) ;
@@ -114,7 +116,7 @@ static inline int ftrigio_read (ftrigio_t *p)
 
 static int parse_protocol (unixmessage_t const *m, void *context)
 {
-  uint16 id ;
+  uint16_t id ;
   if (m->len < 3 || m->nfds)
   {
     cleanup() ;
@@ -137,7 +139,7 @@ static int parse_protocol (unixmessage_t const *m, void *context)
     }
     case 'L' : /* subscribe to path and match re */
     {
-      uint32 options, pathlen, relen ;
+      uint32_t options, pathlen, relen ;
       int r ;
       if (m->len < 19)
       {
