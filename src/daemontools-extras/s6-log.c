@@ -1262,6 +1262,7 @@ int main (int argc, char const *const *argv)
         if (!bufalloc_flush(bufalloc_1) && !error_isagain(errno))
         {
           unsigned int i = actlen ;
+          strerr_warnwu1sys("write to stdout, closing the stream - error was") ;
           fd_close(1) ;
           bufalloc_1->fd = -1 ;
           bufalloc_free(bufalloc_1) ;
