@@ -234,7 +234,7 @@ function with a backend function.
 
 <p>
 <code> s6_accessrules_result_t s6_accessrules_uidgid_cdb
-(unsigned int u, unsigned int g, struct cdb *c,
+(uid_t u, gid_t g, struct cdb *c,
 s6_accessrules_params_t *params) </code> <br />
 Checks the *<em>c</em> CDB database for an authorization for uid <em>u</em>
 and gid <em>g</em>. If the result is S6_ACCESSRULES_ALLOW, additional
@@ -243,7 +243,7 @@ information may be stored into <em>params</em>.
 
 <p>
 <code> s6_accessrules_result_t s6_accessrules_uidgid_fs
-(unsigned int u, unsigned int g, char const *dir,
+(uid_t u, gid_t g, char const *dir,
 s6_accessrules_params_t *params) </code> <br />
 Checks the <em>dir</em> base directory for an authorization for uid <em>u</em>
 and gid <em>g</em>. If the result is S6_ACCESSRULES_ALLOW, additional
