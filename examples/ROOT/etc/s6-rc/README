@@ -1,9 +1,0 @@
- If you are using s6-rc as your service manager, this directory should
-be the place where you store your compiled service databases.
-
- The /etc/s6-init/init-stage2 script invokes s6-rc which expects to
-find its data here by default.
-
- The /run/service/.s6-svscan/SIG{INT,USR1,USR2} scripts invoke
-s6-rc to bring down all the managed services before shutting down
-s6-svscan.

@@ -1,4 +1,0 @@
-This directory is read-only. It contains an image of the
-tmpfs that it copied as-is at boot-time (during stage 1
-init). It is only used at boot-time, it is never
-written to.

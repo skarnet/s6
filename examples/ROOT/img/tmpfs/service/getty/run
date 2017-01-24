@@ -1,2 +1,0 @@
-#!/command/execlineb -P
-getty -L -H DEBUG 38400 tty1

@@ -1,9 +1,0 @@
-This service reads from the "fifo" named pipe and logs
-what it reads to the /tmp/uncaught-logs log directory.
-The whole supervision tree has its stderr redirected to "fifo",
-as well as services that do not have their own logger.
-So, /tmp/uncaught-logs is the catch-all logger: logs that aren't
-caught anywhere else end up there.
-
- You should create the "fifo" named pipe in this directory,
-belonging to nobody:nogroup with rights 0622.

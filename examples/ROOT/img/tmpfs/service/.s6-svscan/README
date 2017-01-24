@@ -1,9 +1,0 @@
-This is the image of the control directory of the s6-svscan process
-running as pid 1.
-"crash" is run if s6-svscan fails.
-"finish" is run when s6-svscan exits its loop.
-
- The "SIG*" files are run as children of s6-svscan when it receives
-the corresponding signal. SIGINT, SIGUSR1 and SIGUSR2 will all
-trigger "s6-rc -da change" (the service manager will shut down all
-the services), then s6-svscan will be told to exit its loop.

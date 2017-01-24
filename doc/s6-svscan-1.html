@@ -374,17 +374,20 @@ initialization tasks with the guarantee that s6-svscan is running.
 <p>
  This whole page may sound very theoretical, dry, wordy, and hard to
 grasp without a live example to try things on; unfortunately, s6 cannot provide
-live examples without becoming system-specific. However, it provides a whole
-set of script skeletons for you to edit and make your own working init.
+live examples without becoming system-specific.
 </p>
 
 <p>
- The <tt>examples/ROOT</tt> subdirectory in the s6 distribution contains
-the relevant parts of a small root filesystem that works under Linux and follows
-all that has been explained here. In every directory, a <tt>README</tt> file
-has been added, to sum up what this directory does. You can copy those files
-and modify them to suit your needs; if you have the proper software installed,
-and the right configuration, some of them might even work verbatim.
+ However, the
+<a href="http://skarnet.org/software/s6-linux-init/">s6-linux-init</a>
+package provides you with the
+<a href="http://skarnet.org/software/s6-linux-init/s6-linux-init-maker">s6-linux-init-maker</a>
+command, which produces a set of working scripts, including a script
+that is suitable as <tt>/sbin/init</tt>, for you to study and edit.
+You can <em>run</em> the <tt>s6-linux-init-maker</tt> command even
+on non-Linux systems: it will produce scripts that do not work as
+is for another OS, but can still be used for study and as a basis for
+a working stage 1 script.
 </p>
 
 </body>
