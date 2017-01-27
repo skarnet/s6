@@ -448,6 +448,12 @@ static void finish_X (void)
   finish_x() ;
 }
 
+static void lastfinish_z (void)
+{
+    finish_z() ;
+    bail ();
+}
+
 static action_t_ref const actions[5][25] =
 {
   { &downtimeout, &nop, &bail, &bail, &bail,
@@ -462,7 +468,7 @@ static action_t_ref const actions[5][25] =
   { &uptimeout, &lastup_z, &up_d, &nop, &closethem,
     &killa, &killb, &killq, &killh, &killk, &killt, &killi, &kill1, &kill2, &nop, &nop, &killp, &killc, &killy,
     &up_o, &up_d, &nop, &nop, &up_o, &closethem },
-  { &finishtimeout, &bail, &nop, &nop, &closethem,
+  { &finishtimeout, &lastfinish_z, &nop, &nop, &closethem,
     &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop,
     &nop, &nop, &nop, &nop, &nop, &closethem }
 } ;
