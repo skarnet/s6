@@ -109,7 +109,7 @@ s6lock_end(&amp;a) ;
 <h3> Acquiring and releasing locks </h3>
 
 <pre>
-uint16 id ;
+uint16_t id ;
 char const *file = "lockfile" ;
 tain_t limit ;
 tain_t deadline ;
@@ -219,7 +219,7 @@ number may have been transmitted from
 <h3> Synchronously waiting for locks </h3>
 
 <p>
-<code> int s6lock_wait_or_g (s6lock_t *a, uint16 const *idlist, unsigned int n, tain_t const *deadline) </code> <br />
+<code> int s6lock_wait_or_g (s6lock_t *a, uint16_t const *idlist, unsigned int n, tain_t const *deadline) </code> <br />
 Synchronously waits for <em>one</em> of the locks represented by the array pointed to
 by <em>idlist</em> of length <em>n</em> to be acquired. Returns -1 if it fails,
 or a nonnegative number on success, which is the index in <em>idlist</em> of the
@@ -228,7 +228,7 @@ function returns -1 ETIMEDOUT.
 </p>
 
 <p>
-<code> int s6lock_wait_and_g (s6lock_t *a, uint16 const *idlist, unsigned int n, tain_t const *deadline) </code> <br />
+<code> int s6lock_wait_and_g (s6lock_t *a, uint16_t const *idlist, unsigned int n, tain_t const *deadline) </code> <br />
 Synchronously waits for <em>all</em> of the locks represented by the array pointed to
 by <em>idlist</em> of length <em>n</em> to be acquired. Returns -1 if it fails and
 0 if it succeeds. If no result has been obtained by <em>deadline</em>, the

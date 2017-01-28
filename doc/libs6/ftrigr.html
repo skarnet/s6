@@ -155,7 +155,7 @@ ftrigr_end(&amp;a) ;
 <pre>
 char const *path = "/var/lib/myservice/fifodir" ;
 char const *re = "a.*b|c*d" ;
-uint32 options = 0 ;
+uint32_t options = 0 ;
 
 uint16 id = ftrigr_subscribe (&amp;a, path, re, options, &amp;deadline, &amp;stamp) ;
 </pre>
@@ -188,7 +188,7 @@ and events can be sent without the risk of a race condition.
 <h3> Synchronously waiting for events </h3>
 
 <pre>
-uint16 list[1] ;
+uint16_t list[1] ;
 unsigned int n = 1 ;
 char trigger ;
 list[0] = id ;

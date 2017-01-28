@@ -451,7 +451,7 @@ static void finish_X (void)
 static void lastfinish_z (void)
 {
     finish_z() ;
-    bail ();
+    bail() ;
 }
 
 static action_t_ref const actions[5][25] =
