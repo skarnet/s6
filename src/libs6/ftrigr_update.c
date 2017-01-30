@@ -1,7 +1,9 @@
 /* ISC license. */
 
+#include <sys/types.h>
 #include <stdint.h>
 #include <errno.h>
+#include <skalibs/gccattributes.h>
 #include <skalibs/error.h>
 #include <skalibs/uint16.h>
 #include <skalibs/genalloc.h>
@@ -10,10 +12,19 @@
 #include <skalibs/skaclient.h>
 #include <s6/ftrigr.h>
 
+static inline int appears (uint16_t, uint16_t const *, size_t) gccattr_pure ;
+
+static inline int appears (uint16_t id, uint16_t const *list, size_t len)
+{
+  while (len) if (id == list[--len]) return 1 ;
+  return 0 ;
+}
+
 static int msghandler (unixmessage_t const *m, void *context)
 {
   ftrigr_t *a = (ftrigr_t *)context ;
   ftrigr1_t *p ;
+  int addit = 1 ;
   uint16_t id ;
   if (m->len != 4 || m->nfds) return (errno = EPROTO, 0) ;
   uint16_unpack_big(m->s, &id) ;
@@ -27,13 +38,21 @@ static int msghandler (unixmessage_t const *m, void *context)
       p->state = FR1STATE_WAITACK ;
       break ;
     case '!' :
-      if (p->options & FTRIGR_REPEAT) p->count++ ;
+      if (p->options & FTRIGR_REPEAT)
+      {
+        if (p->count++
+         && appears(id+1, genalloc_s(uint16_t, &a->list), genalloc_len(uint16_t, &a->list)))
+          addit = 0 ;
+      }
       else p->state = FR1STATE_WAITACKDATA ;
       break ;
     default : return (errno = EPROTO, 0) ;
   }
   p->what = m->s[3] ;
-  id++ ; genalloc_append(uint16_t, &a->list, &id) ;
+  if (addit)
+  {
+    id++ ; genalloc_append(uint16_t, &a->list, &id) ;
+  }
   return 1 ;
 }
 
