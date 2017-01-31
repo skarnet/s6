@@ -58,6 +58,8 @@ static int msghandler (unixmessage_t const *m, void *context)
 
 int ftrigr_update (ftrigr_t *a)
 {
+  int r ;
   genalloc_setlen(uint16_t, &a->list, 0) ;
-  return skaclient_update(&a->connection, &msghandler, a) ;
+  r = skaclient_update(&a->connection, &msghandler, a) ;
+  return r < 0 ? r : (int)genalloc_len(uint16_t, &a->list) ;
 }
