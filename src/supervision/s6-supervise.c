@@ -495,7 +495,7 @@ static inline void handle_notifyfd (void)
   while (r > 0)
   {
     r = sanitize_read(fd_read(notifyfd, buf, 4096)) ;
-    if (r > 0 && memchr(buf, r, '\n'))
+    if (r > 0 && memchr(buf, '\n', r))
     {
       tain_copynow(&status.readystamp) ;
       status.flagready = 1 ;

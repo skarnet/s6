@@ -56,7 +56,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
         case 'T' : if (!uint0_scan(l.arg, &timeout)) dieusage() ; break ;
         case 'w' :
         {
-          if (!memchr("dDuUrR", 6, l.arg[0])) dieusage() ;
+          if (!memchr("dDuUrR", l.arg[0], 6)) dieusage() ;
           updown[1] = l.arg[0] ;
           break ;
         }
