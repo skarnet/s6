@@ -150,8 +150,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
   {
     char const *x ;
     char tmp[protolen + 11] ;
-    byte_copy(tmp, protolen, proto) ;
-    byte_copy(tmp + protolen, 11, "REMOTEEUID") ;
+    memcpy(tmp, proto, protolen) ;
+    memcpy(tmp + protolen, "REMOTEEUID", 11) ;
     x = env_get2(envp, tmp) ;
     if (!x) strerr_dienotset(100, tmp) ;
     if (!uid0_scan(x, &uid)) strerr_dieinvalid(100, tmp) ;

@@ -18,7 +18,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
   int flagU = 0 ;
   int flaglookup = 1 ;
   int flagreuse = 1 ;
-  unsigned int uid = 0, gid = 0 ;
+  uid_t uid = 0 ;
+  gid_t gid = 0 ;
   gid_t gids[NGROUPS_MAX] ;
   size_t gidn = (size_t)-1 ;
   unsigned int maxconn = 0 ;
@@ -43,8 +44,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
         case 'c' : if (!uint0_scan(l.arg, &maxconn)) dieusage() ; if (!maxconn) maxconn = 1 ; break ;
         case 'C' : if (!uint0_scan(l.arg, &localmaxconn)) dieusage() ; if (!localmaxconn) localmaxconn = 1 ; break ;
         case 'b' : if (!uint0_scan(l.arg, &backlog)) dieusage() ; break ;
-        case 'u' : if (!uint0_scan(l.arg, &uid)) dieusage() ; break ;
-        case 'g' : if (!uint0_scan(l.arg, &gid)) dieusage() ; break ;
+        case 'u' : if (!uid0_scan(l.arg, &uid)) dieusage() ; break ;
+        case 'g' : if (!gid0_scan(l.arg, &gid)) dieusage() ; break ;
         case 'G' : if (!gid_scanlist(gids, NGROUPS_MAX, l.arg, &gidn) && *l.arg) dieusage() ; break ;
         case '1' : flag1 = 1 ; break ;
         case 'U' : flagU = 1 ; uid = 0 ; gid = 0 ; gidn = (size_t)-1 ; break ;
@@ -58,7 +59,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   {
     size_t pos = 0 ;
     unsigned int m = 0 ;
-    char fmt[UINT_FMT * 5 + GID_FMT * NGROUPS_MAX] ;
+    char fmt[UINT_FMT * 3 + UID_FMT + GID_FMT * (NGROUPS_MAX+1)] ;
     char const *newargv[24 + argc] ;
     newargv[m++] = S6_BINPREFIX "s6-ipcserver-socketbinder" ;
     if (!flagreuse) newargv[m++] = "-D" ;
@@ -80,14 +81,14 @@ int main (int argc, char const *const *argv, char const *const *envp)
       {
         newargv[m++] = "-u" ;
         newargv[m++] = fmt + pos ;
-        pos += uint_fmt(fmt + pos, uid) ;
+        pos += uid_fmt(fmt + pos, uid) ;
         fmt[pos++] = 0 ;
       }
       if (gid)
       {
         newargv[m++] = "-g" ;
         newargv[m++] = fmt + pos ;
-        pos += uint_fmt(fmt + pos, gid) ;
+        pos += gid_fmt(fmt + pos, gid) ;
         fmt[pos++] = 0 ;
       }
       if (gidn != (size_t)-1)

@@ -16,9 +16,9 @@ static void doit (int res, char const *arg)
   if ((arg[0] == '=') && !arg[1]) r.rlim_cur = r.rlim_max ;
   else
   {
-    uint64 n ;
+    uint64_t n ;
     if (!uint640_scan(arg, &n)) strerr_dieusage(100, USAGE) ;
-    if (n > (uint64)r.rlim_max) n = (uint64)r.rlim_max ;
+    if (n > (uint64_t)r.rlim_max) n = (uint64_t)r.rlim_max ;
     r.rlim_cur = (rlim_t)n ;
   }
   if (setrlimit(res, &r) < 0) strerr_diefu1sys(111, "setrlimit") ;

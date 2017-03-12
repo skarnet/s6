@@ -567,7 +567,7 @@ static inline void logdir_init (unsigned int index, uint32_t s, uint32_t n, uint
 {
   logdir_t *ldp = logdirs + index ;
   struct stat st ;
-  size_t dirlen = str_len(name) ;
+  size_t dirlen = strlen(name) ;
   int r ;
   char x[dirlen + 11] ;
   ldp->s = s ;
