@@ -1,13 +1,10 @@
 /* ISC license. */
 
-#include <sys/types.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
-#include <stdio.h>  /* for rename() */
-#include <skalibs/bytestr.h>
-#include <skalibs/uint16.h>
-#include <skalibs/fmtscan.h>
+#include <stdio.h>
+#include <skalibs/types.h>
 #include <skalibs/cdb_make.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/stralloc.h>
@@ -22,7 +19,7 @@ static stralloc tmp = STRALLOC_ZERO ;
 
 static void cleanup (void)
 {
-  register int e = errno ;
+  int e = errno ;
   unlink(tmp.s) ;
   errno = e ;
 }
@@ -66,7 +63,7 @@ static void doit (struct cdb_make *c, stralloc *sa, size_t start)
   {
     uint16_t envlen = 0 ;
     uint16_t execlen = 0 ;
-    register ssize_t r ;
+    ssize_t r ;
     tmp.s[tmpbase] = 'A' ;
     sa->len = k+1 ;
     stralloc_catb(sa, "env", 4) ;

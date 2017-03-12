@@ -2,8 +2,7 @@
 
 #include <sys/types.h>
 #include <limits.h>
-#include <skalibs/uint.h>
-#include <skalibs/gidstuff.h>
+#include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/djbunix.h>
@@ -20,7 +19,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   int flagreuse = 1 ;
   unsigned int uid = 0, gid = 0 ;
   gid_t gids[NGROUPS_MAX] ;
-  unsigned int gidn = (unsigned int)-1 ;
+  size_t gidn = (size_t)-1 ;
   unsigned int maxconn = 0 ;
   unsigned int maxfds = 0 ;
   unsigned int backlog = (unsigned int)-1 ;
@@ -33,7 +32,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "Dd1Uv:c:n:b:u:g:G:t:T:i:x:", &l) ;
+      int opt = subgetopt_r(argc, argv, "Dd1Uv:c:n:b:u:g:G:t:T:i:x:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -47,7 +46,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
         case 'u' : if (!uint0_scan(l.arg, &uid)) dieusage() ; break ;
         case 'g' : if (!uint0_scan(l.arg, &gid)) dieusage() ; break ;
         case 'G' : if (!gid_scanlist(gids, NGROUPS_MAX, l.arg, &gidn) && *l.arg) dieusage() ; break ;
-        case 'U' : flagU = 1 ; uid = 0 ; gid = 0 ; gidn = (unsigned int)-1 ; break ;
+        case 'U' : flagU = 1 ; uid = 0 ; gid = 0 ; gidn = (size_t)-1 ; break ;
         case 't' : if (!uint0_scan(l.arg, &timeout)) dieusage() ; break ;
         case 'T' : if (!uint0_scan(l.arg, &ltimeout)) dieusage() ; break ;
         case 'i' : rulesdir = l.arg ; rulesfile = 0 ; break ;
@@ -76,7 +75,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     }
     newargv[m++] = "--" ;
     newargv[m++] = *argv++ ;
-    if (flagU || uid || gid || gidn != (unsigned int)-1)
+    if (flagU || uid || gid || gidn != (size_t)-1)
     {
       newargv[m++] = S6_BINPREFIX "s6-applyuidgid" ;
       if (flagU) newargv[m++] = "-Uz" ;
@@ -94,7 +93,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
         pos += uint_fmt(fmt + pos, gid) ;
         fmt[pos++] = 0 ;
       }
-      if (gidn != (unsigned int)-1)
+      if (gidn != (size_t)-1)
       {
         newargv[m++] = "-G" ;
         newargv[m++] = fmt + pos ;

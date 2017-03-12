@@ -10,7 +10,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <syslog.h>
-#include <skalibs/uint.h>
+#include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/buffer.h>
@@ -138,7 +138,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "D:", &l) ;
+      int opt = subgetopt_r(argc, argv, "D:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -162,7 +162,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
       size_t pos = 0 ;
       satmp.len = 0 ;
       {
-        register int r = skagetlnsep(buffer_0f1, &satmp, "\n", 2) ;
+        int r = skagetlnsep(buffer_0f1, &satmp, "\n", 2) ;
         if (r < 0)
         {
           if (errno != EPIPE || !stralloc_0(&satmp))
@@ -181,7 +181,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
         if ((buffer_puts(buffer_1, envs[i]) < 0)
          || (buffer_put(buffer_1, ": ", 2) < 2)) die() ;
       pos += syslog_names(satmp.s + pos) ;
-      if (buffer_put(buffer_1, satmp.s + pos, satmp.len - pos) < (int)(satmp.len - pos)) die() ;
+      if (buffer_put(buffer_1, satmp.s + pos, satmp.len - pos) < (ssize_t)(satmp.len - pos)) die() ;
     }
   }
   return 0 ;

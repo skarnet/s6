@@ -2,8 +2,6 @@
 
 #include <sys/types.h>
 #include <errno.h>
-#include <skalibs/allreadwrite.h>
-#include <skalibs/fmtscan.h>
 #include <skalibs/buffer.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/tai.h>
@@ -34,11 +32,11 @@ int main (void)
         size_t len ;
         localtmn_from_tain(&local, &a, 1) ;
         len = localtmn_fmt(fmt, &local) ;
-        if (buffer_put(buffer_1, fmt, len) < 0)
+        if (buffer_put(buffer_1, fmt, len) < (ssize_t)len)
           strerr_diefu1sys(111, "write to stdout") ;
       }
     }
-    if (buffer_put(buffer_1, satmp.s + p, satmp.len - p) < 0)
+    if (buffer_put(buffer_1, satmp.s + p, satmp.len - p) < (ssize_t)(satmp.len - p))
       strerr_diefu1sys(111, "write to stdout") ;
     satmp.len = 0 ;
   }

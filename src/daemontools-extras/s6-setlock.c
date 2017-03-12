@@ -1,13 +1,12 @@
 /* ISC license. */
 
-#include <sys/types.h>
 #include <unistd.h>
 #include <errno.h>
 #include <signal.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
-#include <skalibs/uint.h>
+#include <skalibs/types.h>
 #include <skalibs/tai.h>
 #include <skalibs/iopause.h>
 #include <skalibs/djbunix.h>
@@ -28,7 +27,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   PROG = "s6-setlock" ;
   for (;;)
   {
-    register int opt = subgetopt(argc, argv, "nNrwt:") ;
+    int opt = subgetopt(argc, argv, "nNrwt:") ;
     if (opt == -1) break ;
     switch (opt)
     {
@@ -68,7 +67,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     for (;;)
     {
       ssize_t rr ;
-      register int r = iopause_g(&x, 1, &deadline) ;
+      int r = iopause_g(&x, 1, &deadline) ;
       if (r < 0) strerr_diefu1sys(111, "iopause") ;
       if (!r)
       {

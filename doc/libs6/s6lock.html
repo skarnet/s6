@@ -193,14 +193,14 @@ which something happened.
 
 <p>
  When <tt>s6lock_update</tt> returns,
-<tt>genalloc_s(uint16, &amp;a-&gt;list)</tt> points to an array of
-<tt>genalloc_len(uint16, &amp;a-&gt;list)</tt> 16-bit unsigned
+<tt>genalloc_s(uint16_t, &amp;a-&gt;list)</tt> points to an array of
+<tt>genalloc_len(uint16_t, &amp;a-&gt;list)</tt> 16-bit unsigned
 integers. Those integers are ids waiting to be passed to
 <tt>s6lock_check</tt>.
 </p>
 
 <pre>
-int s6lock_check (s6lock_t *a, uint16 id, char *what)
+int s6lock_check (s6lock_t *a, uint16_t id, char *what)
 </pre>
 
 <p>

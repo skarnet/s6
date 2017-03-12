@@ -1,6 +1,5 @@
 /* ISC license. */
 
-#include <skalibs/bytestr.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
 #include <s6/s6-supervise.h>
@@ -20,7 +19,7 @@ int main (int argc, char const *const *argv)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "phratszbnNiq0678", &l) ;
+      int opt = subgetopt_r(argc, argv, "phratszbnNiq0678", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {

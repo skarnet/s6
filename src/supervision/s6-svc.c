@@ -1,10 +1,9 @@
 /* ISC license. */
 
-#include <sys/types.h>
+#include <string.h>
 #include <unistd.h>
 #include <errno.h>
-#include <skalibs/uint.h>
-#include <skalibs/bytestr.h>
+#include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/djbunix.h>
@@ -27,7 +26,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "abqhkti12pcoduxOXyT:w:", &l) ;
+      int opt = subgetopt_r(argc, argv, "abqhkti12pcoduxOXyT:w:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -57,7 +56,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
         case 'T' : if (!uint0_scan(l.arg, &timeout)) dieusage() ; break ;
         case 'w' :
         {
-          if (byte_chr("dDuUrR", 6, l.arg[0]) >= 6) dieusage() ;
+          if (!memchr("dDuUrR", 6, l.arg[0])) dieusage() ;
           updown[1] = l.arg[0] ;
           break ;
         }
@@ -72,10 +71,10 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (datalen <= 1) return 0 ;
   if (updown[1] == 'U' || updown[1] == 'R')
   {
-    size_t arglen = str_len(argv[0]) ;
+    size_t arglen = strlen(argv[0]) ;
     char fn[arglen + 17] ;
-    byte_copy(fn, arglen, argv[0]) ;
-    byte_copy(fn + arglen, 17, "/notification-fd") ;
+    memcpy(fn, argv[0], arglen) ;
+    memcpy(fn + arglen, "/notification-fd", 17) ;
     if (access(fn, F_OK) < 0)
     {
       if (errno != ENOENT) strerr_diefu2sys(111, "access ", fn) ;
@@ -109,7 +108,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   }
   else
   {
-    register int r = s6_svc_writectl(argv[0], S6_SUPERVISE_CTLDIR, data + 1, datalen - 1) ;
+    int r = s6_svc_writectl(argv[0], S6_SUPERVISE_CTLDIR, data + 1, datalen - 1) ;
     if (r < 0) strerr_diefu2sys(111, "control ", argv[0]) ;
     else if (!r) strerr_diefu3x(100, "control ", argv[0], ": supervisor not listening") ;
   }

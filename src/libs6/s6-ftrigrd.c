@@ -1,13 +1,11 @@
 /* ISC license. */
 
-#include <sys/types.h>
+#include <string.h>
 #include <stdint.h>
 #include <errno.h>
 #include <signal.h>
 #include <regex.h>
-#include <skalibs/uint16.h>
-#include <skalibs/uint32.h>
-#include <skalibs/bytestr.h>
+#include <skalibs/types.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/error.h>
 #include <skalibs/strerr2.h>
@@ -53,7 +51,7 @@ static void ftrigio_deepfree (ftrigio_t *p)
 
 static void cleanup (void)
 {
-  register unsigned int i = 0 ;
+  unsigned int i = 0 ;
   for (; i < n ; i++) ftrigio_deepfree(a + i) ;
   n = 0 ;
 }
@@ -95,7 +93,7 @@ static inline int ftrigio_read (ftrigio_t *p)
   {
     regmatch_t pmatch ;
     size_t blen ;
-    register ssize_t r = sanitize_read(buffer_fill(&p->b)) ;
+    ssize_t r = sanitize_read(buffer_fill(&p->b)) ;
     if (!r) break ;
     if (r < 0) return (trig(p->id, 'd', errno), 0) ;
     blen = buffer_len(&p->b) ;
@@ -107,7 +105,7 @@ static inline int ftrigio_read (ftrigio_t *p)
     {
       trig(p->id, '!', p->sa.s[pmatch.rm_eo - 1]) ;
       if (!(p->options & FTRIGR_REPEAT)) return 0 ;
-      byte_copy(p->sa.s, p->sa.len + 1 - pmatch.rm_eo, p->sa.s + pmatch.rm_eo) ;
+      memcpy(p->sa.s, p->sa.s + pmatch.rm_eo, p->sa.len + 1 - pmatch.rm_eo) ;
       p->sa.len -= pmatch.rm_eo ;
     }
   }
@@ -127,7 +125,7 @@ static int parse_protocol (unixmessage_t const *m, void *context)
   {
     case 'U' : /* unsubscribe */
     {
-      register unsigned int i = 0 ;
+      unsigned int i = 0 ;
       for (; i < n ; i++) if (a[i].id == id) break ;
       if (i < n)
       {

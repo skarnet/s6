@@ -1,11 +1,10 @@
 /* ISC license. */
 
-#include <sys/types.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <stdio.h>      /* for rename() */
+#include <stdio.h>
 #include <errno.h>
-#include <skalibs/bytestr.h>
 #include <skalibs/tai.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/djbunix.h>
@@ -32,13 +31,13 @@ static inline void surfname (char *s, size_t n)
 int ftrig1_make (ftrig1_t *f, char const *path)
 {
   ftrig1_t ff = FTRIG1_ZERO ;
-  size_t pathlen = str_len(path) ;
+  size_t pathlen = strlen(path) ;
   int e = 0 ;
   char tmp[pathlen + 46 + FTRIG1_PREFIXLEN] ;
   
-  byte_copy(tmp, pathlen, path) ;
+  memcpy(tmp, path, pathlen) ;
   tmp[pathlen] = '/' ; tmp[pathlen+1] = '.' ;
-  byte_copy(tmp + pathlen + 2, FTRIG1_PREFIXLEN, FTRIG1_PREFIX) ;
+  memcpy(tmp + pathlen + 2, FTRIG1_PREFIX, FTRIG1_PREFIXLEN) ;
   tmp[pathlen + 2 + FTRIG1_PREFIXLEN] = ':' ;
   if (!timestamp(tmp + pathlen + 3 + FTRIG1_PREFIXLEN)) return 0 ;
   tmp[pathlen + 28 + FTRIG1_PREFIXLEN] = ':' ;

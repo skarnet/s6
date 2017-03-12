@@ -1,17 +1,17 @@
 /* ISC license. */
 
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <stdint.h>
+#include <string.h>
 #include <errno.h>
 #include <signal.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <regex.h>
-#include <skalibs/uint32.h>
 #include <skalibs/uint64.h>
-#include <skalibs/uint.h>
+#include <skalibs/types.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/buffer.h>
 #include <skalibs/bytestr.h>
@@ -141,11 +141,11 @@ struct logdir_s
   unsigned int xindex ;
   tain_t retrytto ;
   tain_t deadline ;
-  uint64 maxdirsize ;
-  uint32 b ;
-  uint32 n ;
-  uint32 s ;
-  uint32 tolerance ;
+  uint64_t maxdirsize ;
+  uint32_t b ;
+  uint32_t n ;
+  uint32_t s ;
+  uint32_t tolerance ;
   pid_t pid ;
   char const *dir ;
   char const *processor ;
@@ -188,13 +188,13 @@ static unsigned int llen = 0 ;
 
 static int filesize_cmp (filesize_t const *a, filesize_t const *b)
 {
-  return byte_diff(a->name+1, 26, b->name+1) ;
+  return memcmp(a->name+1, b->name+1, 26) ;
 }
 
 static int name_is_relevant (char const *name)
 {
   tain_t dummy ;
-  if (str_len(name) != 27) return 0 ;
+  if (strlen(name) != 27) return 0 ;
   if (!timestamp_scan(name, &dummy)) return 0 ;
   if (name[25] != '.') return 0 ;
   if ((name[26] != 's') && (name[26] != 'u')) return 0 ;
@@ -216,7 +216,7 @@ static inline int logdir_trim (logdir_t *ldp)
   }
   if (errno)
   {
-    register int e = errno ;
+    int e = errno ;
     dir_close(dir) ;
     errno = e ;
     return -1 ;
@@ -224,12 +224,12 @@ static inline int logdir_trim (logdir_t *ldp)
   rewinddir(dir) ;
   if (n)
   {
-    uint64 totalsize = 0 ;
-    size_t dirlen = str_len(ldp->dir) ;
+    uint64_t totalsize = 0 ;
+    size_t dirlen = strlen(ldp->dir) ;
     unsigned int i = 0 ;
     filesize_t blurgh[n] ;
     char fullname[dirlen + 29] ;
-    byte_copy(fullname, dirlen, ldp->dir) ;
+    memcpy(fullname, ldp->dir, dirlen) ;
     fullname[dirlen] = '/' ;
     for (;;)
     {
@@ -240,20 +240,20 @@ static inline int logdir_trim (logdir_t *ldp)
       if (!d) break ;
       if (!name_is_relevant(d->d_name)) continue ;
       if (i >= n) { errno = EBUSY ; break ; }
-      byte_copy(fullname + dirlen + 1, 28, d->d_name) ;
+      memcpy(fullname + dirlen + 1, d->d_name, 28) ;
       if (stat(fullname, &st) < 0)
       {
         if (verbosity) strerr_warnwu2sys("stat ", fullname) ;
         continue ;
       }
-      byte_copy(blurgh[i].name, 28, d->d_name) ;
+      memcpy(blurgh[i].name, d->d_name, 28) ;
       blurgh[i].size = st.st_size ;
       totalsize += st.st_size ;
       i++ ;
     }
     if (errno)
     {
-      register int e = errno ;
+      int e = errno ;
       dir_close(dir) ;
       errno = e ;
       return -1 ;
@@ -265,7 +265,7 @@ static inline int logdir_trim (logdir_t *ldp)
     n = 0 ;
     while ((i > ldp->n + n) || (ldp->maxdirsize && (totalsize > ldp->maxdirsize)))
     {
-      byte_copy(fullname + dirlen + 1, 28, blurgh[n].name) ;
+      memcpy(fullname + dirlen + 1, blurgh[n].name, 28) ;
       if (unlink(fullname) < 0)
       {
         if (errno == ENOENT) totalsize -= blurgh[n].size ;
@@ -281,17 +281,17 @@ static inline int logdir_trim (logdir_t *ldp)
 static int finish (logdir_t *ldp, char const *name, char suffix)
 {
   struct stat st ;
-  size_t dirlen = str_len(ldp->dir) ;
-  size_t namelen = str_len(name) ;
+  size_t dirlen = strlen(ldp->dir) ;
+  size_t namelen = strlen(name) ;
   char x[dirlen + namelen + 2] ;
-  byte_copy(x, dirlen, ldp->dir) ;
+  memcpy(x, ldp->dir, dirlen) ;
   x[dirlen] = '/' ;
-  byte_copy(x + dirlen + 1, namelen + 1, name) ;
+  memcpy(x + dirlen + 1, name, namelen + 1) ;
   if (stat(x, &st) < 0) return errno == ENOENT ? 0 : -1 ;
   if (st.st_nlink == 1)
   {
     char y[dirlen + 29] ;
-    byte_copy(y, dirlen, ldp->dir) ;
+    memcpy(y, ldp->dir, dirlen) ;
     y[dirlen] = '/' ;
     timestamp_g(y + dirlen + 1) ;
     y[dirlen + 26] = '.' ;
@@ -329,7 +329,7 @@ static inline void exec_processor (logdir_t *ldp)
 
 static int rotator (logdir_t *ldp)
 {
-  size_t dirlen = str_len(ldp->dir) ;
+  size_t dirlen = strlen(ldp->dir) ;
   switch (ldp->rstate)
   {
     case ROTSTATE_START :
@@ -344,10 +344,10 @@ static int rotator (logdir_t *ldp)
     {
       char current[dirlen + 9] ;
       char previous[dirlen + 10] ;
-      byte_copy(current, dirlen, ldp->dir) ;
-      byte_copy(current + dirlen, 9, "/current") ;
-      byte_copy(previous, dirlen, ldp->dir) ;
-      byte_copy(previous + dirlen, 10, "/previous") ;
+      memcpy(current, ldp->dir, dirlen) ;
+      memcpy(current + dirlen, "/current", 9) ;
+      memcpy(previous, ldp->dir, dirlen) ;
+      memcpy(previous + dirlen, "/previous", 10) ;
       if (rename(current, previous) < 0)
       {
         if (verbosity) strerr_warnwu4sys("rename ", current, " to ", previous) ;
@@ -359,8 +359,8 @@ static int rotator (logdir_t *ldp)
     {
       int fd ;
       char x[dirlen + 9] ;
-      byte_copy(x, dirlen, ldp->dir) ;
-      byte_copy(x + dirlen, 9, "/current") ;
+      memcpy(x, ldp->dir, dirlen) ;
+      memcpy(x + dirlen, "/current", 9) ;
       fd = open_append(x) ;
       if (fd < 0)
       {
@@ -369,7 +369,7 @@ static int rotator (logdir_t *ldp)
       }
       if (coe(fd) < 0)
       {
-        register int e = errno ;
+        int e = errno ;
         fd_close(fd) ;
         errno = e ;
         if (verbosity) strerr_warnwu2sys("coe ", x) ;
@@ -377,7 +377,7 @@ static int rotator (logdir_t *ldp)
       }
       if (fd_chmod(fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) < 0)
       {
-        register int e = errno ;
+        int e = errno ;
         fd_close(fd) ;
         errno = e ;
         if (verbosity) strerr_warnwu3sys("fchmod ", x, " to 0644") ;
@@ -391,8 +391,8 @@ static int rotator (logdir_t *ldp)
     case ROTSTATE_CHMODPREVIOUS :
     {
       char x[dirlen + 10] ;
-      byte_copy(x, dirlen, ldp->dir) ;
-      byte_copy(x + dirlen, 10, "/previous") ;
+      memcpy(x, ldp->dir, dirlen) ;
+      memcpy(x + dirlen, "/previous", 10) ;
       if (chmod(x, S_IRWXU | S_IRGRP | S_IROTH) < 0)
       {
         if (verbosity) strerr_warnwu3sys("chmod ", x, " to 0744") ;
@@ -431,8 +431,8 @@ static int rotator (logdir_t *ldp)
     {
       int fd ;
       char x[dirlen + 11] ;
-      byte_copy(x, dirlen, ldp->dir) ;
-      byte_copy(x + dirlen, 11, "/processed") ;
+      memcpy(x, ldp->dir, dirlen) ;
+      memcpy(x + dirlen, "/processed", 11) ;
       fd = open_append(x) ;
       if (fd < 0)
       {
@@ -441,7 +441,7 @@ static int rotator (logdir_t *ldp)
       }
       if (fd_sync(fd) < 0)
       {
-        register int e = errno ;
+        int e = errno ;
         fd_close(fd) ;
         errno = e ;
         if (verbosity) strerr_warnwu2sys("fd_sync ", x) ;
@@ -450,7 +450,7 @@ static int rotator (logdir_t *ldp)
       tain_now_g() ;
       if (fd_chmod(fd, S_IRWXU | S_IRGRP | S_IROTH) < 0)
       {
-        register int e = errno ;
+        int e = errno ;
         fd_close(fd) ;
         errno = e ;
         if (verbosity) strerr_warnwu3sys("fd_chmod ", x, " to 0744") ;
@@ -463,8 +463,8 @@ static int rotator (logdir_t *ldp)
     {
       int fd ;
       char x[dirlen + 10] ;
-      byte_copy(x, dirlen, ldp->dir) ;
-      byte_copy(x + dirlen, 10, "/newstate") ;
+      memcpy(x, ldp->dir, dirlen) ;
+      memcpy(x + dirlen, "/newstate", 10) ;
       fd = open_append(x) ;
       if (fd < 0)
       {
@@ -483,8 +483,8 @@ static int rotator (logdir_t *ldp)
     case ROTSTATE_UNLINKPREVIOUS :
     {
       char x[dirlen + 10] ;
-      byte_copy(x, dirlen, ldp->dir) ;
-      byte_copy(x + dirlen, 10, "/previous") ;
+      memcpy(x, ldp->dir, dirlen) ;
+      memcpy(x + dirlen, "/previous", 10) ;
       if ((unlink(x) < 0) && (errno != ENOENT))
       {
         if (verbosity) strerr_warnwu2sys("open_append ", x) ;
@@ -496,10 +496,10 @@ static int rotator (logdir_t *ldp)
     {
       char newstate[dirlen + 10] ;
       char state[dirlen + 7] ;
-      byte_copy(newstate, dirlen, ldp->dir) ;
-      byte_copy(state, dirlen, ldp->dir) ;
-      byte_copy(newstate + dirlen, 10, "/newstate") ;
-      byte_copy(state + dirlen, 7, "/state") ;
+      memcpy(newstate, ldp->dir, dirlen) ;
+      memcpy(state, ldp->dir, dirlen) ;
+      memcpy(newstate + dirlen, "/newstate", 10) ;
+      memcpy(state + dirlen, "/state", 7) ;
       if (rename(newstate, state) < 0)
       {
         if (verbosity) strerr_warnwu4sys("rename ", newstate, " to ", state) ;
@@ -524,7 +524,7 @@ static int rotator (logdir_t *ldp)
    return 0 ;
 }
 
-static int logdir_write (int i, char const *s, size_t len)
+static ssize_t logdir_write (int i, char const *s, size_t len)
 {
   logdir_t *ldp = logdirs + i ;
   ssize_t r ;
@@ -563,7 +563,7 @@ static inline void rotate_or_flush (logdir_t *ldp)
   bufalloc_flush(&ldp->out) ;
 }
 
-static inline void logdir_init (unsigned int index, uint32_t s, uint32_t n, uint32_t tolerance, uint64 maxdirsize, tain_t const *retrytto, char const *processor, char const *name, unsigned int flags)
+static inline void logdir_init (unsigned int index, uint32_t s, uint32_t n, uint32_t tolerance, uint64_t maxdirsize, tain_t const *retrytto, char const *processor, char const *name, unsigned int flags)
 {
   logdir_t *ldp = logdirs + index ;
   struct stat st ;
@@ -583,25 +583,25 @@ static inline void logdir_init (unsigned int index, uint32_t s, uint32_t n, uint
   ldp->rstate = ROTSTATE_WRITABLE ;
   r = mkdir(ldp->dir, S_IRWXU | S_ISGID) ;
   if ((r < 0) && (errno != EEXIST)) strerr_diefu2sys(111, "mkdir ", name) ;
-  byte_copy(x, dirlen, name) ;
-  byte_copy(x + dirlen, 6, "/lock") ;
+  memcpy(x, name, dirlen) ;
+  memcpy(x + dirlen, "/lock", 6) ;
   ldp->fdlock = open_append(x) ;
   if ((ldp->fdlock) < 0) strerr_diefu2sys(111, "open_append ", x) ;
   if (lock_exnb(ldp->fdlock) < 0) strerr_diefu2sys(111, "lock_exnb ", x) ;
   if (coe(ldp->fdlock) < 0) strerr_diefu2sys(111, "coe ", x) ;
-  byte_copy(x + dirlen + 1, 8, "current") ;
+  memcpy(x + dirlen + 1, "current", 8) ;
   if (stat(x, &st) < 0)
   {
     if (errno != ENOENT) strerr_diefu2sys(111, "stat ", x) ;
   }
   else if (st.st_mode & S_IXUSR) goto opencurrent ;
-  byte_copy(x + dirlen + 1, 6, "state") ;
+  memcpy(x + dirlen + 1, "state", 6) ;
   unlink(x) ;
-  byte_copy(x + dirlen + 1, 9, "newstate") ;
+  memcpy(x + dirlen + 1, "newstate", 9) ;
   unlink(x) ;
   {
     int flagprocessed = 0 ;
-    byte_copy(x + dirlen + 1, 10, "processed") ;
+    memcpy(x + dirlen + 1, "processed", 10) ;
     if (stat(x, &st) < 0)
     {
       if (errno != ENOENT) strerr_diefu2sys(111, "stat ", x) ;
@@ -609,7 +609,7 @@ static inline void logdir_init (unsigned int index, uint32_t s, uint32_t n, uint
     else if (st.st_mode & S_IXUSR) flagprocessed = 1 ;
     if (flagprocessed)
     {
-      byte_copy(x + dirlen + 1, 9, "previous") ;
+      memcpy(x + dirlen + 1, "previous", 9) ;
       unlink(x) ;
       if (finish(ldp, "processed", 's') < 0)
         strerr_diefu2sys(111, "finish processed .s for logdir ", ldp->dir) ;
@@ -623,12 +623,12 @@ static inline void logdir_init (unsigned int index, uint32_t s, uint32_t n, uint
   }
   if (finish(ldp, "current", 'u') < 0)
     strerr_diefu2sys(111, "finish current .u for logdir ", ldp->dir) ;
-  byte_copy(x + dirlen + 1, 6, "state") ;
+  memcpy(x + dirlen + 1, "state", 6) ;
   ldp->fd = open_trunc(x) ;
   if (ldp->fd < 0) strerr_diefu2sys(111, "open_trunc ", x) ;
   fd_close(ldp->fd) ;
   st.st_size = 0 ;
-  byte_copy(x + dirlen + 1, 8, "current") ;
+  memcpy(x + dirlen + 1, "current", 8) ;
  opencurrent:
   ldp->fd = open_append(x) ;
   if (ldp->fd < 0) strerr_diefu2sys(111, "open_append ", x) ;
@@ -779,7 +779,7 @@ static inline void script_secondpass (char const *const *argv, scriptelem_t *scr
   uint32_t s = 99999 ;
   uint32_t n = 10 ;
   uint32_t tolerance = 2000 ;
-  uint64 maxdirsize = 0 ;
+  uint64_t maxdirsize = 0 ;
   char const *processor = 0 ;
   unsigned int sel = 0, act = 0, lidx = 0, flags = 0 ;
   int flagacted = 0 ;
@@ -948,7 +948,7 @@ static void script_run (scriptelem_t const *script, unsigned int scriptlen, char
       for (j = 0 ; j < script[i].actlen ; j++)
       {
         act_t const *act = script[i].acts + j ;
-        siovec_t v[4] = { { .s = tstamp, .len = act->flags & 1 ? TIMESTAMP+1 : 0 }, { .s = hstamp, .len = act->flags & 2 ? hlen : 0 }, { .s = (char *)s, .len = len }, { .s = "\n", .len = 1 } } ;
+        struct iovec v[4] = { { .iov_base = tstamp, .iov_len = act->flags & 1 ? TIMESTAMP+1 : 0 }, { .iov_base = hstamp, .iov_len = act->flags & 2 ? hlen : 0 }, { .iov_base = (char *)s, .iov_len = len }, { .iov_base = "\n", .iov_len = 1 } } ;
         switch (act->type)
         {
           case ACTTYPE_FD1 :
@@ -961,9 +961,9 @@ static void script_run (scriptelem_t const *script, unsigned int scriptlen, char
             buffer_puts(buffer_2, ": alert: ") ;
             if (act->data.fd2_size && act->data.fd2_size + 3 < len)
             {
-              v[2].len = act->data.fd2_size ;
-              v[3].s = "...\n" ;
-              v[3].len = 4 ;
+              v[2].iov_len = act->data.fd2_size ;
+              v[3].iov_base = "...\n" ;
+              v[3].iov_len = 4 ;
             }
             buffer_putv(buffer_2, v, 4) ;
             buffer_flush(buffer_2) ; /* if it blocks, too bad */
@@ -977,10 +977,10 @@ static void script_run (scriptelem_t const *script, unsigned int scriptlen, char
                 siovec_trunc(v, 4, act->data.status.filelen) ;
               else
               {
-                register size_t k = act->data.status.filelen - reallen + 1 ;
+                size_t k = act->data.status.filelen - reallen + 1 ;
                 char pad[k] ;
-                v[3].s = pad ;
-                v[3].len = k ;
+                v[3].iov_base = pad ;
+                v[3].iov_len = k ;
                 while (k--) pad[k] = '\n' ;
                 if (!openwritevnclose_suffix(act->data.status.file, v, 4, ".new") && verbosity)
                   strerr_warnwu2sys("write status file ", act->data.status.file) ;
@@ -1115,8 +1115,8 @@ static inline void handle_signals (void)
       case 0 : return ;
       case SIGALRM :
       {
-        register unsigned int i = 0 ;
-        for (i = 0 ; i < llen ; i++)
+        unsigned int i = 0 ;
+        for (; i < llen ; i++)
           if ((logdirs[i].rstate == ROTSTATE_WRITABLE) && logdirs[i].b)
           {
             logdirs[i].rstate = ROTSTATE_START ;
@@ -1135,8 +1135,8 @@ static inline void handle_signals (void)
         for (;;)
         {
           int wstat ;
-          register unsigned int i = 0 ;
-          register pid_t r = wait_nohang(&wstat) ;
+          unsigned int i = 0 ;
+          pid_t r = wait_nohang(&wstat) ;
           if (r <= 0) break ;
           for (; i < llen ; i++) if (r == logdirs[i].pid) break ;
           if (i < llen) processor_died(logdirs + i, wstat) ;
@@ -1161,7 +1161,7 @@ int main (int argc, char const *const *argv)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "qvbptel:", &l) ;
+      int opt = subgetopt_r(argc, argv, "qvbptel:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {

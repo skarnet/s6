@@ -41,7 +41,7 @@ exact function prototypes.
 
 <pre>
 char const *path = "/var/lib/myservice/fifodir" ;
-int gid = -1 ;
+gid_t gid = -1 ;
 int forceperms = 0 ;
 int r = ftrigw_fifodir_make(path, gid, forceperms) ;
 </pre>

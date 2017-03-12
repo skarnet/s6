@@ -3,9 +3,8 @@
 #ifndef FTRIGR_H
 #define FTRIGR_H
 
+#include <stdint.h>
 #include <skalibs/config.h>
-#include <skalibs/uint16.h>
-#include <skalibs/uint32.h>
 #include <skalibs/tai.h>
 #include <skalibs/genalloc.h>
 #include <skalibs/gensetdyn.h>
@@ -40,12 +39,12 @@ enum fr1state_e
 typedef struct ftrigr1_s ftrigr1_t, *ftrigr1_t_ref ;
 struct ftrigr1_s
 {
-  uint32 options ;
+  uint32_t options ;
   unsigned int count ;
   fr1state_t state ;
   char what ;
 } ;
-#define FTRIGR1_ZERO { 0, 0, FR1STATE_ERROR, 0 }
+#define FTRIGR1_ZERO { .options = 0, .count = 0, .state = FR1STATE_ERROR, .what = 0 }
 extern ftrigr1_t const ftrigr1_zero ;
 
 
@@ -55,7 +54,7 @@ typedef struct ftrigr_s ftrigr, ftrigr_t, *ftrigr_ref, *ftrigr_t_ref ;
 struct ftrigr_s
 {
   skaclient_t connection ;
-  genalloc list ; /* array of uint16 */
+  genalloc list ; /* array of uint16_t */
   gensetdyn data ; /* set of ftrigr1_t */
   skaclient_buffer_t buffers ;
 } ;
@@ -76,21 +75,21 @@ extern void ftrigr_end (ftrigr_t *) ;
 
 #define ftrigr_fd(a) skaclient_fd(&(a)->connection)
 extern int ftrigr_update (ftrigr_t *) ;
-extern int ftrigr_check (ftrigr_t *, uint16, char *) ;
+extern int ftrigr_check (ftrigr_t *, uint16_t, char *) ;
 
 
  /* Synchronous functions with timeouts */
 
 #define FTRIGR_REPEAT 0x0001
 
-extern uint16 ftrigr_subscribe (ftrigr_t *, char const *, char const *, uint32, tain_t const *, tain_t *) ;
+extern uint16_t ftrigr_subscribe (ftrigr_t *, char const *, char const *, uint32_t, tain_t const *, tain_t *) ;
 #define ftrigr_subscribe_g(a, path, re, options, deadline) ftrigr_subscribe(a, path, re, options, (deadline), &STAMP)
-extern int ftrigr_unsubscribe (ftrigr_t *, uint16, tain_t const *, tain_t *) ;
+extern int ftrigr_unsubscribe (ftrigr_t *, uint16_t, tain_t const *, tain_t *) ;
 #define ftrigr_unsubscribe_g(a, id, deadline) ftrigr_unsubscribe(a, id, (deadline), &STAMP)
 
-extern int ftrigr_wait_and (ftrigr_t *, uint16 const *, unsigned int, tain_t const *, tain_t *) ;
+extern int ftrigr_wait_and (ftrigr_t *, uint16_t const *, unsigned int, tain_t const *, tain_t *) ;
 #define ftrigr_wait_and_g(a, list, len, deadline) ftrigr_wait_and(a, list, len, (deadline), &STAMP)
-extern int ftrigr_wait_or  (ftrigr_t *, uint16 const *, unsigned int, tain_t const *, tain_t *, char *) ;
+extern int ftrigr_wait_or  (ftrigr_t *, uint16_t const *, unsigned int, tain_t const *, tain_t *, char *) ;
 #define ftrigr_wait_or_g(a, list, len, deadline, what) ftrigr_wait_or(a, list, len, deadline, &STAMP, what)
 
 #endif

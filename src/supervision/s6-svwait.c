@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 #include <skalibs/sgetopt.h>
-#include <skalibs/uint.h>
+#include <skalibs/types.h>
 #include <skalibs/bitarray.h>
 #include <skalibs/tai.h>
 #include <skalibs/strerr2.h>
@@ -22,7 +22,7 @@ int main (int argc, char const *const *argv)
     unsigned int t = 0 ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "UudDaot:", &l) ;
+      int opt = subgetopt_r(argc, argv, "UudDaot:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {

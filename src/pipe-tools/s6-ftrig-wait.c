@@ -4,7 +4,7 @@
 #include <errno.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/sgetopt.h>
-#include <skalibs/uint.h>
+#include <skalibs/types.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/tai.h>
 #include <s6/ftrigr.h>
@@ -22,7 +22,7 @@ int main (int argc, char const *const *argv)
     unsigned int t = 0 ;
     for (;;)
     {
-      register int opt = subgetopt(argc, argv, "t:") ;
+      int opt = subgetopt(argc, argv, "t:") ;
       if (opt == -1) break ;
       switch (opt)
       {

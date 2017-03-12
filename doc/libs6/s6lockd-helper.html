@@ -43,7 +43,8 @@ threads) to implement timed lock acquisition. This can lead to a lot of
 s6lockd-helper processes, but this is not a problem:
   <ul>
    <li> Processes are not a scarce resource. Today's schedulers work in O(1),
-i.e. a sleeping process takes no scheduling time at all. </li>
+or in O(a function of the number of runnable processes), which means that a
+sleeping process takes no scheduling time at all </li>
    <li> s6lockd-helper is extremely tiny. Every instance should use up at
 most one or two pages of non-sharable memory. </li>
   </ul> </li>

@@ -1,5 +1,6 @@
 /* ISC license. */
 
+#include <sys/types.h>
 #include <errno.h>
 #include <skalibs/buffer.h>
 #include <skalibs/strerr2.h>
@@ -14,7 +15,7 @@ int main (void)
   stamp[TIMESTAMP] = ' ' ;
   for (;;)
   {
-    register int r = skagetln(buffer_0f1, &satmp, '\n') ;
+    int r = skagetln(buffer_0f1, &satmp, '\n') ;
     if (r < 0)
       if (errno != EPIPE)
         strerr_diefu1sys(111, "read from stdin") ;
@@ -26,8 +27,8 @@ int main (void)
       }
     else if (!r) break ;
     timestamp(stamp) ;
-    if ((buffer_put(buffer_1, stamp, TIMESTAMP+1) < 0)
-     || (buffer_put(buffer_1, satmp.s, satmp.len) < 0))
+    if ((buffer_put(buffer_1, stamp, TIMESTAMP+1) < TIMESTAMP+1)
+     || (buffer_put(buffer_1, satmp.s, satmp.len) < (ssize_t)satmp.len))
       strerr_diefu1sys(111, "write to stdout") ;
     satmp.len = 0 ;
   }

@@ -1,6 +1,5 @@
- /* ISC license. */
+/* ISC license. */
 
-#include <errno.h>
 #include <skalibs/unixmessage.h>
 #include <s6/s6-fdholder.h>
 

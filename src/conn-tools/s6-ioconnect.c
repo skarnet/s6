@@ -4,7 +4,7 @@
 #include <sys/socket.h>
 #include <errno.h>
 #include <signal.h>
-#include <skalibs/uint.h>
+#include <skalibs/types.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/error.h>
@@ -74,14 +74,14 @@ static void handle_signals (void)
 int main (int argc, char const *const *argv)
 {
   tain_t tto ;
-  register unsigned int i, j ;
+  unsigned int i, j ;
   PROG = "s6-ioconnect" ;
   {
     subgetopt_t l = SUBGETOPT_ZERO ;
     unsigned int t = 0 ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "0167t:r:w:", &l) ;
+      int opt = subgetopt_r(argc, argv, "0167t:r:w:", &l) ;
       if (opt < 0) break ;
       switch (opt)
       {

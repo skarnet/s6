@@ -1,8 +1,8 @@
- /* ISC license. */
+/* ISC license. */
 
 #include <stdint.h>
 #include <errno.h>
-#include <skalibs/uint32.h>
+#include <skalibs/types.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/error.h>
 #include <skalibs/stralloc.h>
@@ -12,7 +12,7 @@
 int s6_fdholder_list_cb (unixmessage_t const *m, void *p)
 {
   uint32_t n ;
-  register s6_fdholder_list_result_t *res = p ;
+  s6_fdholder_list_result_t *res = p ;
   if (m->nfds) goto droperr ;
   if (!m->len) goto err ;
   if (m->s[0])

@@ -1,12 +1,12 @@
 /* ISC license. */
 
-#include <sys/types.h>
+#include <string.h>
 #include <stdint.h>
 #include <sys/stat.h>
 #include <errno.h>
 #include <unistd.h>
 #include <skalibs/bytestr.h>
-#include <skalibs/uint16.h>
+#include <skalibs/types.h>
 #include <skalibs/cdb.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/djbunix.h>
@@ -31,8 +31,8 @@ static int domkdir (char const *s)
 static void mkdirp (char *s)
 {
   mode_t m = umask(0) ;
-  size_t len = str_len(s) ;
-  register size_t i = basedirlen + 1 ;
+  size_t len = strlen(s) ;
+  size_t i = basedirlen + 1 ;
   for (; i < len ; i++) if (s[i] == '/')
   {
     s[i] = 0 ;
@@ -50,7 +50,7 @@ static void mkdirp (char *s)
 
 static void touchtrunc (char const *file)
 {
-  register int fd = open_trunc(file) ;
+  int fd = open_trunc(file) ;
   if (fd < 0) strerr_diefu2sys(111, "open_trunc ", file) ;
   fd_close(fd) ;
 }
@@ -72,9 +72,9 @@ static int doenv (char const *dir, size_t dirlen, char *env, size_t envlen)
     {
       size_t p = byte_chr(env + i, n, '=') ;
       char tmp[dirlen + p + 2] ;
-      byte_copy(tmp, dirlen, dir) ;
+      memcpy(tmp, dir, dirlen) ;
       tmp[dirlen] = '/' ;
-      byte_copy(tmp + dirlen + 1, p, env + i) ;
+      memcpy(tmp + dirlen + 1, env + i, p) ;
       tmp[dirlen + p + 1] = 0 ;
       if (p < n)
       {
@@ -100,7 +100,7 @@ static int doit (struct cdb *c)
     uint16_t envlen, execlen ;
     char name[basedirlen + klen + 8] ;
     char data[dlen] ;
-    byte_copy(name, basedirlen, basedir) ;
+    memcpy(name, basedir, basedirlen) ;
     name[basedirlen] = '/' ;
     if (!dlen || (dlen > 8201)) return (errno = EINVAL, 0) ;
     if ((cdb_read(c, name+basedirlen+1, klen, cdb_keypos(c)) < 0)
@@ -114,12 +114,12 @@ static int doit (struct cdb *c)
     name[basedirlen + klen + 1] = '/' ;
     if (data[0] == 'A')
     {
-      byte_copy(name + basedirlen + klen + 2, 6, "allow") ;
+      memcpy(name + basedirlen + klen + 2, "allow", 6) ;
       touchtrunc(name) ;
     }
     else if (data[0] == 'D')
     {
-      byte_copy(name + basedirlen + klen + 2, 5, "deny") ;
+      memcpy(name + basedirlen + klen + 2, "deny", 5) ;
       touchtrunc(name) ;
     }
     if (dlen < 3) return 1 ;
@@ -129,10 +129,10 @@ static int doit (struct cdb *c)
     if ((execlen > 4096U) || (5U + envlen + execlen != dlen)) return (errno = EINVAL, 0) ;
     if (envlen)
     {
-      byte_copy(name + basedirlen + klen + 2, 4, "env") ;
+      memcpy(name + basedirlen + klen + 2, "env", 4) ;
       if (!doenv(name, basedirlen + klen + 5, data + 3, envlen)) return (errno = EINVAL, 0) ;
     }
-    byte_copy(name + basedirlen + klen + 2, 5, "exec") ;
+    memcpy(name + basedirlen + klen + 2, "exec", 5) ;
     if (execlen && !openwritenclose_unsafe(name, data + 5 + envlen, execlen))
     {
       cleanup() ;
@@ -150,7 +150,7 @@ int main (int argc, char const *const *argv)
   if (argc < 3) strerr_dieusage(100, USAGE) ;
   if (cdb_mapfile(&c, argv[2]) < 0) strerr_diefu1sys(111, "cdb_mapfile") ;
   basedir = argv[1] ;
-  basedirlen = str_len(argv[1]) ;
+  basedirlen = strlen(argv[1]) ;
   {
     mode_t m = umask(0) ;
     if (mkdir(basedir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH | S_ISGID) < 0)
@@ -160,7 +160,7 @@ int main (int argc, char const *const *argv)
   cdb_traverse_init(&c, &kpos) ;
   for (;;)
   {
-    register int r = cdb_nextkey(&c, &kpos) ;
+    int r = cdb_nextkey(&c, &kpos) ;
     if (r < 0)
     {
       cleanup() ;

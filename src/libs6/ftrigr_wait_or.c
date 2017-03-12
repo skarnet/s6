@@ -14,8 +14,8 @@ int ftrigr_wait_or (ftrigr_t *a, uint16_t const *idlist, unsigned int n, tain_t 
   if (x.fd < 0) return -1 ;
   for (;;)
   {
-    register unsigned int i = 0 ;
-    register int r ;
+    unsigned int i = 0 ;
+    int r ;
     for (; i < n ; i++)
     {
       r = ftrigr_check(a, idlist[i], c) ;

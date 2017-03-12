@@ -66,7 +66,7 @@ Namely:
 </p>
 
 <p>
-<code>s6_accessrules_result_t f (char const *key, unsigned int keylen, void *handle, s6_accessrules_params_t *params) </code>
+<code>s6_accessrules_result_t f (char const *key, size_t keylen, void *handle, s6_accessrules_params_t *params) </code>
 </p>
 
 <p>
@@ -123,9 +123,8 @@ is not S6_ACCESSRULES_NOTFOUND. If no match can be found in the whole list,
  <li>
 <a name="uidgid" />
  <tt>s6_accessrules_keycheck_uidgid</tt> interprets <em>key</em> as a
-<a href="http://skarnet.org/software/skalibs/libstddjb/">diuint</a>, i.e. a
-structure containing two unsigned ints. The first one is interpreted as an
-uid <em>u</em>, the second one as a gid <em>g</em>. The function first looks
+pointer to a structure containing an uid <em>u</em> and a gid <em>g</em>.
+The function first looks
 for a <tt>uid/<em>u</em></tt> match; if it cannot find one, it looks for a
 <tt>gid/<em>g</em></tt> match. If it cannot find one either, it checks
 <tt>uid/default</tt> and returns the result. </li>

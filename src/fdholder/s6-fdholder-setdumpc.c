@@ -1,8 +1,7 @@
 /* ISC license. */
 
-#include <sys/types.h>
-#include <skalibs/uint.h>
-#include <skalibs/bytestr.h>
+#include <string.h>
+#include <skalibs/types.h>
 #include <skalibs/env.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/sgetopt.h>
@@ -24,7 +23,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "t:", &l) ;
+      int opt = subgetopt_r(argc, argv, "t:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -52,20 +51,20 @@ int main (int argc, char const *const *argv, char const *const *envp)
     {
       size_t len ;
       unsigned int fd ;
-      byte_copy(s, 6, "S6_FD_") ;
+      memcpy(s, "S6_FD_", 6) ;
       s[6 + uint_fmt(s+6, i)] = 0 ;
       x = env_get2(envp, s) ;
       if (!x) strerr_dienotset(100, s) ;
       if (!uint0_scan(x, &fd)) strerr_dieinvalid(100, s) ;
       dump[i].fd = fd ;
-      byte_copy(s, 8, "S6_FDID_") ;
+      memcpy(s, "S6_FDID_", 8) ;
       s[8 + uint_fmt(s+8, i)] = 0 ;
       x = env_get2(envp, s) ;
       if (!x) strerr_dienotset(100, s) ;
-      len = str_len(x) ;
+      len = strlen(x) ;
       if (!len || len > S6_FDHOLDER_ID_SIZE) strerr_dieinvalid(100, s) ;
-      byte_copy(dump[i].id, len+1, x) ;
-      byte_copy(s, 11, "S6_FDLIMIT_") ;
+      memcpy(dump[i].id, x, len+1) ;
+      memcpy(s, "S6_FDLIMIT_", 11) ;
       s[11 + uint_fmt(s+11, i)] = 0 ;
       x = env_get2(envp, s) ;
       if (!x) tain_add_g(&dump[i].limit, &tain_infinite_relative) ;

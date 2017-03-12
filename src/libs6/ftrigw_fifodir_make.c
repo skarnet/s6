@@ -1,12 +1,11 @@
 /* ISC license. */
 
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
 #include <s6/ftrigw.h>
 
-int ftrigw_fifodir_make (char const *path, int gid, int force)
+int ftrigw_fifodir_make (char const *path, gid_t gid, int force)
 {
   mode_t m = umask(0) ;
   if (mkdir(path, 0700) == -1)

@@ -1,4 +1,4 @@
- /* ISC license. */
+/* ISC license. */
 
 #include <errno.h>
 #include <skalibs/error.h>
@@ -7,7 +7,7 @@
 
 int s6_fdholder_retrieve_cb (unixmessage_t const *m, void *p)
 {
-  register s6_fdholder_retrieve_result_t *res = p ;
+  s6_fdholder_retrieve_result_t *res = p ;
   if (m->len != 1) goto err ;
   if (m->s[0])
   {

@@ -1,6 +1,5 @@
 /* ISC license. */
 
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <s6/s6-supervise.h>
 

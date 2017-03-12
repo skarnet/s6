@@ -19,7 +19,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   PROG = "s6-envdir" ;
   for (;;)
   {
-    register int opt = subgetopt_r(argc, argv, "Iinfc:", &l) ;
+    int opt = subgetopt_r(argc, argv, "Iinfc:", &l) ;
     if (opt == -1) break ;
     switch (opt)
     {

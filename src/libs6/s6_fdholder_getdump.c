@@ -1,12 +1,11 @@
- /* ISC license. */
+/* ISC license. */
 
-#include <sys/types.h>
+#include <string.h>
 #include <stdint.h>
 #include <errno.h>
-#include <skalibs/uint32.h>
+#include <skalibs/types.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/error.h>
-#include <skalibs/bytestr.h>
 #include <skalibs/tai.h>
 #include <skalibs/genalloc.h>
 #include <skalibs/djbunix.h>
@@ -17,7 +16,7 @@ int s6_fdholder_getdump (s6_fdholder_t *a, genalloc *g, tain_t const *deadline, 
 {
   unixmessage_t m  = { .s = "?", .len = 1, .fds = 0, .nfds = 0 } ;
   uint32_t ntot, n ;
-  unsigned int oldlen = genalloc_len(s6_fdholder_fd_t, g) ;
+  size_t oldlen = genalloc_len(s6_fdholder_fd_t, g) ;
   unsigned int i = 0 ;
   int ok ;
   if (!unixmessage_put(&a->connection.out, &m)) return 0 ;
@@ -48,8 +47,8 @@ int s6_fdholder_getdump (s6_fdholder_t *a, genalloc *g, tain_t const *deadline, 
         m.s += TAIN_PACK ; m.len -= TAIN_PACK + 1 ;
         thislen = *m.s++ ;
         if (thislen > m.len - 1 || m.s[thislen]) goto droperr ;
-        byte_copy(tab[j].id, thislen, m.s) ;
-        byte_zero(tab[j].id + thislen, S6_FDHOLDER_ID_SIZE + 1 - thislen) ;
+        memcpy(tab[j].id, m.s, thislen) ;
+        memset(tab[j].id + thislen, 0, S6_FDHOLDER_ID_SIZE + 1 - thislen) ;
         m.s += (size_t)thislen + 1 ; m.len -= (size_t)thislen + 1 ;
         tab[j].fd = m.fds[j] ;
       }

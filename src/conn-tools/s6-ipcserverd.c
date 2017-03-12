@@ -3,14 +3,13 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <errno.h>
+#include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
-#include <skalibs/uint.h>
-#include <skalibs/gidstuff.h>
+#include <skalibs/types.h>
 #include <skalibs/gccattributes.h>
 #include <skalibs/allreadwrite.h>
-#include <skalibs/bytestr.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/env.h>
@@ -70,14 +69,14 @@ static inline void X (void)
 
 static unsigned int lookup_pid (pid_t pid)
 {
-  register unsigned int i = 0 ;
+  unsigned int i = 0 ;
   for (; i < numconn ; i++) if (pid == piduid[i].left) break ;
   return i ;
 }
 
 static inline unsigned int lookup_uid (uid_t uid)
 {
-  register unsigned int i = 0 ;
+  unsigned int i = 0 ;
   for (; i < uidlen ; i++) if (uid == uidnum[i].left) break ;
   return i ;
 }
@@ -104,12 +103,12 @@ static void log_status (void)
 
 static void log_deny (uid_t uid, gid_t gid, unsigned int num)
 {
-  char fmtuid[UINT64_FMT] = "?" ;
+  char fmtuid[UID_FMT] = "?" ;
   char fmtgid[GID_FMT] = "?" ;
   char fmtnum[UINT_FMT] = "?" ;
   if (flaglookup)
   {
-    fmtuid[uint64_fmt(fmtuid, (uint64)uid)] = 0 ;
+    fmtuid[uid_fmt(fmtuid, uid)] = 0 ;
     fmtgid[gid_fmt(fmtgid, gid)] = 0 ;
     fmtnum[uint_fmt(fmtnum, num)] = 0 ;
   }
@@ -118,28 +117,28 @@ static void log_deny (uid_t uid, gid_t gid, unsigned int num)
 
 static void log_accept (pid_t pid, uid_t uid, gid_t gid, unsigned int num)
 {
-  char fmtuidgid[UINT64_FMT + GID_FMT + 1] = "?:?" ;
+  char fmtuidgid[UID_FMT + GID_FMT + 1] = "?:?" ;
   char fmtpid[UINT_FMT] ;
   char fmtnum[UINT_FMT] = "?" ;
   if (flaglookup)
   {
-    register size_t n = uint64_fmt(fmtuidgid, (uint64)uid) ;
+    size_t n = uid_fmt(fmtuidgid, uid) ;
     fmtuidgid[n++] = ':' ;
     n += gid_fmt(fmtuidgid + n, gid) ;
     fmtuidgid[n] = 0 ;
     fmtnum[uint_fmt(fmtnum, num)] = 0 ;
   }
-  fmtpid[uint_fmt(fmtpid, (unsigned int)pid)] = 0 ;
+  fmtpid[pid_fmt(fmtpid, pid)] = 0 ;
   strerr_warni7x("allow ", fmtuidgid, " pid ", fmtpid, " count ", fmtnum, fmtlocalmaxconn) ;
 }
 
 static void log_close (pid_t pid, uid_t uid, int w)
 {
-  char fmtpid[UINT_FMT] ;
-  char fmtuid[UINT64_FMT] = "?" ;
+  char fmtpid[PID_FMT] ;
+  char fmtuid[UID_FMT] = "?" ;
   char fmtw[UINT_FMT] ;
-  fmtpid[uint_fmt(fmtpid, (unsigned int)pid)] = 0 ;
-  if (flaglookup) fmtuid[uint64_fmt(fmtuid, (uint64)uid)] = 0 ;
+  fmtpid[pid_fmt(fmtpid, pid)] = 0 ;
+  if (flaglookup) fmtuid[uid_fmt(fmtuid, uid)] = 0 ;
   fmtw[uint_fmt(fmtw, WIFSIGNALED(w) ? WTERMSIG(w) : WEXITSTATUS(w))] = 0 ;
   strerr_warni6x("end pid ", fmtpid, " uid ", fmtuid, WIFSIGNALED(w) ? " signal " : " exitcode ", fmtw) ;
 }
@@ -149,7 +148,7 @@ static void log_close (pid_t pid, uid_t uid, int w)
 
 static void killthem (int sig)
 {
-  register unsigned int i = 0 ;
+  unsigned int i = 0 ;
   for (; i < numconn ; i++) kill(piduid[i].left, sig) ;
 }
 
@@ -159,7 +158,7 @@ static void wait_children (void)
   {
     unsigned int i ;
     int w ;
-    register pid_t pid = wait_nohang(&w) ;
+    pid_t pid = wait_nohang(&w) ;
     if (pid < 0)
       if (errno != ECHILD) strerr_diefu1sys(111, "wait_nohang") ;
       else break ;
@@ -168,7 +167,7 @@ static void wait_children (void)
     if (i < numconn)
     {
       uid_t uid = piduid[i].right ;
-      register unsigned int j = lookup_uid(uid) ;
+      unsigned int j = lookup_uid(uid) ;
       if (j >= uidlen) X() ;
       if (!--uidnum[j].right) uidnum[j] = uidnum[--uidlen] ;
       piduid[i] = piduid[--numconn] ;
@@ -227,34 +226,34 @@ static void handle_signals (void)
 
  /* New connection handling */
 
-static void run_child (int, unsigned int, unsigned int, unsigned int, char const *, char const *const *, char const *const *) gccattr_noreturn ;
-static void run_child (int s, unsigned int uid, unsigned int gid, unsigned int num, char const *remotepath, char const *const *argv, char const *const *envp)
+static void run_child (int, uid_t, gid_t, unsigned int, char const *, char const *const *, char const *const *) gccattr_noreturn ;
+static void run_child (int s, uid_t uid, gid_t gid, unsigned int num, char const *remotepath, char const *const *argv, char const *const *envp)
 {
-  size_t rplen = str_len(remotepath) + 1 ;
+  size_t rplen = strlen(remotepath) + 1 ;
   unsigned int n = 0 ;
-  char fmt[65 + UINT_FMT * 3 + rplen] ;
+  char fmt[65 + UID_FMT + GID_FMT + UINT_FMT + rplen] ;
   PROG = "s6-ipcserver (child)" ;
   if ((fd_move(0, s) < 0) || (fd_copy(1, 0) < 0))
     strerr_diefu1sys(111, "move fds") ;
-  byte_copy(fmt+n, 23, "PROTO=IPC\0IPCREMOTEEUID") ; n += 23 ;
+  memcpy(fmt+n, "PROTO=IPC\0IPCREMOTEEUID", 23) ; n += 23 ;
   if (flaglookup)
   {
     fmt[n++] = '=' ;
-    n += uint_fmt(fmt+n, uid) ;
+    n += uid_fmt(fmt+n, uid) ;
   }
   fmt[n++] = 0 ;
-  byte_copy(fmt+n, 13, "IPCREMOTEEGID") ; n += 13 ;
+  memcpy(fmt+n, "IPCREMOTEEGID", 13) ; n += 13 ;
   if (flaglookup)
   {
     fmt[n++] = '=' ;
-    n += uint_fmt(fmt+n, gid) ;
+    n += gid_fmt(fmt+n, gid) ;
   }
   fmt[n++] = 0 ;
-  byte_copy(fmt+n, 11, "IPCCONNNUM=") ; n += 11 ;
+  memcpy(fmt+n, "IPCCONNNUM=", 11) ; n += 11 ;
   if (flaglookup) n += uint_fmt(fmt+n, num) ;
   fmt[n++] = 0 ;
-  byte_copy(fmt+n, 14, "IPCREMOTEPATH=") ; n += 14 ;
-  byte_copy(fmt+n, rplen, remotepath) ; n += rplen ;
+  memcpy(fmt+n, "IPCREMOTEPATH=", 14) ; n += 14 ;
+  memcpy(fmt+n, remotepath, rplen) ; n += rplen ;
   pathexec_r(argv, envp, env_len(envp), fmt, n) ;
   strerr_dieexec(111, argv[0]) ;
 }
@@ -263,8 +262,8 @@ static void new_connection (int s, char const *remotepath, char const *const *ar
 {
   uid_t uid = 0 ;
   gid_t gid = 0 ;
+  pid_t pid ;
   unsigned int num, i ;
-  register pid_t pid ;
   if (flaglookup && (getpeereid(s, &uid, &gid) < 0))
   {
     if (verbosity) strerr_warnwu1sys("getpeereid") ;
@@ -314,7 +313,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     int flag1 = 0 ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "Pp1c:C:v:", &l) ;
+      int opt = subgetopt_r(argc, argv, "Pp1c:C:v:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -393,15 +392,15 @@ int main (int argc, char const *const *argv, char const *const *envp)
         {
           int dummy ;
           char remotepath[IPCPATH_MAX+1] ;
-          register int s = ipc_accept(x[1].fd, remotepath, IPCPATH_MAX+1, &dummy) ;
-          if (s < 0)
+          int sock = ipc_accept(x[1].fd, remotepath, IPCPATH_MAX+1, &dummy) ;
+          if (sock < 0)
           {
             if (verbosity) strerr_warnwu1sys("accept") ;
           }
           else
           {
-            new_connection(s, remotepath, argv, envp) ;
-            fd_close(s) ;
+            new_connection(sock, remotepath, argv, envp) ;
+            fd_close(sock) ;
           }
         }
       }

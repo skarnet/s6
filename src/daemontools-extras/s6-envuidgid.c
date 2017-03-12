@@ -1,24 +1,21 @@
 /* ISC license. */
 
-#include <sys/types.h>
+#include <string.h>
 #include <pwd.h>
 #include <grp.h>
 #include <limits.h>
-#include <skalibs/uint64.h>
-#include <skalibs/gidstuff.h>
-#include <skalibs/bytestr.h>
+#include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/env.h>
-#include <skalibs/fmtscan.h>
 #include <skalibs/djbunix.h>
 
 #define USAGE "s6-envuidgid [ -i | -D defaultuid:defaultgid ] [ -u | -g | -B ] [ -n ] account prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 
-static inline size_t scan_defaults (char const *s, uint64 *uid, gid_t *gid, unsigned int *n, gid_t *tab)
+static inline size_t scan_defaults (char const *s, uid_t *uid, gid_t *gid, size_t *n, gid_t *tab)
 {
-  size_t pos = uint64_scan(s, uid) ;
+  size_t pos = uid_scan(s, uid) ;
   if (!pos)
   {
     if (*s != ':') return 0 ;
@@ -54,16 +51,16 @@ int main (int argc, char *const *argv, char const *const *envp)
   unsigned int what = 7 ;
   int numfallback = 0 ;
   int insist = 1 ;
-  uint64 uid ;
+  uid_t uid ;
   gid_t gid ;
-  unsigned int n ;
+  size_t n ;
   gid_t tab[NGROUPS_MAX] ;
   PROG = "s6-envuidgid" ;
   {
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, (char const *const *)argv, "ugBniD:", &l) ;
+      int opt = subgetopt_r(argc, (char const *const *)argv, "ugBniD:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -94,13 +91,13 @@ int main (int argc, char *const *argv, char const *const *envp)
       break ;
     case 3 : /* both */
     {
-      size_t pos = str_chr(argv[0], ':') ;
+      char *colon = strchr(argv[0], ':') ;
       user = argv[0] ;
-      if (argv[0][pos])
+      if (colon)
       {
-        argv[0][pos] = 0 ;
-        group = argv[0] + pos + 1 ;
-        if (!pos) user = 0 ;
+        *colon = 0 ;
+        group = colon + 1 ;
+        if (colon == argv[0]) user = 0 ;
         if (!group[0]) group = 0 ;
       }
       break ;
@@ -131,28 +128,28 @@ int main (int argc, char *const *argv, char const *const *envp)
         gid = pw->pw_gid ;
       }
     }
-    else if (numfallback && uint64_scan(user, &uid)) ;
+    else if (numfallback && uid_scan(user, &uid)) ;
     else if (insist) strerr_dief2x(1, "unknown user: ", user) ;
   }
 
   {
     size_t pos = 0 ;
-    char fmt[19 + UINT64_FMT + (NGROUPS_MAX+1) * GID_FMT] ;
+    char fmt[19 + UID_FMT + (NGROUPS_MAX+1) * GID_FMT] ;
     if (what & 1)
     {
-      byte_copy(fmt + pos, 4, "UID=") ; pos += 4 ;
-      pos += uint64_fmt(fmt + pos, uid) ;
+      memcpy(fmt + pos, "UID=", 4) ; pos += 4 ;
+      pos += uid_fmt(fmt + pos, uid) ;
       fmt[pos++] = 0 ;
     }  
     if (what & 2)
     {
-      byte_copy(fmt + pos, 4, "GID=") ; pos += 4 ;
+      memcpy(fmt + pos, "GID=", 4) ; pos += 4 ;
       pos += gid_fmt(fmt + pos, gid) ;
       fmt[pos++] = 0 ;
     }
     if (what & 4)
     {
-      byte_copy(fmt + pos, 8, "GIDLIST=") ; pos += 8 ;
+      memcpy(fmt + pos, "GIDLIST=", 8) ; pos += 8 ;
       pos += gid_fmtlist(fmt + pos, tab, n) ;
       fmt[pos++] = 0 ;
     }

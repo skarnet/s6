@@ -1,15 +1,14 @@
 /* ISC license. */
 
-#include <sys/types.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <errno.h>
 #include <signal.h>
 #include <skalibs/allreadwrite.h>
-#include <skalibs/bytestr.h>
 #include <skalibs/sgetopt.h>
-#include <skalibs/uint.h>
+#include <skalibs/types.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/tai.h>
 #include <skalibs/iopause.h>
@@ -74,7 +73,7 @@ static void panic (char const *errmsg)
 
 static void killthem (void)
 {
-  register unsigned int i = 0 ;
+  unsigned int i = 0 ;
   if (!wantkill) return ;
   for (; i < n ; i++)
   {
@@ -140,7 +139,7 @@ static void handle_diverted_signals (void)
 {
   for (;;)
   {
-    register int sig = selfpipe_read() ;
+    int sig = selfpipe_read() ;
     switch (sig)
     {
       case -1 : panic("selfpipe_read") ;
@@ -151,11 +150,11 @@ static void handle_diverted_signals (void)
       default :
       {
         char const *name = sig_name(sig) ;
-        size_t len = str_len(name) ;
+        size_t len = strlen(name) ;
         char fn[SIGNAL_PROG_LEN + len + 1] ;
         char const *const newargv[2] = { fn, 0 } ;
-        byte_copy(fn, SIGNAL_PROG_LEN, SIGNAL_PROG) ;
-        byte_copy(fn + SIGNAL_PROG_LEN, len + 1, name) ;
+        memcpy(fn, SIGNAL_PROG, SIGNAL_PROG_LEN) ;
+        memcpy(fn + SIGNAL_PROG_LEN, name, len + 1) ;
         if (!child_spawn0(newargv[0], newargv, (char const **)environ))
           strerr_warnwu2sys("spawn ", newargv[0]) ;
       }
@@ -213,14 +212,14 @@ static void reap (void)
   for (;;)
   {
     int wstat ;
-    int r = wait_nohang(&wstat) ;
+    pid_t r = wait_nohang(&wstat) ;
     if (r < 0)
       if (errno != ECHILD) panic("wait_nohang") ;
       else break ;
     else if (!r) break ;
     else
     {
-      register unsigned int i = 0 ;
+      unsigned int i = 0 ;
       for (; i < n ; i++)
       {
         if (services[i].pid[0] == r)
@@ -324,7 +323,7 @@ static void check (char const *name)
     return ;
   }
   if (!S_ISDIR(st.st_mode)) return ;
-  namelen = str_len(name) ;
+  namelen = strlen(name) ;
   for (; i < n ; i++) if ((services[i].ino == st.st_ino) && (services[i].dev == st.st_dev)) break ;
   if (i < n)
   {
@@ -346,8 +345,8 @@ static void check (char const *name)
     {
       struct stat su ;
       char tmp[namelen + 5] ;
-      byte_copy(tmp, namelen, name) ;
-      byte_copy(tmp + namelen, 5, "/log") ;
+      memcpy(tmp, name, namelen) ;
+      memcpy(tmp + namelen, "/log", 5) ;
       if (stat(tmp, &su) < 0)
         if (errno == ENOENT) services[i].flaglog = 0 ;
         else
@@ -385,8 +384,8 @@ static void check (char const *name)
     if (!tain_future(&services[i].restartafter[1]))
     {
       char tmp[namelen + 5] ;
-      byte_copy(tmp, namelen, name) ;
-      byte_copy(tmp + namelen, 5, "/log") ;
+      memcpy(tmp, name, namelen) ;
+      memcpy(tmp + namelen, "/log", 5) ;
       trystart(i, tmp, 1) ;
     }
     else if (tain_less(&services[i].restartafter[1], &deadline))
@@ -456,7 +455,7 @@ int main (int argc, char const *const *argv)
     unsigned int t = 0 ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "Sst:c:", &l) ;
+      int opt = subgetopt_r(argc, argv, "Sst:c:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {

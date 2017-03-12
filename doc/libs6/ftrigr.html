@@ -44,8 +44,8 @@ simply ignoring pids you don't know.
 </p>
 
 <p>
- If your (badly programmed) application has trouble handling unknown
-children, consider using a ftrigrd service.
+ If your application has trouble handling unknown
+children, consider using a ftrigrd service. (And fix your application!)
 </p>
 
 <h3> A programming example </h3>
@@ -240,14 +240,14 @@ which something happened.
 
 <p>
  When <tt>ftrigr_update</tt> returns,
-<tt>genalloc_s(uint16, &amp;a-&gt;list)</tt> points to an array of
-<tt>genalloc_len(uint16, &amp;a-&gt;list)</tt> 16-bit unsigned
+<tt>genalloc_s(uint16_t, &amp;a-&gt;list)</tt> points to an array of
+<tt>genalloc_len(uint16_t, &amp;a-&gt;list)</tt> 16-bit unsigned
 integers. Those integers are ids waiting to be passed to
 <tt>ftrigr_check</tt>.
 </p>
 
 <pre>
-int ftrigr_check (ftrigr_t *a, uint16 id, char *what)
+int ftrigr_check (ftrigr_t *a, uint16_t id, char *what)
 </pre>
 
 <p>

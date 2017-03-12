@@ -2,7 +2,7 @@
 
 #include <sys/types.h>
 #include <skalibs/sgetopt.h>
-#include <skalibs/gidstuff.h>
+#include <skalibs/types.h>
 #include <skalibs/strerr2.h>
 #include <s6/ftrigw.h>
 
@@ -16,7 +16,7 @@ int main (int argc, char const *const *argv)
   PROG = "s6-mkfifodir" ;
   for (;;)
   {
-    register int opt = subgetopt_r(argc, argv, "fg:", &l) ;
+    int opt = subgetopt_r(argc, argv, "fg:", &l) ;
     if (opt == -1) break ;
     switch (opt)
     {

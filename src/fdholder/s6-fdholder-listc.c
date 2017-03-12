@@ -1,8 +1,7 @@
 /* ISC license. */
 
-#include <sys/types.h>
-#include <skalibs/uint.h>
-#include <skalibs/bytestr.h>
+#include <string.h>
+#include <skalibs/types.h>
 #include <skalibs/buffer.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/sgetopt.h>
@@ -27,7 +26,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "t:", &l) ;
+      int opt = subgetopt_r(argc, argv, "t:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -47,7 +46,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (n < 0) strerr_diefu1sys(1, "get fd list") ;
   while (n--)
   {
-    register size_t len = str_len(sa.s + pos) ;
+    size_t len = strlen(sa.s + pos) ;
     sb.len = 0 ;
     if (!string_quote_nodelim_mustquote(&sb, sa.s + pos, len, 0, 0))
       strerr_diefu1sys(111, "quote string") ;

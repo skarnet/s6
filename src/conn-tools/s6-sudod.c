@@ -1,13 +1,12 @@
 /* ISC license. */
 
-#include <sys/types.h>
+#include <string.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
-#include <skalibs/uint32.h>
-#include <skalibs/uint.h>
+#include <skalibs/types.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/bytestr.h>
@@ -40,7 +39,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   PROG = "s6-sudod" ;
   for (;;)
   {
-    register int opt = subgetopt_r(argc, argv, "012t:", &l) ;
+    int opt = subgetopt_r(argc, argv, "012t:", &l) ;
     if (opt < 0) break ;
     switch (opt)
     {
@@ -67,7 +66,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     strerr_dief1x(100, "client did not send 3 fds") ;
   if (m.len < 16 + S6_SUDO_BANNERA_LEN)
     strerr_dief1x(100, "wrong client message") ;
-  if (str_diffn(m.s, S6_SUDO_BANNERA, S6_SUDO_BANNERA_LEN))
+  if (strncmp(m.s, S6_SUDO_BANNERA, S6_SUDO_BANNERA_LEN))
     strerr_dief1x(100, "wrong client banner") ;
   uint32_unpack_big(m.s + S6_SUDO_BANNERA_LEN, &cargc) ;
   uint32_unpack_big(m.s + S6_SUDO_BANNERA_LEN + 4, &cenvc) ;
@@ -100,7 +99,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     char const *targv[argc + 1 + cargc] ;
     char const *tenvp[envc + 1 + cenvc] ;
     int p[2] ;
-    register unsigned int i = 0 ;
+    unsigned int i = 0 ;
     for (; i < (unsigned int)argc ; i++) targv[i] = argv[i] ;
     for (i = 0 ; i <= envc ; i++) tenvp[i] = envp[i] ;
     if (!env_make(targv + argc, cargc, m.s + S6_SUDO_BANNERA_LEN + 16, carglen))
@@ -124,8 +123,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
     for (i = 0 ; i < cenvc ; i++)
     {
       char const *var = tenvp[envc + 1 + i] ;
-      register unsigned int j = 0 ;
-      register size_t len = str_chr(var, '=') ;
+      unsigned int j = 0 ;
+      size_t len = str_chr(var, '=') ;
       if (!var[len])
       {
         char c = EINVAL ;
@@ -133,7 +132,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
         buffer_timed_flush_g(buffer_1small, &deadline) ;
         strerr_dief1x(100, "bad environment from client") ;
       }
-      for (; j < envc ; j++) if (!str_diffn(var, tenvp[j], len+1)) break ;
+      for (; j < envc ; j++) if (!strncmp(var, tenvp[j], len+1)) break ;
       if ((j < envc) && !tenvp[j][len+1]) tenvp[j] = var ;
     }
 
@@ -167,7 +166,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     fd_close(p[1]) ;
     {
       char c ;
-      register ssize_t r = fd_read(p[0], &c, 1) ;
+      ssize_t r = fd_read(p[0], &c, 1) ;
       if (r < 0) strerr_diefu1sys(111, "read from child") ;
       if (r)
       {

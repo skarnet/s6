@@ -1,9 +1,8 @@
 /* ISC license. */
 
-#include <sys/types.h>
 #include <stdint.h>
 #include <skalibs/sgetopt.h>
-#include <skalibs/uint.h>
+#include <skalibs/types.h>
 #include <skalibs/tai.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/djbunix.h>
@@ -27,7 +26,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     unsigned int t = 0 ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "uUdDrRt:", &l) ;
+      int opt = subgetopt_r(argc, argv, "uUdDrRt:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -53,7 +52,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (!pid) strerr_diefu2sys(111, "spawn ", argv[1]) ;
   if (wantrestart)
   {
-    register int r = s6_svlisten_loop(&foo, 0, 1, 1, &deadline, spfd, &s6_svlisten_signal_handler) ;
+    int r = s6_svlisten_loop(&foo, 0, 1, 1, &deadline, spfd, &s6_svlisten_signal_handler) ;
     if (r) return r ;
     wantup = 1 ;
   }

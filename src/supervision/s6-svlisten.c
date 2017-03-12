@@ -1,9 +1,8 @@
 /* ISC license. */
 
-#include <sys/types.h>
 #include <stdint.h>
 #include <skalibs/sgetopt.h>
-#include <skalibs/uint.h>
+#include <skalibs/types.h>
 #include <skalibs/bitarray.h>
 #include <skalibs/tai.h>
 #include <skalibs/strerr2.h>
@@ -27,7 +26,7 @@ int main (int argc, char const **argv, char const *const *envp)
     unsigned int t = 0 ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "uUdDrRaot:", &l) ;
+      int opt = subgetopt_r(argc, argv, "uUdDrRaot:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {

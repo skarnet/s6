@@ -14,7 +14,7 @@ int s6lock_wait_and (s6lock_t *a, uint16_t const *idlist, unsigned int n, tain_t
   {
     for (;;)
     {
-      register int r = s6lock_check(a, *idlist) ;
+      int r = s6lock_check(a, *idlist) ;
       if (r < 0) return r ;
       else if (r) break ;
       r = iopause_stamp(&x, 1, deadline, stamp) ;

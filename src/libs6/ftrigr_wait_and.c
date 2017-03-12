@@ -15,7 +15,7 @@ int ftrigr_wait_and (ftrigr_t *a, uint16_t const *idlist, unsigned int n, tain_t
     for (;;)
     {
       char dummy ;
-      register int r = ftrigr_check(a, *idlist, &dummy) ;
+      int r = ftrigr_check(a, *idlist, &dummy) ;
       if (r < 0) return r ;
       else if (r) break ;
       r = iopause_stamp(&x, 1, deadline, stamp) ;

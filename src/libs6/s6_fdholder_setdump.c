@@ -1,14 +1,14 @@
- /* ISC license. */
+/* ISC license. */
 
-#include <sys/types.h>
+#include <sys/uio.h>
 #include <stdint.h>
+#include <string.h>
 #include <errno.h>
-#include <skalibs/uint32.h>
+#include <skalibs/types.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/error.h>
 #include <skalibs/tai.h>
-#include <skalibs/siovec.h>
 #include <skalibs/unixmessage.h>
 #include <s6/s6-fdholder.h>
 
@@ -40,20 +40,20 @@ int s6_fdholder_setdump (s6_fdholder_t *a, s6_fdholder_fd_t const *list, unsigne
     {
       unsigned int n = ntot > UNIXMESSAGE_MAXFDS ? UNIXMESSAGE_MAXFDS : ntot ;
       unsigned int j = 0 ;
-      siovec_t v[1 + (n<<1)] ;
+      struct iovec v[1 + (n<<1)] ;
       int fds[n] ;
       unixmessage_v_t m = { .v = v, .vlen = 1 + (n<<1), .fds = fds, .nfds = n } ;
       char pack[n * (TAIN_PACK+1)] ;
-      v[0].s = "." ; v[0].len = 1 ;
+      v[0].iov_base = "." ; v[0].iov_len = 1 ;
       for (; j < n ; j++, list++, ntot--)
       {
-        size_t len = str_len(list->id) ;
-        v[1 + (j<<1)].s = pack + j * (TAIN_PACK+1) ;
-        v[1 + (j<<1)].len = TAIN_PACK + 1 ;
+        size_t len = strlen(list->id) ;
+        v[1 + (j<<1)].iov_base = pack + j * (TAIN_PACK+1) ;
+        v[1 + (j<<1)].iov_len = TAIN_PACK + 1 ;
         tain_pack(pack + j * (TAIN_PACK+1), &list->limit) ;
         pack[j * (TAIN_PACK+1) + TAIN_PACK] = (unsigned char)len ;
-        v[2 + (j<<1)].s = (char *)list->id ;
-        v[2 + (j<<1)].len = len + 1 ;
+        v[2 + (j<<1)].iov_base = (char *)list->id ;
+        v[2 + (j<<1)].iov_len = len + 1 ;
         fds[j] = list->fd ;
       }
       if (!unixmessage_putv(&a->connection.out, &m)) return 0 ;

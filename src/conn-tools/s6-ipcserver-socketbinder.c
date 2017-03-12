@@ -1,10 +1,9 @@
 /* ISC license. */
 
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <skalibs/uint.h>
+#include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/djbunix.h>
@@ -23,7 +22,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "DdMmb:", &l) ;
+      int opt = subgetopt_r(argc, argv, "DdMmb:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {

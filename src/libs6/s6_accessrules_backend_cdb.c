@@ -1,11 +1,10 @@
 /* ISC license. */
 
-#include <sys/types.h>
+#include <string.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
-#include <skalibs/bytestr.h>
-#include <skalibs/uint16.h>
+#include <skalibs/types.h>
 #include <skalibs/cdb.h>
 #include <skalibs/stralloc.h>
 #include <s6/accessrules.h>
@@ -16,7 +15,7 @@ s6_accessrules_result_t s6_accessrules_backend_cdb (char const *key, size_t keyl
   size_t execbase ;
   unsigned int n ;
   uint16_t envlen, execlen ;
-  register int r = cdb_find(c, key, keylen) ;
+  int r = cdb_find(c, key, keylen) ;
   if (r < 0) return S6_ACCESSRULES_ERROR ;
   else if (!r) return S6_ACCESSRULES_NOTFOUND ;
   n = cdb_datalen(c) ;
@@ -31,7 +30,7 @@ s6_accessrules_result_t s6_accessrules_backend_cdb (char const *key, size_t keyl
   uint16_unpack_big(params->exec.s + execbase + 3 + envlen, &execlen) ;
   if ((execlen > 4096U) || (5U + envlen + execlen != n)) return (errno = EINVAL, S6_ACCESSRULES_ERROR) ;
   if (!stralloc_catb(&params->env, params->exec.s + execbase + 3U, envlen)) return S6_ACCESSRULES_ERROR ;
-  byte_copy(params->exec.s + execbase, execlen, params->exec.s + execbase + 5U + envlen) ;
+  memcpy(params->exec.s + execbase, params->exec.s + execbase + 5U + envlen, execlen) ;
   if (execlen)
   {
     params->exec.len += execlen ;

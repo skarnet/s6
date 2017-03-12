@@ -5,7 +5,7 @@
 #include <errno.h>
 #include <skalibs/gccattributes.h>
 #include <skalibs/error.h>
-#include <skalibs/uint16.h>
+#include <skalibs/types.h>
 #include <skalibs/genalloc.h>
 #include <skalibs/gensetdyn.h>
 #include <skalibs/unixmessage.h>

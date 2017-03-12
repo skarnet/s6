@@ -1,23 +1,22 @@
 /* ISC license. */
 
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <string.h>
 #include <errno.h>
-#include <skalibs/bytestr.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/djbunix.h>
 #include <s6/s6-supervise.h>
 
 int s6_supervise_lock_mode (char const *subdir, unsigned int subdirmode, unsigned int controlmode)
 {
-  size_t subdirlen = str_len(subdir) ;
+  size_t subdirlen = strlen(subdir) ;
   int fdctl, fdctlw, fdlock ;
   char control[subdirlen + 9] ;
   char lock[subdirlen + 6] ;
-  byte_copy(control, subdirlen, subdir) ;
-  byte_copy(control + subdirlen, 9, "/control") ;
-  byte_copy(lock, subdirlen, subdir) ;
-  byte_copy(lock + subdirlen, 6, "/lock") ;
+  memcpy(control, subdir, subdirlen) ;
+  memcpy(control + subdirlen, "/control", 9) ;
+  memcpy(lock, subdir, subdirlen) ;
+  memcpy(lock + subdirlen, "/lock", 6) ;
   if ((mkdir(subdir, (mode_t)subdirmode) == -1) && (errno != EEXIST))
     strerr_diefu2sys(111, "mkdir ", subdir) ;
   if (mkfifo(control, controlmode) < 0)

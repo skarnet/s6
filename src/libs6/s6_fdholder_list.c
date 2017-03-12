@@ -1,4 +1,4 @@
- /* ISC license. */
+/* ISC license. */
 
 #include <errno.h>
 #include <skalibs/allreadwrite.h>

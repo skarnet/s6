@@ -3,16 +3,16 @@
 /* For SIGWINCH */
 #include <skalibs/nonposix.h>
 
-#include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <string.h>
 #include <strings.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/bytestr.h>
-#include <skalibs/uint.h>
+#include <skalibs/types.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/tai.h>
 #include <skalibs/iopause.h>
@@ -73,7 +73,7 @@ static inline void announce (void)
 static int read_uint (char const *file, unsigned int *fd)
 {
   char buf[UINT_FMT + 1] ;
-  register ssize_t r = openreadnclose_nb(file, buf, UINT_FMT) ;
+  ssize_t r = openreadnclose_nb(file, buf, UINT_FMT) ;
   if (r < 0)
   {
     if (errno != ENOENT) strerr_warnwu2sys("open ", file) ;
@@ -491,11 +491,11 @@ static action_t_ref const actions[5][25] =
 static inline void handle_notifyfd (void)
 {
   char buf[4096] ;
-  register ssize_t r = 1 ;
+  ssize_t r = 1 ;
   while (r > 0)
   {
     r = sanitize_read(fd_read(notifyfd, buf, 4096)) ;
-    if (r > 0 && byte_chr(buf, r, '\n') < r)
+    if (r > 0 && memchr(buf, r, '\n'))
     {
       tain_copynow(&status.readystamp) ;
       status.flagready = 1 ;
@@ -553,12 +553,12 @@ static inline void handle_control (int fd)
   for (;;)
   {
     char c ;
-    register ssize_t r = sanitize_read(fd_read(fd, &c, 1)) ;
+    ssize_t r = sanitize_read(fd_read(fd, &c, 1)) ;
     if (r < 0) strerr_diefu1sys(111, "read " S6_SUPERVISE_CTLDIR "/control") ;
     else if (!r) break ;
     else
     {
-      register size_t pos = byte_chr("abqhkti12fFpcyoduxOX", 20, c) ;
+      size_t pos = byte_chr("abqhkti12fFpcyoduxOX", 20, c) ;
       if (pos < 20) (*actions[state][V_a + pos])() ;
     }
   }
@@ -571,12 +571,12 @@ int main (int argc, char const *const *argv)
   if (argc < 2) strerr_dieusage(100, USAGE) ;
   if (chdir(argv[1]) < 0) strerr_diefu2sys(111, "chdir to ", argv[1]) ;
   {
-    size_t proglen = str_len(PROG) ;
-    size_t namelen = str_len(argv[1]) ;
+    size_t proglen = strlen(PROG) ;
+    size_t namelen = strlen(argv[1]) ;
     char progname[proglen + namelen + 2] ;
-    byte_copy(progname, proglen, PROG) ;
+    memcpy(progname, PROG, proglen) ;
     progname[proglen] = ' ' ;
-    byte_copy(progname + proglen + 1, namelen + 1, argv[1]) ;
+    memcpy(progname + proglen + 1, argv[1], namelen + 1) ;
     PROG = progname ;
     if (!fd_sanitize()) strerr_diefu1sys(111, "sanitize stdin and stdout") ;
     x[1].fd = s6_supervise_lock(S6_SUPERVISE_CTLDIR) ;
@@ -611,7 +611,7 @@ int main (int argc, char const *const *argv)
 
     while (cont)
     {
-      register int r ;
+      int r ;
       x[2].fd = notifyfd ;
       r = iopause_g(x, 2 + (notifyfd >= 0), &deadline) ;
       if (r < 0) strerr_diefu1sys(111, "iopause") ;

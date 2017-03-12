@@ -1,12 +1,11 @@
 /* ISC license. */
 
-#include <sys/types.h>
 #include <sys/wait.h>
+#include <string.h>
 #include <unistd.h>
 #include <errno.h>
 #include <skalibs/uint64.h>
-#include <skalibs/uint.h>
-#include <skalibs/bytestr.h>
+#include <skalibs/types.h>
 #include <skalibs/buffer.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/sgetopt.h>
@@ -23,13 +22,13 @@ int main (int argc, char const *const *argv)
   s6_svstatus_t status ;
   int flagnum = 0 ;
   int isup, normallyup ;
-  char fmt[UINT_FMT] ;
+  char fmt[UINT64_FMT] ;
   PROG = "s6-svstat" ;
   {
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "n", &l) ;
+      int opt = subgetopt_r(argc, argv, "n", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -51,10 +50,10 @@ int main (int argc, char const *const *argv)
   if (tain_future(&status.stamp)) tain_copynow(&status.stamp) ;
 
   {
-    size_t dirlen = str_len(*argv) ;
+    size_t dirlen = strlen(*argv) ;
     char fn[dirlen + 6] ;
-    byte_copy(fn, dirlen, *argv) ;
-    byte_copy(fn + dirlen, 6, "/down") ;
+    memcpy(fn, *argv, dirlen) ;
+    memcpy(fn + dirlen, "/down", 6) ;
     if (access(fn, F_OK) < 0)
       if (errno != ENOENT) strerr_diefu2sys(111, "access ", fn) ;
       else normallyup = 1 ;
@@ -65,7 +64,7 @@ int main (int argc, char const *const *argv)
   if (isup)
   {
     buffer_putnoflush(buffer_1small,"up (pid ", 8) ;
-    buffer_putnoflush(buffer_1small, fmt, uint_fmt(fmt, status.pid)) ;
+    buffer_putnoflush(buffer_1small, fmt, pid_fmt(fmt, status.pid)) ;
     buffer_putnoflush(buffer_1small, ") ", 2) ;
   }
   else

@@ -3,8 +3,8 @@
 #ifndef S6LOCK_H
 #define S6LOCK_H
 
+#include <stdint.h>
 #include <errno.h>
-#include <skalibs/uint16.h>
 #include <skalibs/tai.h>
 #include <skalibs/genalloc.h>
 #include <skalibs/gensetdyn.h>
@@ -29,7 +29,7 @@ typedef struct s6lock_s s6lock_t, *s6lock_t_ref ;
 struct s6lock_s
 {
   skaclient_t connection ;
-  genalloc list ; /* array of uint16 */
+  genalloc list ; /* array of uint16_t */
   gensetdyn data ; /* set of char */
   skaclient_buffer_t buffers ;
 } ;
@@ -50,7 +50,7 @@ extern void s6lock_end (s6lock_t *) ;
 
 #define s6lock_fd(a) skaclient_fd(&(a)->connection)
 extern int s6lock_update (s6lock_t *) ;
-extern int s6lock_check (s6lock_t *, uint16) ;
+extern int s6lock_check (s6lock_t *, uint16_t) ;
 
 
  /* Synchronous functions */
@@ -58,18 +58,18 @@ extern int s6lock_check (s6lock_t *, uint16) ;
 #define S6LOCK_OPTIONS_SH 0x0000U
 #define S6LOCK_OPTIONS_EX 0x0001U
 
-extern int s6lock_acquire (s6lock_t *, uint16 *, char const *, uint32, tain_t const *, tain_t const *, tain_t *) ;
+extern int s6lock_acquire (s6lock_t *, uint16_t *, char const *, uint32_t, tain_t const *, tain_t const *, tain_t *) ;
 #define s6lock_acquire_g(a, id, path, options, limit, deadline) s6lock_acquire(a, id, path, options, limit, (deadline), &STAMP)
 #define s6lock_acquire_sh(a, id, path, limit, deadline, stamp) s6lock_aquire(a, id, path, S6LOCK_OPTIONS_SH, limit, deadline, stamp)
 #define s6lock_acquire_ex(a, id, path, limit, deadline, stamp) s6lock_aquire(a, id, path, S6LOCK_OPTIONS_EX, limit, deadline, stamp)
 #define s6lock_acquire_sh_g(a, id, path, limit, deadline) s6lock_acquire_sh(a, id, path, limit, (deadline), &STAMP)
 #define s6lock_acquire_ex_g(a, id, path, limit, deadline) s6lock_acquire_ex(a, id, path, limit, (deadline), &STAMP)
-extern int s6lock_release (s6lock_t *, uint16, tain_t const *, tain_t *) ;
+extern int s6lock_release (s6lock_t *, uint16_t, tain_t const *, tain_t *) ;
 #define s6lock_release_g(a, id, deadline) s6lock_release(a, id, (deadline), &STAMP)
 
-extern int s6lock_wait_and (s6lock_t *, uint16 const *, unsigned int, tain_t const *, tain_t *) ;
+extern int s6lock_wait_and (s6lock_t *, uint16_t const *, unsigned int, tain_t const *, tain_t *) ;
 #define s6lock_wait_and_g(a, list, len, deadline) s6lock_wait_and(a, list, len, (deadline), &STAMP)
-extern int s6lock_wait_or  (s6lock_t *, uint16 const *, unsigned int, tain_t const *, tain_t *) ;
+extern int s6lock_wait_or  (s6lock_t *, uint16_t const *, unsigned int, tain_t const *, tain_t *) ;
 #define s6lock_wait_or_g(a, list, len, deadline) s6lock_wait_or(a, list, len, (deadline), &STAMP)
 
 #endif

@@ -22,7 +22,7 @@ int ftrigr_check (ftrigr_t *a, uint16_t id, char *c)
     }
     case FR1STATE_LISTENING :
     {
-      register unsigned int r = p->count ;
+      unsigned int r = p->count ;
       if (r) *c = p->what ;
       p->count = 0 ;
       return (int)r ;

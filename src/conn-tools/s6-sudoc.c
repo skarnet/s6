@@ -1,14 +1,14 @@
 /* ISC license. */
 
+#include <string.h>
 #include <stdint.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <sys/uio.h>
 #include <sys/wait.h>
-#include <skalibs/uint32.h>
-#include <skalibs/uint.h>
+#include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
-#include <skalibs/bytestr.h>
 #include <skalibs/buffer.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/strerr2.h>
@@ -36,7 +36,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   PROG = "s6-sudoc" ;
   for (;;)
   {
-    register int opt = subgetopt_r(argc, argv, "et:T:", &l) ;
+    int opt = subgetopt_r(argc, argv, "et:T:", &l) ;
     if (opt < 0) break ;
     switch (opt)
     {
@@ -59,33 +59,33 @@ int main (int argc, char const *const *argv, char const *const *envp)
     char tmp[S6_SUDO_BANNERB_LEN] ;
     if (buffer_timed_get_g(&b6, tmp, S6_SUDO_BANNERB_LEN, &deadline) < S6_SUDO_BANNERB_LEN)
       strerr_diefu1sys(111, "read banner from s6-sudod") ;
-    if (str_diffn(tmp, S6_SUDO_BANNERB, S6_SUDO_BANNERB_LEN))
+    if (strncmp(tmp, S6_SUDO_BANNERB, S6_SUDO_BANNERB_LEN))
       strerr_dief1x(100, "wrong server banner") ;
   }
   {
     int fds[3] = { 0, 1, 2 } ;
     char pack[16] ;
-    siovec_t v[4] = {
-      { .s = S6_SUDO_BANNERA, .len = S6_SUDO_BANNERA_LEN },
-      { .s = pack, .len = 16 },
-      { .s = 0, .len = 0 },
-      { .s = 0, .len = 0 } } ;
+    struct iovec v[4] = {
+      { .iov_base = S6_SUDO_BANNERA, .iov_len = S6_SUDO_BANNERA_LEN },
+      { .iov_base = pack, .iov_len = 16 },
+      { .iov_base = 0, .iov_len = 0 },
+      { .iov_base = 0, .iov_len = 0 } } ;
     unixmessage_v_t mv = { .v = v, .vlen = 4, .fds = fds, .nfds = 3 } ;
     stralloc sa = STRALLOC_ZERO ;
     size_t envlen = doenv ? env_len(envp) : 0 ;
     uint32_pack_big(pack, (uint32_t)argc) ;
     uint32_pack_big(pack + 4, (uint32_t)envlen) ;
     if (!env_string(&sa, argv, argc)) dienomem() ;
-    v[2].len = sa.len ;
-    uint32_pack_big(pack + 8, (uint32_t)v[2].len) ;
+    v[2].iov_len = sa.len ;
+    uint32_pack_big(pack + 8, (uint32_t)v[2].iov_len) ;
     if (doenv)
     {
       if (!env_string(&sa, envp, envlen)) dienomem() ;
-      v[3].len = sa.len - v[2].len ;
+      v[3].iov_len = sa.len - v[2].iov_len ;
     }
-    uint32_pack_big(pack + 12, (uint32)v[3].len) ;
-    v[2].s = sa.s ;
-    v[3].s = sa.s + v[2].len ;
+    uint32_pack_big(pack + 12, (uint32_t)v[3].iov_len) ;
+    v[2].iov_base = sa.s ;
+    v[3].iov_base = sa.s + v[2].iov_len ;
     if (!unixmessage_putv_and_close(&b7, &mv, (unsigned char const *)"\003"))
       strerr_diefu1sys(111, "unixmessage_putv") ;
     stralloc_free(&sa) ;
@@ -112,6 +112,5 @@ int main (int argc, char const *const *argv, char const *const *envp)
       strerr_diefu1sys(111, "get exit status from server") ;
     uint_unpack_big(pack, &t) ;
   }
-  if (WIFSIGNALED(t)) raise(WTERMSIG(t)) ;
-  return WEXITSTATUS(t) ;
+  return wait_estatus(t) ;
 }

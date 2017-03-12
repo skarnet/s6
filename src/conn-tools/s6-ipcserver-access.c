@@ -1,12 +1,10 @@
 /* ISC license. */
 
-#include <sys/types.h>
+#include <string.h>
 #include <unistd.h>
 #include <errno.h>
 #include <skalibs/gccattributes.h>
-#include <skalibs/uint64.h>
-#include <skalibs/uint.h>
-#include <skalibs/gidstuff.h>
+#include <skalibs/types.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/cdb.h>
@@ -45,11 +43,11 @@ static inline void X ()
 
 static void logit (pid_t pid, uid_t uid, gid_t gid, int h)
 {
-  char fmtpid[UINT_FMT] ;
-  char fmtuid[UINT64_FMT] ;
+  char fmtpid[PID_FMT] ;
+  char fmtuid[UID_FMT] ;
   char fmtgid[GID_FMT] ;
-  fmtpid[uint_fmt(fmtpid, (unsigned int)pid)] = 0 ;
-  fmtuid[uint64_fmt(fmtuid, (uint64)uid)] = 0 ;
+  fmtpid[pid_fmt(fmtpid, pid)] = 0 ;
+  fmtuid[uid_fmt(fmtuid, uid)] = 0 ;
   fmtgid[gid_fmt(fmtgid, gid)] = 0 ;
   if (h) strerr_warni7x("allow", " pid ", fmtpid, " uid ", fmtuid, " gid ", fmtgid) ;
   else strerr_warni7sys("deny", " pid ", fmtpid, " uid ", fmtuid, " gid ", fmtgid) ;
@@ -72,7 +70,7 @@ static s6_accessrules_result_t check_cdb (uid_t uid, gid_t gid, char const *file
 {
   struct cdb c = CDB_ZERO ;
   int fd = open_readb(file) ;
-  register s6_accessrules_result_t r ;
+  s6_accessrules_result_t r ;
   if (fd < 0) return -1 ;
   if (cdb_init(&c, fd) < 0) strerr_diefu2sys(111, "cdb_init ", file) ;
   r = s6_accessrules_uidgid_cdb(uid, gid, &c, params) ;
@@ -127,7 +125,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "v:Eel:i:x:", &l) ;
+      int opt = subgetopt_r(argc, argv, "v:Eel:i:x:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -147,19 +145,16 @@ int main (int argc, char const *const *argv, char const *const *envp)
 
   proto = env_get2(envp, "PROTO") ;
   if (!proto) strerr_dienotset(100, "PROTO") ;
-  protolen = str_len(proto) ;
+  protolen = strlen(proto) ;
 
   {
-    uint64 u ;
     char const *x ;
     char tmp[protolen + 11] ;
     byte_copy(tmp, protolen, proto) ;
     byte_copy(tmp + protolen, 11, "REMOTEEUID") ;
     x = env_get2(envp, tmp) ;
     if (!x) strerr_dienotset(100, tmp) ;
-    if (!uint640_scan(x, &u)) strerr_dieinvalid(100, tmp) ;
-    if (u > (uint64)(uid_t)-1) strerr_dieinvalid(100, tmp) ;
-    uid = (uid_t)u ;
+    if (!uid0_scan(x, &uid)) strerr_dieinvalid(100, tmp) ;
     tmp[protolen + 7] = 'G' ;
     x = env_get2(envp, tmp) ;
     if (!x) strerr_dienotset(100, tmp) ;
@@ -176,8 +171,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (doenv)
   {
     char tmp[protolen + 10] ;
-    byte_copy(tmp, protolen, proto) ;
-    byte_copy(tmp + protolen, 10, "LOCALPATH") ;
+    memcpy(tmp, proto, protolen) ;
+    memcpy(tmp + protolen, "LOCALPATH", 10) ;
     if (localname)
     {
       if (!env_addmodif(&params.env, tmp, localname)) dienomem() ;
@@ -194,15 +189,15 @@ int main (int argc, char const *const *argv, char const *const *envp)
   else
   {
     char tmp[protolen + 11] ;
-    byte_copy(tmp, protolen, proto) ;
-    byte_copy(tmp + protolen, 11, "REMOTEEUID") ;
+    memcpy(tmp, proto, protolen) ;
+    memcpy(tmp + protolen, "REMOTEEUID", 11) ;
     if (!env_addmodif(&params.env, "PROTO", 0)) dienomem() ;
     if (!env_addmodif(&params.env, tmp, 0)) dienomem() ;
     tmp[protolen + 7] = 'G' ;
     if (!env_addmodif(&params.env, tmp, 0)) dienomem() ;
-    byte_copy(tmp + protolen + 6, 5, "PATH") ;
+    memcpy(tmp + protolen + 6, "PATH", 5) ;
     if (!env_addmodif(&params.env, tmp, 0)) dienomem() ;
-    byte_copy(tmp + protolen, 10, "LOCALPATH") ;
+    memcpy(tmp + protolen, "LOCALPATH", 10) ;
     if (!env_addmodif(&params.env, tmp, 0)) dienomem() ;
   }
 

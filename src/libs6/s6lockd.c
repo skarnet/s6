@@ -1,12 +1,10 @@
 /* ISC license. */
 
-#include <sys/types.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
 #include <signal.h>
-#include <skalibs/uint16.h>
-#include <skalibs/uint32.h>
+#include <skalibs/types.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/error.h>
 #include <skalibs/strerr2.h>
@@ -39,7 +37,7 @@ static genalloc a = GENALLOC_ZERO ; /* array of s6lockio_t */
 
 static void s6lockio_free (s6lockio_t *p)
 {
-  register int e = errno ;
+  int e = errno ;
   fd_close(p->p[1]) ;
   fd_close(p->p[0]) ;
   kill(p->pid, SIGTERM) ;
@@ -49,7 +47,7 @@ static void s6lockio_free (s6lockio_t *p)
 
 static void cleanup (void)
 {
-  register size_t i = genalloc_len(s6lockio_t, &a) ;
+  size_t i = genalloc_len(s6lockio_t, &a) ;
   for (; i ; i--) s6lockio_free(genalloc_s(s6lockio_t, &a) + i - 1) ;
   genalloc_setlen(s6lockio_t, &a, 0) ;
 }
@@ -79,7 +77,7 @@ static void answer (char c)
 
 static void remove (unsigned int i)
 {
-  register size_t n = genalloc_len(s6lockio_t, &a) - 1 ;
+  size_t n = genalloc_len(s6lockio_t, &a) - 1 ;
   s6lockio_free(genalloc_s(s6lockio_t, &a) + i) ;
   genalloc_s(s6lockio_t, &a)[i] = genalloc_s(s6lockio_t, &a)[n] ;
   genalloc_setlen(s6lockio_t, &a, n) ;
@@ -117,7 +115,7 @@ static int parse_protocol (unixmessage_t const *m, void *context)
   {
     case '>' : /* release */
     {
-      register size_t i = genalloc_len(s6lockio_t, &a) ;
+      size_t i = genalloc_len(s6lockio_t, &a) ;
       for (; i ; i--) if (genalloc_s(s6lockio_t, &a)[i-1].id == id) break ;
       if (i)
       {
@@ -211,7 +209,7 @@ int main (int argc, char const *const *argv)
 
   for (;;)
   {
-    register size_t n = genalloc_len(s6lockio_t, &a) ;
+    size_t n = genalloc_len(s6lockio_t, &a) ;
     iopause_fd x[4 + n] ;
     unsigned int i = 0 ;
     int r ;
@@ -224,7 +222,7 @@ int main (int argc, char const *const *argv)
     x[3].fd = sfd ; x[3].events = IOPAUSE_READ ;
     for (; i < n ; i++)
     {
-      register s6lockio_t_ref p = genalloc_s(s6lockio_t, &a) + i ;
+      s6lockio_t *p = genalloc_s(s6lockio_t, &a) + i ;
       x[4+i].fd = p->p[0] ;
       x[4+i].events = IOPAUSE_READ ;
       if (p->limit.sec.x && tain_less(&p->limit, &deadline)) deadline = p->limit ;
@@ -243,7 +241,7 @@ int main (int argc, char const *const *argv)
     {
       for (i = 0 ; i < n ; i++)
       {
-        register s6lockio_t_ref p = genalloc_s(s6lockio_t, &a) + i ;
+        s6lockio_t *p = genalloc_s(s6lockio_t, &a) + i ;
         if (p->limit.sec.x && !tain_future(&p->limit)) break ;
       }
       if (i < n)
@@ -274,12 +272,12 @@ int main (int argc, char const *const *argv)
    /* scan children for successes */
     for (i = 0 ; i < genalloc_len(s6lockio_t, &a) ; i++)
     {
-      register s6lockio_t *p = genalloc_s(s6lockio_t, &a) + i ;
+      s6lockio_t *p = genalloc_s(s6lockio_t, &a) + i ;
       if (p->p[0] < 0) continue ;
       if (x[p->xindex].revents & IOPAUSE_READ)
       {
         char c ;
-        register ssize_t r = sanitize_read(fd_read(p->p[0], &c, 1)) ;
+        ssize_t r = sanitize_read(fd_read(p->p[0], &c, 1)) ;
         if (!r) continue ;
         if (r < 0)
         {

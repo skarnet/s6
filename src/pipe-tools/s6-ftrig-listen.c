@@ -1,12 +1,11 @@
 /* ISC license. */
 
-#include <sys/types.h>
 #include <stdint.h>
 #include <errno.h>
 #include <signal.h>
 #include <unistd.h>
 #include <skalibs/sgetopt.h>
-#include <skalibs/uint.h>
+#include <skalibs/types.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/tai.h>
 #include <skalibs/iopause.h>
@@ -43,7 +42,7 @@ int main (int argc, char const **argv, char const *const *envp)
     unsigned int t = 0 ;
     for (;;)
     {
-      register int opt = subgetopt(argc, argv, "aot:") ;
+      int opt = subgetopt(argc, argv, "aot:") ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -85,7 +84,7 @@ int main (int argc, char const **argv, char const *const *envp)
 
     for (;;)
     {
-      register int r ;
+      int r ;
       i = 0 ;
       while (i < idlen)
       {

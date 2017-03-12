@@ -1,6 +1,6 @@
 /* ISC license. */
 
-#include <sys/types.h>
+#include <string.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/env.h>
@@ -19,7 +19,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "qQvp:l:", &l) ;
+      int opt = subgetopt_r(argc, argv, "qQvp:l:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -46,16 +46,16 @@ int main (int argc, char const *const *argv, char const *const *envp)
     if (verbosity >= 2) strerr_warn3x(PROG, ": connected to ", argv[0]) ;
     if (localname)
     {
-      register size_t n = str_len(localname) ;
+      size_t n = strlen(localname) ;
       if (n > IPCPATH_MAX) n = IPCPATH_MAX ;
-      byte_copy(modif + i, n, localname) ;
+      memcpy(modif + i, localname, n) ;
       i += n ; modif[i++] = 0 ;
     }
     else
     {
       int dummy ;
       if (ipc_local(s, modif + i, IPCPATH_MAX, &dummy) < 0) modif[--i] = 0 ;
-      else i += str_len(modif + i) + 1 ;
+      else i += strlen(modif + i) + 1 ;
     }
     if (fd_move(6, s) < 0)
       strerr_diefu2sys(111, "set up fd ", "6") ;

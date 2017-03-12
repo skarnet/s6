@@ -1,8 +1,7 @@
 /* ISC license. */
 
-#include <sys/types.h>
-#include <skalibs/uint.h>
-#include <skalibs/bytestr.h>
+#include <string.h>
+#include <skalibs/types.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/env.h>
 #include <skalibs/djbunix.h>
@@ -14,17 +13,17 @@ int main (int argc, char const *const *argv, char const *const *envp)
   PROG = "s6-connlimit" ;
   x = env_get2(envp, "PROTO") ;
   if (!x) strerr_dienotset(100, "PROTO") ;
-  protolen = str_len(x) ;
+  protolen = strlen(x) ;
   if (!protolen) strerr_dief1x(100, "empty PROTO") ;
   {
     unsigned int num ;
     char s[protolen + 8] ;
-    byte_copy(s, protolen, x) ;
-    byte_copy(s + protolen, 8, "CONNNUM") ;
+    memcpy(s, x, protolen) ;
+    memcpy(s + protolen, "CONNNUM", 8) ;
     x = env_get2(envp, s) ;
     if (!x) strerr_dienotset(100, s) ;
     if (!uint0_scan(x, &num)) strerr_dief2x(100, "invalid ", s) ;
-    byte_copy(s + protolen + 4, 4, "MAX") ;
+    memcpy(s + protolen + 4, "MAX", 4) ;
     x = env_get2(envp, s) ;
     if (x)
     {

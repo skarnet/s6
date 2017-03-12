@@ -1,12 +1,11 @@
 /* ISC license. */
 
-#include <sys/types.h>
 #include <stdint.h>
 #include <errno.h>
 #include <signal.h>
 #include <unistd.h>
 #include <skalibs/sgetopt.h>
-#include <skalibs/uint.h>
+#include <skalibs/types.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/tai.h>
 #include <skalibs/iopause.h>
@@ -40,7 +39,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     unsigned int t = 0 ;
     for (;;)
     {
-      register int opt = subgetopt(argc, argv, "t:") ;
+      int opt = subgetopt(argc, argv, "t:") ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -73,7 +72,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   for (;;)
   {
     char dummy ;
-    register int r = ftrigr_check(&a, id, &dummy) ;
+    int r = ftrigr_check(&a, id, &dummy) ;
     if (r < 0) strerr_diefu1sys(111, "ftrigr_check") ;
     if (r) break ;
     r = iopause_g(x, 2, &deadline) ;

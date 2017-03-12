@@ -1,9 +1,8 @@
 /* ISC license. */
 
-#include <sys/types.h>
+#include <string.h>
 #include <limits.h>
-#include <skalibs/uint.h>
-#include <skalibs/bytestr.h>
+#include <skalibs/types.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/tai.h>
@@ -25,7 +24,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "t:", &l) ;
+      int opt = subgetopt_r(argc, argv, "t:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -53,25 +52,25 @@ int main (int argc, char const *const *argv, char const *const *envp)
     unsigned int i = 0 ;
     char modifs[7 + UINT_FMT + (25 + TIMESTAMP + 4 * UINT_FMT) * n] ;
     if (n > UINT_MAX) strerr_dief1x(100, "dump exceeds maximum size") ;
-    byte_copy(modifs + pos, 7, "S6_FD#=") ; pos += 7 ;
+    memcpy(modifs + pos, "S6_FD#=", 7) ; pos += 7 ;
     pos += uint_fmt(modifs + pos, n) ;
     modifs[pos++] = 0 ;
     for (; i < n ; i++)
     {
       s6_fdholder_fd_t *p = genalloc_s(s6_fdholder_fd_t, &dump) + i ;
-      size_t len = str_len(p->id) + 1 ;
+      size_t len = strlen(p->id) + 1 ;
       if (uncoe(p->fd) < 0) strerr_diefu1sys(111, "uncoe") ;
-      byte_copy(modifs + pos, 6, "S6_FD_") ; pos += 6 ;
+      memcpy(modifs + pos, "S6_FD_", 6) ; pos += 6 ;
       pos += uint_fmt(modifs + pos, i) ;
       modifs[pos++] = '=' ;
       pos += uint_fmt(modifs + pos, p->fd) ;
       modifs[pos++] = 0 ;
-      byte_copy(modifs + pos, 8, "S6_FDID_") ; pos += 8 ;
+      memcpy(modifs + pos, "S6_FDID_", 8) ; pos += 8 ;
       pos += uint_fmt(modifs + pos, i) ;
       modifs[pos++] = '=' ;
-      byte_copy(modifs + pos, len, p->id) ;
+      memcpy(modifs + pos, p->id, len) ;
       pos += len ;
-      byte_copy(modifs + pos, 11, "S6_FDLIMIT_") ; pos += 11 ;
+      memcpy(modifs + pos, "S6_FDLIMIT_", 11) ; pos += 11 ;
       pos += uint_fmt(modifs + pos, i) ;
       if (tain_less(&p->limit, &halfinfinite))
       {

@@ -1,15 +1,15 @@
 /* ISC license. */
 
-#include <sys/types.h>
+#include <sys/uio.h>
 #include <sys/stat.h>
 #include <sys/resource.h>
+#include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <signal.h>
 #include <regex.h>
-#include <skalibs/uint32.h>
-#include <skalibs/uint.h>
+#include <skalibs/types.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/env.h>
@@ -21,7 +21,6 @@
 #include <skalibs/sig.h>
 #include <skalibs/iopause.h>
 #include <skalibs/selfpipe.h>
-#include <skalibs/siovec.h>
 #include <skalibs/cdb.h>
 #include <skalibs/getpeereid.h>
 #include <skalibs/webipc.h>
@@ -102,7 +101,7 @@ static void *fds_id_dtok (unsigned int d, void *x)
 static int fds_id_cmp (void const *a, void const *b, void *x)
 {
   (void)x ;
-  return str_diff((char const *)a, (char const *)b) ;
+  return strcmp((char const *)a, (char const *)b) ;
 }
 
 static void *fds_deadline_dtok (unsigned int d, void *x)
@@ -113,8 +112,8 @@ static void *fds_deadline_dtok (unsigned int d, void *x)
 
 static int fds_deadline_cmp (void const *a, void const *b, void *x)
 {
-  register tain_t const *aa = (tain_t const *)a ;
-  register tain_t const *bb = (tain_t const *)b ;
+  tain_t const *aa = (tain_t const *)a ;
+  tain_t const *bb = (tain_t const *)b ;
   (void)x ;
   return tain_less(aa, bb) ? -1 : tain_less(bb, aa) ;
 }
@@ -163,7 +162,7 @@ static inline void client_free (client_t *c)
 
 static inline void client_delete (unsigned int cc, unsigned int prev)
 {
-  register client_t *c = CLIENT(cc) ;
+  client_t *c = CLIENT(cc) ;
   CLIENT(prev)->next = c->next ;
   client_free(c) ;
   genset_delete(clients, cc) ;
@@ -186,7 +185,7 @@ static void client_setdeadline (client_t *c)
 
 static inline int client_prepare_iopause (unsigned int i, tain_t *deadline, iopause_fd *x, unsigned int *j)
 {
-  register client_t *c = CLIENT(i) ;
+  client_t *c = CLIENT(i) ;
   if (tain_less(&c->deadline, deadline)) *deadline = c->deadline ;
   if (!unixmessage_sender_isempty(&c->connection.out) || !unixmessage_receiver_isempty(&c->connection.in) || (cont && !unixmessage_receiver_isfull(&c->connection.in)))
   {
@@ -217,7 +216,7 @@ static inline void client_add (unsigned int *cc, int fd, regex_t const *rre, reg
 
 static inline int client_flush (unsigned int i, iopause_fd const *x)
 {
-  register client_t *c = CLIENT(i) ;
+  client_t *c = CLIENT(i) ;
   if (c->xindex && (x[c->xindex].revents & IOPAUSE_WRITE))
   {
     if (unixconnection_flush(&c->connection))
@@ -261,8 +260,8 @@ static int do_store (unsigned int cc, unixmessage_t const *m)
   if (!answer(c, 0)) return 0 ;
   pp = genset_new(fdstore) ; p = FD(pp) ;
   tain_unpack(m->s, &p->limit) ; p->fd = m->fds[0] ;
-  byte_copy(p->id, idlen, m->s + TAIN_PACK + 1) ;
-  byte_zero(p->id + idlen, S6_FDHOLDER_ID_SIZE + 1 - idlen) ;
+  memcpy(p->id, m->s + TAIN_PACK + 1, idlen) ;
+  memset(p->id + idlen, 0, S6_FDHOLDER_ID_SIZE + 1 - idlen) ;
   for (;;)
   {
     unsigned int dummy ;
@@ -308,24 +307,24 @@ static int do_retrieve (unsigned int cc, unixmessage_t const *m)
 
 static int fill_siovec_with_ids_iter (char *thing, void *data)
 {
-  siovec_t *v = (*(siovec_t **)data)++ ;
+  struct iovec *v = (*(struct iovec **)data)++ ;
   s6_fdholder_fd_t *p = (s6_fdholder_fd_t *)thing ;
-  v->s = p->id ;
-  v->len = str_len(p->id) + 1 ;
+  v->iov_base = p->id ;
+  v->iov_len = strlen(p->id) + 1 ;
   return 1 ;
 }
 
 static int do_list (unsigned int cc, unixmessage_t const *m)
 {
   client_t *c = CLIENT(cc) ;
-  siovec_t v[numfds] ;
+  struct iovec v[numfds] ;
   unixmessage_v_t ans = { .v = v, .vlen = 1+numfds, .fds = 0, .nfds = 0 } ;
-  siovec_t *vp = v + 1 ;
+  struct iovec *vp = v + 1 ;
   char pack[5] = "" ;
   if (c->dumping || m->len || m->nfds) return (errno = EPROTO, 0) ;
   if (!(c->flags & 4)) return answer(c, EPERM) ;
   uint32_pack_big(pack + 1, (uint32_t)numfds) ;
-  v[0].s = pack ; v[0].len = 5 ;
+  v[0].iov_base = pack ; v[0].iov_len = 5 ;
   genset_iter(fdstore, &fill_siovec_with_ids_iter, &vp) ;
   if (!unixmessage_putv(&c->connection.out, &ans)) return answer(c, errno) ;
   client_setdeadline(c) ;
@@ -335,7 +334,7 @@ static int do_list (unsigned int cc, unixmessage_t const *m)
 typedef struct getdumpiter_s getdumpiter_t, *getdumpiter_t_ref ;
 struct getdumpiter_s
 {
-  siovec_t *v ;
+  struct iovec *v ;
   int *fd ;
   char *limit ;
 } ;
@@ -344,11 +343,11 @@ static int getdump_iter (char *thing, void *stuff)
 {
   s6_fdholder_fd_t *p = (s6_fdholder_fd_t *)thing ;
   getdumpiter_t *blah = stuff ;
-  unsigned char len = str_len(p->id) ;
+  unsigned char len = strlen(p->id) ;
   tain_pack(blah->limit, &p->limit) ;
   blah->limit[TAIN_PACK] = (unsigned char)len ;
-  blah->v->s = p->id ;
-  blah->v->len = len + 1 ;
+  blah->v->iov_base = p->id ;
+  blah->v->iov_len = len + 1 ;
   *blah->fd++ = p->fd ;
   blah->v += 2 ;
   blah->limit += TAIN_PACK + 1 ;
@@ -372,13 +371,13 @@ static int do_getdump (unsigned int cc, unixmessage_t const *m)
   {
     unsigned int i = 0 ;
     unixmessage_v_t ans[n] ;
-    siovec_t v[numfds << 1] ;
+    struct iovec v[numfds << 1] ;
     int fds[numfds] ;
     char limits[(TAIN_PACK+1) * numfds] ;
     for (; i < numfds ; i++)
     {
-      v[i<<1].s = limits + i * (TAIN_PACK+1) ;
-      v[i<<1].len = TAIN_PACK+1 ;
+      v[i<<1].iov_base = limits + i * (TAIN_PACK+1) ;
+      v[i<<1].iov_len = TAIN_PACK+1 ;
     }
     {
       getdumpiter_t state = { .v = v+1, .fd = fds, .limit = limits } ;
@@ -458,7 +457,7 @@ static int do_setdump_data (unsigned int cc, unixmessage_t const *m)
       indices[i] = genset_new(fdstore) ;
       p = FD(indices[i]) ;
       tain_unpack(s, &p->limit) ;
-      byte_copy(p->id, idlen+1, s + TAIN_PACK + 1) ;
+      memcpy(p->id, s + TAIN_PACK + 1, idlen+1) ;
       p->fd = m->fds[i] ;
       if (avltreen_search(fds_by_id, p->id, &oldid)) fds_close_and_delete(oldid) ;
       avltreen_insert(fds_by_id, indices[i]) ;
@@ -514,7 +513,7 @@ static inline int parse_protocol (unixmessage_t const *m, void *p)
 
 static inline int client_read (unsigned int cc, iopause_fd const *x)
 {
-  register client_t *c = CLIENT(cc) ;
+  client_t *c = CLIENT(cc) ;
   return !unixmessage_receiver_isempty(&c->connection.in) || (c->xindex && (x[c->xindex].revents & IOPAUSE_READ)) ?
     unixmessage_handle(&c->connection.in, &parse_protocol, &cc) > 0 : 1 ;
 }
@@ -524,7 +523,7 @@ static inline int client_read (unsigned int cc, iopause_fd const *x)
 
 static int makere (regex_t *re, char const *s, char const *var)
 {
-  register size_t varlen = str_len(var) ;
+  size_t varlen = strlen(var) ;
   if (str_start(s, var) && (s[varlen] == '='))
   {
     int r = regcomp(re, s + varlen + 1, REG_EXTENDED | REG_NOSUB) ;
@@ -617,10 +616,10 @@ static inline int new_connection (int fd, regex_t *rre, regex_t *wre, unsigned i
   }
   if (params.exec.len && verbosity)
   {
-    char fmtuid[UINT_FMT] ;
-    char fmtgid[UINT_FMT] ;
-    fmtuid[uint_fmt(fmtuid, uid)] = 0 ;
-    fmtgid[uint_fmt(fmtgid, gid)] = 0 ;
+    char fmtuid[UID_FMT] ;
+    char fmtgid[GID_FMT] ;
+    fmtuid[uid_fmt(fmtuid, uid)] = 0 ;
+    fmtgid[gid_fmt(fmtgid, gid)] = 0 ;
     strerr_warnw4x("unused exec string in rules for uid ", fmtuid, " gid ", fmtgid) ;
   }
   if (params.env.s)
@@ -658,7 +657,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     unsigned int t = 0, T = 0 ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "v:1c:n:i:x:t:T:", &l) ;
+      int opt = subgetopt_r(argc, argv, "v:1c:n:i:x:t:T:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
