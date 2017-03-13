@@ -1,10 +1,8 @@
 /* ISC license. */
 
-#include <stdint.h>
 #include <errno.h>
-#include <skalibs/tai.h>
-#include <skalibs/iopause.h>
 #include <skalibs/error.h>
+#include <skalibs/iopause.h>
 #include <s6/s6lock.h>
 
 int s6lock_wait_or (s6lock_t *a, uint16_t const *idlist, unsigned int n, tain_t const *deadline, tain_t *stamp)

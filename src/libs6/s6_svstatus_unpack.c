@@ -1,8 +1,8 @@
 /* ISC license. */
 
 #include <stdint.h>
+#include <skalibs/uint16.h>
 #include <skalibs/uint64.h>
-#include <skalibs/types.h>
 #include <skalibs/tai.h>
 #include <s6/s6-supervise.h>
 

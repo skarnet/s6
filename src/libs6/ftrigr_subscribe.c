@@ -4,7 +4,8 @@
 #include <string.h>
 #include <stdint.h>
 #include <errno.h>
-#include <skalibs/types.h>
+#include <skalibs/uint16.h>
+#include <skalibs/uint32.h>
 #include <skalibs/tai.h>
 #include <skalibs/gensetdyn.h>
 #include <skalibs/skaclient.h>
@@ -14,7 +15,7 @@ uint16_t ftrigr_subscribe (ftrigr_t *a, char const *path, char const *re, uint32
 {
   size_t pathlen = strlen(path) ;
   size_t relen = strlen(re) ;
-  unsigned int i ;
+  uint32_t i ;
   char err ;
   char tmp[15] = "--L" ;
   struct iovec v[3] = { { .iov_base = tmp, .iov_len = 15 }, { .iov_base = (char *)path, .iov_len = pathlen + 1 }, { .iov_base = (char *)re, .iov_len = relen + 1 } } ;

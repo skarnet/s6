@@ -1,13 +1,8 @@
 /* ISC license. */
 
 #include <string.h>
-#include <stdint.h>
-#include <unistd.h>
-#include <errno.h>
-#include <skalibs/types.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/bitarray.h>
-#include <skalibs/tai.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/iopause.h>
 #include <skalibs/djbunix.h>

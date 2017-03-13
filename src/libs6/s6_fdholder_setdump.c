@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <errno.h>
-#include <skalibs/types.h>
+#include <skalibs/uint32.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/error.h>

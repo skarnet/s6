@@ -1,7 +1,5 @@
 /* ISC license. */
 
-#include <sys/types.h>
-#include <skalibs/cdb.h>
 #include <s6/accessrules.h>
 
 s6_accessrules_result_t s6_accessrules_uidgid_cdb (uid_t uid, gid_t gid, struct cdb *c, s6_accessrules_params_t *params)

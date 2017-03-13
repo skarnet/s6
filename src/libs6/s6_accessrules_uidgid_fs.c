@@ -1,6 +1,5 @@
 /* ISC license. */
 
-#include <sys/types.h>
 #include <s6/accessrules.h>
 
 s6_accessrules_result_t s6_accessrules_uidgid_fs (uid_t uid, gid_t gid, char const *rulesdir, s6_accessrules_params_t *params)

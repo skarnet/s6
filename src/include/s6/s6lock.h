@@ -4,7 +4,6 @@
 #define S6LOCK_H
 
 #include <stdint.h>
-#include <errno.h>
 #include <skalibs/tai.h>
 #include <skalibs/genalloc.h>
 #include <skalibs/gensetdyn.h>

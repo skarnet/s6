@@ -1,10 +1,8 @@
 /* ISC license. */
 
-#include <stdint.h>
 #include <errno.h>
 #include <skalibs/error.h>
-#include <skalibs/types.h>
-#include <skalibs/tai.h>
+#include <skalibs/uint16.h>
 #include <skalibs/gensetdyn.h>
 #include <skalibs/skaclient.h>
 #include <s6/s6lock.h>

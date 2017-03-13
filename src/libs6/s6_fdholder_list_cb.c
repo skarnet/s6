@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 #include <errno.h>
-#include <skalibs/types.h>
+#include <skalibs/uint32.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/error.h>
 #include <skalibs/stralloc.h>

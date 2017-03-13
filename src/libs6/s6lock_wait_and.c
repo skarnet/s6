@@ -1,8 +1,6 @@
 /* ISC license. */
 
-#include <stdint.h>
 #include <errno.h>
-#include <skalibs/tai.h>
 #include <skalibs/iopause.h>
 #include <s6/s6lock.h>
 

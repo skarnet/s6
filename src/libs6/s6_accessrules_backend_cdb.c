@@ -2,9 +2,8 @@
 
 #include <string.h>
 #include <stdint.h>
-#include <unistd.h>
 #include <errno.h>
-#include <skalibs/types.h>
+#include <skalibs/uint16.h>
 #include <skalibs/cdb.h>
 #include <skalibs/stralloc.h>
 #include <s6/accessrules.h>

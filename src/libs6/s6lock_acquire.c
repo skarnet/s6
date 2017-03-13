@@ -4,7 +4,8 @@
 #include <string.h>
 #include <stdint.h>
 #include <errno.h>
-#include <skalibs/types.h>
+#include <skalibs/uint16.h>
+#include <skalibs/uint32.h>
 #include <skalibs/tai.h>
 #include <skalibs/gensetdyn.h>
 #include <skalibs/skaclient.h>
@@ -16,7 +17,7 @@ int s6lock_acquire (s6lock_t *a, uint16_t *u, char const *path, uint32_t options
   char err ;
   char tmp[23] = "--<" ;
   struct iovec v[2] = { { .iov_base = tmp, .iov_len = 23 }, { .iov_base = (char *)path, .iov_len = pathlen + 1 } } ;
-  unsigned int i ;
+  uint32_t i ;
   if (pathlen > UINT32_MAX) return (errno = ENAMETOOLONG, 0) ;
   if (!gensetdyn_new(&a->data, &i)) return 0 ;
   if (i > UINT16_MAX)
