@@ -207,7 +207,7 @@ static int maybesetsid (void)
   {
     if (r == 8 && buf[7] == '\n') buf[--r] = 0 ;
     if (r == 7 && !strncasecmp(buf, "setpgrp", 7))
-      setpgrp() ;
+      setpgid(0, 0) ;
   }
   return 1 ;
 }
