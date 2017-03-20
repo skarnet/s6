@@ -26,7 +26,7 @@ void s6_svlisten_init (int argc, char const *const *argv, s6_svlisten_t *foo, ui
     memcpy(s, argv[i], len) ;
     s[len] = '/' ;
     memcpy(s + len + 1, S6_SUPERVISE_EVENTDIR, sizeof(S6_SUPERVISE_EVENTDIR)) ;
-    foo->ids[i] = ftrigr_subscribe_g(&foo->a, s, "[DuUd]", FTRIGR_REPEAT, deadline) ;
+    foo->ids[i] = ftrigr_subscribe_g(&foo->a, s, "[DuUdO]", FTRIGR_REPEAT, deadline) ;
     if (!foo->ids[i]) strerr_diefu2sys(111, "subscribe to events for ", argv[i]) ;
     if (!s6_svstatus_read(argv[i], &status)) strerr_diefu1sys(111, "s6_svstatus_read") ;
     bitarray_poke(foo->upstate, i, status.pid && !status.flagfinishing) ;
@@ -47,6 +47,7 @@ static inline int got (s6_svlisten_t const *foo, int wantup, int wantready, int 
 int s6_svlisten_loop (s6_svlisten_t *foo, int wantup, int wantready, int or, tain_t const *deadline, int spfd, action_func_t_ref handler)
 {
   iopause_fd x[2] = { { .fd = ftrigr_fd(&foo->a), .events = IOPAUSE_READ }, { .fd = spfd, .events = IOPAUSE_READ, .revents = 0 } } ;
+  unsigned int e = 0 ;
   while (!got(foo, wantup, wantready, or))
   {
     int r = iopause_g(x, 1 + (spfd >= 0), deadline) ;
@@ -64,12 +65,21 @@ int s6_svlisten_loop (s6_svlisten_t *foo, int wantup, int wantready, int or, tai
         if (r < 0) strerr_diefu1sys(111, "ftrigr_check") ;
         if (r)
         {
-          unsigned int d = byte_chr("dDuU", 4, what) ;
-          bitarray_poke(foo->upstate, i, d & 2) ;
-          bitarray_poke(foo->readystate, i, d & 1) ;
+          if (what == 'O')
+          {
+            bitarray_poke(foo->upstate, i, wantup) ;
+            bitarray_poke(foo->readystate, i, wantready) ;
+            e++ ;
+          }
+          else
+          {
+            unsigned int d = byte_chr("dDuU", 4, what) ;
+            bitarray_poke(foo->upstate, i, d & 2) ;
+            bitarray_poke(foo->readystate, i, d & 1) ;
+          }
         }
       }
     }
   }
-  return 0 ;
+  return e ;
 }

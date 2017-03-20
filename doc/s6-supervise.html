@@ -56,6 +56,10 @@ s6-supervise kills it with a SIGKILL. This can be configured via the
  <li> When <tt>./finish</tt> dies (or is killed),
 s6-supervise sends a <tt>'D'</tt> event to <tt>./event</tt>. Then
 it restarts <tt>./run</tt> unless it has been told not to. </li>
+ <li> If <tt>./finish</tt> exits 125, then s6-supervise sends a <tt>'O'</tt> event
+to <tt>./event</tt> <em>before</em> the <tt>'D'</tt>, and it
+<strong>does not restart the service</strong>, as if <tt>s6-svc -O</tt> had
+been called. This can be used to signify permanent failure to start the service. </li>
  <li> There is a minimum 1-second delay between two <tt>./run</tt> spawns, to avoid busylooping
 if <tt>./run</tt> exits too quickly. </li>
  <li> When killed or asked to exit, it waits for the service to go down one last time, then

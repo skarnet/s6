@@ -46,10 +46,13 @@ int main (int argc, char const *const *argv)
 
   {
     s6_svlisten_t foo = S6_SVLISTEN_ZERO ;
+    int e ;
     uint16_t ids[argc] ;
     unsigned char upstate[bitarray_div8(argc)] ;
     unsigned char readystate[bitarray_div8(argc)] ;
     s6_svlisten_init(argc, argv, &foo, ids, upstate, readystate, &deadline) ;
-    return s6_svlisten_loop(&foo, wantup, wantready, or, &deadline, -1, 0) ;
+    e = s6_svlisten_loop(&foo, wantup, wantready, or, &deadline, -1, 0) ;
+    if (e) strerr_dief1x(e, "some services reported permanent failure") ; 
   }
+  return 0 ;
 }

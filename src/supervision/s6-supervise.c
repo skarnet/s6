@@ -436,7 +436,13 @@ static void finishtimeout (void)
 
 static void finish_z (void)
 {
-  set_down_and_ready("D", 1) ;
+  int wstat = (int)status.pid ;
+  if (WIFEXITED(wstat) && WEXITSTATUS(wstat) == 125)
+  {
+    status.flagwant = 0 ;
+    set_down_and_ready("OD", 2) ;
+  }
+  else set_down_and_ready("D", 1) ;
 }
 
 static void finish_u (void)

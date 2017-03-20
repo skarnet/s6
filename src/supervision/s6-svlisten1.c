@@ -17,6 +17,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   tain_t deadline, tto ;
   pid_t pid ;
   int spfd ;
+  int e ;
   int wantup = 1, wantready = 0, wantrestart = 0 ;
   uint16_t id ;
   unsigned char upstate, readystate ;
@@ -52,9 +53,11 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (!pid) strerr_diefu2sys(111, "spawn ", argv[1]) ;
   if (wantrestart)
   {
-    int r = s6_svlisten_loop(&foo, 0, 1, 1, &deadline, spfd, &s6_svlisten_signal_handler) ;
-    if (r) return r ;
+    int e = s6_svlisten_loop(&foo, 0, 1, 1, &deadline, spfd, &s6_svlisten_signal_handler) ;
+    if (e) strerr_dief2x(1, argv[0], " failed permanently: the finish script exited 125") ;
     wantup = 1 ;
   }
-  return s6_svlisten_loop(&foo, wantup, wantready, 1, &deadline, spfd, &s6_svlisten_signal_handler) ;
+  e = s6_svlisten_loop(&foo, wantup, wantready, 1, &deadline, spfd, &s6_svlisten_signal_handler) ;
+  if (e) strerr_dief2x(1, argv[0], " failed permanently: the finish script exited 125") ;
+  return 0 ;
 }

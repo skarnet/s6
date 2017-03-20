@@ -63,6 +63,7 @@ int main (int argc, char const **argv, char const *const *envp)
   {
     s6_svlisten_t foo = S6_SVLISTEN_ZERO ;
     pid_t pid ;
+    int e ;
     uint16_t ids[argc1] ;
     unsigned char upstate[bitarray_div8(argc1)] ;
     unsigned char readystate[bitarray_div8(argc1)] ;
@@ -71,10 +72,12 @@ int main (int argc, char const **argv, char const *const *envp)
     if (!pid) strerr_diefu2sys(111, "spawn ", argv[argc1 + 1]) ;
     if (wantrestart)
     {
-      argc1 = s6_svlisten_loop(&foo, 0, 1, or, &deadline, spfd, &s6_svlisten_signal_handler) ;
-      if (argc1) return argc1 ;
+      e = s6_svlisten_loop(&foo, 0, 1, or, &deadline, spfd, &s6_svlisten_signal_handler) ;
+      if (e) strerr_dief1x(e, "some services reported permanent failure") ;
       wantup = 1 ;
     }
-    return s6_svlisten_loop(&foo, wantup, wantready, or, &deadline, spfd, &s6_svlisten_signal_handler) ;
+    e = s6_svlisten_loop(&foo, wantup, wantready, or, &deadline, spfd, &s6_svlisten_signal_handler) ;
+    if (e) strerr_dief1x(e, "some services reported permanent failure") ;
   }
+  return 0 ;
 }
