@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <sys/resource.h>
 #include <string.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -92,7 +93,7 @@ static unsigned int maxfds = 1000 ;
 static avltreen *fds_by_id ;
 static avltreen *fds_by_deadline ;
 
-static void *fds_id_dtok (unsigned int d, void *x)
+static void *fds_id_dtok (uint32_t d, void *x)
 {
   (void)x ;
   return FD(d)->id ;
@@ -104,7 +105,7 @@ static int fds_id_cmp (void const *a, void const *b, void *x)
   return strcmp((char const *)a, (char const *)b) ;
 }
 
-static void *fds_deadline_dtok (unsigned int d, void *x)
+static void *fds_deadline_dtok (uint32_t d, void *x)
 {
   (void)x ;
   return &FD(d)->limit ;
@@ -118,14 +119,14 @@ static int fds_deadline_cmp (void const *a, void const *b, void *x)
   return tain_less(aa, bb) ? -1 : tain_less(bb, aa) ;
 }
 
-static void fds_delete (unsigned int pp)
+static void fds_delete (uint32_t pp)
 {
   avltreen_delete(fds_by_id, fds_id_dtok(pp, 0)) ;
   avltreen_delete(fds_by_deadline, fds_deadline_dtok(pp, 0)) ;
   genset_delete(fdstore, pp) ;
 }
 
-static void fds_close_and_delete (unsigned int pp)
+static void fds_close_and_delete (uint32_t pp)
 {
   fd_close(FD(pp)->fd) ;
   fds_delete(pp) ;
@@ -137,8 +138,8 @@ static void fds_close_and_delete (unsigned int pp)
 typedef struct client_s client_t, *client_t_ref ;
 struct client_s
 {
-  unsigned int next ;
-  unsigned int xindex ;
+  uint32_t next ;
+  uint32_t xindex ;
   tain_t deadline ;
   regex_t rre ;
   regex_t wre ;
@@ -148,7 +149,7 @@ struct client_s
 } ;
 
 static genset *clients ;
-static unsigned int sentinel ;
+static uint32_t sentinel ;
 #define CLIENT(i) genset_p(client_t, clients, (i))
 #define numconn (genset_n(clients) - 1)
 
@@ -160,7 +161,7 @@ static inline void client_free (client_t *c)
   regfree(&c->wre) ;
 }
 
-static inline void client_delete (unsigned int cc, unsigned int prev)
+static inline void client_delete (uint32_t cc, uint32_t prev)
 {
   client_t *c = CLIENT(cc) ;
   CLIENT(prev)->next = c->next ;
@@ -168,7 +169,7 @@ static inline void client_delete (unsigned int cc, unsigned int prev)
   genset_delete(clients, cc) ;
 }
 
-static void removeclient (unsigned int *i, unsigned int j)
+static void removeclient (uint32_t *i, uint32_t j)
 {
   client_delete(*i, j) ;
   *i = j ;
@@ -183,7 +184,7 @@ static void client_setdeadline (client_t *c)
     tain_add_g(&c->deadline, &answertto) ;
 }
 
-static inline int client_prepare_iopause (unsigned int i, tain_t *deadline, iopause_fd *x, unsigned int *j)
+static inline int client_prepare_iopause (uint32_t i, tain_t *deadline, iopause_fd *x, uint32_t *j)
 {
   client_t *c = CLIENT(i) ;
   if (tain_less(&c->deadline, deadline)) *deadline = c->deadline ;
@@ -197,9 +198,9 @@ static inline int client_prepare_iopause (unsigned int i, tain_t *deadline, iopa
   return !!c->xindex ;
 }
 
-static inline void client_add (unsigned int *cc, int fd, regex_t const *rre, regex_t const *wre, unsigned int flags)
+static inline void client_add (uint32_t *cc, int fd, regex_t const *rre, regex_t const *wre, unsigned int flags)
 {
-  unsigned int i ;
+  uint32_t i ;
   client_t *c ;
   i = genset_new(clients) ;
   c = CLIENT(i) ;
@@ -214,7 +215,7 @@ static inline void client_add (unsigned int *cc, int fd, regex_t const *rre, reg
   *cc = i ;
 }
 
-static inline int client_flush (unsigned int i, iopause_fd const *x)
+static inline int client_flush (uint32_t i, iopause_fd const *x)
 {
   client_t *c = CLIENT(i) ;
   if (c->xindex && (x[c->xindex].revents & IOPAUSE_WRITE))
@@ -234,9 +235,9 @@ static int answer (client_t *c, char e)
   return 1 ;
 }
 
-static int do_store (unsigned int cc, unixmessage_t const *m)
+static int do_store (uint32_t cc, unixmessage_t const *m)
 {
-  unsigned int pp, idlen ;
+  uint32_t pp, idlen ;
   client_t *c = CLIENT(cc) ;
   s6_fdholder_fd_t *p ;
   if (c->dumping || m->len < TAIN_PACK + 3 || m->nfds != 1) return (errno = EPROTO, 0) ;
@@ -264,7 +265,7 @@ static int do_store (unsigned int cc, unixmessage_t const *m)
   memset(p->id + idlen, 0, S6_FDHOLDER_ID_SIZE + 1 - idlen) ;
   for (;;)
   {
-    unsigned int dummy ;
+    uint32_t dummy ;
     if (!avltreen_search(fds_by_deadline, &p->limit, &dummy)) break ;
     tain_add(&p->limit, &p->limit, &nano1) ;
   }
@@ -273,9 +274,9 @@ static int do_store (unsigned int cc, unixmessage_t const *m)
   return 1 ;
 }
 
-static int do_delete (unsigned int cc, unixmessage_t const *m)
+static int do_delete (uint32_t cc, unixmessage_t const *m)
 {
-  unsigned int pp, idlen ;
+  uint32_t pp, idlen ;
   client_t *c = CLIENT(cc) ;
   if (c->dumping || m->len < 3 || m->nfds) return (errno = EPROTO, 0) ;
   idlen = (unsigned char)m->s[0] ;
@@ -287,11 +288,11 @@ static int do_delete (unsigned int cc, unixmessage_t const *m)
   return 1 ;
 }
 
-static int do_retrieve (unsigned int cc, unixmessage_t const *m)
+static int do_retrieve (uint32_t cc, unixmessage_t const *m)
 {
   int fd ;
   unixmessage_t ans = { .s = "", .len = 1, .fds = &fd, .nfds = 1 } ;
-  unsigned int pp, idlen ;
+  uint32_t pp, idlen ;
   client_t *c = CLIENT(cc) ;
   if (c->dumping || m->len < 4 || m->nfds) return (errno = EPROTO, 0) ;
   idlen = (unsigned char)m->s[1] ;
@@ -314,7 +315,7 @@ static int fill_siovec_with_ids_iter (char *thing, void *data)
   return 1 ;
 }
 
-static int do_list (unsigned int cc, unixmessage_t const *m)
+static int do_list (uint32_t cc, unixmessage_t const *m)
 {
   client_t *c = CLIENT(cc) ;
   struct iovec v[numfds] ;
@@ -345,7 +346,7 @@ static int getdump_iter (char *thing, void *stuff)
   getdumpiter_t *blah = stuff ;
   unsigned char len = strlen(p->id) ;
   tain_pack(blah->limit, &p->limit) ;
-  blah->limit[TAIN_PACK] = (unsigned char)len ;
+  blah->limit[TAIN_PACK] = len ;
   blah->v->iov_base = p->id ;
   blah->v->iov_len = len + 1 ;
   *blah->fd++ = p->fd ;
@@ -354,22 +355,22 @@ static int getdump_iter (char *thing, void *stuff)
   return 1 ;
 }
 
-static int do_getdump (unsigned int cc, unixmessage_t const *m)
+static int do_getdump (uint32_t cc, unixmessage_t const *m)
 {
-  unsigned int n = numfds ? 1 + ((numfds-1) / UNIXMESSAGE_MAXFDS) : 0 ;
+  uint32_t n = numfds ? 1 + ((numfds-1) / UNIXMESSAGE_MAXFDS) : 0 ;
   client_t *c = CLIENT(cc) ;
   if (c->dumping || m->len || m->nfds) return (errno = EPROTO, 0) ;
   if (!(c->flags & 1)) return answer(c, EPERM) ;
   {
     char pack[9] = "" ;
     unixmessage_t ans = { .s = pack, .len = 9, .fds = 0, .nfds = 0 } ;
-    uint32_pack_big(pack+1, (uint32_t)n) ;
-    uint32_pack_big(pack+5, (uint32_t)numfds) ;
+    uint32_pack_big(pack+1, n) ;
+    uint32_pack_big(pack+5, numfds) ;
     if (!unixmessage_put(&c->connection.out, &ans)) return answer(c, errno) ;
   }
   if (n)
   {
-    unsigned int i = 0 ;
+    uint32_t i = 0 ;
     unixmessage_v_t ans[n] ;
     struct iovec v[numfds << 1] ;
     int fds[numfds] ;
@@ -409,7 +410,7 @@ static int do_getdump (unsigned int cc, unixmessage_t const *m)
   return 1 ;
 }
 
-static int do_setdump (unsigned int cc, unixmessage_t const *m)
+static int do_setdump (uint32_t cc, unixmessage_t const *m)
 {
   char pack[5] = "" ;
   uint32_t n ;
@@ -426,7 +427,7 @@ static int do_setdump (unsigned int cc, unixmessage_t const *m)
   return 1 ;
 }
 
-static int do_setdump_data (unsigned int cc, unixmessage_t const *m)
+static int do_setdump_data (uint32_t cc, unixmessage_t const *m)
 {
   client_t *c = CLIENT(cc) ;
   if (!m->nfds || m->nfds > c->dumping || m->len < m->nfds * (TAIN_PACK + 3))
@@ -444,13 +445,12 @@ static int do_setdump_data (unsigned int cc, unixmessage_t const *m)
   {
     char const *s = m->s ;
     size_t len = m->len ;
-    unsigned int i = 0 ;
-    unsigned int indices[m->nfds] ;
+    uint32_t i = 0 ;
+    uint32_t indices[m->nfds] ;
     for (; i < m->nfds ; i++)
     {
       s6_fdholder_fd_t *p ;
-      unsigned int oldid ;
-      unsigned int idlen ;
+      uint32_t oldid, idlen ;
       if (len < TAIN_PACK + 3) break ;
       idlen = (unsigned char)s[TAIN_PACK] ;
       if (idlen > S6_FDHOLDER_ID_SIZE || len < TAIN_PACK + 2 + idlen || s[TAIN_PACK + 1 + idlen]) break ;
@@ -474,14 +474,14 @@ static int do_setdump_data (unsigned int cc, unixmessage_t const *m)
   return answer(c, c->dumping ? EAGAIN : 0) ;
 }
 
-static int do_error (unsigned int cc, unixmessage_t const *m)
+static int do_error (uint32_t cc, unixmessage_t const *m)
 {
   (void)cc ;
   (void)m ;
   return (errno = EPROTO, 0) ;
 }
 
-typedef int parsefunc_t (unsigned int, unixmessage_t const *) ;
+typedef int parsefunc_t (uint32_t, unixmessage_t const *) ;
 typedef parsefunc_t *parsefunc_t_ref ;
 
 static inline int parse_protocol (unixmessage_t const *m, void *p)
@@ -503,7 +503,7 @@ static inline int parse_protocol (unixmessage_t const *m, void *p)
     unixmessage_drop(m) ;
     return (errno = EPROTO, 0) ;
   }
-  if (!(*f[byte_chr("SDRL?!.", 7, m->s[0])])(*(unsigned int *)p, &mcopy))
+  if (!(*f[byte_chr("SDRL?!.", 7, m->s[0])])(*(uint32_t *)p, &mcopy))
   {
     unixmessage_drop(m) ;
     return 0 ;
@@ -511,7 +511,7 @@ static inline int parse_protocol (unixmessage_t const *m, void *p)
   return 1 ;
 }
 
-static inline int client_read (unsigned int cc, iopause_fd const *x)
+static inline int client_read (uint32_t cc, iopause_fd const *x)
 {
   client_t *c = CLIENT(cc) ;
   return !unixmessage_receiver_isempty(&c->connection.in) || (c->xindex && (x[c->xindex].revents & IOPAUSE_READ)) ?
@@ -649,7 +649,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
 {
   int spfd ;
   int flag1 = 0 ;
-  unsigned int maxconn = 16 ;
+  uint32_t maxconn = 16 ;
   PROG = "s6-fdholderd" ;
 
   {
@@ -727,13 +727,13 @@ int main (int argc, char const *const *argv, char const *const *envp)
     avltreen fdidinfo, fddeadlineinfo ;
     iopause_fd x[2 + maxconn] ;
     client_t clientstorage[1+maxconn] ;
-    unsigned int clientfreelist[1+maxconn] ;
+    uint32_t clientfreelist[1+maxconn] ;
     s6_fdholder_fd_t fdstorage[maxfds] ;
-    unsigned int fdfreelist[maxfds] ;
+    uint32_t fdfreelist[maxfds] ;
     avlnode fdidstorage[maxfds] ;
-    unsigned int fdidfreelist[maxfds] ;
+    uint32_t fdidfreelist[maxfds] ;
     avlnode fddeadlinestorage[maxfds] ;
-    unsigned int fddeadlinefreelist[maxfds] ;
+    uint32_t fddeadlinefreelist[maxfds] ;
      /* Hope you enjoyed it! Have a nice day! */
 
     GENSET_init(&clientinfo, client_t, clientstorage, clientfreelist, 1+maxconn) ;
@@ -760,8 +760,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
     for (;;)
     {
       tain_t deadline ;
-      unsigned int j = 2 ;
-      unsigned int i ;
+      uint32_t j = 2 ;
+      uint32_t i ;
       int r = 1 ;
 
       if (cont) tain_add_g(&deadline, &tain_infinite_relative) ;
@@ -801,7 +801,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
       {
         regex_t rre, wre ;
         unsigned int flags = 0 ;
-        int fd = ipc_accept_nb(x[1].fd, 0, 0, (int *)&i) ;
+        int dummy ;
+        int fd = ipc_accept_nb(x[1].fd, 0, 0, &dummy) ;
         if (fd < 0)
           if (!error_isagain(errno)) strerr_diefu1sys(111, "accept") ;
           else continue ;
