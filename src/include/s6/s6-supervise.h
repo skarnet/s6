@@ -26,7 +26,7 @@ struct s6_svstatus_s
   int wstat ;
   unsigned int flagpaused : 1 ;
   unsigned int flagfinishing : 1 ;
-  unsigned int flagwant : 1 ;
+  unsigned int flagwant : 1 ; /* unused */
   unsigned int flagwantup : 1 ;
   unsigned int flagready : 1 ;
 } ;

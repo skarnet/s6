@@ -26,13 +26,22 @@ monitored by <a href="s6-supervise.html">s6-supervise</a>.
 <h2> Interface </h2>
 
 <pre>
-     s6-svstat [ -n ] <em>servicedir</em>
+     s6-svstat [ -uwNrpest | -o up,wantedup,normallyup,ready,paused,pid,exitcode,signal,signum,updownsince,readysince,updownfor,readyfor ] [ -n ] <em>servicedir</em>
 </pre>
 
 <p>
  s6-svstat gives information about the process being monitored
 at the <em>servicedir</em> <a href="servicedir.html">service directory</a>, then
-exits 0. The information includes the following:
+exits 0.
+</p>
+
+<p>
+ When s6-svstat is invoked without options, or with only the <tt>-n</tt> option,
+it prints a human-readable summary of all the
+available information on the service. In this case, the <tt>-n</tt> option
+instructs it to print a signal number (instead of a signal name) if the
+supervised process was killed by a signal. The summary includes the
+following data:
 </p>
 
 <ul>
@@ -42,8 +51,6 @@ seconds that it has been up. </li>
 signal, if it is down </li>
  <li> what its default state is, if it is different from its current state </li>
  <li> the number of seconds since it last changed states </li>
- <li> if the current state is transient and will change as soon as the
-kernel's scheduler picks up s6-supervise </li>
  <li> whether the service is <a href="notifywhenup.html">ready</a>,
 as notified by the daemon itself, and
 if it is, the number of seconds that it has been.
@@ -53,12 +60,66 @@ cleanup phase, i.e. the <tt>./finish</tt> script is still being executed. </li>
  </li>
 </ul>
 
+<p>
+ When s6-svstat is invoked with one or several options other than <tt>-n</tt>,
+it outputs programmatically parsable information instead. The output is a series of
+space-separated values, one value per requested field. The valid options
+are as follows.
+</p>
+
 <h2> Options </h2>
 
 <ul>
- <li> <tt>-n</tt>&nbsp;: if the monitored process has been killed by a signal,
-print the signal number. By default, a symbolic name for the signal will be
-printed instead. </li>
+ <li> <tt>-o&nbsp;</tt><em>fields</em>&nbsp;: list fields to print.
+<em>fields</em> is a list of comma-separated field names. The valid field
+names are the following:
+  <ul>
+   <li> <tt>up</tt>: print <tt>true</tt> if the service is up and <tt>false</tt> if it is down. </li>
+   <li> <tt>wantedup</tt>: print <tt>true</tt> if <a href="s6-supervise.html">s6-supervise</a>
+is currently instructed to (re)start the service when it is down, and <tt>false</tt> if
+<a href="s6-supervise.html">s6-supervise</a> is currently instructed to leave the service alone. </li>
+   <li> <tt>normallyup</tt>: print <tt>true</tt> if the service is supposed to start when
+<a href="s6-supervise.html">s6-supervise</a> starts (i.e. no <tt>./down</tt> file), and <tt>false</tt>
+if it is not (i.e. there is a <tt>./down</tt> file). </li>
+   <li> <tt>ready</tt>: print <tt>true</tt> if the service is ready, and <tt>false</tt> if
+it is not. Note that a service can be both <em>down</em> and <em>ready</em>: it simply means that
+it is ready to be started (i.e. no <tt>./finish</tt> script is currently running). To check for
+service readiness, you should give this option along with <tt>up</tt>: the service is ready iff
+<tt>s6-svstat -o up,ready</tt> prints <tt>true true</tt>. </li>
+   <li> <tt>paused</tt>: print <tt>true</tt> if the service is paused (i.e. the process is
+currently stopped) and <tt>false</tt> if it is not. It is a rare flag, you shouldn't normally
+need to use this option. </li>
+   <li> <tt>pid</tt>: print the pid of the supervised process. If the service is currently down,
+<tt>-1</tt> is printed instead. </li>
+   <li> <tt>pid</tt>: print the exit code of the last execution of <tt>./run</tt>. If the
+service is currently up, or the last <tt>./run</tt> process was killed by a signal,
+<tt>-1</tt> is printed instead. </li>
+   <li> <tt>signal</tt>: print the name of the signal the last <tt>./run</tt> process was
+killed with. If the service is currently up, or the last <tt>./run</tt> process was not
+killed by a signal, <tt>NA</tt> is printed instead. </li>
+   <li> <tt>signum</tt>: print the number of the signal the last <tt>./run</tt> process was
+killed with. If the service is currently up, or the last <tt>./run</tt> process was not
+killed by a signal, <tt>-1</tt> is printed instead. </li>
+   <li> <tt>updownsince</tt>: print a <a href="http://cr.yp.to/libtai/tai64.html">TAI64N
+label</a> representing the absolute date when the service last changed states. </li>
+   <li> <tt>readysince</tt>: print a <a href="http://cr.yp.to/libtai/tai64.html">TAI64N
+label</a> representing the absolute date when the service last became ready. Note that
+this can either mean "service readiness" (if the service is currently up and ready), or
+"down readiness", i.e. the last time when the service was down and ready to be started
+(if the service is <em>not</em> currently up and ready). </li>
+   <li> <tt>updownfor</tt>: print the number of seconds that have elapsed since the
+service last changed states. </li>
+   <li> <tt>readyfor</tt>: print the number of seconds that have elapsed since the
+service last became ready (or ready to be started if it's currently not up and ready). </li>
+  </ul>
+ <li> <tt>-u</tt>: equivalent to <tt>-o&nbsp;up</tt>. </li>
+ <li> <tt>-w</tt>: equivalent to <tt>-o&nbsp;wantedup</tt>. </li>
+ <li> <tt>-N</tt>: equivalent to <tt>-o&nbsp;normallyup</tt>. </li>
+ <li> <tt>-r</tt>: equivalent to <tt>-o&nbsp;ready</tt>. </li>
+ <li> <tt>-p</tt>: equivalent to <tt>-o&nbsp;pid</tt>. </li>
+ <li> <tt>-e</tt>: equivalent to <tt>-o&nbsp;exitcode</tt>. </li>
+ <li> <tt>-s</tt>: equivalent to <tt>-o&nbsp;signal</tt>. </li>
+ <li> <tt>-t</tt>: equivalent to <tt>-o&nbsp;updownfor</tt>. </li>
 </ul>
 
 <h2> Exit codes </h2>
@@ -68,6 +129,24 @@ printed instead. </li>
  <li> 1: s6-supervise not running on <em>servicedir</em> </li>
  <li> 100: wrong usage </li>
  <li> 111: system call failed </li>
+</ul>
+
+<h2> Examples </h2>
+
+<ul>
+ <li> <tt>s6-svstat -o up,ready</tt> (or its equivalent <tt>s6-svstat -ur</tt>)
+will print <tt>true true</tt> if the service is up and
+ready, <tt>true false</tt> if the service has been started but has not notified
+readiness yet, <tt>false true</tt> if it is down and can be started, and
+<tt>false false</tt> if it is down and there's a <tt>./finish</tt> script running
+that needs to exit before the service can be restarted. </li>
+ <li> <tt>s6-svstat -o pid,exitcode,signal</tt> (or its equivalent <tt>s6-svstat -pes</tt>)
+will print <tt>42 -1 NA</tt> if the service has
+been started and <tt>./run</tt>'s pid is 42; it will print <tt>-1 0 NA</tt> if the
+service is down and <tt>./run</tt> last exited 0; it will print <tt>-1 -1 SIGTERM</tt>
+if the service is down and <tt>./run</tt> was last killed by a SIGTERM - as can
+happen, for instance, when you down the service via a call to
+<a href="s6-svc.html">s6-svc -d</a>. </li>
 </ul>
 
 </body>

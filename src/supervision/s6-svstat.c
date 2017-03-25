@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <skalibs/uint64.h>
 #include <skalibs/types.h>
+#include <skalibs/bytestr.h>
 #include <skalibs/buffer.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/sgetopt.h>
@@ -14,53 +15,169 @@
 #include <skalibs/djbunix.h>
 #include <s6/s6-supervise.h>
 
-#define USAGE "s6-svstat [ -n ] servicedir"
+#define USAGE "s6-svstat [ -uwNrpest | -o up,wantedup,normallyup,ready,paused,pid,exitcode,signal,signum,updownsince,readysince,updownfor,readyfor ] [ -n ] servicedir"
 #define dieusage() strerr_dieusage(100, USAGE)
 
-int main (int argc, char const *const *argv)
+#define MAXFIELDS 16
+#define checkfields() if (n >= MAXFIELDS) strerr_dief1x(100, "too many option fields")
+
+static int normallyup ;
+
+typedef void prfunc_t (buffer *, s6_svstatus_t const *) ;
+typedef prfunc_t * prfunc_t_ref ;
+
+typedef struct funcmap_s funcmap_t ;
+struct funcmap_s
 {
-  s6_svstatus_t status ;
-  int flagnum = 0 ;
-  int isup, normallyup ;
+  char const *s ;
+  prfunc_t_ref f ;
+} ;
+
+static void pr_up (buffer *b, s6_svstatus_t const *st)
+{
+  buffer_putsnoflush(b, st->pid && !st->flagfinishing ? "true" : "false") ;
+}
+
+static void pr_wantedup (buffer *b, s6_svstatus_t const *st)
+{
+  buffer_putsnoflush(b, st->flagwantup ? "true" : "false") ;
+}
+
+static void pr_ready (buffer *b, s6_svstatus_t const *st)
+{
+  buffer_putsnoflush(b, st->pid && st->flagready ? "true" : "false") ;
+}
+
+static void pr_paused (buffer *b, s6_svstatus_t const *st)
+{
+  buffer_putsnoflush(b, st->flagpaused ? "true" : "false") ;
+}
+
+static void pr_pid (buffer *b, s6_svstatus_t const *st)
+{
+  if (st->pid && !st->flagfinishing)
+  {
+    char fmt[PID_FMT] ;
+    buffer_putnoflush(b, fmt, pid_fmt(fmt, st->pid)) ;
+  }
+  else buffer_putsnoflush(b, "-1") ;
+}
+
+static void pr_tain (buffer *b, tain_t const *a)
+{
+  char fmt[TIMESTAMP] ;
+  buffer_putnoflush(b, fmt, timestamp_fmt(fmt, a)) ;
+}
+
+static void pr_stamp (buffer *b, s6_svstatus_t const *st)
+{
+  pr_tain(b, &st->stamp) ;
+}
+
+static void pr_readystamp (buffer *b, s6_svstatus_t const *st)
+{
+  pr_tain(b, &st->readystamp) ;
+}
+
+static void pr_seconds (buffer *b, tain_t const *a)
+{
+  tain_t d ;
   char fmt[UINT64_FMT] ;
-  PROG = "s6-svstat" ;
+  tain_sub(&d, &STAMP, a) ;
+  buffer_putnoflush(b, fmt, uint64_fmt(fmt, tai_sec(tain_secp(&d)))) ;
+}
+
+static void pr_upseconds (buffer *b, s6_svstatus_t const *st)
+{
+  pr_seconds(b, &st->stamp) ;
+}
+
+static void pr_readyseconds (buffer *b, s6_svstatus_t const *st)
+{
+  pr_seconds(b, &st->readystamp) ;
+}
+
+static void pr_exitcode (buffer *b, s6_svstatus_t const *st)
+{
+  int e = st->pid && !st->flagfinishing ? -1 :
+          WIFEXITED(st->wstat) ? WEXITSTATUS(st->wstat) : -1 ;
+  char fmt[INT_FMT] ;
+  buffer_putnoflush(b, fmt, int_fmt(fmt, e)) ;
+}
+
+static void pr_signum (buffer *b, s6_svstatus_t const *st)
+{
+  int e = st->pid && !st->flagfinishing ? -1 :
+            WIFSIGNALED(st->wstat) ? WTERMSIG(st->wstat) : -1 ;
+  char fmt[INT_FMT] ;
+  buffer_putnoflush(b, fmt, int_fmt(fmt, e)) ;
+}
+
+static void pr_signal (buffer *b, s6_svstatus_t const *st)
+{
+  int e = st->pid && !st->flagfinishing ? -1 :
+            WIFSIGNALED(st->wstat) ? WTERMSIG(st->wstat) : -1 ;
+  if (e == -1) buffer_putsnoflush(b, "NA") ;
+  else
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
-    for (;;)
+    buffer_putsnoflush(b, "SIG") ;
+    buffer_putsnoflush(b, sig_name(e)) ;
+  }
+}
+
+static void pr_normallyup (buffer *b, s6_svstatus_t const *st)
+{
+  buffer_putsnoflush(b, normallyup ? "true" : "false") ;
+  (void)st ;
+}
+
+static funcmap_t const fmtable[] =
+{
+  { .s = "up", .f = &pr_up },
+  { .s = "wantedup", .f = &pr_wantedup },
+  { .s = "normallyup", .f = &pr_normallyup },
+  { .s = "ready", .f = &pr_ready },
+  { .s = "paused", .f = &pr_paused },
+  { .s = "pid", .f = &pr_pid },
+  { .s = "exitcode", .f = &pr_exitcode },
+  { .s = "signal", .f = &pr_signal },
+  { .s = "signum", .f = &pr_signum },
+  { .s = "updownsince", .f = &pr_stamp },
+  { .s = "readysince", .f = &pr_readystamp },
+  { .s = "updownfor", .f = &pr_upseconds },
+  { .s = "readyfor", .f = &pr_readyseconds },
+  { .s = 0, .f = 0 }
+} ;
+
+
+static unsigned int parse_options (char const *arg, prfunc_t_ref *fields, unsigned int n)
+{
+  while (*arg)
+  {
+    size_t pos = str_chr(arg, ',') ;
+    funcmap_t const *p = fmtable ;
+    if (!pos) strerr_dief1x(100, "invalid null option field") ;
+    for (; p->s ; p++) if (!strncmp(arg, p->s, pos)) break ;
+    if (!p->s)
     {
-      int opt = subgetopt_r(argc, argv, "n", &l) ;
-      if (opt == -1) break ;
-      switch (opt)
-      {
-        case 'n' : flagnum = 1 ; break ;
-        default : dieusage() ;
-      }
+      char blah[pos+1] ;
+      memcpy(blah, arg, pos) ;
+      blah[pos] = 0 ;
+      strerr_dief2x(100, "invalid option field: ", blah) ;
     }
-    argc -= l.ind ; argv += l.ind ;
+    checkfields() ;
+    fields[n++] = p->f ;
+    arg += pos ; if (*arg) arg++ ;
   }
-  if (!argc) dieusage() ;
+  return n ;
+}
 
-  if (!s6_svstatus_read(*argv, &status))
-    strerr_diefu2sys(111, "read status for ", *argv) ;
-  isup = s6_svc_ok(argv[0]) ;
-  if (isup < 0) strerr_diefu2sys(111, "check ", argv[0]) ;
-  if (!isup) strerr_diefu3x(1, "read status for ", argv[0], ": s6-supervise not running") ;
+static void legacy (s6_svstatus_t *st, int flagnum)
+{
+  s6_svstatus_t status = *st ;
+  int isup = status.pid && !status.flagfinishing ;
+  char fmt[UINT64_FMT] ;
 
-  tain_now_g() ;
-  if (tain_future(&status.stamp)) tain_copynow(&status.stamp) ;
-
-  {
-    size_t dirlen = strlen(*argv) ;
-    char fn[dirlen + 6] ;
-    memcpy(fn, *argv, dirlen) ;
-    memcpy(fn + dirlen, "/down", 6) ;
-    if (access(fn, F_OK) < 0)
-      if (errno != ENOENT) strerr_diefu2sys(111, "access ", fn) ;
-      else normallyup = 1 ;
-    else normallyup = 0 ;
-  }
-
-  isup = status.pid && !status.flagfinishing ;
   if (isup)
   {
     buffer_putnoflush(buffer_1small,"up (pid ", 8) ;
@@ -99,9 +216,9 @@ int main (int argc, char const *const *argv)
     buffer_putnoflush(buffer_1small, ", normally up", 13) ;
   if (isup && status.flagpaused)
     buffer_putnoflush(buffer_1small, ", paused", 8) ;
-  if (!isup && status.flagwant)
+  if (!isup && status.flagwantup)
     buffer_putnoflush(buffer_1small, ", want up", 10) ;
-  if (isup && !status.flagwant)
+  if (isup && !status.flagwantup)
     buffer_putnoflush(buffer_1small, ", want down", 12) ;
 
   if (status.flagready)
@@ -111,6 +228,76 @@ int main (int argc, char const *const *argv)
     buffer_putnoflush(buffer_1small, fmt, uint64_fmt(fmt, status.readystamp.sec.x)) ;
     buffer_putnoflush(buffer_1small, " seconds", 8) ;
   }
+}
+
+int main (int argc, char const *const *argv)
+{
+  s6_svstatus_t status ;
+  int flagnum = 0 ;
+  prfunc_t_ref fields[MAXFIELDS] ;
+  unsigned int n = 0 ;
+  PROG = "s6-svstat" ;
+
+  {
+    subgetopt_t l = SUBGETOPT_ZERO ;
+    for (;;)
+    {
+      int opt = subgetopt_r(argc, argv, "no:uWNrpest", &l) ;
+      if (opt == -1) break ;
+      switch (opt)
+      {
+        case 'n' : flagnum = 1 ; break ;
+        case 'o' : n = parse_options(l.arg, fields, n) ; break ;
+        case 'u' : checkfields() ; fields[n++] = &pr_up ; break ;
+        case 'w' : checkfields() ; fields[n++] = &pr_wantedup ; break ;
+        case 'N' : checkfields() ; fields[n++] = &pr_normallyup ; break ;
+        case 'r' : checkfields() ; fields[n++] = &pr_ready ; break ;
+        case 'p' : checkfields() ; fields[n++] = &pr_pid ; break ;
+        case 'e' : checkfields() ; fields[n++] = &pr_exitcode ; break ;
+        case 's' : checkfields() ; fields[n++] = &pr_signal ; break ;
+        case 't' : checkfields() ; fields[n++] = &pr_upseconds ; break ;
+        default : dieusage() ;
+      }
+    }
+    argc -= l.ind ; argv += l.ind ;
+  }
+  if (!argc) dieusage() ;
+  fields[n] = 0 ;
+
+  {
+    int r = s6_svc_ok(argv[0]) ;
+    if (r < 0) strerr_diefu2sys(111, "check ", argv[0]) ;
+    if (!r) strerr_diefu3x(1, "read status for ", argv[0], ": s6-supervise not running") ;
+  }
+  if (!s6_svstatus_read(argv[0], &status))
+    strerr_diefu2sys(111, "read status for ", argv[0]) ;
+
+  tain_now_g() ;
+  if (tain_future(&status.stamp)) tain_copynow(&status.stamp) ;
+
+  {
+    size_t dirlen = strlen(*argv) ;
+    char fn[dirlen + 6] ;
+    memcpy(fn, *argv, dirlen) ;
+    memcpy(fn + dirlen, "/down", 6) ;
+    if (access(fn, F_OK) < 0)
+      if (errno != ENOENT) strerr_diefu2sys(111, "access ", fn) ;
+      else normallyup = 1 ;
+    else normallyup = 0 ;
+  }
+
+  if (!n) legacy(&status, flagnum) ;
+  else
+  {
+    unsigned int i = 0 ;
+    for (; fields[i] ; i++)
+    {
+      (*fields[i])(buffer_1small, &status) ;
+      buffer_putsnoflush(buffer_1small, " ") ;
+    }
+    buffer_unput(buffer_1small, 1) ;
+  }
+
   if (buffer_putflush(buffer_1small, "\n", 1) < 0)
     strerr_diefu1sys(111, "write to stdout") ;
   return 0 ;

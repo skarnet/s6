@@ -297,13 +297,13 @@ static void trystart (void)
 
 static void downtimeout (void)
 {
-  if (status.flagwant && status.flagwantup) trystart() ;
+  if (status.flagwantup) trystart() ;
   else settimeout_infinite() ;
 }
 
 static void down_O (void)
 {
-  status.flagwant = 0 ;
+  status.flagwantup = 0 ;
   announce() ;
 }
 
@@ -315,7 +315,6 @@ static void down_o (void)
 
 static void down_u (void)
 {
-  status.flagwant = 1 ;
   status.flagwantup = 1 ;
   announce() ;
   trystart() ;
@@ -323,7 +322,6 @@ static void down_u (void)
 
 static void down_d (void)
 {
-  status.flagwant = 1 ;
   status.flagwantup = 0 ;
   announce() ;
 }
@@ -391,13 +389,12 @@ static void uptimeout (void)
 
 static void up_o (void)
 {
-  status.flagwant = 0 ;
+  status.flagwantup = 0 ;
   announce() ;
 }
 
 static void up_d (void)
 {
-  status.flagwant = 1 ;
   status.flagwantup = 0 ;
   killt() ;
   killc() ;
@@ -405,7 +402,6 @@ static void up_d (void)
 
 static void up_u (void)
 {
-  status.flagwant = 1 ;
   status.flagwantup = 1 ;
   announce() ;
 }
@@ -439,7 +435,7 @@ static void finish_z (void)
   int wstat = (int)status.pid ;
   if (WIFEXITED(wstat) && WEXITSTATUS(wstat) == 125)
   {
-    status.flagwant = 0 ;
+    status.flagwantup = 0 ;
     set_down_and_ready("OD", 2) ;
   }
   else set_down_and_ready("D", 1) ;
@@ -447,7 +443,6 @@ static void finish_z (void)
 
 static void finish_u (void)
 {
-  status.flagwant = 1 ;
   status.flagwantup = 1 ;
   announce() ;
 }

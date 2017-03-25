@@ -52,7 +52,7 @@ int s6_svlisten_loop (s6_svlisten_t *foo, int wantup, int wantready, int or, tai
   {
     int r = iopause_g(x, 1 + (spfd >= 0), deadline) ;
     if (r < 0) strerr_diefu1sys(111, "iopause") ;
-    else if (!r) strerr_dief1x(1, "timed out") ;
+    else if (!r) strerr_dief1x(99, "timed out") ;
     if (x[1].revents & IOPAUSE_READ) (*handler)() ;
     if (x[0].revents & IOPAUSE_READ)
     {
