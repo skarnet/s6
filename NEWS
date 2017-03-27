@@ -1,0 +1,22 @@
+Changelog for s6.
+
+In 2.5.0.0
+----------
+
+ - Added this NEWS file. :)
+ - Major types overhaul to make them more POSIXly correct:
+compatibility with skalibs-2.5.0.0.
+ - Services can now report permanent failure by having a ./finish
+script exit 125.
+ - s6-svwait, s6-svlisten and s6-svlisten1 now exit the number of
+services that reported permanent failure. They exit 99 on timeout.
+ - When a service has a ./nosetsid file that contains "setpgrp", it
+is run in a new process group, but not in a new session. If the
+./nosetsid file contains anything else, the service is run in the
+same session and process group as the supervisor, and if there is
+no such file, it's run in a new session (same behaviour as before).
+ - s6-log now writes a warning to stderr when it closes the stdout
+stream.
+ - s6-log's individual file size limit bumped to 256 MB.
+ - Various bugfixes. (thanks jjk!)
+
