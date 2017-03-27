@@ -30,12 +30,12 @@ int main (int argc, char const **argv, char const *const *envp)
       if (opt == -1) break ;
       switch (opt)
       {
-        case 'u' : wantup = 1 ; wantready = 0 ; break ;
-        case 'U' : wantup = 1 ; wantready = 1 ; break ;
-        case 'd' : wantup = 0 ; wantready = 0 ; break ;
-        case 'D' : wantup = 0 ; wantready = 1 ; break ;
-        case 'r' : wantrestart = 1 ; wantready = 0 ; break ;
-        case 'R' : wantrestart = 1 ; wantready = 1 ; break ;
+        case 'u' : wantup = 1 ; wantrestart = 0 ; wantready = 0 ; break ;
+        case 'U' : wantup = 1 ; wantrestart = 0 ; wantready = 1 ; break ;
+        case 'd' : wantup = 0 ; wantrestart = 0 ; wantready = 0 ; break ;
+        case 'D' : wantup = 0 ; wantrestart = 0 ; wantready = 1 ; break ;
+        case 'r' : wantup = 1 ; wantrestart = 1 ; wantready = 0 ; break ;
+        case 'R' : wantup = 1 ; wantrestart = 1 ; wantready = 1 ; break ;
         case 'a' : or = 0 ; break ;
         case 'o' : or = 1 ; break ;
         case 't' : if (!uint0_scan(l.arg, &t)) dieusage() ; break ;
@@ -70,12 +70,7 @@ int main (int argc, char const **argv, char const *const *envp)
     s6_svlisten_init(argc1, argv, &foo, ids, upstate, readystate, &deadline) ;
     pid = child_spawn0(argv[argc1 + 1], argv + argc1 + 1, envp) ;
     if (!pid) strerr_diefu2sys(111, "spawn ", argv[argc1 + 1]) ;
-    if (wantrestart)
-    {
-      e = s6_svlisten_loop(&foo, 0, 1, or, &deadline, spfd, &s6_svlisten_signal_handler) ;
-      if (e) strerr_dief1x(e, "some services reported permanent failure") ;
-      wantup = 1 ;
-    }
+    if (wantrestart) s6_svlisten_loop(&foo, 0, 1, or, &deadline, spfd, &s6_svlisten_signal_handler) ;
     e = s6_svlisten_loop(&foo, wantup, wantready, or, &deadline, spfd, &s6_svlisten_signal_handler) ;
     if (e) strerr_dief1x(e, "some services reported permanent failure") ;
   }

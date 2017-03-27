@@ -39,7 +39,17 @@ supervised service, and blocks until said service goes up, or down.
 state changes. </li>
  <li> It spawns <em>prog...</em> as a child right after getting the
 initial state of the service. </li>
- <li> It then blocks until the wanted state happens, then exits 0. </li>
+ <li> It then blocks until the wanted state happens. </li>
+</ul>
+
+<h2> Exit codes </h2>
+
+<ul>
+ <li> 0: success, the wanted state has been reached </li>
+ <li> 1: the service was supposed to go up, but reported permanent failure </li>
+ <li> 99: timed out </li>
+ <li> 100: wrong usage </li>
+ <li> 111: system call failed </li>
 </ul>
 
 <h2> Options </h2>

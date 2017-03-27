@@ -23,12 +23,13 @@
 <ul>
  <li> skalibs dependency bumped to 2.5.0.0. </li>
  <li> execline dependency bumped to 2.3.0.0. </li>
-</ul>
-
-<h2> in 2.4.1.0 </h2>
-
-<ul>
- <li> skalibs dependency bumped to 2.4.0.1. </li>
+ <li> Services can now report permanent failure by having <tt>./finish</tt>
+exit 125. </li>
+ <li> <a href="s6-svwait.html">s6-svwait</a>,
+      <a href="s6-svlisten.html">s6-svlisten</a> and
+      <a href="s6-svlisten1.html">s6-svlisten1</a> now exit 99
+when they time out. They exit <em>n</em> when there are <em>n</em>
+services reporting permanent failure. </li>
 </ul>
 
 <h2> in 2.4.0.0 </h2>

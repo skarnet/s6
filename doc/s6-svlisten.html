@@ -51,7 +51,18 @@ directories</a> given as arguments in the first block and monitor
 their state changes. </li>
  <li> It spawns <em>prog...</em> as a child right after getting the
 initial state of all the monitored services. </li>
- <li> It then blocks until the wanted state happens, then exits 0. </li>
+ <li> It then blocks until the wanted state happens. </li>
+</ul>
+
+<h2> Exit codes </h2>
+
+<ul>
+ <li> 0: success, the wanted state has been reached </li>
+ <li> 99: timed out </li>
+ <li> 100: wrong usage </li>
+ <li> 111: system call failed </li>
+ <li> <em>n</em>: services were expected to come up, but <em>n</em> of them
+reported permanent failure </li>
 </ul>
 
 <h2> Options </h2>

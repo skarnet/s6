@@ -67,9 +67,12 @@ int s6_svlisten_loop (s6_svlisten_t *foo, int wantup, int wantready, int or, tai
         {
           if (what == 'O')
           {
-            bitarray_poke(foo->upstate, i, wantup) ;
-            bitarray_poke(foo->readystate, i, wantready) ;
-            e++ ;
+            if (wantup)
+            {
+              bitarray_poke(foo->upstate, i, wantup) ;
+              bitarray_poke(foo->readystate, i, wantready) ;
+              e++ ;
+            }
           }
           else
           {

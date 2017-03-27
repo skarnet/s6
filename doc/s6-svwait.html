@@ -35,8 +35,19 @@ s6-svwait only waits for notifications; it never polls.
 <p>
 s6-svwait monitors one or more <a href="servicedir.html">service
 directories</a> given as its arguments, waiting for a state (ready, up or down) to
-happen. It exits 0 when the wanted condition becomes true.
+happen.
 </p>
+
+<h2> Exit codes </h2>
+
+<ul>
+ <li> 0: success, the wanted state has been reached </li>
+ <li> 99: timed out </li>
+ <li> 100: wrong usage </li>
+ <li> 111: system call failed </li>
+ <li> <em>n</em>: services were expected to come up, but <em>n</em> of them
+reported permanent failure </li>
+</ul>
 
 <h2> Options </h2>
 
