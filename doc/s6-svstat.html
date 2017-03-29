@@ -85,13 +85,14 @@ if it is not (i.e. there is a <tt>./down</tt> file). </li>
 it is not. Note that a service can be both <em>down</em> and <em>ready</em>: it simply means that
 it is ready to be started (i.e. no <tt>./finish</tt> script is currently running). To check for
 service readiness, you should give this option along with <tt>up</tt>: the service is ready iff
-<tt>s6-svstat -o up,ready</tt> prints <tt>true true</tt>. </li>
+<tt>s6-svstat -o up,ready</tt> prints <tt>true true</tt>. (The <tt>true true</tt> case will
+never happen if the service does not support readiness notification.) </li>
    <li> <tt>paused</tt>: print <tt>true</tt> if the service is paused (i.e. the process is
 currently stopped) and <tt>false</tt> if it is not. It is a rare flag, you shouldn't normally
 need to use this option. </li>
    <li> <tt>pid</tt>: print the pid of the supervised process. If the service is currently down,
 <tt>-1</tt> is printed instead. </li>
-   <li> <tt>pid</tt>: print the exit code of the last execution of <tt>./run</tt>. If the
+   <li> <tt>exitcode</tt>: print the exit code of the last execution of <tt>./run</tt>. If the
 service is currently up, or the last <tt>./run</tt> process was killed by a signal,
 <tt>-1</tt> is printed instead. </li>
    <li> <tt>signal</tt>: print the name of the signal the last <tt>./run</tt> process was
