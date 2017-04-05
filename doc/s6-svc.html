@@ -68,9 +68,9 @@ open to the service it is supervising and the service is waiting for them
 to close before exiting. Note that if this option is used, the last
 execution of the service's <tt>finish</tt> script will be run with
 stdin, stdout and stderr redirected to <tt>/dev/null</tt>. </li>
- <li> <tt>-O</tt>&nbsp;: Once at most. Do not restart the supervised process
-when it dies. If it is down when the command is received, do not even start
-it. </li>
+ <li> <tt>-O</tt>&nbsp;: mark the service to run once at most. iow: do not
+restart the supervised process when it dies. If it is down when the command
+is received, do not even start it. </li>
  <li> <tt>-T&nbsp;<em>timeout</em></tt>&nbsp;: if the <tt>-w<em>state</em></tt>
 option has been given, <tt>-T</tt> specifies a timeout
 (in milliseconds) after which s6-svc will exit 1 with an error message if
