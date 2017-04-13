@@ -217,9 +217,9 @@ static void legacy (s6_svstatus_t *st, int flagnum)
   if (isup && status.flagpaused)
     buffer_putnoflush(buffer_1small, ", paused", 8) ;
   if (!isup && status.flagwantup)
-    buffer_putnoflush(buffer_1small, ", want up", 10) ;
+    buffer_putnoflush(buffer_1small, ", want up", 9) ;
   if (isup && !status.flagwantup)
-    buffer_putnoflush(buffer_1small, ", want down", 12) ;
+    buffer_putnoflush(buffer_1small, ", want down", 11) ;
 
   if (status.flagready)
   {
