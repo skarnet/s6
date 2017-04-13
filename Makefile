@@ -40,7 +40,7 @@ include package/deps.mak
 version_m := $(basename $(version))
 version_M := $(basename $(version_m))
 version_l := $(basename $(version_M))
-CPPFLAGS_ALL := -iquote src/include-local -Isrc/include $(CPPFLAGS)
+CPPFLAGS_ALL := -iquote src/include-local -Isrc/include -I$(includedir) $(CPPFLAGS)
 CFLAGS_ALL := $(CFLAGS) -pipe -Wall
 CFLAGS_SHARED := -fPIC
 LDFLAGS_ALL := $(LDFLAGS)
