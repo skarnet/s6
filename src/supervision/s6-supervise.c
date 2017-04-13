@@ -534,6 +534,7 @@ static inline void handle_signals (void)
           (*actions[state][V_CHLD])() ;
         }
         break ;
+      case SIGINT :
       case SIGTERM :
         (*actions[state][V_TERM])() ;
         break ;
@@ -589,6 +590,7 @@ int main (int argc, char const *const *argv)
     {
       sigset_t set ;
       sigemptyset(&set) ;
+      sigaddset(&set, SIGINT) ;
       sigaddset(&set, SIGTERM) ;
       sigaddset(&set, SIGHUP) ;
       sigaddset(&set, SIGQUIT) ;
