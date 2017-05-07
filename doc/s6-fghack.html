@@ -33,7 +33,7 @@ s6-fghack is an anti-backgrounding tool.
  <li> Then it forks and executes <em>prog...</em>. </li>
  <li> If something gets written on one of those descriptors, it's a bug in <em>prog</em>.
 s6-fghack then complains and exits 102. </li>
- <li> Unless <em>prog...</em> goes out of its way to close descriptors it does know about,
+ <li> Unless <em>prog...</em> goes out of its way to close descriptors it does not know about,
 s6-fghack is able to detect when <em>prog...</em> exits. It exits with the same exit
 code (or 111 if <em>prog...</em> has crashed). </li>
 </ul>
