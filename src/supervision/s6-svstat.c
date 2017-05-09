@@ -242,7 +242,7 @@ int main (int argc, char const *const *argv)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      int opt = subgetopt_r(argc, argv, "no:uWNrpest", &l) ;
+      int opt = subgetopt_r(argc, argv, "no:uwNrpest", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
