@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/types.h>
+#include <skalibs/allreadwrite.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/tai.h>
 #include <skalibs/iopause.h>
@@ -34,6 +35,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   ftrigr_t a = FTRIGR_ZERO ;
   pid_t pid ;
   uint16_t id ;
+  char pack[2] = " \n" ;
   PROG = "s6-ftrig-listen1" ;
   {
     unsigned int t = 0 ;
@@ -71,8 +73,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
 
   for (;;)
   {
-    char dummy ;
-    int r = ftrigr_check(&a, id, &dummy) ;
+    int r = ftrigr_check(&a, id, &pack[0]) ;
     if (r < 0) strerr_diefu1sys(111, "ftrigr_check") ;
     if (r) break ;
     r = iopause_g(x, 2, &deadline) ;
@@ -89,5 +90,6 @@ int main (int argc, char const *const *argv, char const *const *envp)
     }
   }
 
+  if (allwrite(1, pack, 2) < 2) strerr_diefu1sys(111, "write to stdout") ;
   return 0 ;
 }

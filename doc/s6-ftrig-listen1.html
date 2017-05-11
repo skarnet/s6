@@ -43,7 +43,8 @@ to match <em>regexp</em>. <em>regexp</em> must be an
 <a href="http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap09.html#tag_09_04">extended
 regular expression</a>. </li>
  <li> When the series of read events matches <em>regexp</em>,
-s6-ftrig-listen1 exits 0. </li>
+s6-ftrig-listen1 prints the last event it received (one byte) to stdout,
+then exits 0. </li>
 </ul>
 
 <h2> Options </h2>
