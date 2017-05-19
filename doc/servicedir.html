@@ -128,6 +128,15 @@ notification from the service and broadcast readiness, i.e. any
 <a href="s6-svlisten1.html">s6-svlisten1 -U</a> or
 <a href="s6-svlisten.html">s6-svlisten -U</a> processes will be
 triggered. </li>
+ <li> An optional regular file named <tt>timeout-kill</tt>. If such a file
+exists, it must only contain an unsigned integer <em>t</em>. If <em>t</em>
+is nonzero, then on receipt of a <a href="s6-svc.html">s6-svc -d</a> command,
+which sends a SIGTERM and a SIGCONT to the service, a timeout of <em>t</em>
+milliseconds is set; and if the service is still not dead after <em>t</em>
+milliseconds, then it is sent a SIGKILL. If <tt>timeout-kill</tt> does not
+exist, or contains 0 or an invalid value, then the service is never
+forcibly killed (unless, of course, a <a href="s6-svc.html">s6-svc -k</a>
+command is sent). </li>
  <li> An optional regular file named <tt>timeout-finish</tt>. If such a file
 exists, it must only contain an unsigned integer, which is the number of
 milliseconds after which the <tt>./finish</tt> script, if it exists, will

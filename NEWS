@@ -1,12 +1,17 @@
 Changelog for s6.
 
-In 2.5.0.1
+In 2.5.1.0
 ----------
 
  - Bugfix release.
  - s6-ftrig-listen1 now prints to stdout the last event (the last
 byte) it received and made it match the regexp it was given.
-This is a bugfix. :)
+ - s6-supervise now recognizes the "timeout-kill" file in a service
+directory. If this file exists and contains a nonzero integer t,
+the behaviour of a "s6-svc -d" command is changed from
+"send a SIGTERM and a SIGCONT" to "send a SIGTERM and a SIGCONT,
+then if the service is still not dead after t milliseconds, send
+a SIGKILL".
 
 
 In 2.5.0.0
@@ -28,4 +33,3 @@ no such file, it's run in a new session (same behaviour as before).
 stream.
  - s6-log's individual file size limit bumped to 256 MB.
  - Various bugfixes. (thanks jjk!)
-

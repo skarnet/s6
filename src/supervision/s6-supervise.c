@@ -51,6 +51,7 @@ static tain_t deadline ;
 static tain_t dontrespawnbefore = TAIN_EPOCH ;
 static s6_svstatus_t status = S6_SVSTATUS_ZERO ;
 static state_t state = DOWN ;
+static int flagdying = 0 ;
 static int cont = 1 ;
 static int notifyfd = -1 ;
 
@@ -331,6 +332,7 @@ static int uplastup_z (void)
   status.wstat = (int)status.pid ;
   status.flagpaused = 0 ;
   status.flagready = 0 ;
+  flagdying = 0 ;
   tain_copynow(&status.stamp) ;
   if (notifyfd >= 0)
   {
@@ -383,8 +385,16 @@ static void lastup_z (void)
 
 static void uptimeout (void)
 {
-  settimeout_infinite() ;
-  strerr_warnw1x("can't happen: timeout while the service is up!") ;
+  if (flagdying)
+  {
+    killk() ;
+    settimeout(5) ;
+  }
+  else
+  {
+    settimeout_infinite() ;
+    strerr_warnw1x("can't happen: timeout while the service is up!") ;
+  }
 }
 
 static void up_o (void)
@@ -395,9 +405,18 @@ static void up_o (void)
 
 static void up_d (void)
 {
+  tain_t tto ;
+  unsigned int timeout ;
   status.flagwantup = 0 ;
   killt() ;
   killc() ;
+  if (!read_uint("timeout-kill", &timeout)) timeout = 0 ;
+  if (timeout && tain_from_millisecs(&tto, timeout))
+  {
+    tain_add_g(&deadline, &tto) ;
+    flagdying = 1 ;
+  }
+  else settimeout_infinite() ;
 }
 
 static void up_u (void)

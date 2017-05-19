@@ -18,13 +18,17 @@
 
 <h1> What has changed in s6 </h1>
 
-<h2> in 2.5.0.1 </h2>
+<h2> in 2.5.1.0 </h2>
 
 <ul>
  <li> skalibs dependency bumped to 2.5.0.1. </li>
  <li> execline dependency bumped to 2.3.0.1. </li>
  <li> <a href="s6-ftrig-listen1.html">s6-ftrig-listen1</a> prints the last event
 it received to stdout. </li>
+ <li> The <tt>timeout-kill</tt> file is now recognized in a
+<a href="servicedir.html">service directory</a> and allows
+<a href="s6-svc.html">s6-svc -d</a> to send a SIGKILL after a timeout if the
+process is still not dead after the initial SIGTERM and SIGCONT. </li>
 </ul>
 
 <h2> in 2.5.0.0 </h2>
