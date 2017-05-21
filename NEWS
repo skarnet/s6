@@ -3,7 +3,7 @@ Changelog for s6.
 In 2.5.1.0
 ----------
 
- - Bugfix release.
+ - Bugfixes.
  - s6-ftrig-listen1 now prints to stdout the last event (the last
 byte) it received and made it match the regexp it was given.
  - s6-supervise now recognizes the "timeout-kill" file in a service
