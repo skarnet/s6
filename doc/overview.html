@@ -6,14 +6,14 @@
     <title>s6: an overview</title>
     <meta name="Description" content="s6: an overview" />
     <meta name="Keywords" content="s6 overview supervision init process unix" />
-    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
   </head>
 <body>
 
 <p>
 <a href="index.html">s6</a><br />
-<a href="http://skarnet.org/software/">Software</a><br />
-<a href="http://skarnet.org/">skarnet.org</a>
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
 </p>
 
 <h1> An overview of s6 </h1>
@@ -138,9 +138,9 @@ a supervisor for the supervisors. It watches and maintains a collection of
 <a href="s6-supervise.html">s6-supervise</a> processes: it is the branch
 of the supervision tree that all supervisors are stemming from. It can be
 run and
-<a href="http://skarnet.org/software/s6/s6-svscan-not-1.html">supervised
+<a href="//skarnet.org/software/s6/s6-svscan-not-1.html">supervised
 by your regular init process</a>, or it can
-<a href="http://skarnet.org/software/s6/s6-svscan-1.html">run as
+<a href="//skarnet.org/software/s6/s6-svscan-1.html">run as
 process 1 itself</a>. Running s6-svscan as process 1 currently requires
 some manual effort from the user, because of the inherent non-portability
 of init processes; future versions of s6 will automate that effort and
@@ -278,7 +278,7 @@ sometimes, they are daemons themselves, designed to be supervised.
 </p>
 
 <p>
- s6, like other <a href="http://skarnet.org/software/">skarnet.org
+ s6, like other <a href="//skarnet.org/software/">skarnet.org
 software</a>, makes heavy use of
 <a href="http://en.wikipedia.org/wiki/Chain_loading#Chain_loading_in_Unix">chain
 loading</a>, also known as "Bernstein chaining": a lot of s6 tools will
@@ -288,7 +288,7 @@ in a very flexible way, by combining the right components in the right
 order. Very often, a run script can be reduced to a single command line -
 likely a long one, but still a single one. (That is the main reason why
 using the
-<a href="http://skarnet.org/software/execline/">execline</a> language
+<a href="//skarnet.org/software/execline/">execline</a> language
 to write run scripts is recommended: execline makes it natural to handle
 long command lines made of massive amounts of chain loading. This is by no
 means mandatory, though: a run script can be any executable file you want,
@@ -365,7 +365,7 @@ specific order - that order being automatically computed from a graph of
 dependencies between services.
  That functionality belongs to a <em>service manager</em>, and is
 implemented for instance in the
-<a href="http://skarnet.org/software/s6-rc/">s6-rc</a> package.
+<a href="//skarnet.org/software/s6-rc/">s6-rc</a> package.
 </p>
 
 <h2> Additional utilities </h2>

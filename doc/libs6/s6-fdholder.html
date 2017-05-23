@@ -6,15 +6,15 @@
     <title>s6: the s6-fdholder library interface</title>
     <meta name="Description" content="s6: the s6-fdholder library interface" />
     <meta name="Keywords" content="s6 fdholder file descriptor fd holding fd-passing library interface" />
-    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
   </head>
 <body>
 
 <p>
 <a href="index.html">libs6</a><br />
 <a href="../">s6</a><br />
-<a href="http://skarnet.org/software/">Software</a><br />
-<a href="http://skarnet.org/">skarnet.org</a>
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
 </p>
 
 <h1> The <tt>s6-fdholder</tt> library interface </h1>
@@ -78,7 +78,7 @@ initialized to <tt>S6_FDHOLDER_ZERO</tt> before use.
 </p>
 
 <p>
-<a href="http://skarnet.org/software/skalibs/libstddjb/tai.html">tain_now_g()</a>
+<a href="//skarnet.org/software/skalibs/libstddjb/tai.html">tain_now_g()</a>
 initializes a global variable that keeps track of the current time, for
 use with later functions.
 </p>
@@ -154,7 +154,7 @@ n = s6_fdholder_list_g(&amp;a, &amp;list, &amp;deadline) ;
 <p>
 <tt>s6_fdholder_list</tt> gets the list of all identifiers currently
 held by the server. It stores it into the
-<a href="http://skarnet.org/software/skalibs/libstddjb/stralloc.html">stralloc</a>
+<a href="//skarnet.org/software/skalibs/libstddjb/stralloc.html">stralloc</a>
 <em>list</em>, as a series of null-terminated strings, one after the other.
 There are <em>n</em> such strings. The function returns <em>n</em> on
 success, or -1 on failure, with an
@@ -175,7 +175,7 @@ descriptors from the server.
 It returns 1 on success, and 0 on failure, with an
 <a href="../s6-fdholder-errorcodes.html">appropriate</a> errno code.
 The set is stored into the
-<a href="http://skarnet.org/software/skalibs/libstddjb/genalloc.html">genalloc</a>
+<a href="//skarnet.org/software/skalibs/libstddjb/genalloc.html">genalloc</a>
 <em>dump</em>, which is to be interpreted as a stralloc containing an array
 of <tt>s6_fdholder_fd_t</tt>.
 </p>

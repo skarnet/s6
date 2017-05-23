@@ -6,14 +6,14 @@
     <title>s6: socket activation</title>
     <meta name="Description" content="s6: socket activation" />
     <meta name="Keywords" content="s6 socket activation fd-holding client server socket fd passing" />
-    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
   </head>
 <body>
 
 <p>
 <a href="index.html">s6</a><br />
-<a href="http://skarnet.org/software/">Software</a><br />
-<a href="http://skarnet.org/">skarnet.org</a>
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
 </p>
 
 <h1> How do I perform socket activation with s6&nbsp;? </h1>
@@ -23,7 +23,7 @@
 socket activation. It's a marketing word used by systemd
 advocates that mixes a couple useful architecture concepts and several
 horrible ideas, for a very minor speed benefit. Read
-<a href="http://skarnet.org/cgi-bin/archive.cgi?2:mss:423:oanakciaccabjicoagef">this mail</a>
+<a href="//skarnet.org/cgi-bin/archive.cgi?2:mss:423:oanakciaccabjicoagef">this mail</a>
 and
 <a href="http://forums.gentoo.org/viewtopic-t-994548-postdays-0-postorder-asc-start-25.html#7581522">this
 post</a> for details.
@@ -35,10 +35,10 @@ because doing so is bad engineering.
 However, it <em>will</em> help you set up super-servers. The
 <a href="s6-ipcserver.html">s6-ipcserver</a>
 program, for Unix domain sockets, as well as the
-<a href="http://skarnet.org/software/s6-networking/s6-tcpserver4.html">s6-tcpserver4</a> and
-<a href="http://skarnet.org/software/s6-networking/s6-tcpserver6.html">s6-tcpserver6</a>
+<a href="//skarnet.org/software/s6-networking/s6-tcpserver4.html">s6-tcpserver4</a> and
+<a href="//skarnet.org/software/s6-networking/s6-tcpserver6.html">s6-tcpserver6</a>
 programs, for TCP INET domain sockets (available in the
-<a href="http://skarnet.org/software/s6-networking/">s6-networking</a>
+<a href="//skarnet.org/software/s6-networking/">s6-networking</a>
 package) are super-servers you can use to
 your heart's content. They are even wrappers around simpler programs,
 and you can use their components in the way you choose: bind sockets,
@@ -58,8 +58,8 @@ never lose logs:
   <li> ways to open your sockets and bind them as early as you want in
 your boot process, and make them accept client connections later:
 <a href="s6-ipcserver-socketbinder.html">s6-ipcserver-socketbinder</a>,
-<a href="http://skarnet.org/software/s6-networking/s6-tcpserver4-socketbinder.html">s6-tcpserver4-socketbinder</a> and
-<a href="http://skarnet.org/software/s6-networking/s6-tcpserver6-socketbinder.html">s6-tcpserver6-socketbinder</a>.
+<a href="//skarnet.org/software/s6-networking/s6-tcpserver4-socketbinder.html">s6-tcpserver4-socketbinder</a> and
+<a href="//skarnet.org/software/s6-networking/s6-tcpserver6-socketbinder.html">s6-tcpserver6-socketbinder</a>.
  </li>
  <li> A supervision infrastructure that can start as many services in parallel
 as you want:

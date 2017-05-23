@@ -6,14 +6,14 @@
     <title>s6: libftrig</title>
     <meta name="Description" content="s6 libftrig" />
     <meta name="Keywords" content="s6 libftrig" />
-    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
   </head>
 <body>
 
 <p>
 <a href="index.html">s6</a><br />
-<a href="http://skarnet.org/software/">Software</a><br />
-<a href="http://skarnet.org/">skarnet.org</a>
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
 </p>
 
 <h1> libftrig </h1>
@@ -88,7 +88,7 @@ notify process A.
  <li> Signals. The simplest Unix notification mechanism. Sending events amounts
 to a <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/kill.html">kill()</a>
 call, and receiving events amounts to installing a signal handler (preferrably
-using a <a href="http://skarnet.org/software/skalibs/libstddjb/selfpipe.html">self-pipe</a>
+using a <a href="//skarnet.org/software/skalibs/libstddjb/selfpipe.html">self-pipe</a>
 if mixing signals with an event loop). Unfortunately, Unix signals, even the more
 recent and powerful real-time Posix signals, have important limitations when it's
 about generic notification:
@@ -162,7 +162,7 @@ main advantage over a bus.
 <p>
  If you are not concerned with supervision and can depend on a bus service,
 though, then yes, by all means, use a bus for your notification needs.
-There is a <a href="http://skarnet.org/software/skabus/">skabus</a>
+There is a <a href="//skarnet.org/software/skabus/">skabus</a>
 project in the making, which aims to be simpler, smaller and more
 maintainable than D-Bus.
 </p>

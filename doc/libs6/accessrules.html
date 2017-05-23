@@ -6,15 +6,15 @@
     <title>s6: the accessrules library interface</title>
     <meta name="Description" content="s6: the accessrules library interface" />
     <meta name="Keywords" content="s6 net accessrules library libs6net unix tcp access control dns ipv4 ipv6" />
-    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
   </head>
 <body>
 
 <p>
 <a href="index.html">libs6</a><br />
 <a href="../">s6</a><br />
-<a href="http://skarnet.org/software/">Software</a><br />
-<a href="http://skarnet.org/">skarnet.org</a>
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
 </p>
 
 <h1> The <tt>accessrules</tt> library interface </h1>
@@ -49,7 +49,7 @@ database format and any key format.
 can have the following values: S6_ACCESSRULES_ERROR,
 S6_ACCESSRULES_DENY, S6_ACCESSRULES_ALLOW or S6_ACCESSRULES_NOTFOUND. </li>
  <li> A <tt>s6_accessrules_params_t</tt> is a structure containing two
-<a href="http://skarnet.org/software/skalibs/libstddjb/stralloc.html">strallocs</a>,
+<a href="//skarnet.org/software/skalibs/libstddjb/stralloc.html">strallocs</a>,
 <em>.env</em> and <em>.exec</em>, used to return data contained in the
 database when a key has been allowed. The interpretation of this data is
 application-defined. </li>
@@ -221,7 +221,7 @@ matches everything. </li>
  <li>
 <a name="ip46" />
  <tt>s6_accessrules_keycheck_ip46</tt> interprets <em>key</em> as a pointer to an
-<a href="http://skarnet.org/software/skalibs/libstddjb/ip46.html">ip46_t</a>, and
+<a href="//skarnet.org/software/skalibs/libstddjb/ip46.html">ip46_t</a>, and
 behaves either as s6_accessrules_keycheck_ip6 or s6_accessrules_keycheck_ip4,
 depending on the type of address *<em>key</em> contains. </li>
 </ul>

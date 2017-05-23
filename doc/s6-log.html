@@ -6,14 +6,14 @@
     <title>s6: the s6-log program</title>
     <meta name="Description" content="s6: the s6-log program" />
     <meta name="Keywords" content="s6 command s6-log log logger logging multilog" />
-    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
   </head>
 <body>
 
 <p>
 <a href="index.html">s6</a><br />
-<a href="http://skarnet.org/software/">Software</a><br />
-<a href="http://skarnet.org/">skarnet.org</a>
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
 </p>
 
 <h1> The s6-log program </h1>
@@ -55,7 +55,7 @@ for a logger that you really do not want to lose even if automated
 administration (e.g. the downing of a supervision tree) would kill it. </li>
  <li> <tt>-t</tt>&nbsp;: timestamp. Prepends every log line that is written to
 a logging directory with a
-<a href="http://skarnet.org/software/skalibs/libstddjb/tai.html">TAI64N</a>
+<a href="//skarnet.org/software/skalibs/libstddjb/tai.html">TAI64N</a>
 timestamp. <strong>This option is now deprecated.</strong> </li>
  <li> <tt>-e</tt>&nbsp;: timestamp alerts. Prepends every "alert" line with a
 TAI64N timestamp. <strong>This option is now deprecated. </strong> </li>
@@ -225,7 +225,7 @@ an unpadded, unlimited status file. By default, <em>statussize</em> is 1001. </l
 If <em>processor</em> is empty, no processor will be set for the next logdirs.
 By default, no processor is set. </li>
  <li> <strong>t</strong>: the logged line will be prepended with a
-<a href="http://skarnet.org/software/skalibs/libstddjb/tai.html">TAI64N
+<a href="//skarnet.org/software/skalibs/libstddjb/tai.html">TAI64N
 timestamp</a> (and a space) before being processed by the next action
 directive. Giving the <tt>t</tt> directive several times before an action
 directive has no effect. </li>
@@ -317,7 +317,7 @@ a maximum of 30 such files or a total of 15 MB of compressed archive files. </li
 
 <p>
  Because it is <em>exactly</em> what
-<a href="http://skarnet.org/software/execline/execlineb.html">execlineb</a>
+<a href="//skarnet.org/software/execline/execlineb.html">execlineb</a>
 is for.
 </p>
 
@@ -332,14 +332,14 @@ is overpowered for this. We don't need a complete shell script interpreter:
 most <em>processor</em> commands will be very simple, with only two or three
 words, and we only need a way to turn a string into an <em>argv</em>, i.e. a
 command line. </li>
- <li> <a href="http://skarnet.org/software/execline/execlineb.html">execlineb</a>
+ <li> <a href="//skarnet.org/software/execline/execlineb.html">execlineb</a>
 was designed just for this: to turn simple strings into command lines.
 It is a very fast and lightweight script launcher, that does not do any heavy
 startup initialization like <tt>/bin/sh</tt> does. It happens to be the perfect
 tool for the job. </li>
  <li> To be perfectly honest: I also did this on purpose so people have a
 reason to use the
-<a href="http://skarnet.org/software/execline/">execline</a> language. But
+<a href="//skarnet.org/software/execline/">execline</a> language. But
 seriously, it <em>really</em> is the perfect tool for the job. </li>
 </ul>
 
@@ -534,7 +534,7 @@ to a small RAM filesystem.
 do not need any local logging software. You don't even need syslogd.
 Just filter your stderr via some <tt>grep</tt> that selects lines for
 you, then sends them to a network socket. A trivial shell script, or
-<a href="http://skarnet.org/software/execline/">execline</a>
+<a href="//skarnet.org/software/execline/">execline</a>
 script, can do that for you.
 </p>
 

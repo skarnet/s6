@@ -6,15 +6,15 @@
     <title>s6: the ftrigr library interface</title>
     <meta name="Description" content="s6: the ftrigr library interface" />
     <meta name="Keywords" content="s6 ftrig notification subscriber listener libftrigr ftrigr library interface" />
-    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
   </head>
 <body>
 
 <p>
 <a href="index.html">libs6</a><br />
 <a href="../">s6</a><br />
-<a href="http://skarnet.org/software/">Software</a><br />
-<a href="http://skarnet.org/">skarnet.org</a>
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
 </p>
 
 <h1> The <tt>ftrigr</tt> library interface </h1>
@@ -37,7 +37,7 @@ exact function prototypes.
 know it has. This means paying some attention to the SIGCHLD handler,
 if any, and to the way you perform <tt>waitpid()</tt>s. The best
 practice is to use a
-<a href="http://skarnet.org/software/skalibs/libstddjb/selfpipe.html">self-pipe</a>
+<a href="//skarnet.org/software/skalibs/libstddjb/selfpipe.html">self-pipe</a>
 to handle SIGCHLD (as well as other signals the application needs to trap),
 and to <em>always</em> use <tt>wait_nohang()</tt> to reap children,
 simply ignoring pids you don't know.
@@ -67,7 +67,7 @@ parameter. Those are pointers to tain_t structures containing absolute times;
 the former represents a deadline (in most cases, this time will be in the
 future) and the latter must be an accurate enough timestamp. These
 structures can be filled using the <tt>tain_</tt> primitives declared in
-<a href="http://skarnet.org/software/skalibs/libstddjb/tai.html">skalibs/tai.h</a>. </li>
+<a href="//skarnet.org/software/skalibs/libstddjb/tai.html">skalibs/tai.h</a>. </li>
  <li> ("Accurate enough" means that <strong>no blocking system call must have
 been made</strong> since the last time <em>stamp</em> was updated (by
 <tt>tain_now(&amp;stamp)</tt>). It's a good policy to always update
@@ -88,7 +88,7 @@ of the current time. This allows the programmer to call several such functions
 in a sequence without modifying the <em>deadline</em> and <em>stamp</em>
 parameters: then the whole sequence is bound in execution time. </li>
  <li> This is a general safety mechanism implemented in
-<a href="http://skarnet.org/software/skalibs/libunixonacid/">libunixonacid</a>:
+<a href="//skarnet.org/software/skalibs/libunixonacid/">libunixonacid</a>:
 in interprocess communication, purely synchronous primitives are dangerous
 because they make the calling process rely on proper behaviour of the called
 process. Giving synchronous primitives the ability to timeout allows developers

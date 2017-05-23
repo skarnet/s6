@@ -6,14 +6,14 @@
     <title>s6: service directories</title>
     <meta name="Description" content="s6: service directory" />
     <meta name="Keywords" content="s6 supervision supervise service directory run finish servicedir" />
-    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
   </head>
 <body>
 
 <p>
 <a href="index.html">s6</a><br />
-<a href="http://skarnet.org/software/">Software</a><br />
-<a href="http://skarnet.org/">skarnet.org</a>
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
 </p>
 
 <h1> Service directories </h1>
@@ -54,8 +54,8 @@ should normally:
   <li> adjust redirections for stdin, stdout and stderr. For instance,
 if your service is logged, the run script should make sure that its
 stderr goes into the log pipe (which is on stdout by default), which
-is achieved by <tt><a href="http://skarnet.org/software/execline/fdmove.html">fdmove</a>
--c 2 1</tt> in <a href="http://skarnet.org/software/execline/">execline</a>,
+is achieved by <tt><a href="//skarnet.org/software/execline/fdmove.html">fdmove</a>
+-c 2 1</tt> in <a href="//skarnet.org/software/execline/">execline</a>,
 and <tt>exec 2>&1</tt> in <a href="http://pubs.opengroup.org/onlinepubs/9699919799/utilities/sh.html">shell</a>.
 By default, in a normal supervision tree situation, a run script's stdin will
 be <tt>/dev/null</tt>, and its stdout and stderr will both be a pipe to a
@@ -229,7 +229,7 @@ it makes sense to have an image of your service directories in the
 (possibly read-only) root filesystem, and <em>copy it all</em>
 to a scan directory located on a RAM filesystem that is mounted at boot time.
 This is the setup I recommend, and the one used by the
-<a href="http://skarnet.org/software/s6-rc/">s6-rc</a> service manager.
+<a href="//skarnet.org/software/s6-rc/">s6-rc</a> service manager.
  It has several advantages:
  <ul>
   <li> Your service directories reside on the root filesystem and are not

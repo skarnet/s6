@@ -6,14 +6,14 @@
     <title>s6: the s6-connlimit program</title>
     <meta name="Description" content="s6: the s6-connlimit program" />
     <meta name="Keywords" content="s6 connection limit s6-connlimit" />
-    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
   </head>
 <body>
 
 <p>
 <a href="index.html">s6</a><br />
-<a href="http://skarnet.org/software/">Software</a><br />
-<a href="http://skarnet.org/">skarnet.org</a>
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
 </p>
 
 <h1> The <tt>s6-connlimit</tt> program </h1>
@@ -46,11 +46,11 @@ no maximum number of connections has been defined. </li>
 <h2> Usage </h2>
 
 <p>
- The <a href="http://skarnet.org/software/s6-networking/s6-tcpserver4.html">s6-tcpserver4</a> and
-<a href="http://skarnet.org/software/s6-networking/s6-tcpserver6.html">s6-tcpserver6</a> define the PROTO environment
+ The <a href="//skarnet.org/software/s6-networking/s6-tcpserver4.html">s6-tcpserver4</a> and
+<a href="//skarnet.org/software/s6-networking/s6-tcpserver6.html">s6-tcpserver6</a> define the PROTO environment
 variable to "TCP", and spawn every child server with the TCPCONNNUM environment
 variable set to the number of connections from the same IP address.
- The <a href="http://skarnet.org/software/s6-networking/s6-tcpserver-access.html">s6-tcpserver-access</a> program
+ The <a href="//skarnet.org/software/s6-networking/s6-tcpserver-access.html">s6-tcpserver-access</a> program
 can set environment variables depending on the client's IP address. If the
 s6-tcpserver-access database is configured to set the TCPCONNMAX environment
 variable for a given set of IP addresses, and s6-tcpserver-access execs into
@@ -97,7 +97,7 @@ default of 40.
 
 <ul>
  <li> The s6-connlimit utility was once part of the
-<a href=""http://skarnet.org/software/s6-networking/">s6-networking</a>
+<a href=""//skarnet.org/software/s6-networking/">s6-networking</a>
 suite, and is mostly useful with TCP connections, which is why the
 examples here involve TCP. Nevertheless, it can be used with connections
 across Unix domain sockets, and that is why it has been moved to the s6

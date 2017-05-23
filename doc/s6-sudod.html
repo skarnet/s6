@@ -6,14 +6,14 @@
     <title>s6: the s6-sudod program</title>
     <meta name="Description" content="s6: the s6-sudod program" />
     <meta name="Keywords" content="s6 s6-sudod sudo setuid suid unix privilege gain getpeereid server" />
-    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
   </head>
 <body>
 
 <p>
 <a href="index.html">s6</a><br />
-<a href="http://skarnet.org/software/">Software</a><br />
-<a href="http://skarnet.org/">skarnet.org</a>
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
 </p>
 
 <h1> The <tt>s6-sudod</tt> program </h1>
@@ -102,11 +102,11 @@ sargv
 </pre>
 
 <ul>
- <li> <a href="http://skarnet.org/software/execline/execlineb.html">execlineb</a>
+ <li> <a href="//skarnet.org/software/execline/execlineb.html">execlineb</a>
 executes the script. </li>
- <li> <a href="http://skarnet.org/software/execline/fdmove.html">fdmove</a> makes
+ <li> <a href="//skarnet.org/software/execline/fdmove.html">fdmove</a> makes
 sure the script's error messages are sent to the service's logger. </li>
- <li> <a href="http://skarnet.org/software/execline/fdmove.html">fdmove</a>
+ <li> <a href="//skarnet.org/software/execline/fdmove.html">fdmove</a>
 redirects the script's stdout to file descriptor 3. This is useful if
 the service directory contains a <tt>notification-fd</tt> file containing
 <tt>3</tt>, so the daemon can perform
@@ -121,9 +121,9 @@ readiness. Then, for every client connecting to <em>serversocket</em>:
   <ul>
    <li> <a href="s6-ipcserver-access.html">s6-ipcserver-access</a> checks the
 client's credentials according to the rules in directory <em>rules</em>.
-   <li> <a href="http://skarnet.org/software/execline/exec.html">exec -c</a>
+   <li> <a href="//skarnet.org/software/execline/exec.html">exec -c</a>
 clears the environment. </li>
-   <li> <a href="http://skarnet.org/software/s6/s6-envdir.html">s6-envdir</a>
+   <li> <a href="//skarnet.org/software/s6/s6-envdir.html">s6-envdir</a>
 sets environment variables according to the directory <em>env</em>. You can
 make sure that a variable VAR will be present but empty by performing
 <tt>echo > env/VAR</tt>. (A single newline is interpreted by s6-envdir as

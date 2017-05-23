@@ -6,21 +6,21 @@
     <title>s6: How to run s6-svscan as process 1</title>
     <meta name="Description" content="s6: s6-svscan as init" />
     <meta name="Keywords" content="s6 supervision svscan s6-svscan init process boot 1" />
-    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
   </head>
 <body>
 
 <p>
 <a href="index.html">s6</a><br />
-<a href="http://skarnet.org/software/">Software</a><br />
-<a href="http://skarnet.org/">skarnet.org</a>
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
 </p>
 
 <h1> How to run s6-svscan as process 1 </h1>
 
 <p>
  <em> Since 2015-06-17, if you're a Linux user, you can use the
-<a href="http://skarnet.org/software/s6-linux-init/">s6-linux-init</a>
+<a href="//skarnet.org/software/s6-linux-init/">s6-linux-init</a>
 package to help you do so! Please read this documentation page first,
 though, it will help you understand what s6-linux-init does. </em>
 </p>
@@ -137,7 +137,7 @@ every Unix platform; but outside of stage 2 is where portability stops.
 </p>
 
 <p>
- The <a href="http://skarnet.org/software/s6-linux-init/">s6-linux-init</a>
+ The <a href="//skarnet.org/software/s6-linux-init/">s6-linux-init</a>
 package provides a tool, <tt>s6-linux-init-maker</tt>, to automatically
 create a suitable stage 1 init (so, the <tt>/sbin/init</tt> binary) for
 Linux.
@@ -221,7 +221,7 @@ init a script.
 <p>
  Of course, most people will use the <em>shell</em> as scripting
 language; however, I advocate the use of
-<a href="http://skarnet.org/software/execline/">execline</a>
+<a href="//skarnet.org/software/execline/">execline</a>
 for this, and not only for the obvious reasons. Piping s6-svscan's
 stderr to a logging service before said service is even up requires
 some <a href="#log">tricky fifo handling</a> that execline can do
@@ -334,9 +334,9 @@ FIFO reader process.
 
 <p>
  Instead, you are encouraged to use the
-<a href="http://skarnet.org/software/execline/">execline</a> language -
+<a href="//skarnet.org/software/execline/">execline</a> language -
 or, at least,
-the <a href="http://skarnet.org/software/execline/redirfd.html">redirfd</a>
+the <a href="//skarnet.org/software/execline/redirfd.html">redirfd</a>
 command, which is part of the execline distribution. The
 <a href="http://www.skarnet.org/software/execline/redirfd.html">redirfd</a>
 command does just the right amount of trickery with FIFOs for you to be
@@ -379,9 +379,9 @@ live examples without becoming system-specific.
 
 <p>
  However, the
-<a href="http://skarnet.org/software/s6-linux-init/">s6-linux-init</a>
+<a href="//skarnet.org/software/s6-linux-init/">s6-linux-init</a>
 package provides you with the
-<a href="http://skarnet.org/software/s6-linux-init/s6-linux-init-maker.html">s6-linux-init-maker</a>
+<a href="//skarnet.org/software/s6-linux-init/s6-linux-init-maker.html">s6-linux-init-maker</a>
 command, which produces a set of working scripts, including a script
 that is suitable as <tt>/sbin/init</tt>, for you to study and edit.
 You can <em>run</em> the <tt>s6-linux-init-maker</tt> command even

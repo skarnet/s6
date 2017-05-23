@@ -6,14 +6,14 @@
     <title>s6: the s6-ioconnect program</title>
     <meta name="Description" content="s6: the s6-ioconnect program" />
     <meta name="Keywords" content="s6 ioconnect ucspi tcpconnect ipcconnect" />
-    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
   </head>
 <body>
 
 <p>
 <a href="index.html">s6</a><br />
-<a href="http://skarnet.org/software/">Software</a><br />
-<a href="http://skarnet.org/">skarnet.org</a>
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
 </p>
 
 <h1> The <tt>s6-ioconnect</tt> program </h1>
@@ -69,7 +69,7 @@ to mention that a socket must be shut down. Most of the time, though,
 shutting down sockets after EOF <em>is</em> the right thing to do, so
 <tt>s6-ioconnect -67</tt> should be the common use case. </li>
  <li> The point of s6-ioconnect is to be used together with
-<a href="http://skarnet.org/software/s6-networking/s6-tcpclient.html">s6-tcpclient</a> or
+<a href="//skarnet.org/software/s6-networking/s6-tcpclient.html">s6-tcpclient</a> or
 <a href="s6-ipcclient.html">s6-ipcclient</a> to establish a full-
 duplex connection between the client and the server, for instance
 for testing purposes. <tt>s6-ioconnect</tt> is to s6-tcpclient as
@@ -80,7 +80,7 @@ data transmission, via the
 <a href="http://man7.org/linux/man-pages/man2/splice.2.html">splice</a>
 system call. </li>
  <li> The s6-ioconnect utility was once part of the
-<a href="http://skarnet.org/software/s6-networking/">s6-networking</a>
+<a href="//skarnet.org/software/s6-networking/">s6-networking</a>
 suite, which is why the
 examples here involve TCP. Nevertheless, it can be used with connections
 across Unix domain sockets as well, and has its place in the s6

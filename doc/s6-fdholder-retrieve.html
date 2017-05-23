@@ -6,14 +6,14 @@
     <title>s6: the s6-fdholder-retrieve program</title>
     <meta name="Description" content="s6: the s6-fdholder-retrieve program" />
     <meta name="Keywords" content="s6 s6-fdholder fd-holding fd-holder fd retrieval unix socket activation" />
-    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
   </head>
 <body>
 
 <p>
 <a href="index.html">s6</a><br />
-<a href="http://skarnet.org/software/">Software</a><br />
-<a href="http://skarnet.org/">skarnet.org</a>
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
 </p>
 
 <h1> The <tt>s6-fdholder-retrieve</tt> program </h1>
@@ -82,7 +82,7 @@ connection.
 <ul>
  <li> s6-fdholder-retrieve really executes into <tt>s6-ipcclient
 s6-fdholder-retrievec
-<a href="http://skarnet.org/software/execline/fdclose.html">fdclose</a>
+<a href="//skarnet.org/software/execline/fdclose.html">fdclose</a>
 6 fdclose 7 <em>prog...</em></tt>, so that <em>prog...</em> does not
 have a connection with the fd-holding daemon anymore. If you want to
 keep the server connection open for <em>prog...</em>, use
@@ -90,7 +90,7 @@ keep the server connection open for <em>prog...</em>, use
  <li> To execute <em>prog</em> with the newly retrieved file descriptor
 as number <em>n</em> while preserving stdin, use the following construct:
 <tt>fdmove <em>n</em> 0 s6-fdholder-retrieve <em>path</em> <em>id</em>
-<a href="http://skarnet.org/software/execline/fdswap.html">fdswap</a>
+<a href="//skarnet.org/software/execline/fdswap.html">fdswap</a>
 0 <em>n</em> <em>prog...</em></tt>. Be aware that <em>n</em>
 cannot be 6 or 7, internally used by s6-fdholder-retrieve. </li>
 </ul>

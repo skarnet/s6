@@ -6,14 +6,14 @@
     <title>s6: the s6-accessrules-cdb-from-fs program</title>
     <meta name="Description" content="s6: the s6-accessrules-cdb-from-fs program" />
     <meta name="Keywords" content="s6 s6-accessrules-cdb-from-fs tcp unix access control ipcrules tcprules cdb filesystem" />
-    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
   </head>
 <body>
 
 <p>
 <a href="index.html">s6</a><br />
-<a href="http://skarnet.org/software/">Software</a><br />
-<a href="http://skarnet.org/">skarnet.org</a>
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
 </p>
 
 <h1> The <tt>s6-accessrules-cdb-from-fs</tt> program </h1>
@@ -22,7 +22,7 @@
 <tt>s6-accessrules-cdb-from-fs</tt> compiles a directory
 containing a ruleset suitable for
 <a href="s6-ipcserver-access.html">s6-ipcserver-access<a> or
-<a href="http://skarnet.org/software/s6-networking/s6-tcpserver-access.html">s6-tcpserver-access<a> into a
+<a href="//skarnet.org/software/s6-networking/s6-tcpserver-access.html">s6-tcpserver-access<a> into a
 <a href="http://en.wikipedia.org/wiki/Cdb_(software)">CDB file</a>.
 </p>
 
@@ -44,7 +44,7 @@ directory containing a ruleset into a
 <p>
  To be understood by s6-accessrules-cdb-from-fs,
 <a href="s6-ipcserver-access.html">s6-ipcserver-access<a>, or
-<a href="http://skarnet.org/software/s6-networking/s6-tcpserver-access.html">s6-tcpserver-access<a>,
+<a href="//skarnet.org/software/s6-networking/s6-tcpserver-access.html">s6-tcpserver-access<a>,
 <em>dir</em> must have a specific format.
 </p>
 
@@ -63,7 +63,7 @@ directory containing a ruleset into a
 <p>
 Depending on the application, other directories can appear in <em>dir</em>
 and be compiled into <em>cdbfile</em>, but
-<a href="http://skarnet.org/software/s6-networking/s6-tcpserver-access.html">s6-tcpserver-access<a> only
+<a href="//skarnet.org/software/s6-networking/s6-tcpserver-access.html">s6-tcpserver-access<a> only
 uses the first three, and
 <a href="s6-ipcserver-access.html">s6-ipcserver-access<a> only
 uses the last two.
@@ -109,7 +109,7 @@ complain and exit 100. </li>
  <li> a file named <tt>exec</tt>. If such a file exists along with an
 <tt>allow</tt> file, then its contents represent a command line that,
 interpreted by the
-<a href="http://skarnet.org/software/execline/execlineb.html">execlineb</a>
+<a href="//skarnet.org/software/execline/execlineb.html">execlineb</a>
 launcher, will be executed after accepting the connection, totally bypassing the
 original command line. s6-accessrules-cdb-from-fs truncates the <tt>exec</tt>
 file to 4096 bytes max when embedding it into <em>cdbfile</em>, so make
@@ -130,7 +130,7 @@ s6-accessrules-cdb-from-fs is interrupted by a signal. </li>
  <li> After the program successfully completes, if <em>dir</em>
 was a suitable candidate for the <tt>-i</tt> option of
 <a href="s6-ipcserver-access.html">s6-ipcserver-access</a> or
-<a href="http://skarnet.org/software/s6-networking/s6-tcpserver-access.html">s6-tcpserver-access</a>, then
+<a href="//skarnet.org/software/s6-networking/s6-tcpserver-access.html">s6-tcpserver-access</a>, then
 <em>cdbfile</em> will be a suitable candidate for the <tt>-x</tt> option
 of the same program, implementing the same ruleset. </li>
  <li> <em>cdbfile</em> can be decompiled by the
