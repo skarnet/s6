@@ -30,7 +30,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
 {
   subgetopt_t l = SUBGETOPT_ZERO ;
   unixmessage_t m ;
-  unsigned int nullfds = 0, t = 2000 ;
+  unsigned int nullfds = 0, t = 0 ;
   pid_t pid ;
   size_t envc = env_len(envp) ;
   uint32_t cargc, cenvc, carglen, cenvlen ;
