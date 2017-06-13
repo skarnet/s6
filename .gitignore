@@ -3,3 +3,5 @@
 *.lo
 *.so
 *.so.*
+config.mak
+src/include/s6/config.h

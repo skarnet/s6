@@ -240,7 +240,7 @@ int main (void)
       if (!unixmessage_sender_flush(unixmessage_sender_x) && !error_isagain(errno))
       {
         cleanup() ;
-        strerr_diefu1sys(111, "flush asyncout") ;
+        return 1 ;
       }
 
    /* scan listening ftrigs */
