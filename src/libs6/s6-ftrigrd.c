@@ -105,7 +105,7 @@ static inline int ftrigio_read (ftrigio_t *p)
     {
       trig(p->id, '!', p->sa.s[pmatch.rm_eo - 1]) ;
       if (!(p->options & FTRIGR_REPEAT)) return 0 ;
-      memcpy(p->sa.s, p->sa.s + pmatch.rm_eo, p->sa.len + 1 - pmatch.rm_eo) ;
+      memmove(p->sa.s, p->sa.s + pmatch.rm_eo, p->sa.len + 1 - pmatch.rm_eo) ;
       p->sa.len -= pmatch.rm_eo ;
     }
   }
