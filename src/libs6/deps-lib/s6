@@ -1,5 +1,6 @@
 ftrigr1_zero.o
 ftrigr_check.o
+ftrigr_checksa.o
 ftrigr_end.o
 ftrigr_start.o
 ftrigr_startf.o

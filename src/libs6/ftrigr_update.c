@@ -35,12 +35,14 @@ static int msghandler (unixmessage_t const *m, void *context)
   switch (m->s[2])
   {
     case 'd' :
+      if (!stralloc_catb(&p->what, m->s + 3, 1)) return 0 ;
       p->state = FR1STATE_WAITACK ;
       break ;
     case '!' :
+      if (!stralloc_catb(&p->what, m->s + 3, 1)) return 0 ;
       if (p->options & FTRIGR_REPEAT)
       {
-        if (p->count++
+        if (p->what.len > 1
          && appears(id+1, genalloc_s(uint16_t, &a->list), genalloc_len(uint16_t, &a->list)))
           addit = 0 ;
       }
@@ -48,7 +50,6 @@ static int msghandler (unixmessage_t const *m, void *context)
       break ;
     default : return (errno = EPROTO, 0) ;
   }
-  p->what = m->s[3] ;
   if (addit)
   {
     id++ ; genalloc_append(uint16_t, &a->list, &id) ;

@@ -7,6 +7,7 @@
 #include <skalibs/uint16.h>
 #include <skalibs/uint32.h>
 #include <skalibs/tai.h>
+#include <skalibs/stralloc.h>
 #include <skalibs/gensetdyn.h>
 #include <skalibs/skaclient.h>
 #include <s6/ftrigr.h>
@@ -45,8 +46,7 @@ uint16_t ftrigr_subscribe (ftrigr_t *a, char const *path, char const *re, uint32
     ftrigr1_t *p = GENSETDYN_P(ftrigr1_t, &a->data, i) ;
     p->options = options ;
     p->state = FR1STATE_LISTENING ;
-    p->count = 0 ;
-    p->what = 0 ;
+    p->what = stralloc_zero ;
   }
   return (uint16_t)(i+1) ;
 }

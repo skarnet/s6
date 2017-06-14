@@ -2,6 +2,7 @@
 
 #include <errno.h>
 #include <skalibs/uint16.h>
+#include <skalibs/stralloc.h>
 #include <skalibs/gensetdyn.h>
 #include <skalibs/skaclient.h>
 #include <s6/ftrigr.h>
@@ -30,6 +31,7 @@ int ftrigr_unsubscribe (ftrigr_t *a, uint16_t i, tain_t const *deadline, tain_t 
     if (!skaclient_send(&a->connection, pack, 3, &skaclient_default_cb, &err, deadline, stamp)) return 0 ;
     if (err) return (errno = err, 0) ;
   }
+  stralloc_free(&p->what) ;
   *p = ftrigr1_zero ;
   return gensetdyn_delete(&a->data, i) ;
 }

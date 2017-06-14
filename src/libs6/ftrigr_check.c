@@ -1,39 +1,20 @@
 /* ISC license. */
 
 #include <errno.h>
-#include <skalibs/gensetdyn.h>
+#include <skalibs/stralloc.h>
 #include <s6/ftrigr.h>
 
 int ftrigr_check (ftrigr_t *a, uint16_t id, char *c)
 {
-  ftrigr1_t *p ;
-  if (!id--) return (errno = EINVAL, -1) ;
-  p = GENSETDYN_P(ftrigr1_t, &a->data, id) ;
-  if (!p) return (errno = EINVAL, -1) ;
-  switch (p->state)
+  stralloc sa = STRALLOC_ZERO ;
+  int r = ftrigr_checksa(a, id, &sa) ;
+
+  if (r && sa.len)
   {
-    case FR1STATE_WAITACKDATA :
-    {
-      *c = p->what ;
-      *p = ftrigr1_zero ;
-      gensetdyn_delete(&a->data, id) ;
-      return 1 ;
-    }
-    case FR1STATE_LISTENING :
-    {
-      unsigned int r = p->count ;
-      if (r) *c = p->what ;
-      p->count = 0 ;
-      return (int)r ;
-    }
-    case FR1STATE_WAITACK :
-    {
-      errno = p->what ;
-      *p = ftrigr1_zero ;
-      gensetdyn_delete(&a->data, id) ;
-      return -1 ;
-    }
-    default: return (errno = EINVAL, -1) ;
+    int e = errno ;
+    *c = sa.s[sa.len - 1] ;
+    stralloc_free(&sa) ;
+    errno = e ;
   }
-  return 0 ;
+  return r ;
 }

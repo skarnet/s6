@@ -5,6 +5,7 @@
 #include <skalibs/bitarray.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/iopause.h>
+#include <skalibs/stralloc.h>
 #include <skalibs/djbunix.h>
 #include <s6/ftrigr.h>
 #include <s6/s6-supervise.h>
@@ -48,7 +49,10 @@ int s6_svlisten_loop (s6_svlisten_t *foo, int wantup, int wantready, int or, tai
 {
   iopause_fd x[2] = { { .fd = ftrigr_fd(&foo->a), .events = IOPAUSE_READ }, { .fd = spfd, .events = IOPAUSE_READ, .revents = 0 } } ;
   unsigned int e = 0 ;
-  while (!got(foo, wantup, wantready, or))
+  stralloc sa = STRALLOC_ZERO ;
+
+  if (got(foo, wantup, wantready, or)) return 0 ;
+  for (;;)
   {
     int r = iopause_g(x, 1 + (spfd >= 0), deadline) ;
     if (r < 0) strerr_diefu1sys(111, "iopause") ;
@@ -60,29 +64,36 @@ int s6_svlisten_loop (s6_svlisten_t *foo, int wantup, int wantready, int or, tai
       if (ftrigr_update(&foo->a) < 0) strerr_diefu1sys(111, "ftrigr_update") ;
       for (; i < foo->n ; i++)
       {
-        char what ;
-        int r = ftrigr_check(&foo->a, foo->ids[i], &what) ;
+        sa.len = 0 ;
+        r = ftrigr_checksa(&foo->a, foo->ids[i], &sa) ;
         if (r < 0) strerr_diefu1sys(111, "ftrigr_check") ;
-        if (r)
+        else if (r)
         {
-          if (what == 'O')
+          size_t j = 0 ;
+          for (; j < sa.len ; j++)
           {
-            if (wantup)
+            if (sa.s[j] == 'O')
             {
-              bitarray_poke(foo->upstate, i, wantup) ;
-              bitarray_poke(foo->readystate, i, wantready) ;
-              e++ ;
+              if (wantup)
+              {
+                bitarray_poke(foo->upstate, i, wantup) ;
+                bitarray_poke(foo->readystate, i, wantready) ;
+                e++ ;
+              }
             }
-          }
-          else
-          {
-            unsigned int d = byte_chr("dDuU", 4, what) ;
-            bitarray_poke(foo->upstate, i, d & 2) ;
-            bitarray_poke(foo->readystate, i, d & 1) ;
+            else
+            {
+              unsigned int d = byte_chr("dDuU", 4, sa.s[j]) ;
+              bitarray_poke(foo->upstate, i, d & 2) ;
+              bitarray_poke(foo->readystate, i, d & 1) ;
+            }
+            if (got(foo, wantup, wantready, or)) goto gotit ;
           }
         }
       }
     }
   }
+ gotit:
+  stralloc_free(&sa) ;
   return e ;
 }

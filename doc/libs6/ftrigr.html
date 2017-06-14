@@ -266,5 +266,26 @@ times that an event happened to this identifier since the last
 call to <tt>ftrigr_check()</tt>. </li>
 </ul>
 
+<pre>
+int ftrigr_checksa (ftrigr_t *a, uint16_t id, stralloc *what)
+</pre>
+
+<p>
+ Checks whether an event happened to <em>id</em>. Use after a
+call to <tt>ftrigr_update()</tt>, as an alternative to <tt>ftrigr_check()</tt>.
+</p>
+
+<ul>
+ <li> If an error occurred, returns -1 and sets errno. The error
+number may have been transmitted from
+<a href="s6-ftrigrd.html">s6-ftrigrd</a>. </li>
+ <li> If no notification happened yet, returns 0. </li>
+ <li> If something happened, appends one character to the end of the <em>what</em>
+<a href="//skarnet.org/software/skalibs/libstddjb/stralloc.html">stralloc</a>
+for every time a notification was triggered since the last call
+to <tt>ftrigr_check()</tt>. Each character is the one that triggered
+a notification. The function then returns 1. </li>
+</ul>
+
 </body>
 </html>

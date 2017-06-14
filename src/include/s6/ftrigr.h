@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <skalibs/config.h>
 #include <skalibs/tai.h>
+#include <skalibs/stralloc.h>
 #include <skalibs/genalloc.h>
 #include <skalibs/gensetdyn.h>
 #include <skalibs/skaclient.h>
@@ -40,11 +41,10 @@ typedef struct ftrigr1_s ftrigr1_t, *ftrigr1_t_ref ;
 struct ftrigr1_s
 {
   uint32_t options ;
-  unsigned int count ;
   fr1state_t state ;
-  char what ;
+  stralloc what ;
 } ;
-#define FTRIGR1_ZERO { .options = 0, .count = 0, .state = FR1STATE_ERROR, .what = 0 }
+#define FTRIGR1_ZERO { .options = 0, .state = FR1STATE_ERROR, .what = STRALLOC_ZERO }
 extern ftrigr1_t const ftrigr1_zero ;
 
 
@@ -76,6 +76,7 @@ extern void ftrigr_end (ftrigr_t *) ;
 #define ftrigr_fd(a) skaclient_fd(&(a)->connection)
 extern int ftrigr_update (ftrigr_t *) ;
 extern int ftrigr_check (ftrigr_t *, uint16_t, char *) ;
+extern int ftrigr_checksa (ftrigr_t *, uint16_t, stralloc *) ;
 
 
  /* Synchronous functions with timeouts */
