@@ -1,5 +1,13 @@
 Changelog for s6.
 
+In 2.6.0.0
+----------
+
+ - Bugfixes. One of the bugfixes required a visible ABI change,
+which exxplains the major version bump.
+ - Documentation fixes.
+
+
 In 2.5.1.0
 ----------
 

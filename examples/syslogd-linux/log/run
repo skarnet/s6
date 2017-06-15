@@ -1,7 +1,7 @@
 #!/command/execlineb -P
 s6-setuidgid syslog
 s6-envdir -f env
-import -Cs LOGSCRIPT
+importas -Cs LOGSCRIPT LOGSCRIPT
 exec -c
 s6-log $LOGSCRIPT
 
