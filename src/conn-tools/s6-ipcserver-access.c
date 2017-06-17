@@ -199,6 +199,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
     if (!env_addmodif(&params.env, tmp, 0)) dienomem() ;
     memcpy(tmp + protolen, "LOCALPATH", 10) ;
     if (!env_addmodif(&params.env, tmp, 0)) dienomem() ;
+    memcpy(tmp + protolen, "CONNNUM", 8) ;
+    if (!env_addmodif(&params.env, tmp, 0)) dienomem() ;
   }
 
   if (params.exec.len)
