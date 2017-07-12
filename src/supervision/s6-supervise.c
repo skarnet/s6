@@ -599,9 +599,9 @@ int main (int argc, char const *const *argv)
     memcpy(progname + proglen + 1, argv[1], namelen + 1) ;
     PROG = progname ;
     if (!fd_sanitize()) strerr_diefu1sys(111, "sanitize stdin and stdout") ;
-    x[1].fd = s6_supervise_lock(S6_SUPERVISE_CTLDIR) ;
     if (!ftrigw_fifodir_make(S6_SUPERVISE_EVENTDIR, getegid(), 0))
       strerr_diefu2sys(111, "mkfifodir ", S6_SUPERVISE_EVENTDIR) ;
+    x[1].fd = s6_supervise_lock(S6_SUPERVISE_CTLDIR) ;
     x[0].fd = selfpipe_init() ;
     if (x[0].fd == -1) strerr_diefu1sys(111, "init selfpipe") ;
     if (sig_ignore(SIGPIPE) < 0) strerr_diefu1sys(111, "ignore SIGPIPE") ;

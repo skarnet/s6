@@ -26,6 +26,7 @@ s6_accessrules_uidgid_cdb.o
 s6_accessrules_uidgid_fs.o
 s6_supervise_lock.o
 s6_supervise_lock_mode.o
+s6_svc_lock_take.o
 s6_svc_ok.o
 s6_svc_write.o
 s6_svc_writectl.o
