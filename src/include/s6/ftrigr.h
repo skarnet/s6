@@ -3,6 +3,7 @@
 #ifndef FTRIGR_H
 #define FTRIGR_H
 
+#include <sys/types.h>
 #include <stdint.h>
 #include <skalibs/config.h>
 #include <skalibs/tai.h>
@@ -55,10 +56,11 @@ struct ftrigr_s
 {
   skaclient_t connection ;
   genalloc list ; /* array of uint16_t */
+  size_t head ;
   gensetdyn data ; /* set of ftrigr1_t */
   skaclient_buffer_t buffers ;
 } ;
-#define FTRIGR_ZERO { .connection = SKACLIENT_ZERO, .list = GENALLOC_ZERO, .data = GENSETDYN_INIT(ftrigr1_t, 2, 0, 1) }
+#define FTRIGR_ZERO { .connection = SKACLIENT_ZERO, .list = GENALLOC_ZERO, .head = 0, .data = GENSETDYN_INIT(ftrigr1_t, 2, 0, 1) }
 extern ftrigr_t const ftrigr_zero ;
 
 
@@ -74,9 +76,11 @@ extern void ftrigr_end (ftrigr_t *) ;
  /* Instant primitives for async programming */
 
 #define ftrigr_fd(a) skaclient_fd(&(a)->connection)
+extern int ftrigr_updateb (ftrigr_t *) ;
 extern int ftrigr_update (ftrigr_t *) ;
 extern int ftrigr_check (ftrigr_t *, uint16_t, char *) ;
 extern int ftrigr_checksa (ftrigr_t *, uint16_t, stralloc *) ;
+extern void ftrigr_ack (ftrigr_t *, size_t) ;
 
 
  /* Synchronous functions with timeouts */

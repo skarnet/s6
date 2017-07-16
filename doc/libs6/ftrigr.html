@@ -227,7 +227,7 @@ int ftrigr_fd (ftrigr_t const *a)
 </p>
 
 <pre>
-int ftrigr_update (ftrigr_t *a)
+int ftrigr_updateb (ftrigr_t *a)
 </pre>
 
 <p>
@@ -239,11 +239,14 @@ which something happened.
 </p>
 
 <p>
- When <tt>ftrigr_update</tt> returns,
+ When <tt>ftrigr_updateb</tt> returns,
 <tt>genalloc_s(uint16_t, &amp;a-&gt;list)</tt> points to an array of
 <tt>genalloc_len(uint16_t, &amp;a-&gt;list)</tt> 16-bit unsigned
 integers. Those integers are ids waiting to be passed to
-<tt>ftrigr_check</tt>.
+<tt>ftrigr_check</tt> or <tt>ftrigr_checksa</tt>.
+The number of ids already acknowledged is stored in
+<tt>a-&gt;head</tt>, so the first unacknowledged id is
+<tt>genalloc_s(uint16_t, &amp;a-&gt;list)[a-&gt;head]</tt>.
 </p>
 
 <pre>
@@ -252,7 +255,7 @@ int ftrigr_check (ftrigr_t *a, uint16_t id, char *what)
 
 <p>
  Checks whether an event happened to <em>id</em>. Use after a
-call to <tt>ftrigr_update()</tt>.
+call to <tt>ftrigr_updateb()</tt>.
 </p>
 
 <ul>
@@ -286,6 +289,24 @@ for every time a notification was triggered since the last call
 to <tt>ftrigr_check()</tt>. Each character is the one that triggered
 a notification. The function then returns 1. </li>
 </ul>
+
+<pre>
+int ftrigr_ack (ftrigr_t *a, size_t n)
+</pre>
+
+<p>
+ Acknowledges reading <em>n</em> ids from the id list updated by
+<tt>ftrigr_updateb</tt>.
+</p>
+
+<pre>
+int ftrigr_update (ftrigr_t *a)
+</pre>
+
+<p>
+ Acknowledges all the pending ids (i.e. clears the stored id list)
+then calls <tt>ftrigr_updateb()</tt>.
+</p>
 
 </body>
 </html>
