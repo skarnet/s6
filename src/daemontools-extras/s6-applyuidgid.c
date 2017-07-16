@@ -54,7 +54,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   }
   if (!argc) dieusage() ;
 
-  if (gidn != (size_t)-1 && skalibs_setgroups(gidn, gids) < 0)
+  if (gidn != (size_t)-1 && setgroups_and_gid(gid ? gid : getegid(), gidn, gids) < 0)
     strerr_diefu1sys(111, "set supplementary group list") ;
   if (gid && setgid(gid) < 0)
     strerr_diefu1sys(111, "setgid") ;
