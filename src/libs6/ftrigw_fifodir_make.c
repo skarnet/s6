@@ -19,7 +19,7 @@ int ftrigw_fifodir_make (char const *path, gid_t gid, int force)
     if (!force) return 1 ;
   }
   else umask(m) ;
-  if ((gid >= 0) && (chown(path, -1, gid) == -1)) return 0 ;
-  if (chmod(path, (gid >= 0) ? 03730 : 01733) == -1) return 0 ;
+  if ((gid != (gid_t)-1) && (chown(path, -1, gid) == -1)) return 0 ;
+  if (chmod(path, (gid != (gid_t)-1) ? 03730 : 01733) == -1) return 0 ;
   return 1 ;
 }
