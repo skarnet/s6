@@ -1,6 +1,5 @@
 /* ISC license. */
 
-#include <skalibs/nonposix.h>
 #include <unistd.h>
 #include <grp.h>
 #include <limits.h>
@@ -18,7 +17,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
 {
   uid_t uid = 0 ;
   gid_t gid = 0 ;
-  gid_t gids[NGROUPS_MAX] ;
+  gid_t gids[NGROUPS_MAX+1] ;
   size_t gidn = (size_t)-1 ;
   int unexport = 0 ;
   PROG = "s6-applyuidgid" ;
@@ -44,7 +43,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
           if (!gid0_scan(x, &gid)) strerr_dieinvalid(100, "GID") ;
           x = env_get2(envp, "GIDLIST") ;
           if (!x) strerr_dienotset(100, "GIDLIST") ;
-          if (!gid_scanlist(gids, NGROUPS_MAX, x, &gidn) && *x)
+          if (!gid_scanlist(gids, NGROUPS_MAX+1, x, &gidn) && *x)
             strerr_dieinvalid(100, "GIDLIST") ;
           break ;
         }
@@ -55,7 +54,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   }
   if (!argc) dieusage() ;
 
-  if (gidn != (size_t)-1 && setgroups(gidn, gids) < 0)
+  if (gidn != (size_t)-1 && skalibs_setgroups(gidn, gids) < 0)
     strerr_diefu1sys(111, "set supplementary group list") ;
   if (gid && setgid(gid) < 0)
     strerr_diefu1sys(111, "setgid") ;
