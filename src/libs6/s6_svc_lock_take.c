@@ -19,9 +19,7 @@ int s6_svc_lock_take (char const *dir)
   if (fdlock < 0) return -1 ;
   if (coe(fdlock) < 0 || lock_ex(fdlock) < 0)
   {
-    int e = errno ;
     fd_close(fdlock) ;
-    errno = e ;
     return -1 ;
   }
   return fdlock ;

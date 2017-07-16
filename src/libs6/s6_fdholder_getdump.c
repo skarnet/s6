@@ -65,11 +65,9 @@ int s6_fdholder_getdump (s6_fdholder_t *a, genalloc *g, tain_t const *deadline, 
    errno = EPROTO ;
  err:
   {
-    int e = errno ;
     size_t j = genalloc_len(s6_fdholder_fd_t, g) ;
     while (j-- > oldlen) fd_close(genalloc_s(s6_fdholder_fd_t, g)[j].fd) ;
     genalloc_setlen(s6_fdholder_fd_t, g, oldlen) ;
-    errno = e ;
   }
   return 0 ;
 }

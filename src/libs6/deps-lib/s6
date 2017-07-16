@@ -1,12 +1,14 @@
 ftrigr1_zero.o
 ftrigr_check.o
 ftrigr_checksa.o
+ftrigr_ack.o
 ftrigr_end.o
 ftrigr_start.o
 ftrigr_startf.o
 ftrigr_subscribe.o
 ftrigr_unsubscribe.o
 ftrigr_update.o
+ftrigr_updateb.o
 ftrigr_wait_and.o
 ftrigr_wait_or.o
 ftrigr_zero.o

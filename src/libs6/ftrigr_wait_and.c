@@ -19,8 +19,9 @@ int ftrigr_wait_and (ftrigr_t *a, uint16_t const *idlist, unsigned int n, tain_t
       r = iopause_stamp(&x, 1, deadline, stamp) ;
       if (r < 0) return r ;
       else if (!r) return (errno = ETIMEDOUT, -1) ;
-      else if (ftrigr_update(a) < 0) return -1 ;
+      else if (ftrigr_updateb(a) < 0) return -1 ;
     }
   }
+
   return 1 ;
 }

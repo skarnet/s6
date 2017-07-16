@@ -369,17 +369,13 @@ static int rotator (logdir_t *ldp)
       }
       if (coe(fd) < 0)
       {
-        int e = errno ;
         fd_close(fd) ;
-        errno = e ;
         if (verbosity) strerr_warnwu2sys("coe ", x) ;
         goto fail ;
       }
       if (fd_chmod(fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) < 0)
       {
-        int e = errno ;
         fd_close(fd) ;
-        errno = e ;
         if (verbosity) strerr_warnwu3sys("fchmod ", x, " to 0644") ;
         goto fail ;
       }
@@ -441,18 +437,14 @@ static int rotator (logdir_t *ldp)
       }
       if (fd_sync(fd) < 0)
       {
-        int e = errno ;
         fd_close(fd) ;
-        errno = e ;
         if (verbosity) strerr_warnwu2sys("fd_sync ", x) ;
         goto fail ;
       }
       tain_now_g() ;
       if (fd_chmod(fd, S_IRWXU | S_IRGRP | S_IROTH) < 0)
       {
-        int e = errno ;
         fd_close(fd) ;
-        errno = e ;
         if (verbosity) strerr_warnwu3sys("fd_chmod ", x, " to 0744") ;
         goto fail ;
       }
