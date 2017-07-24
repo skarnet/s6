@@ -1,9 +1,10 @@
 #!/command/execlineb -P
 
-s6-envdir -I /service/.s6-svscan/env
-s6-setsid -qb
-redirfd -r 0 /dev/null
-redirfd -wnb 1 /service/s6-svscan-log/fifo
-fdmove -c 2 1
-exec -c -a s6-svscan
-s6-svscan -t0 /service
+/command/exec -c
+/command/s6-envdir -I /service/.s6-svscan/env
+/command/s6-setsid -qb
+/command/redirfd -r 0 /dev/null
+/command/redirfd -wnb 1 /service/s6-svscan-log/fifo
+/command/fdmove -c 2 1
+/command/exec -a s6-svscan
+/command/s6-svscan -t0 /service
