@@ -39,7 +39,7 @@ int s6_fdholder_getdump (s6_fdholder_t *a, genalloc *g, tain_t const *deadline, 
     {
       s6_fdholder_fd_t *tab = genalloc_s(s6_fdholder_fd_t, g) + genalloc_len(s6_fdholder_fd_t, g) ;
       unsigned int j = 0 ;
-      for (; j < m.nfds ; i++)
+      for (; j < m.nfds ; j++)
       {
         unsigned char thislen ;
         if (m.len < TAIN_PACK + 3) goto droperr ;
