@@ -17,6 +17,7 @@ s6-svstat			0755
 s6-svwait			0755
 s6-svlisten1			0755
 s6-svlisten			0755
+s6-notifyoncheck		0755
 s6-applyuidgid			0700
 s6-envdir			0755
 s6-envuidgid			0755

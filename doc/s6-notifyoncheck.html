@@ -1,0 +1,160 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-notifyoncheck program</title>
+    <meta name="Description" content="s6: the s6-notifyoncheck program" />
+    <meta name="Keywords" content="s6 command s6-notifyoncheck notification service check polling" />
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-notifyoncheck program </h1>
+
+<p>
+<tt>s6-notifyoncheck</tt> is a chain-loading program meant to be used
+in run scripts, in a service that has been declared to honor
+readiness notification. It implements a policy of running a user-provided
+executable in the background that polls the service currently being
+launched, in order to check when it becomes ready. It feeds the
+result of this check into the s6 notification mechanism.
+</p>
+
+<p>
+s6-notifyoncheck should <strong>only</strong> be used with daemons
+that can be polled from the outside to check readiness, and that
+<strong>do not implement readiness notification themselves</strong>.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-notifyoncheck [ -d ] [ -3 <em>notiffd</em> ] [ -s <em>initialsleep</em> ] [ -T <em>globaltimeout</em> ] [ -t <em>localtimeout</em> ] [ -w <em>waitingtime</em> ] [ -n <em>n</em> ] [ -c <em>checkprog</em> ] <em>prog...</em>
+</pre>
+
+<p>
+ s6-notifyoncheck forks and runs as the child; the parent immediately execs into
+<em>prog...</em>, the daemon that must be checked for readiness.
+</p>
+
+<p>
+ s6-notifyoncheck first waits for a little time, then it spawns the
+<tt>./data/check</tt> executable and waits for it to exit. If <tt>./data/check</tt>
+exits 0, then s6-notifyoncheck reports that the service is ready, then
+exits. If <tt>./data/check</tt> exits anything else, s6-notifyoncheck sleeps
+for a little time, then spawns <tt>./data/check</tt> again. It loops until
+<tt>./data/check</tt> succeeds, or 7 attempts fail, or a certain amount of
+time elapses.
+</p>
+
+<h2> Exit codes </h2>
+
+<p>
+ s6-notifyoncheck can exit before executing into <em>prog</em>:
+</p>
+
+<ul>
+ <li> 100: wrong usage </li>
+ <li> 111: system call failed </li>
+</ul>
+
+<p>
+ After forking, s6-notifyoncheck (running as the child) can
+exit with the following exit codes, but those are meaningless
+because no process will, or should, check them. They are only
+differentiated for clarity in the code:
+</p>
+
+<ul>
+ <li> 0: service readiness achieved and notification sent </li>
+ <li> 1: maximum number of attempts reached, all unsuccessful </li>
+ <li> 2: <em>prog</em> died, so s6-notifyoncheck exited early </li>
+ <li> 3: timed out before readiness was achieved </li>
+ <li> 111: system call failed </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-d</tt>&nbsp;: doublefork. s6-notifyoncheck will run as the
+grandchild of <em>prog...</em> instead of its direct child. This is useful
+if <em>prog...</em> never reaps zombies it does not know it has. </li>
+ <li> <tt>-3&nbsp;<em>notiffd</em></tt>&nbsp;: use <em>fd</em> as the
+file descriptor to send a readiness notification to. By default, this
+number is automatically read from the <tt>./notification-fd</tt> file. </li>
+ <li> <tt>-s&nbsp;<em>initialsleep</em></tt>&nbsp;: sleep for
+<em>initialsleep</em> milliseconds before starting to poll the service
+for readiness. Default is 10 milliseconds. </li>
+ <li> <tt>-T&nbsp;<em>globaltimeout</em></tt>&nbsp;: give up (and leave
+the service <em>up</em> but not <em>ready</em> if service readiness still
+has not been detected after <em>globaltimeout</em> milliseconds. Default
+is 0, meaning infinite: s6-notifyoncheck will keep polling until it succeeds. </li>
+ <li> <tt>-t&nbsp;<em>localtimeout</em></tt>&nbsp;: on every attempt, if
+<tt>./check</tt> still has not exited after <em>localtimeout</em> milliseconds,
+kill it and declare that attempt failed. Default is 0, meaning infinite:
+s6-notifyoncheck will wait forever for <tt>./data/check</tt> to exit. </li>
+ <li> <tt>-w&nbsp;<em>waitingtime</em></tt>&nbsp;: sleep for
+<em>waitingtime</em> milliseconds between two invocations of <tt>./data/check</tt>.
+This is basically the polling period. Default is 1000: the service will
+be polled every second. </li>
+ <li> <tt>-n&nbsp;<em>n</em></tt>&nbsp;: give up after <em>n</em>
+unsuccessful invocations of <tt>./data/check</tt>. 0 means infinite, i.e. keep
+polling until it succeeds, or times out, or the service dies first. </li>
+ <li> <tt>-c&nbsp;<em>checkprog...</em></tt>&nbsp;: invoke <em>checkprog...</em>
+instead of <tt>./data/check</tt>. The <em>checkprog</em> string will be parsed by
+<a href="//skarnet.org/software/execline/execlineb.html">execlineb</a>, so it
+can contain a full command line. This option is mainly useful is the program
+used to poll the service is very simple and can be inlined as a simple
+command line, to avoid needing to manage a whole script and a <tt>./data/check</tt>
+file. </li>
+</ul>
+
+<h2> Usage </h2>
+
+<p>
+ s6-notifyoncheck is designed to make it possible for services to use the
+<a href="//skarnet.org/software/s6/notifywhenup.html">s6 notification
+mechanism</a> even with daemons that do not natively implement the
+mechanism of writing a newline to a file descriptor of their choice when
+they're ready.
+</p>
+
+<p>
+<a href="//skarnet.org/cgi-bin/archive.cgi?2:mss:1607:dfblejammjllfkggpcph">Polling</a>
+is evil. Please make sure you really have no other choice before writing a
+<tt>./data/check</tt> program and using s6-notifyoncheck in your run script.
+If you have access to the source code of the daemon you want to check for
+readiness, consider patching it to add readiness notification support, which
+is extremely simple and does not require linking against any s6 library.
+</p>
+
+<p>
+ If using a <tt>./data/check</tt> program is your only option:
+</p>
+
+<ul>
+ <li> Make sure the <tt>./data</tt> subdirectory is readable and that
+<tt>./data/check</tt> is executable, exits 0 if the daemon
+it checks is ready, and exits nonzero if the daemon is not ready. </li>
+ <li> Add a <tt>./notification-fd</tt> file to your service directory,
+which can contain any number that is not 0, 1 or 2, or anything else
+explicitly used in your run script. The daemon does not need to care
+about that file descriptor; from the daemon's point of view, nothing
+changes. </li>
+ <li> In your run script, insert <tt>s6-notifyoncheck</tt> in the
+command line that will execute into your daemon. </li>
+ <li> <tt>./data/check</tt> will run as the same user as s6-notifyoncheck.
+If s6-notifyoncheck runs after the run script's process has lost its
+root privileges, make sure that <tt>./data/check</tt> is accessible
+and runnable as that user. </li>
+</ul>
+
+</body>
+</html>
