@@ -106,7 +106,8 @@ This is basically the polling period. Default is 1000: the service will
 be polled every second. </li>
  <li> <tt>-n&nbsp;<em>n</em></tt>&nbsp;: give up after <em>n</em>
 unsuccessful invocations of <tt>./data/check</tt>. 0 means infinite, i.e. keep
-polling until it succeeds, or times out, or the service dies first. </li>
+polling until it succeeds, or times out, or the service dies first.
+Default is 7. </li>
  <li> <tt>-c&nbsp;<em>checkprog...</em></tt>&nbsp;: invoke <em>checkprog...</em>
 instead of <tt>./data/check</tt>. The <em>checkprog</em> string will be parsed by
 <a href="//skarnet.org/software/execline/execlineb.html">execlineb</a>, so it
