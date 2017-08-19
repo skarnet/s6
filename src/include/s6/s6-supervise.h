@@ -5,7 +5,6 @@
 
 #include <sys/types.h>
 #include <skalibs/tai.h>
-#include <skalibs/djbunix.h>
 
 #define S6_SUPERVISE_CTLDIR "supervise"
 #define S6_SUPERVISE_EVENTDIR "event"
@@ -19,7 +18,7 @@ extern int s6_svc_writectl (char const *, char const *, char const *, size_t) ;
 extern int s6_svc_main (int, char const *const *, char const *, char const *, char const *) ;
 
 extern int s6_svc_lock_take (char const *) ;
-#define s6_svc_lock_release(fdlock) lock_un(fdlock)
+extern void s6_svc_lock_release(int) ;
 
 typedef struct s6_svstatus_s s6_svstatus_t, *s6_svstatus_t_ref ;
 struct s6_svstatus_s
