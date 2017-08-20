@@ -79,5 +79,17 @@ to provide reliable startup notifications, and subscribers should then
 be content with the unreliable <tt>'u'</tt> events provided by s6-supervise.
 </p>
 
+<p>
+Unfortunately, a lot of long-running programs do not offer that
+functionality; instead, they provide a way to poll them, an external
+program that runs and checks whether the service is ready. This is a
+<a href="//skarnet.org/software/s6/ftrig.html">bad</a> mechanism, for
+<a href="//skarnet.org/cgi-bin/archive.cgi?2:mss:1607:dfblejammjllfkggpcph">several</a>
+reasons. Nevertheless, until all daemons are patched to notify their
+own readiness, s6 provides a way to run such a check program to poll
+for readiness, and route its result into the s6 notification system:
+<a href="s6-notifyoncheck.html">s6-notifyoncheck</a>.
+</p>
+
 </body>
 </html>

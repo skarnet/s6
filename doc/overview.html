@@ -41,12 +41,13 @@ close cousin
 
 <ul>
  <li> Unix systems, even minimalistic ones, need to run
-<em>long-lived processes</em>, aka <em>daemons</em>. Sometimes, they
-need to run <em>a lot</em> of them.</li>
+<em>long-lived processes</em>, aka <em>daemons</em>. That is one of the
+core design principles of Unix: one service &rarr; one daemon. </li>
  <li> Daemons can die unexpectedly. Maybe they are missing a vital
 resource and cannot handle a certain failure; maybe they tripped on a bug;
 maybe a misconfigured administration program killed them; maybe the
-kernel killed them. </li>
+kernel killed them. Processes are fragile, but daemons are vital to a
+Unix system: a fundamental discrepancy that needs to be solved. </li>
  <li> Automatically restarting daemons when they die is generally a good
 thing. In any case, sysadmin intervention is necessary, but at least the
 daemon is providing service, or trying to, until the sysadmin can log in
@@ -141,10 +142,12 @@ run and
 <a href="//skarnet.org/software/s6/s6-svscan-not-1.html">supervised
 by your regular init process</a>, or it can
 <a href="//skarnet.org/software/s6/s6-svscan-1.html">run as
-process 1 itself</a>. Running s6-svscan as process 1 currently requires
-some manual effort from the user, because of the inherent non-portability
-of init processes; future versions of s6 will automate that effort and
-provide users with ready-to-run "init" commands. </li>
+process 1 itself</a>. Running s6-svscan as process 1 requires
+some effort from the user, because of the inherent non-portability of
+init processes; the
+<a href="//skarnet.org/software/s6-linux-init/">s6-linux-init</a>
+package automates that effort and allows users to run s6 as an init
+replacement. </li>
   <li> The configuration of a daemon to be supervised by
 <a href="s6-supervise.html">s6-supervise</a> is done via a
 <a href="servicedir.html">service directory</a>. </li>
@@ -267,7 +270,12 @@ need to replicate in your run script.
 invocation: start-stop-daemon and its friends are hideous and kludgy
 attempts to work around the lack of proper supervision mechanisms. Now
 that you have s6, you should remove them from your system, throw them
-into a bonfire, and dance and laugh while they burn.)
+into a bonfire, and dance and laugh while they burn. Generally speaking,
+as a system administrator you want daemons that have been designed
+following the principles described
+<a href="https://jdebp.eu/FGA/unix-daemon-design-mistakes-to-avoid.html">here</a>,
+or at least you want to use the command-line options that make them
+behave in such a way.) 
 </p>
 
 <p>
@@ -356,6 +364,12 @@ supports a simple mechanism: when a daemon wants to signal that it is
 choice, and <a href="s6-supervise.html">s6-supervise</a> will pick that
 notification up and broadcast the information to processes waiting for
 it. </li>
+ <li> s6 also has a legacy mechanism for daemons that do not
+notify their own readiness but provide a way for an external program
+to check whether they're ready or not:
+<a href="s6-notifyoncheck.html">s6-notifyoncheck</a>.
+ This is polling, which is bad, but unfortunately necessary for
+many daemons as of 2017. </li>
 </ul>
 
 <p>
