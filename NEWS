@@ -1,10 +1,14 @@
 Changelog for s6.
 
-In 2.6.0.1
+In 2.6.1.0
 ----------
+
  - Bugfixes.
  - Addition of the s6_svc_lock_take() and s6_svc_lock_release()
 functions, to fix a race condition in s6-rc.
+ - New program: s6-notifyoncheck, to implement polling for
+readiness and reroute the result into the s6 readiness notification
+mechanism.
 
 
 In 2.6.0.0

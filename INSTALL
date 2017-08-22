@@ -6,8 +6,8 @@ Build Instructions
 
   - A POSIX-compliant C development environment
   - GNU make version 3.81 or later
-  - skalibs version 2.5.1.1 or later: http://skarnet.org/software/skalibs/
-  - execline version 2.3.0.1 or later: http://skarnet.org/software/execline/
+  - skalibs version 2.6.0.1 or later: http://skarnet.org/software/skalibs/
+  - execline version 2.3.0.2 or later: http://skarnet.org/software/execline/
 
  This software will run on any operating system that implements
 POSIX.1-2008, available at:
@@ -22,6 +22,12 @@ POSIX.1-2008, available at:
  will work for most users.
  It will install the binaries in /bin and the static libraries in
 /usr/lib/s6.
+
+ Please note that static libraries in /usr/lib/s6 *will not*
+be found by a default linker invocation: you need -L/usr/lib/s6.
+Other skarnet.org software automatically handles that case if the
+default configuration is used, but if you change the configuration,
+remember to use the appropriate --with-lib configure option.
 
  You can strip the binaries and libraries of their extra symbols via
 "make strip" before the "make install" phase. It will shave a few bytes
