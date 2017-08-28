@@ -145,6 +145,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     if (pid < 0) strerr_diefu1sys(111, "fork") ;
     if (!pid)
     {
+      char c ;
       PROG = "s6-sudod (child)" ;
       fd_close(p[0]) ;
       if ((fd_move(2, m.fds[2]) < 0)
@@ -157,11 +158,9 @@ int main (int argc, char const *const *argv, char const *const *envp)
       }
       selfpipe_finish() ;
       pathexec0_run(targv, tenvp) ;
-      {
-        char c = errno ;
-        fd_write(p[1], &c, 1) ;
-      }
-      strerr_dieexec(111, targv[0]) ;
+      c = errno ;
+      fd_write(p[1], &c, 1) ;
+      strerr_dieexec(c == ENOENT ? 127 : 126, targv[0]) ;
     }
     fd_close(p[1]) ;
     {

@@ -323,8 +323,7 @@ static inline void exec_processor (logdir_t *ldp)
   if (fd_move(5, fd) < 0) strerr_diefu3sys(111, "fd_move ", ldp->dir, "/newstate") ;
   selfpipe_finish() ;
   sig_restore(SIGPIPE) ;
-  pathexec_run(cargv[0], cargv, (char const *const *)environ) ;
-  strerr_dieexec(111, cargv[0]) ;
+  xpathexec_run(cargv[0], cargv, (char const *const *)environ) ;
 }
 
 static int rotator (logdir_t *ldp)

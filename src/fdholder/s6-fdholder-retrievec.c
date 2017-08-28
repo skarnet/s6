@@ -47,6 +47,5 @@ int main (int argc, char const *const *argv, char const *const *envp)
     if (uncoe(0) < 0) strerr_diefu1sys(111, "uncoe stdin") ;
   }
   else if (fd_move(0, fd) < 0) strerr_diefu1sys(111, "move fd") ;
-  pathexec_run(argv[1], argv+1, envp) ;
-  strerr_dieexec(111, argv[1]) ;
+  xpathexec_run(argv[1], argv+1, envp) ;
 }

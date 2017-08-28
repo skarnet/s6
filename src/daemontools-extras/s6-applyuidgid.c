@@ -61,7 +61,6 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (uid && setuid(uid) < 0)
     strerr_diefu1sys(111, "setuid") ;
 
-  if (unexport) pathexec_r(argv, envp, env_len(envp), "UID\0GID\0GIDLIST", 16) ;
-  else pathexec_run(argv[0], argv, envp) ;
-  strerr_dieexec(111, argv[0]) ;
+  if (unexport) xpathexec_r(argv, envp, env_len(envp), "UID\0GID\0GIDLIST", 16) ;
+  else xpathexec_run(argv[0], argv, envp) ;
 }

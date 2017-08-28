@@ -130,10 +130,11 @@ the previous versions of s6 and the current one. </li>
 <h3> Commands </h3>
 
 <p>
- All these commands exit 111 if they encounter a temporary error or
-hardware error, and
-100 if they encounter a permanent error - such as a misuse. Short-lived
-commands exit 0 on success.
+ All these commands exit 111 if they encounter a temporary error, and
+100 if they encounter a permanent error - such as a misuse. They exit
+127 if they're trying to execute into a program and cannot find it, and
+126 if they fail to execute into a program for another reason.
+Short-lived commands exit 0 on success.
 </p>
 
 <h4> Supervision system </h4>

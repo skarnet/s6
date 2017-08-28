@@ -79,7 +79,6 @@ int main (int argc, char const *const *argv, char const *const *envp)
       }
       modifs[pos++] = 0 ;
     }
-    pathexec_r(argv, envp, env_len(envp), modifs, pos) ;
+    xpathexec_r(argv, envp, env_len(envp), modifs, pos) ;
   }
-  strerr_dieexec(111, argv[0]) ;
 }

@@ -33,7 +33,6 @@ int main (int argc, char const *const *argv, char const *const *envp)
         strerr_dief2x(1, "number of connections from this client limited to ", x) ;
     }
   }
-  pathexec0_run(argv+1, envp) ;
   (void)argc ;
-  strerr_dieexec(111, argv[1]) ;
+  xpathexec0_run(argv+1, envp) ;
 }

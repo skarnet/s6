@@ -255,8 +255,7 @@ static void run_child (int s, uid_t uid, gid_t gid, unsigned int num, char const
   fmt[n++] = 0 ;
   memcpy(fmt+n, "IPCREMOTEPATH=", 14) ; n += 14 ;
   memcpy(fmt+n, remotepath, rplen) ; n += rplen ;
-  pathexec_r(argv, envp, env_len(envp), fmt, n) ;
-  strerr_dieexec(111, argv[0]) ;
+  xpathexec_r(argv, envp, env_len(envp), fmt, n) ;
 }
 
 static void new_connection (int s, char const *remotepath, char const *const *argv, char const *const *envp)

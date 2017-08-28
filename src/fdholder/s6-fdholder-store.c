@@ -58,6 +58,5 @@ int main (int argc, char const *const *argv, char const *const *envp)
   newargv[m++] = "--" ;
   newargv[m++] = argv[1] ;
   newargv[m++] = 0 ;
-  pathexec_run(newargv[0], newargv, envp) ;
-  strerr_dieexec(111, newargv[0]) ;
+  xpathexec_run(newargv[0], newargv, envp) ;
 }

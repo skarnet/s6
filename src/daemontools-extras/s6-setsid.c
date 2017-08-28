@@ -66,6 +66,5 @@ int main (int argc, char const *const *argv, char const *const *envp)
     default : break ;
   }
 
-  pathexec_run(argv[0], argv, envp) ;
-  strerr_dieexec(111, argv[0]) ;
+  xpathexec_run(argv[0], argv, envp) ;
 }

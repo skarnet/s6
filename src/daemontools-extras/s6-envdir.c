@@ -35,6 +35,5 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (argc < 2) strerr_dieusage(100, USAGE) ;
   if ((envdir_internal(*argv++, &modifs, options, nullis) < 0) && (insist || (errno != ENOENT)))
     strerr_diefu1sys(111, "envdir") ;
-  pathexec_r(argv, envp, env_len(envp), modifs.s, modifs.len) ;
-  strerr_dieexec(111, argv[0]) ;
+  xpathexec_r(argv, envp, env_len(envp), modifs.s, modifs.len) ;
 }

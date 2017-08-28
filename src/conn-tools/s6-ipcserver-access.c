@@ -206,10 +206,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (params.exec.len)
   {
     char *specialargv[4] = { EXECLINE_EXTBINPREFIX "execlineb", "-c", params.exec.s, 0 } ;
-    pathexec_r((char const *const *)specialargv, envp, env_len(envp), params.env.s, params.env.len) ;
-    strerr_dieexec(111, specialargv[0]) ;
+    xpathexec_r((char const *const *)specialargv, envp, env_len(envp), params.env.s, params.env.len) ;
   }
-
-  pathexec_r(argv, envp, env_len(envp), params.env.s, params.env.len) ;
-  strerr_dieexec(111, argv[0]) ;
+  else xpathexec_r(argv, envp, env_len(envp), params.env.s, params.env.len) ;
 }

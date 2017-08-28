@@ -153,7 +153,6 @@ int main (int argc, char *const *argv, char const *const *envp)
       pos += gid_fmtlist(fmt + pos, tab, n) ;
       fmt[pos++] = 0 ;
     }
-    pathexec_r((char const *const *)argv + 1, envp, env_len(envp), fmt, pos) ;
+    xpathexec_r((char const *const *)argv + 1, envp, env_len(envp), fmt, pos) ;
   }
-  strerr_dieexec(111, argv[1]) ;
 }

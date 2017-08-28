@@ -61,7 +61,6 @@ int main (int argc, char const *const *argv, char const *const *envp)
     eargv[n++] = "--" ;
     while (argc--) eargv[n++] = *argv++ ;
     eargv[n++] = 0 ;
-    pathexec_run(eargv[0], eargv, envp) ;
+    xpathexec_run(eargv[0], eargv, envp) ;
   }
-  strerr_dieexec(111, S6_BINPREFIX "s6-ipcclient") ;
 }

@@ -48,6 +48,5 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (backlog && ipc_listen(0, backlog) < 0)
     strerr_diefu2sys(111, "listen to ", argv[0]) ;
 
-  pathexec_run(argv[1], argv + 1, envp) ;
-  strerr_dieexec(111, argv[1]) ;
+  xpathexec_run(argv[1], argv + 1, envp) ;
 }

@@ -61,7 +61,6 @@ int main (int argc, char const *const *argv, char const *const *envp)
       strerr_diefu2sys(111, "set up fd ", "6") ;
     if (fd_copy(7, 6) < 0)
       strerr_diefu2sys(111, "set up fd ", "7") ;
-    pathexec_r(argv+1, envp, env_len(envp), modif, i) ;
+    xpathexec_r(argv+1, envp, env_len(envp), modif, i) ;
   }
-  strerr_dieexec(111, argv[1]) ;
 }

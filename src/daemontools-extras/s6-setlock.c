@@ -35,8 +35,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
       case 'N' : nb = 0 ; break ;
       case 'r' : ex = 0 ; break ;
       case 'w' : ex = 1 ; break ;
-      case 't' : if (!uint0_scan(subgetopt_here.arg, &timeout)) dieusage() ;
-                 nb = 2 ; break ;
+      case 't' : if (!uint0_scan(subgetopt_here.arg, &timeout)) dieusage() ; nb = 2 ; break ;
       default : dieusage() ;
     }
   }
@@ -83,6 +82,5 @@ int main (int argc, char const *const *argv, char const *const *envp)
     fd_close(p[0]) ;
     if (uncoe(p[1]) < 0) strerr_diefu1sys(111, "uncoe fd to helper") ;
   }
-  pathexec_run(argv[1], argv+1, envp) ;
-  strerr_dieexec(111, argv[1]) ;
+  xpathexec_run(argv[1], argv+1, envp) ;
 }

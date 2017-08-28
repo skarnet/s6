@@ -296,8 +296,7 @@ static void trystart (unsigned int i, char const *name, int islog)
       if (services[i].flaglog)
         if (fd_move(!islog, services[i].p[!islog]) == -1)
           strerr_diefu2sys(111, "set fds for ", name) ;
-      pathexec_run(S6_BINPREFIX "s6-supervise", cargv, (char const **)environ) ;
-      strerr_dieexec(111, S6_BINPREFIX "s6-supervise") ;
+      xpathexec_run(S6_BINPREFIX "s6-supervise", cargv, (char const **)environ) ;
     }
   }
   services[i].pid[islog] = pid ;
