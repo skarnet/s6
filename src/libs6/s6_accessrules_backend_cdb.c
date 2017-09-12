@@ -18,18 +18,19 @@ s6_accessrules_result_t s6_accessrules_backend_cdb (char const *key, size_t keyl
   if (r < 0) return S6_ACCESSRULES_ERROR ;
   else if (!r) return S6_ACCESSRULES_NOTFOUND ;
   n = cdb_datalen(c) ;
-  if ((n < 5U) || (n > 8197U)) return (errno = EINVAL, S6_ACCESSRULES_ERROR) ;
+  if (!n || n > 8197) return (errno = EINVAL, S6_ACCESSRULES_ERROR) ;
   if (!stralloc_readyplus(&params->exec, n)) return S6_ACCESSRULES_ERROR ;
   execbase = params->exec.len ;
   if (cdb_read(c, params->exec.s + execbase, n, cdb_datapos(c)) < 0) return S6_ACCESSRULES_ERROR ;
   if (params->exec.s[execbase] == 'D') return S6_ACCESSRULES_DENY ;
   else if (params->exec.s[execbase] != 'A') return S6_ACCESSRULES_NOTFOUND ;
-  uint16_unpack_big(params->exec.s + execbase + 1U, &envlen) ;
-  if ((envlen > 4096U) || (envlen+5U > n)) return (errno = EINVAL, S6_ACCESSRULES_ERROR) ;
+  else if (n < 5) return (errno = EINVAL, S6_ACCESSRULES_ERROR) ;
+  uint16_unpack_big(params->exec.s + execbase + 1, &envlen) ;
+  if ((envlen > 4096) || (envlen + 5 > n)) return (errno = EINVAL, S6_ACCESSRULES_ERROR) ;
   uint16_unpack_big(params->exec.s + execbase + 3 + envlen, &execlen) ;
-  if ((execlen > 4096U) || (5U + envlen + execlen != n)) return (errno = EINVAL, S6_ACCESSRULES_ERROR) ;
-  if (!stralloc_catb(&params->env, params->exec.s + execbase + 3U, envlen)) return S6_ACCESSRULES_ERROR ;
-  memcpy(params->exec.s + execbase, params->exec.s + execbase + 5U + envlen, execlen) ;
+  if ((execlen > 4096) || (5 + envlen + execlen != n)) return (errno = EINVAL, S6_ACCESSRULES_ERROR) ;
+  if (!stralloc_catb(&params->env, params->exec.s + execbase + 3, envlen)) return S6_ACCESSRULES_ERROR ;
+  memcpy(params->exec.s + execbase, params->exec.s + execbase + 5 + envlen, execlen) ;
   if (execlen)
   {
     params->exec.len += execlen ;
