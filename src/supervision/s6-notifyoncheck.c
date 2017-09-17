@@ -7,6 +7,7 @@
 #include <limits.h>
 #include <sys/wait.h>
 #include <skalibs/types.h>
+#include <skalibs/allreadwrite.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
@@ -79,6 +80,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   unsigned int fd ;
   int df = 0 ;
   int autodetect = 1 ;
+  int p[2] ;
   tain_t globaldeadline, sleeptto, localtto, waittto ;
   unsigned int tries = 7 ;
   uint16_t id ;
@@ -155,28 +157,43 @@ int main (int argc, char const *const *argv, char const *const *envp)
   fifodir. It's much heavier, but temporary - it doesn't use permanent
   resources in the daemon - and we're polling anyway, so the user
   doesn't care about being 100% lightweight.
+
+   We need some voodoo synchronization so ftrigr_start can be started
+  from the child without a race condition.
+
  */
 
-  if (!ftrigr_startf_g(&a, &globaldeadline))
-    strerr_diefu1sys(111, "ftrigr_startf") ;
-  id = ftrigr_subscribe_g(&a, "event", "d", 0, &globaldeadline) ;
-  if (!id) strerr_diefu1sys(111, "ftrigr_subscribe to event fifodir") ;
+  if (pipe(p) < 0) strerr_diefu1sys(111, "pipe") ;
   switch (df ? doublefork() : fork())
   {
     case -1: strerr_diefu1sys(111, df ? "doublefork" : "fork") ;
     case 0 : break ;
     default:
     {
+      char c ;
       close((int)fd) ;
+      close(p[1]) ;
+      if (read(p[0], &c, 1) < 1) strerr_diefu1x(111, "synchronize with child") ;
+      close(p[0]) ;
       xpathexec_run(argv[0], argv, envp) ;
     }
   }
+
+
+  PROG = "s6-notifyoncheck (child)" ;
+  close(p[0]) ;
+  if (!ftrigr_startf_g(&a, &globaldeadline))
+    strerr_diefu1sys(111, "ftrigr_startf") ;
+  id = ftrigr_subscribe_g(&a, "event", "d", 0, &globaldeadline) ;
+  if (!id) strerr_diefu1sys(111, "ftrigr_subscribe to event fifodir") ;
 
   x[0].fd = selfpipe_init() ;
   if (x[0].fd < 0) strerr_diefu1sys(111, "selfpipe_init") ;
   if (selfpipe_trap(SIGCHLD) < 0) strerr_diefu1sys(111, "trap SIGCHLD") ;
   x[1].fd = ftrigr_fd(&a) ;
 
+  if (fd_write(p[1], "", 1) < 1) strerr_diefu1sys(2, "synchronize with parent") ;
+  fd_close(p[1]) ;
 
  /* Loop around a sleep and a ./data/check invocation */
 
@@ -230,7 +247,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
         {
           if (WIFEXITED(wstat) && !WEXITSTATUS(wstat))
           {
-            write((int)fd, "\n", 1) ;
+            fd_write((int)fd, "\n", 1) ;
             return 0 ;
           }
           else break ;
