@@ -22,6 +22,7 @@ Fine tuning of the installation directories:
   --libexecdir=DIR              package-scoped executables [EPREFIX/libexec]
   --libdir=DIR                  static library files [PREFIX/lib/$package]
   --includedir=DIR              C header files [PREFIX/include]
+  --shebangdir=DIR              absolute path for #! invocations [BINDIR]
 
  If no --prefix option is given, by default libdir (but not dynlibdir) will be
  /usr/lib/$package, and includedir will be /usr/include.
@@ -91,7 +92,7 @@ stripdir () {
 tryflag () {
   echo "checking whether compiler accepts $2 ..."
   echo "typedef int x;" > "$tmpc"
-  if $CC_AUTO $CPPFLAGS_AUTO $CFLAGS_AUTO "$2" -c -o /dev/null "$tmpc" >/dev/null 2>&1 ; then
+  if $CC_AUTO $CPPFLAGS_AUTO $CPPFLAGS $CPPFLAGS_POST $CFLAGS_AUTO $CFLAGS $CFLAGS_POST "$2" -c -o /dev/null "$tmpc" >/dev/null 2>&1 ; then
     echo "  ... yes"
     eval "$1=\"\${$1} \$2\""
     eval "$1=\${$1# }"
@@ -105,7 +106,7 @@ tryflag () {
 tryldflag () {
   echo "checking whether linker accepts $2 ..."
   echo "typedef int x;" > "$tmpc"
-  if $CC_AUTO $CFLAGS_AUTO $LDFLAGS_AUTO -nostdlib "$2" -o /dev/null "$tmpc" >/dev/null 2>&1 ; then
+  if $CC_AUTO $CFLAGS_AUTO $CFLAGS $CFLAGS_POST $LDFLAGS_AUTO $LDFLAGS $LDFLAGS_POST -nostdlib "$2" -o /dev/null "$tmpc" >/dev/null 2>&1 ; then
     echo "  ... yes"
     eval "$1=\"\${$1} \$2\""
     eval "$1=\${$1# }"
@@ -120,11 +121,17 @@ tryldflag () {
 # Actual script
 
 CC_AUTO=
-CFLAGS_AUTO="$CFLAGS"
-CPPFLAGS_AUTO="-D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -O2 $CPPFLAGS"
-LDFLAGS_AUTO="$LDFLAGS"
-LDFLAGS_SHARED=-shared
+CPPFLAGS_AUTO="-D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -iquote src/include-local -Isrc/include"
+CPPFLAGS_POST="$CPPFLAGS"
+CPPFLAGS=
+CFLAGS_AUTO="-pipe -Wall"
+CFLAGS_POST="$CFLAGS"
+CFLAGS=-O2
+LDFLAGS_AUTO=
+LDFLAGS_POST="$LDFLAGS"
+LDFLAGS=
 LDFLAGS_NOSHARED=
+LDFLAGS_SHARED=-shared
 prefix=
 exec_prefix='$prefix'
 dynlibdir='$prefix/lib'
@@ -132,6 +139,8 @@ libexecdir='$exec_prefix/libexec'
 bindir='$exec_prefix/bin'
 libdir='$prefix/lib/$package'
 includedir='$prefix/include'
+shebangdir='$bindir'
+shebangisdefault=true
 sysdeps='$prefix/lib/skalibs/sysdeps'
 manualsysdeps=false
 shared=false
@@ -160,6 +169,7 @@ for arg ; do
     --bindir=*) bindir=${arg#*=} ;;
     --libdir=*) libdir=${arg#*=} ;;
     --includedir=*) includedir=${arg#*=} ;;
+    --shebangdir=*) shebangisdefault=false ; shebangdir=${arg#*=} ;;
     --with-sysdeps=*) sysdeps=${arg#*=} manualsysdeps=true ;;
     --with-include=*) var=${arg#*=} ; stripdir var ; addincpath="$addincpath -I$var" ;;
     --with-lib=*) var=${arg#*=} ; stripdir var ; addlibspath="$addlibspath -L$var" ; vpaths="$vpaths $var" ;;
@@ -201,7 +211,7 @@ fi
 
 # Expand installation directories
 stripdir prefix
-for i in exec_prefix dynlibdir libexecdir bindir libdir includedir sysdeps sproot ; do
+for i in exec_prefix dynlibdir libexecdir bindir libdir includedir shebangdir sysdeps sproot ; do
   eval tmp=\${$i}
   eval $i=$tmp
   stripdir $i
@@ -236,6 +246,9 @@ if $slashpackage ; then
   libdir=${home}/library
   libexecdir=$bindir
   includedir=${home}/include
+  if $shebangisdefault ; then
+    shebangdir=${extbinprefix}
+  fi
   while read dep ; do
     addincpath="$addincpath -I${sproot}${dep}/include"
     vpaths="$vpaths ${sproot}${dep}/library"
@@ -260,7 +273,7 @@ test -n "$CC_AUTO" || { echo "$0: cannot find a C compiler" ; exit 1 ; }
 echo "  ... $CC_AUTO"
 echo "checking whether C compiler works... "
 echo "typedef int x;" > "$tmpc"
-if $CC_AUTO $CPPFLAGS_AUTO $CFLAGS_AUTO -c -o /dev/null "$tmpc" 2>"$tmpe" ; then
+if $CC_AUTO $CPPFLAGS_AUTO $CPPFLAGS $CPPFLAGS_POST $CFLAGS_AUTO $CFLAGS $CFLAGS_POST -c -o /dev/null "$tmpc" 2>"$tmpe" ; then
   echo "  ... yes"
 else
   echo "  ... no. Compiler output follows:"
@@ -294,12 +307,12 @@ timer_lib=$(cat $sysdeps/timer.lib)
 util_lib=$(cat $sysdeps/util.lib)
 
 tryflag CFLAGS_AUTO -std=c99
-tryflag CFLAGS_AUTO -fomit-frame-pointer
+tryflag CFLAGS -fomit-frame-pointer
 tryflag CFLAGS_AUTO -fno-exceptions
 tryflag CFLAGS_AUTO -fno-unwind-tables
 tryflag CFLAGS_AUTO -fno-asynchronous-unwind-tables
-tryflag CPPFLAGS_AUTO -Wa,--noexecstack
-tryflag CFLAGS_AUTO -fno-stack-protector
+tryflag CFLAGS_AUTO -Wa,--noexecstack
+tryflag CFLAGS -fno-stack-protector
 tryflag CPPFLAGS_AUTO -Werror=implicit-function-declaration
 tryflag CPPFLAGS_AUTO -Werror=implicit-int
 tryflag CPPFLAGS_AUTO -Werror=pointer-sign
@@ -317,7 +330,7 @@ if $evenmorestatic ; then
 fi
 
 if $shared ; then
-  tryldflag LDFLAGS_AUTO -Wl,--hash-style=both
+  tryldflag LDFLAGS -Wl,--hash-style=both
 fi
 
 LDFLAGS_SHARED="${LDFLAGS_SHARED}${addlibdpath}"
@@ -369,9 +382,12 @@ TIMER_LIB := ${timer_lib}
 UTIL_LIB := ${util_lib}
 
 CC := ${CC_AUTO##${cross}}
-CFLAGS := $CFLAGS_AUTO
-CPPFLAGS := $CPPFLAGS_AUTO
-LDFLAGS := $LDFLAGS_AUTO
+CPPFLAGS_AUTO := $CPPFLAGS_AUTO
+CPPFLAGS := $CPPFLAGS $CPPFLAGS_POST
+CFLAGS_AUTO := $CFLAGS_AUTO
+CFLAGS := $CFLAGS $CFLAGS_POST
+LDFLAGS_AUTO := $LDFLAGS_AUTO
+LDFLAGS := $LDFLAGS $LDFLAGS_POST
 LDFLAGS_SHARED := $LDFLAGS_SHARED
 LDFLAGS_NOSHARED := $LDFLAGS_NOSHARED
 CROSS_COMPILE := $cross
@@ -423,6 +439,7 @@ else
   echo "#define ${package_macro_name}_EXTBINPREFIX \"\""
 fi
 echo "#define ${package_macro_name}_LIBEXECPREFIX \"$libexecdir/\""
+echo "#define ${package_macro_name}_SHEBANGPREFIX \"$shebangdir/\""
 echo
 echo "#endif"
 exec 1>&3 3>&-

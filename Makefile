@@ -40,10 +40,10 @@ include package/deps.mak
 version_m := $(basename $(version))
 version_M := $(basename $(version_m))
 version_l := $(basename $(version_M))
-CPPFLAGS_ALL := -iquote src/include-local -Isrc/include $(CPPFLAGS)
-CFLAGS_ALL := $(CFLAGS) -pipe -Wall
+CPPFLAGS_ALL := $(CPPFLAGS_AUTO) $(CPPFLAGS)
+CFLAGS_ALL := $(CFLAGS_AUTO) $(CFLAGS)
 CFLAGS_SHARED := -fPIC
-LDFLAGS_ALL := $(LDFLAGS)
+LDFLAGS_ALL := $(LDFLAGS_AUTO) $(LDFLAGS)
 REALCC = $(CROSS_COMPILE)$(CC)
 AR := $(CROSS_COMPILE)ar
 RANLIB := $(CROSS_COMPILE)ranlib
