@@ -3,7 +3,8 @@ s6 - a process supervision suite
 
  s6 is a suite of programs designed to allow process
 supervision and management. It can also be used as the
-foundation for a complete init system.
+foundation for a complete init system: the s6-rc and
+s6-linux-init package, for instance, expand on it.
 
  See http://skarnet.org/software/s6/ for details.
 
