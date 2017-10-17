@@ -173,10 +173,9 @@ struct logdir_s
   .rstate = ROTSTATE_WRITABLE \
 }
 
-typedef struct filesize_s filesize_t, *filesize_t_ref ;
-struct filesize_s
+struct filedesc_s
 {
-  size_t size ;
+  off_t size ;
   char name[28] ;
 } ;
 
@@ -186,7 +185,7 @@ struct filesize_s
 static logdir_t *logdirs ;
 static unsigned int llen = 0 ;
 
-static int filesize_cmp (filesize_t const *a, filesize_t const *b)
+static int filedesc_cmp (struct filedesc_s const *a, struct filedesc_s const *b)
 {
   return memcmp(a->name+1, b->name+1, 26) ;
 }
@@ -227,7 +226,7 @@ static inline int logdir_trim (logdir_t *ldp)
     uint64_t totalsize = 0 ;
     size_t dirlen = strlen(ldp->dir) ;
     unsigned int i = 0 ;
-    filesize_t blurgh[n] ;
+    struct filedesc_s archive[n] ;
     char fullname[dirlen + 29] ;
     memcpy(fullname, ldp->dir, dirlen) ;
     fullname[dirlen] = '/' ;
@@ -246,8 +245,8 @@ static inline int logdir_trim (logdir_t *ldp)
         if (verbosity) strerr_warnwu2sys("stat ", fullname) ;
         continue ;
       }
-      memcpy(blurgh[i].name, d->d_name, 28) ;
-      blurgh[i].size = st.st_size ;
+      memcpy(archive[i].name, d->d_name, 28) ;
+      archive[i].size = st.st_size ;
       totalsize += st.st_size ;
       i++ ;
     }
@@ -261,17 +260,17 @@ static inline int logdir_trim (logdir_t *ldp)
     dir_close(dir) ;
     if ((i <= ldp->n) && (!ldp->maxdirsize || (totalsize <= ldp->maxdirsize)))
       return 0 ;
-    qsort(blurgh, i, sizeof(filesize_t), (qcmpfunc_t_ref)&filesize_cmp) ;
+    qsort(archive, i, sizeof(struct filedesc_s), (qcmpfunc_t_ref)&filedesc_cmp) ;
     n = 0 ;
     while ((i > ldp->n + n) || (ldp->maxdirsize && (totalsize > ldp->maxdirsize)))
     {
-      memcpy(fullname + dirlen + 1, blurgh[n].name, 28) ;
+      memcpy(fullname + dirlen + 1, archive[n].name, 28) ;
       if (unlink(fullname) < 0)
       {
-        if (errno == ENOENT) totalsize -= blurgh[n].size ;
+        if (errno == ENOENT) totalsize -= archive[n].size ;
         if (verbosity) strerr_warnwu2sys("unlink ", fullname) ;
       }
-      else totalsize -= blurgh[n].size ;
+      else totalsize -= archive[n].size ;
       n++ ;
     }
   }
