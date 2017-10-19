@@ -22,7 +22,6 @@ Fine tuning of the installation directories:
   --libexecdir=DIR              package-scoped executables [EPREFIX/libexec]
   --libdir=DIR                  static library files [PREFIX/lib/$package]
   --includedir=DIR              C header files [PREFIX/include]
-  --shebangdir=DIR              absolute path for #! invocations [BINDIR]
 
  If no --prefix option is given, by default libdir (but not dynlibdir) will be
  /usr/lib/$package, and includedir will be /usr/include.
@@ -139,8 +138,6 @@ libexecdir='$exec_prefix/libexec'
 bindir='$exec_prefix/bin'
 libdir='$prefix/lib/$package'
 includedir='$prefix/include'
-shebangdir='$bindir'
-shebangisdefault=true
 sysdeps='$prefix/lib/skalibs/sysdeps'
 manualsysdeps=false
 shared=false
@@ -169,7 +166,6 @@ for arg ; do
     --bindir=*) bindir=${arg#*=} ;;
     --libdir=*) libdir=${arg#*=} ;;
     --includedir=*) includedir=${arg#*=} ;;
-    --shebangdir=*) shebangisdefault=false ; shebangdir=${arg#*=} ;;
     --with-sysdeps=*) sysdeps=${arg#*=} manualsysdeps=true ;;
     --with-include=*) var=${arg#*=} ; stripdir var ; addincpath="$addincpath -I$var" ;;
     --with-lib=*) var=${arg#*=} ; stripdir var ; addlibspath="$addlibspath -L$var" ; vpaths="$vpaths $var" ;;
@@ -211,7 +207,7 @@ fi
 
 # Expand installation directories
 stripdir prefix
-for i in exec_prefix dynlibdir libexecdir bindir libdir includedir shebangdir sysdeps sproot ; do
+for i in exec_prefix dynlibdir libexecdir bindir libdir includedir sysdeps sproot ; do
   eval tmp=\${$i}
   eval $i=$tmp
   stripdir $i
@@ -246,9 +242,6 @@ if $slashpackage ; then
   libdir=${home}/library
   libexecdir=$bindir
   includedir=${home}/include
-  if $shebangisdefault ; then
-    shebangdir=${extbinprefix}
-  fi
   while read dep ; do
     addincpath="$addincpath -I${sproot}${dep}/include"
     vpaths="$vpaths ${sproot}${dep}/library"
@@ -439,7 +432,6 @@ else
   echo "#define ${package_macro_name}_EXTBINPREFIX \"\""
 fi
 echo "#define ${package_macro_name}_LIBEXECPREFIX \"$libexecdir/\""
-echo "#define ${package_macro_name}_SHEBANGPREFIX \"$shebangdir/\""
 echo
 echo "#endif"
 exec 1>&3 3>&-
