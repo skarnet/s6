@@ -27,7 +27,7 @@ with full POSIX regular expression support.
 <h2> Interface </h2>
 
 <pre>
-     s6-log [ -q | -v ] [ -b ] [ -p ] [ -t ] [ -e ] <em>logging script</em>
+     s6-log [ -q | -v ] [ -b ] [ -p ] [ -t ] [ -e ] [ -l linelimit ] <em>logging script</em>
 </pre>
 
 <p>
@@ -66,6 +66,13 @@ Currently supported verbosity levels:
    <li> 0: only write alerts and fatal errors </li>
    <li> 1: write alerts, warnings and fatal errors </li>
   </ul> </li>
+ <li> <tt>-l&nbsp;<em>linelimit</em></tt>&nbsp;: if a log line is longer than
+<em>linelimit</em> bytes, cut it in two by inserting a newline. The newline
+may appear anywhere after <em>linelimit</em> or more bytes. <em>linelimit</em>
+cannot be lesser than 48. Using this option ensures that an ill-formatted log
+stream will not make s6-log uncontrollably eat memory by trying to read and
+process an extremely long line in one go. The default is no cap on line
+length. </li>
 </ul>
 
 <h2> Logdirs </h2>
