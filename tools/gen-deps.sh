@@ -65,7 +65,7 @@ for dir in $(ls -1 src | grep -v ^include) ; do
         deps="$deps src/$dir/$dep"
       fi
     done < src/$dir/deps-lib/$file
-    echo 'ifeq ($(strip $(DEFAULT_PIE)),)'
+    echo 'ifeq ($(strip $(STATIC_LIBS_ARE_PIC)),)'
     echo "lib${file}.a.xyzzy:$deps"
     echo else
     echo "lib${file}.a.xyzzy:$(echo "$deps" | sed 's/\.o/.lo/g')"

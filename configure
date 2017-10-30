@@ -40,6 +40,7 @@ Optional features:
   --disable-static              do not build static libraries [enabled]
   --disable-allstatic           do not prefer linking against static libraries [enabled]
   --enable-static-libc          make entirely static binaries [disabled]
+  --enable-all-pic              build everything as PIC [enabled iff toolchain builds PIE]
   --enable-slashpackage[=ROOT]  assume /package installation at ROOT [disabled]
   --enable-absolute-paths       do not rely on PATH to access this package's binaries,
                                   hardcode absolute BINDIR/foobar paths instead [disabled]
@@ -142,6 +143,7 @@ sysdeps='$prefix/lib/skalibs/sysdeps'
 manualsysdeps=false
 shared=false
 static=true
+allpic=detect
 slashpackage=false
 abspath=false
 sproot=
@@ -178,6 +180,8 @@ for arg ; do
     --disable-allstatic|--enable-allstatic=no) allstatic=false ; evenmorestatic=false ;;
     --enable-static-libc|--enable-static-libc=yes) allstatic=true ; evenmorestatic=true ;;
     --disable-static-libc|--enable-static-libc=no) evenmorestatic=false ;;
+    --enable-all-pic|--enable-all-pic=yes) allpic=true ;;
+    --disable-all-pic|--enable-all-pic=no) allpic=false ;;
     --enable-slashpackage=*) sproot=${arg#*=} ; slashpackage=true ; ;;
     --enable-slashpackage) sproot= ; slashpackage=true ;;
     --disable-slashpackage) sproot= ; slashpackage=false ;;
@@ -292,14 +296,18 @@ if [ "x$target" != "x$(cat $sysdeps/target)" ] ; then
   exit 1
 fi
 
-defaultpie=false
-echo "Checking whether we're building PIE..."
-if $CC_AUTO $CPPFLAGS_AUTO $CPPFLAGS $CPPFLAGS_POST $CFLAGS_AUTO $CFLAGS $CFLAGS_POST -dM -E - < /dev/null | grep -qF __PIE__ ; then
-  defaultpie=true
-  CFLAGS_AUTO="$CFLAGS_AUTO -fPIC"
-  echo "  ... yes"
-else
-  echo "  ... no"
+if test $allpic = detect ; then
+  echo "Checking whether we need to build everything as PIC..."
+  if $CC_AUTO $CPPFLAGS_AUTO $CPPFLAGS $CPPFLAGS_POST $CFLAGS_AUTO $CFLAGS $CFLAGS_POST -dM -E - < /dev/null | grep -qF __PIE__ ; then
+    allpic=true
+    echo "  ... yes"
+  else
+    allpic=false
+    echo "  ... no"
+  fi
+fi
+if $allpic ; then
+  tryflag CFLAGS_AUTO -fPIC
 fi
 
 spawn_lib=$(cat $sysdeps/spawn.lib)
@@ -414,10 +422,10 @@ if $shared ; then
 else
   echo "DO_SHARED :="
 fi
-if $defaultpie ; then
-  echo "DEFAULT_PIE := 1"
+if $allpic ; then
+  echo "STATIC_LIBS_ARE_PIC := 1"
 else
-  echo "DEFAULT_PIE :="
+  echo "STATIC_LIBS_ARE_PIC :="
 fi
 
 exec 1>&3 3>&-

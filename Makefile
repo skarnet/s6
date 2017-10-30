@@ -42,7 +42,11 @@ version_M := $(basename $(version_m))
 version_l := $(basename $(version_M))
 CPPFLAGS_ALL := $(CPPFLAGS_AUTO) $(CPPFLAGS)
 CFLAGS_ALL := $(CFLAGS_AUTO) $(CFLAGS)
+ifeq ($(strip $(STATIC_LIBS_ARE_PIC)),)
 CFLAGS_SHARED := -fPIC
+else
+CFLAGS_SHARED :=
+endif
 LDFLAGS_ALL := $(LDFLAGS_AUTO) $(LDFLAGS)
 REALCC = $(CROSS_COMPILE)$(CC)
 AR := $(CROSS_COMPILE)ar
