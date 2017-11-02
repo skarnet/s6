@@ -32,50 +32,43 @@ being a leaf.
      s6-supervise <em>servicedir</em>
 </pre>
 
+<p>
+ s6-supervise's behaviour is approximately the following:
+</p>
+
 <ul>
- <li> s6-supervise switches to the <em>servicedir</em>
-<a href="servicedir.html">service directory</a>. </li>
+ <li> s6-supervise changes its current directory to <em>servicedir</em>. </li>
  <li> It exits 100 if another s6-supervise process is already monitoring this service. </li>
- <li> If the <tt>./event</tt> <a href="fifodir.html">fifodir</a> does not exist,
-s6-supervise creates it and allows subscriptions to it from processes having the same
-effective group id as the s6-supervise process.
-If it already exists, it uses it as is, without modifying the subscription rights. </li>
- <li> It <a href="libs6/ftrigw.html">sends</a> a <tt>'s'</tt> event to <tt>./event</tt>. </li>
- <li> If the default service state is up, s6-supervise spawns <tt>./run</tt>. </li>
- <li> s6-supervise sends a <tt>'u'</tt> event to <tt>./event</tt> whenever it
-successfully spawns <tt>./run</tt>. </li>
- <li> When <tt>./run</tt> dies, s6-supervise sends a <tt>'d'</tt> event to <tt>./event</tt>.
-It then spawns <tt>./finish</tt> if it exists.
-<tt>./finish</tt> will have <tt>./run</tt>'s exit code as first argument, or 256 if
-<tt>./run</tt> was signaled; it will have the number of the signal that killed <tt>./run</tt>
-as second argument, or an undefined number if <tt>./run</tt> was not signaled. </li>
- <li> By default, <tt>./finish</tt> must exit in less than 5 seconds. If it takes more than that,
-s6-supervise kills it with a SIGKILL. This can be configured via the
-<tt>./timeout-finish</tt> file, see the description in the
-<a href="servicedir.html">service directory page</a>. </li>
- <li> When <tt>./finish</tt> dies (or is killed),
-s6-supervise sends a <tt>'D'</tt> event to <tt>./event</tt>. Then
-it restarts <tt>./run</tt> unless it has been told not to. </li>
- <li> If <tt>./finish</tt> exits 125, then s6-supervise sends a <tt>'O'</tt> event
-to <tt>./event</tt> <em>before</em> the <tt>'D'</tt>, and it
-<strong>does not restart the service</strong>, as if <tt>s6-svc -O</tt> had
-been called. This can be used to signify permanent failure to start the service. </li>
- <li> There is a minimum 1-second delay between two <tt>./run</tt> spawns, to avoid busylooping
-if <tt>./run</tt> exits too quickly. </li>
- <li> When killed or asked to exit, it waits for the service to go down one last time, then
-sends a <tt>'x'</tt> event to <tt>./event</tt> before exiting 0. </li>
+ <li> It forks and executes the <tt>./run</tt> file in the service directory.
+ <li> <tt>./run</tt> should be a long-lived process: it can chain load (i.e. exec into
+other binaries), but should not die. It's the daemon that s6-supervise monitors
+and manages. </li>
+ <li> When <tt>./run</tt> dies, s6-supervise spawns <tt>./finish</tt>, if it exists.
+This script should be short-lived: it's meant to clean up application state, if
+necessary, that has not been cleaned up by <tt>./run</tt> itself before dying. </li>
+ <li> When <tt>./finish</tt> dies, s6-supervise spawns <tt>./run</tt> again. </li>
+ <li> s6-supervise operation can be controlled by the <a href="s6-svc.html">s6-svc</a>
+program. It can be sent commands like "restart the service", "bring the service down", etc. </li>
+ <li> s6-supervise normally runs forever. If told to exit by <a href="s6-svc.html">s6-svc</a>,
+it waits for the service to go down one last time, then exits 0. </li>
 </ul>
+
+<p>
+ For a precise description of s6-supervise's behaviour, check the
+<a href="#detailed">Detailed operation</a> section below, as well as
+the <a href="servicedir.html">service directory</a> page:
+s6-supervise operation can be extensively configured by the presence
+of certain files in the service directory.
+</p>
 
 <h2> Options </h2>
 
 <p>
  s6-supervise does not support options, because it is normally not run
 manually via a command line; it is usually launched by its own
-supervisor, <a href="s6-svscan.html">s6-svscan</a>.
- However, the behaviour of an instance of s6-supervise can be tuned via
-various configuration files in the service directory. These files, and
-what they do, are listed on the
-<a href="servicedir.html">service directory documentation page</a>.
+supervisor, <a href="s6-svscan.html">s6-svscan</a>. The way to
+tune s6-supervise's behaviour is via files in the
+<a href="servicedir.html">service directory</a>.
 </p>
 
 <h2> Readiness notification support </h2>
@@ -121,6 +114,51 @@ daemon as <tt>fdmove -c 2 1 fdmove 1 3 prog...</tt> (in execline), or
 the service stops, as if a
 <a href="s6-svc.html">s6-svc -X</a> command had been received </li>
 </ul>
+
+<a name="#detailed">
+<h2> Detailed operation </h2>
+</a>
+
+<ul>
+ <li> s6-supervise switches to the <em>servicedir</em>
+<a href="servicedir.html">service directory</a>. </li>
+ <li> It exits 100 if another s6-supervise process is already monitoring this service. </li>
+ <li> If the <tt>./event</tt> <a href="fifodir.html">fifodir</a> does not exist,
+s6-supervise creates it and allows subscriptions to it from processes having the same
+effective group id as the s6-supervise process.
+If it already exists, it uses it as is, without modifying the subscription rights. </li>
+ <li> It <a href="libs6/ftrigw.html">sends</a> a <tt>'s'</tt> event to <tt>./event</tt>. </li>
+ <li> If the default service state is up (i.e. there is no <tt>./down</tt> file),
+s6-supervise spawns <tt>./run</tt>. </li>
+ <li> s6-supervise sends a <tt>'u'</tt> event to <tt>./event</tt> whenever it
+successfully spawns <tt>./run</tt>. </li>
+ <li> When <tt>./run</tt> dies, s6-supervise sends a <tt>'d'</tt> event to <tt>./event</tt>.
+It then spawns <tt>./finish</tt> if it exists.
+<tt>./finish</tt> will have <tt>./run</tt>'s exit code as first argument, or 256 if
+<tt>./run</tt> was signaled; it will have the number of the signal that killed <tt>./run</tt>
+as second argument, or an undefined number if <tt>./run</tt> was not signaled. </li>
+ <li> By default, <tt>./finish</tt> must exit in less than 5 seconds. If it takes more than that,
+s6-supervise kills it with a SIGKILL. This can be configured via the
+<tt>./timeout-finish</tt> file, see the description in the
+<a href="servicedir.html">service directory page</a>. </li>
+ <li> When <tt>./finish</tt> dies (or is killed),
+s6-supervise sends a <tt>'D'</tt> event to <tt>./event</tt>. Then
+it restarts <tt>./run</tt> unless it has been told not to. </li>
+ <li> If <tt>./finish</tt> exits 125, then s6-supervise sends a <tt>'O'</tt> event
+to <tt>./event</tt> <em>before</em> the <tt>'D'</tt>, and it
+<strong>does not restart the service</strong>, as if <tt>s6-svc -O</tt> had
+been called. This can be used to signify permanent failure to start the service. </li>
+ <li> There is a minimum 1-second delay between two <tt>./run</tt> spawns, to avoid busylooping
+if <tt>./run</tt> exits too quickly. </li>
+ <li> When killed or asked to exit, it waits for the service to go down one last time, then
+sends a <tt>'x'</tt> event to <tt>./event</tt> before exiting 0. </li>
+</ul>
+
+<p>
+ Make sure to also check the <a href="servicedir.html">service directory</a>
+documentation page, for the full list of files that can be present in a service
+directory and impact s6-supervise's behaviour in any way.
+</p>
 
 <h2> Usage notes </h2>
 
