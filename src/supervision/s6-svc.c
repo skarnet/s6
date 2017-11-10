@@ -105,11 +105,11 @@ int main (int argc, char const *const *argv, char const *const *envp)
     newargv[m++] = 0 ;
     xpathexec_run(newargv[0], newargv, envp) ;
   }
-  else
+  else switch (s6_svc_writectl(argv[0], S6_SUPERVISE_CTLDIR, data + 1, datalen - 1))
   {
-    int r = s6_svc_writectl(argv[0], S6_SUPERVISE_CTLDIR, data + 1, datalen - 1) ;
-    if (r < 0) strerr_diefu2sys(111, "control ", argv[0]) ;
-    else if (!r) strerr_diefu3x(100, "control ", argv[0], ": supervisor not listening") ;
+    case -1 : strerr_diefu2sys(111, "control ", argv[0]) ;
+    case -2 : strerr_dief3sys(100, "something is wrong with the ", argv[0], "/" S6_SUPERVISE_CTLDIR " directory. errno reported") ;
+    case 0 : strerr_diefu3x(100, "control ", argv[0], ": supervisor not listening") ;
   }
   return 0 ;
 }
