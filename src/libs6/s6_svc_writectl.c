@@ -1,5 +1,6 @@
 /* ISC license. */
 
+#include <skalibs/sysdeps.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -21,7 +22,10 @@ int s6_svc_writectl (char const *service, char const *subdir, char const *s, siz
   r = s6_svc_write(fn, s, len) ;
   if (r != -2) return r ;
 
-  /* Now we need to investigate what went wrong... */
+#ifdef SKALIBS_HASODIRECTORY
+
+ /* Investigate what went wrong */
+
   {
     int fd, fdsub ;
     fd = open(service, O_RDONLY | O_DIRECTORY) ;
@@ -32,4 +36,12 @@ int s6_svc_writectl (char const *service, char const *subdir, char const *s, siz
     fd_close(fdsub) ;
     return -2 ;
   }
+
+#else
+
+ /* Too bad, get a better system */
+
+  return -2 ;
+
+#endif
 }
