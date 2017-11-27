@@ -91,6 +91,28 @@ started by <a href="../s6-ipcclient.html">s6-ipcclient</a>, both fds 6
 and 7 are open (and refer to the same socket), so you should close both.
 </p>
 
+<p>
+ Alternatively, if your connection to s6-fdholderd has not been created yet,
+you can use the following functions:
+</p>
+
+<h4> <code> int s6_fdholder_start (s6_fdholder_t *a, char const *path, tain_t const *deadline, tain_t *stamp) </code> </h4>
+
+<p>
+ Starts a session with a <a href="../s6-fdholderd.html">s6-fdholderd</a>
+instance listening on <em>path</em>. <em>a</em> must be initialized to
+S6_FDHOLDER_ZERO before calling this function. On success, returns nonzero
+and <em>a</em> can be used as a handle for the next <tt>s6_fdholder_*</tt>
+function calls. On failure, returns 0, and sets errno.
+</p>
+
+<h4> <code> void s6_fdholder_end (s6_fdholder_t *a) </code> </h4>
+
+<p>
+ Ends the current session and frees all allocated resources. If needed,
+<em>a</em> is immediately reusable for another <tt>s6_fdholder_start</tt> call.
+</p>
+
 <h3> Storing a fd </h3>
 
 <pre>

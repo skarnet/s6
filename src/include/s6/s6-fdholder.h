@@ -1,4 +1,4 @@
- /* ISC license. */
+/* ISC license. */
 
 #ifndef S6_FDHOLDER_H
 #define S6_FDHOLDER_H
@@ -19,8 +19,15 @@ struct s6_fdholder_s
 } ;
 #define S6_FDHOLDER_ZERO { .connection = UNIXCONNECTION_ZERO } ;
 
+
+ /* Starting and ending */
+
 #define s6_fdholder_init(a, fd) unixconnection_init(&(a)->connection, fd, fd)
 #define s6_fdholder_free(a) unixconnection_free(&(a)->connection)
+
+extern int s6_fdholder_start (s6_fdholder_t *, char const *, tain_t const *, tain_t *) ;
+#define s6_fdholder_start_g(a, path, deadline) s6_fdholder_start(a, path, (deadline), &STAMP)
+extern void s6_fdholder_end (s6_fdholder_t *) ;
 
 
  /* Individual fds */

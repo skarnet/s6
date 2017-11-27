@@ -49,6 +49,7 @@ s6lock_wait_or.o
 s6lock_zero.o
 s6_fdholder_delete.o
 s6_fdholder_delete_async.o
+s6_fdholder_end.o
 s6_fdholder_getdump.o
 s6_fdholder_list.o
 s6_fdholder_list_async.o
@@ -57,6 +58,7 @@ s6_fdholder_retrieve.o
 s6_fdholder_retrieve_async.o
 s6_fdholder_retrieve_cb.o
 s6_fdholder_setdump.o
+s6_fdholder_start.o
 s6_fdholder_store.o
 s6_fdholder_store_async.o
 -lskarnet

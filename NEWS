@@ -1,5 +1,12 @@
 Changelog for s6.
 
+In 2.6.2.0
+----------
+
+ - Bugfixes.
+ - New functions: s6_fdholder_start() and s6_fdholder_end().
+
+
 In 2.6.1.1
 ----------
 
