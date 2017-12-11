@@ -11,6 +11,7 @@
 /s6-ftrig-notify
 /s6-ftrig-wait
 /s6lockd
+/s6lockd-helper
 /s6-cleanfifodir
 /s6-mkfifodir
 /s6-svscan

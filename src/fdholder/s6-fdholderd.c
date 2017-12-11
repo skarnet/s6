@@ -544,46 +544,47 @@ static int makere (regex_t *re, char const *s, char const *var)
 
 static void defaultre (regex_t *re)
 {
-  int r = regcomp(re, "^$", REG_EXTENDED | REG_NOSUB) ;
+  int r = regcomp(re, ".^", REG_EXTENDED | REG_NOSUB) ;
   if (r)
   {
     char buf[256] ;
     regerror(r, re, buf, 256) ;
-    strerr_diefu2x(100, "compile ^$ into a regular expression: ", buf) ;
+    strerr_diefu2x(100, "compile .^ into a regular expression: ", buf) ;
   }
 }
 
-static inline int parse_env (char const *const *envp, regex_t *rre, regex_t *wre, unsigned int *flags)
+static inline int parse_env (char const *const *envp, regex_t *rre, regex_t *wre, unsigned int *flags, unsigned int *donep)
 {
+  unsigned int done = 0 ;
   unsigned int fl = 0 ;
-  int rre_done = 0, wre_done = 0 ;
   for (; *envp ; envp++)
   {
     if (str_start(*envp, "S6_FDHOLDER_GETDUMP=")) fl |= 1 ;
     if (str_start(*envp, "S6_FDHOLDER_SETDUMP=")) fl |= 2 ;
     if (str_start(*envp, "S6_FDHOLDER_LIST=")) fl |= 4 ;
-    if (!rre_done)
+    if (!(done & 1))
     {
-      rre_done = makere(rre, *envp, "S6_FDHOLDER_RETRIEVE_REGEX") ;
-      if (rre_done < 0)
+      int r = makere(rre, *envp, "S6_FDHOLDER_RETRIEVE_REGEX") ;
+      if (r < 0)
       {
-        if (wre_done) regfree(wre) ;
+        if (done & 2) regfree(wre) ;
         return 0 ;
       }
+      else if (r) done |= 1 ;
     }
-    if (!wre_done)
+    if (!(done & 2))
     {
-      wre_done = makere(wre, *envp, "S6_FDHOLDER_STORE_REGEX") ;
-      if (wre_done < 0)
+      int r = makere(wre, *envp, "S6_FDHOLDER_STORE_REGEX") ;
+      if (r < 0)
       {
-        if (rre_done) regfree(rre) ;
+        if (done & 1) regfree(rre) ;
         return 0 ;
       }
+      else if (r) done |= 2 ;
     }
   }
-  if (!rre_done) defaultre(rre) ;
-  if (!wre_done) defaultre(wre) ;
   *flags = fl ;
+  *donep = done ;
   return 1 ;
 }
 
@@ -593,6 +594,7 @@ static inline int new_connection (int fd, regex_t *rre, regex_t *wre, unsigned i
   s6_accessrules_result_t result = S6_ACCESSRULES_ERROR ;
   uid_t uid ;
   gid_t gid ;
+  unsigned int done = 0 ;
 
   if (getpeereid(fd, &uid, &gid) < 0)
   {
@@ -633,7 +635,7 @@ static inline int new_connection (int fd, regex_t *rre, regex_t *wre, unsigned i
       return 0 ;
     }
     envp[n] = 0 ;
-    if (!parse_env(envp, rre, wre, flags))
+    if (!parse_env(envp, rre, wre, flags, &done))
     {
       if (verbosity) strerr_warnwu1sys("parse_env") ;
       s6_accessrules_params_free(&params) ;
@@ -641,6 +643,8 @@ static inline int new_connection (int fd, regex_t *rre, regex_t *wre, unsigned i
     }
     s6_accessrules_params_free(&params) ;
   }
+  if (!(done & 1)) defaultre(rre) ;
+  if (!(done & 2)) defaultre(wre) ;
   return 1 ;
 }
 
