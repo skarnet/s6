@@ -108,6 +108,10 @@ Default is 40. It is impossible to set it higher than <em>maxconn</em>. </li>
  <li> <tt>-b&nbsp;<em>backlog</em></tt>&nbsp;: set a maximum of
 <em>backlog</em> backlog connections on the socket. Extra
 connection attempts will rejected by the kernel. </li>
+ <li> <tt>-a&nbsp;<em>perms</em></tt>&nbsp;: create the socket with
+permissions <em>perms</em>, which is an octal number from 0000 to 0777.
+Default is 0777, meaning everyone can connect to it. 0700 means only processes having the
+same uid as the s6-ipcserver process can connect to it. </li>
  <li> <tt>-G&nbsp;<em>gidlist</em></tt>&nbsp;: change s6-ipcserver's
 supplementary group list to <em>gidlist</em> after binding the socket.
 This is only valid when run as root. <em>gidlist</em> must be a

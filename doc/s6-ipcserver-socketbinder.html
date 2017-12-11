@@ -26,7 +26,7 @@ socket, then executes a program.
 <h2> Interface </h2>
 
 <pre>
-     s6-ipcserver-socketbinder [ -d | -D ] [ -b <em>backlog</em> ] [ -M | -m ] <em>path</em> <em>prog...</em>
+     s6-ipcserver-socketbinder [ -d | -D ] [ -b <em>backlog</em> ] [ -M | -m ] [ -a <em>perms</em> ] <em>path</em> <em>prog...</em>
 </pre>
 
 <ul>
@@ -59,6 +59,10 @@ the default. </li>
 that by default SOCK_DGRAM sockets are not connection-mode, and <tt>listen()</tt>
 will fail - so you should always give the <tt>-b0</tt> option to
 s6-ipcserver-socketbinder along with <tt>-m</tt>. </li>
+ <li> <tt>-a&nbsp;<em>perms</em></tt>&nbsp;: create the socket with
+permissions <em>perms</em>, which is an octal number from 0000 to 0777.
+Default is 0777, meaning everyone can connect to it. 0700 means only processes having the
+same uid as the s6-ipcserver-socketbinder process can connect to it. </li>
 </ul>
 
 <h2> Notes </h2>
