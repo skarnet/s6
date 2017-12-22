@@ -10,13 +10,13 @@
 #include <skalibs/stralloc.h>
 #include <skalibs/genalloc.h>
 #include <skalibs/gensetdyn.h>
-#include <skalibs/skaclient.h>
+#include <skalibs/textclient.h>
 #include <s6/config.h>
 
 
  /* Constants */
 
-#define FTRIGR_IPCPATH SKALIBS_SPROOT "/service/ftrigrd/s"
+#define FTRIGR_IPCPATH SKALIBS_SPROOT "/run/service/ftrigrd/s"
 
 #define FTRIGRD_PROG S6_BINPREFIX "s6-ftrigrd"
 #define FTRIGR_BANNER1 "ftrigr v1.0 (b)\n"
@@ -54,13 +54,12 @@ extern ftrigr1_t const ftrigr1_zero ;
 typedef struct ftrigr_s ftrigr, ftrigr_t, *ftrigr_ref, *ftrigr_t_ref ;
 struct ftrigr_s
 {
-  skaclient_t connection ;
+  textclient_t connection ;
   genalloc list ; /* array of uint16_t */
   size_t head ;
   gensetdyn data ; /* set of ftrigr1_t */
-  skaclient_buffer_t buffers ;
 } ;
-#define FTRIGR_ZERO { .connection = SKACLIENT_ZERO, .list = GENALLOC_ZERO, .head = 0, .data = GENSETDYN_INIT(ftrigr1_t, 2, 0, 1) }
+#define FTRIGR_ZERO { .connection = TEXTCLIENT_ZERO, .list = GENALLOC_ZERO, .head = 0, .data = GENSETDYN_INIT(ftrigr1_t, 2, 0, 1) }
 extern ftrigr_t const ftrigr_zero ;
 
 
@@ -75,7 +74,7 @@ extern void ftrigr_end (ftrigr_t *) ;
 
  /* Instant primitives for async programming */
 
-#define ftrigr_fd(a) skaclient_fd(&(a)->connection)
+#define ftrigr_fd(a) textclient_fd(&(a)->connection)
 extern int ftrigr_updateb (ftrigr_t *) ;
 extern int ftrigr_update (ftrigr_t *) ;
 extern int ftrigr_check (ftrigr_t *, uint16_t, char *) ;

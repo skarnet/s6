@@ -7,7 +7,7 @@
 #include <skalibs/tai.h>
 #include <skalibs/genalloc.h>
 #include <skalibs/gensetdyn.h>
-#include <skalibs/skaclient.h>
+#include <skalibs/textclient.h>
 #include <s6/config.h>
 
 
@@ -27,12 +27,11 @@
 typedef struct s6lock_s s6lock_t, *s6lock_t_ref ;
 struct s6lock_s
 {
-  skaclient_t connection ;
+  textclient_t connection ;
   genalloc list ; /* array of uint16_t */
   gensetdyn data ; /* set of char */
-  skaclient_buffer_t buffers ;
 } ;
-#define S6LOCK_ZERO { .connection = SKACLIENT_ZERO, .list = GENALLOC_ZERO, .data = GENSETDYN_INIT(int, 2, 0, 1) }
+#define S6LOCK_ZERO { .connection = TEXTCLIENT_ZERO, .list = GENALLOC_ZERO, .data = GENSETDYN_INIT(int, 2, 0, 1) }
 extern s6lock_t const s6lock_zero ;
 
 
@@ -47,7 +46,7 @@ extern void s6lock_end (s6lock_t *) ;
 
  /* Asynchronous primitives */
 
-#define s6lock_fd(a) skaclient_fd(&(a)->connection)
+#define s6lock_fd(a) textclient_fd(&(a)->connection)
 extern int s6lock_update (s6lock_t *) ;
 extern int s6lock_check (s6lock_t *, uint16_t) ;
 

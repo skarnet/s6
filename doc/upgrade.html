@@ -18,6 +18,19 @@
 
 <h1> What has changed in s6 </h1>
 
+<h2> in 2.7.0.0 </h2>
+
+<ul>
+ <li> skalibs dependency bumped to 2.6.3.0. </li>
+ <li> <a href="libs6/s6lockd.html">s6lockd</a> and
+<a href="libs6/s6-ftrigrd.html">s6-ftrigrd</a> now use the new
+<tt>textclient</tt> API and ABI from skalibs, instead of the
+more generic <tt>skaclient</tt>. This is cleaner, faster code.
+(<a href="s6-fdholderd.html">s6-fdholderd</a> still uses
+skaclient, since its point is to transmit file descriptors,
+which textclient does not support.) </li>
+</ul>
+
 <h2> in 2.6.2.0 </h2>
 
 <ul>

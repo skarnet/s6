@@ -1,5 +1,6 @@
 /* ISC license. */
 
+#include <sys/uio.h>
 #include <string.h>
 #include <stdint.h>
 #include <errno.h>
@@ -15,8 +16,8 @@
 #include <skalibs/tai.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/iopause.h>
-#include <skalibs/unixmessage.h>
-#include <skalibs/skaclient.h>
+#include <skalibs/textmessage.h>
+#include <skalibs/textclient.h>
 #include "ftrig1.h"
 #include <s6/ftrigr.h>
 
@@ -59,10 +60,9 @@ static void cleanup (void)
 static void trig (uint16_t id, char what, char info)
 {
   char pack[4] ;
-  unixmessage_t m = { .s = pack, .len = 4, .fds = 0, .nfds = 0 } ;
   uint16_pack_big(pack, id) ;
   pack[2] = what ; pack[3] = info ;
-  if (!unixmessage_put(unixmessage_sender_x, &m))
+  if (!textmessage_put(textmessage_sender_x, pack, 4))
   {
     cleanup() ;
     strerr_diefu1sys(111, "build answer") ;
@@ -71,11 +71,10 @@ static void trig (uint16_t id, char what, char info)
 
 static void answer (char c)
 {
-  unixmessage_t m = { .s = &c, .len = 1, .fds = 0, .nfds = 0 } ;
-  if (!unixmessage_put(unixmessage_sender_1, &m))
+  if (!textmessage_put(textmessage_sender_1, &c, 1))
   {
     cleanup() ;
-    strerr_diefu1sys(111, "unixmessage_put") ;
+    strerr_diefu1sys(111, "textmessage_put") ;
   }
 }
 
@@ -112,16 +111,17 @@ static inline int ftrigio_read (ftrigio_t *p)
   return 1 ;
 }
 
-static int parse_protocol (unixmessage_t const *m, void *context)
+static int parse_protocol (struct iovec const *v, void *context)
 {
+  char const *s = v->iov_base ;
   uint16_t id ;
-  if (m->len < 3 || m->nfds)
+  if (v->iov_len < 3)
   {
     cleanup() ;
     strerr_dief1x(100, "invalid client request") ;
   }
-  uint16_unpack_big(m->s, &id) ;
-  switch (m->s[2])
+  uint16_unpack_big(s, &id) ;
+  switch (s[2])
   {
     case 'U' : /* unsubscribe */
     {
@@ -139,15 +139,15 @@ static int parse_protocol (unixmessage_t const *m, void *context)
     {
       uint32_t options, pathlen, relen ;
       int r ;
-      if (m->len < 19)
+      if (v->iov_len < 19)
       {
         answer(EPROTO) ;
         break ;
       }
-      uint32_unpack_big(m->s + 3, &options) ;
-      uint32_unpack_big(m->s + 7, &pathlen) ;
-      uint32_unpack_big(m->s + 11, &relen) ;
-      if (((pathlen + relen + 17) != m->len) || m->s[15 + pathlen] || m->s[m->len - 1])
+      uint32_unpack_big(s + 3, &options) ;
+      uint32_unpack_big(s + 7, &pathlen) ;
+      uint32_unpack_big(s + 11, &relen) ;
+      if (((pathlen + relen + 17) != v->iov_len) || s[15 + pathlen] || s[v->iov_len - 1])
       {
         answer(EPROTO) ;
         break ;
@@ -157,13 +157,13 @@ static int parse_protocol (unixmessage_t const *m, void *context)
         answer(ENFILE) ;
         break ;
       }
-      r = regcomp(&a[n].re, m->s + 16 + pathlen, REG_EXTENDED) ;
+      r = regcomp(&a[n].re, s + 16 + pathlen, REG_EXTENDED) ;
       if (r)
       {
         answer(r == REG_ESPACE ? ENOMEM : EINVAL) ;
         break ;
       }
-      if (!ftrig1_make(&a[n].trig, m->s + 15))
+      if (!ftrig1_make(&a[n].trig, s + 15))
       {
         regfree(&a[n].re) ;
         answer(errno) ;
@@ -200,7 +200,7 @@ int main (void)
     tain_t deadline ;
     tain_now_g() ;
     tain_addsec_g(&deadline, 2) ;
-    if (!skaclient_server_01x_init_g(FTRIGR_BANNER1, FTRIGR_BANNER1_LEN, FTRIGR_BANNER2, FTRIGR_BANNER2_LEN, &deadline))
+    if (!textclient_server_01x_init_g(FTRIGR_BANNER1, FTRIGR_BANNER1_LEN, FTRIGR_BANNER2, FTRIGR_BANNER2_LEN, &deadline))
       strerr_diefu1sys(111, "sync with client") ;
   }
 
@@ -210,9 +210,9 @@ int main (void)
     unsigned int i = 0 ;
 
     x[0].fd = 0 ; x[0].events = IOPAUSE_EXCEPT | IOPAUSE_READ ;
-    x[1].fd = 1 ; x[1].events = IOPAUSE_EXCEPT | (unixmessage_sender_isempty(unixmessage_sender_1) ? 0 : IOPAUSE_WRITE) ;
-    x[2].fd = unixmessage_sender_fd(unixmessage_sender_x) ;
-    x[2].events = IOPAUSE_EXCEPT | (unixmessage_sender_isempty(unixmessage_sender_x) ? 0 : IOPAUSE_WRITE) ;
+    x[1].fd = 1 ; x[1].events = IOPAUSE_EXCEPT | (textmessage_sender_isempty(textmessage_sender_1) ? 0 : IOPAUSE_WRITE) ;
+    x[2].fd = textmessage_sender_fd(textmessage_sender_x) ;
+    x[2].events = IOPAUSE_EXCEPT | (textmessage_sender_isempty(textmessage_sender_x) ? 0 : IOPAUSE_WRITE) ;
     for (; i < n ; i++)
     {
       a[i].xindex = 3 + i ;
@@ -231,13 +231,13 @@ int main (void)
 
    /* client is reading */
     if (x[1].revents & IOPAUSE_WRITE)
-      if (!unixmessage_sender_flush(unixmessage_sender_1) && !error_isagain(errno))
+      if (!textmessage_sender_flush(textmessage_sender_1) && !error_isagain(errno))
       {
         cleanup() ;
         strerr_diefu1sys(111, "flush stdout") ;
       }
     if (x[2].revents & IOPAUSE_WRITE)
-      if (!unixmessage_sender_flush(unixmessage_sender_x) && !error_isagain(errno))
+      if (!textmessage_sender_flush(textmessage_sender_x) && !error_isagain(errno))
       {
         cleanup() ;
         return 1 ;
@@ -251,9 +251,9 @@ int main (void)
     }
 
    /* client is writing */
-    if (!unixmessage_receiver_isempty(unixmessage_receiver_0) || x[0].revents & IOPAUSE_READ)
+    if (!textmessage_receiver_isempty(textmessage_receiver_0) || x[0].revents & IOPAUSE_READ)
     {
-      if (unixmessage_handle(unixmessage_receiver_0, &parse_protocol, 0) < 0)
+      if (textmessage_handle(textmessage_receiver_0, &parse_protocol, 0) < 0)
       {
         if (errno == EPIPE) break ; /* normal exit */
         cleanup() ;

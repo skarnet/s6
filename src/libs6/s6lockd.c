@@ -1,5 +1,6 @@
 /* ISC license. */
 
+#include <sys/uio.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
@@ -14,8 +15,8 @@
 #include <skalibs/tai.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/iopause.h>
-#include <skalibs/unixmessage.h>
-#include <skalibs/skaclient.h>
+#include <skalibs/textmessage.h>
+#include <skalibs/textclient.h>
 #include <s6/s6lock.h>
 
 #define USAGE "s6lockd lockdir"
@@ -55,10 +56,9 @@ static void cleanup (void)
 static void trig (uint16_t id, char e)
 {
   char pack[3] ;
-  unixmessage_t m = { .s = pack, .len = 3, .fds = 0, .nfds = 0 } ;
   uint16_pack_big(pack, id) ;
   pack[2] = e ;
-  if (!unixmessage_put(unixmessage_sender_x, &m))
+  if (!textmessage_put(textmessage_sender_x, pack, 3))
   {
     cleanup() ;
     strerr_diefu1sys(111, "build answer") ;
@@ -67,11 +67,10 @@ static void trig (uint16_t id, char e)
 
 static void answer (char c)
 {
-  unixmessage_t m = { .s = &c, .len = 1, .fds = 0, .nfds = 0 } ;
-  if (!unixmessage_put(unixmessage_sender_1, &m))
+  if (!textmessage_put(textmessage_sender_1, &c, 1))
   {
     cleanup() ;
-    strerr_diefu1sys(111, "unixmessage_put") ;
+    strerr_diefu1sys(111, "textmessage_put") ;
   }
 }
 
@@ -102,16 +101,17 @@ static void handle_signals (void)
   }
 }
 
-static int parse_protocol (unixmessage_t const *m, void *context)
+static int parse_protocol (struct iovec const *v, void *context)
 {
+  char *s = v->iov_base ;
   uint16_t id ;
-  if (m->len < 3 || m->nfds)
+  if (v->iov_len < 3)
   {
     cleanup() ;
     strerr_dief1x(100, "invalid client request") ;
   }
-  uint16_unpack_big(m->s, &id) ;
-  switch (m->s[2])
+  uint16_unpack_big(s, &id) ;
+  switch (s[2])
   {
     case '>' : /* release */
     {
@@ -131,25 +131,25 @@ static int parse_protocol (unixmessage_t const *m, void *context)
       char const *cargv[3] = { S6LOCKD_HELPER_PROG, 0, 0 } ;
       char const *cenvp[2] = { 0, 0 } ;
       uint32_t options, pathlen ;
-      if (m->len < 23)
+      if (v->iov_len < 23)
       {
         answer(EPROTO) ;
         break ;
       }
-      uint32_unpack_big(m->s + 3, &options) ;
-      tain_unpack(m->s + 7, &f.limit) ;
-      uint32_unpack_big(m->s + 19, &pathlen) ;
-      if (pathlen + 23 != m->len || m->s[m->len - 1])
+      uint32_unpack_big(s + 3, &options) ;
+      tain_unpack(s + 7, &f.limit) ;
+      uint32_unpack_big(s + 19, &pathlen) ;
+      if (pathlen + 23 != v->iov_len || s[v->iov_len - 1])
       {
         answer(EPROTO) ;
         break ;
       }
       f.id = id ;
-      m->s[21] = '.' ;
-      m->s[22] = '/' ;
-      cargv[1] = (char const *)m->s + 21 ;
+      s[21] = '.' ;
+      s[22] = '/' ;
+      cargv[1] = (char const *)s + 21 ;
       if (options & S6LOCK_OPTIONS_EX) cenvp[0] = "S6LOCK_EX=1" ;
-      f.pid = child_spawn(cargv[0], cargv, cenvp, f.p, 2) ;
+      f.pid = child_spawn2(cargv[0], cargv, cenvp, f.p) ;
       if (!f.pid)
       {
         answer(errno) ;
@@ -204,7 +204,7 @@ int main (int argc, char const *const *argv)
   tain_now_g() ;
   tain_addsec_g(&deadline, 2) ;
 
-  if (!skaclient_server_01x_init_g(S6LOCK_BANNER1, S6LOCK_BANNER1_LEN, S6LOCK_BANNER2, S6LOCK_BANNER2_LEN, &deadline))
+  if (!textclient_server_01x_init_g(S6LOCK_BANNER1, S6LOCK_BANNER1_LEN, S6LOCK_BANNER2, S6LOCK_BANNER2_LEN, &deadline))
     strerr_diefu1sys(111, "sync with client") ;
 
   for (;;)
@@ -216,9 +216,9 @@ int main (int argc, char const *const *argv)
 
     tain_add_g(&deadline, &tain_infinite_relative) ;
     x[0].fd = 0 ; x[0].events = IOPAUSE_EXCEPT | IOPAUSE_READ ;
-    x[1].fd = 1 ; x[1].events = IOPAUSE_EXCEPT | (unixmessage_sender_isempty(unixmessage_sender_1) ? 0 : IOPAUSE_WRITE ) ;
-    x[2].fd = unixmessage_sender_fd(unixmessage_sender_x) ;
-    x[2].events = IOPAUSE_EXCEPT | (unixmessage_sender_isempty(unixmessage_sender_x) ? 0 : IOPAUSE_WRITE) ;
+    x[1].fd = 1 ; x[1].events = IOPAUSE_EXCEPT | (textmessage_sender_isempty(textmessage_sender_1) ? 0 : IOPAUSE_WRITE ) ;
+    x[2].fd = textmessage_sender_fd(textmessage_sender_x) ;
+    x[2].events = IOPAUSE_EXCEPT | (textmessage_sender_isempty(textmessage_sender_x) ? 0 : IOPAUSE_WRITE) ;
     x[3].fd = sfd ; x[3].events = IOPAUSE_READ ;
     for (; i < n ; i++)
     {
@@ -257,13 +257,13 @@ int main (int argc, char const *const *argv)
 
    /* client is reading */
     if (x[1].revents & IOPAUSE_WRITE)
-      if (!unixmessage_sender_flush(unixmessage_sender_1) && !error_isagain(errno))
+      if (!textmessage_sender_flush(textmessage_sender_1) && !error_isagain(errno))
       {
         cleanup() ;
         strerr_diefu1sys(111, "flush stdout") ;
       }
     if (x[2].revents & IOPAUSE_WRITE)
-      if (!unixmessage_sender_flush(unixmessage_sender_x) && !error_isagain(errno))
+      if (!textmessage_sender_flush(textmessage_sender_x) && !error_isagain(errno))
       {
         cleanup() ;
         strerr_diefu1sys(111, "flush asyncout") ;
@@ -301,9 +301,9 @@ int main (int argc, char const *const *argv)
     if (x[3].revents & (IOPAUSE_READ | IOPAUSE_EXCEPT)) handle_signals() ;
 
    /* client is writing */
-    if (!unixmessage_receiver_isempty(unixmessage_receiver_0) || x[0].revents & IOPAUSE_READ)
+    if (!textmessage_receiver_isempty(textmessage_receiver_0) || x[0].revents & IOPAUSE_READ)
     {
-      if (unixmessage_handle(unixmessage_receiver_0, &parse_protocol, 0) < 0)
+      if (textmessage_handle(textmessage_receiver_0, &parse_protocol, 0) < 0)
       {
         if (errno == EPIPE) break ; /* normal exit */
         cleanup() ;
