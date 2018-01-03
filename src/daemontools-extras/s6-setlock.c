@@ -54,13 +54,13 @@ int main (int argc, char const *const *argv, char const *const *envp)
     char const *cenvp[2] = { ex ? "S6LOCK_EX=1" : 0, 0 } ;
     iopause_fd x = { .events = IOPAUSE_READ } ;
     tain_t deadline ;
-    int p[2] ;
+    int p[2] = { 0, 1 } ;
     pid_t pid ;
     char c ;
     tain_now_g() ;
     tain_from_millisecs(&deadline, timeout) ;
     tain_add_g(&deadline, &deadline) ;
-    pid = child_spawn(S6_LIBEXECPREFIX "s6lockd-helper", cargv, cenvp, p, 2) ;
+    pid = child_spawn2(S6_LIBEXECPREFIX "s6lockd-helper", cargv, cenvp, p) ;
     if (!pid) strerr_diefu2sys(111, "spawn ", S6_LIBEXECPREFIX "s6lockd-helper") ;
     x.fd = p[0] ;
     for (;;)

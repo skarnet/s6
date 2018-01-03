@@ -641,8 +641,8 @@ static inline int new_connection (int fd, regex_t *rre, regex_t *wre, unsigned i
       s6_accessrules_params_free(&params) ;
       return 0 ;
     }
-    s6_accessrules_params_free(&params) ;
   }
+  s6_accessrules_params_free(&params) ;
   if (!(done & 1)) defaultre(rre) ;
   if (!(done & 2)) defaultre(wre) ;
   return 1 ;
