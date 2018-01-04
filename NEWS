@@ -3,8 +3,10 @@ Changelog for s6.
 In 2.7.0.0
 ----------
 
+ - Bugfixes.
  - s6-ftrigrd and s6lockd internally use the textclient API/ABI
 instead of skaclient. This is cleaner, faster code.
+ - New "-a perms" option to s6-ipcserver and s6-ipcserver-socketbinder.
 
 
 In 2.6.2.0
