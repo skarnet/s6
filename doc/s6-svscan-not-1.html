@@ -58,8 +58,10 @@ initial logging service, that must read on the logging FIFO. </li>
 </ul>
 
 <p>
- In the following examples, we'll assume that <tt>/command/s6-svscanboot</tt>
-is the name of the script you are using to start s6-svscan. Adjust this accordingly.
+ In some of the following examples, we'll assume that <tt>/command/s6-svscanboot</tt>
+is the name of the script you are using to start s6-svscan. We will also assume
+that all of the s6 executables are available through the <tt>/command</tt> path.
+Adjust this accordingly.
 </p>
 
 <a name="sysv">
@@ -86,7 +88,7 @@ for instance <tt>/etc/init/s6-svscan.conf</tt>, then start the service
 with <tt>start s6-svscan</tt>.
 </p>
 
-<h3>Example </h3>
+<h3> Example </h3>
 
 <pre># s6-svscan
 start on runlevel [2345]
@@ -99,17 +101,40 @@ exec /command/s6-svscanboot
 
 <a name="systemd">
 <h2> systemd </h2>
+</a>
 
 <p>
- systemd has
-<a href="http://www.freedesktop.org/software/systemd/man/daemon.html">its
-own way</a> of supervising services. If you are a systemd user, chances
-are you do not need s6. If you are interested in using s6, I encourage
-you to also stop using systemd.
+ Put an appropriate unit file in the <tt>/etc/systemd/system</tt> folder,
+for instance <tt>/etc/systemd/system/s6.service</tt>. It will be picked
+up by systemd at boot time.
 </p>
 
-<p>
+<h3> Example </h3>
 
+<pre>[Unit]
+Description=s6 supervision tree
+Documentation=https://skarnet.org/software/s6/
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/command/s6-svscan -St0 /service
+ExecStop=/command/s6-svscanctl -t /service
+ExecReload=/command/s6-svscanctl -an /service
+Restart=always
+RestartSec=1
+</pre>
+
+<p>
+ Please note that, among other things, systemd performs process supervision,
+so depending on the level of integration with your distribution that you
+wish to achieve, you may be better off using systemd to directly manage
+your daemons. Please also note that systemd is a
+<a href="systemd.html">terrible piece of software engineering</a>, and
+if at all possible, you should try and switch to a distribution that does
+not use it.
 </p>
 
 <a name="bsd">
