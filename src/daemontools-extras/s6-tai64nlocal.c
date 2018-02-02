@@ -27,13 +27,15 @@ int main (void)
       p = timestamp_scan(satmp.s, &a) ;
       if (p)
       {
-        char fmt[LOCALTMN_FMT+1] ;
         localtmn_t local ;
-        size_t len ;
-        localtmn_from_tain(&local, &a, 1) ;
-        len = localtmn_fmt(fmt, &local) ;
-        if (buffer_put(buffer_1, fmt, len) < (ssize_t)len)
-          strerr_diefu1sys(111, "write to stdout") ;
+        if (localtmn_from_tain(&local, &a, 1))
+        {
+          char fmt[LOCALTMN_FMT+1] ;
+          size_t len = localtmn_fmt(fmt, &local) ;
+          if (buffer_put(buffer_1, fmt, len) < (ssize_t)len)
+            strerr_diefu1sys(111, "write to stdout") ;
+        }
+        else p = 0 ;
       }
     }
     if (buffer_put(buffer_1, satmp.s + p, satmp.len - p) < (ssize_t)(satmp.len - p))
