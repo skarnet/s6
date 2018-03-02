@@ -4,6 +4,7 @@ In 2.7.0.1
 ----------
 
  - Bugfixes.
+ - s6-svwait et al. now exit 102 instead of hanging if s6-supervise dies.
 
 
 In 2.7.0.0

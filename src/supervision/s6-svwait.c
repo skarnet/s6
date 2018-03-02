@@ -52,7 +52,8 @@ int main (int argc, char const *const *argv)
     unsigned char readystate[bitarray_div8(argc)] ;
     s6_svlisten_init(argc, argv, &foo, ids, upstate, readystate, &deadline) ;
     e = s6_svlisten_loop(&foo, wantup, wantready, or, &deadline, -1, 0) ;
-    if (e) strerr_dief1x(e, "some services reported permanent failure") ; 
+    if (e < 0) strerr_dief1x(102, "supervisor died") ;
+    else if (e > 0) strerr_dief1x(e, "some services reported permanent failure") ; 
   }
   return 0 ;
 }

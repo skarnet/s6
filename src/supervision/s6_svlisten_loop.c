@@ -27,7 +27,7 @@ void s6_svlisten_init (int argc, char const *const *argv, s6_svlisten_t *foo, ui
     memcpy(s, argv[i], len) ;
     s[len] = '/' ;
     memcpy(s + len + 1, S6_SUPERVISE_EVENTDIR, sizeof(S6_SUPERVISE_EVENTDIR)) ;
-    foo->ids[i] = ftrigr_subscribe_g(&foo->a, s, "[DuUdO]", FTRIGR_REPEAT, deadline) ;
+    foo->ids[i] = ftrigr_subscribe_g(&foo->a, s, "[DuUdOx]", FTRIGR_REPEAT, deadline) ;
     if (!foo->ids[i]) strerr_diefu2sys(111, "subscribe to events for ", argv[i]) ;
     if (!s6_svstatus_read(argv[i], &status)) strerr_diefu1sys(111, "s6_svstatus_read") ;
     bitarray_poke(foo->upstate, i, status.pid && !status.flagfinishing) ;
@@ -72,7 +72,8 @@ int s6_svlisten_loop (s6_svlisten_t *foo, int wantup, int wantready, int or, tai
           size_t j = 0 ;
           for (; j < sa.len ; j++)
           {
-            if (sa.s[j] == 'O')
+            if (sa.s[j] == 'x') return -1 ;
+            else if (sa.s[j] == 'O')
             {
               if (wantup)
               {

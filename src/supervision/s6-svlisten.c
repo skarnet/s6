@@ -72,7 +72,8 @@ int main (int argc, char const **argv, char const *const *envp)
     if (!pid) strerr_diefu2sys(111, "spawn ", argv[argc1 + 1]) ;
     if (wantrestart) s6_svlisten_loop(&foo, 0, 1, or, &deadline, spfd, &s6_svlisten_signal_handler) ;
     e = s6_svlisten_loop(&foo, wantup, wantready, or, &deadline, spfd, &s6_svlisten_signal_handler) ;
-    if (e) strerr_dief1x(e, "some services reported permanent failure") ;
+    if (e < 0) strerr_dief1x(102, "supervisor died") ;
+    else if (e > 0) strerr_dief1x(e, "some services reported permanent failure") ;
   }
   return 0 ;
 }
