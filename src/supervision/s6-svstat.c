@@ -35,7 +35,7 @@ struct funcmap_s
 
 static void pr_up (buffer *b, s6_svstatus_t const *st)
 {
-  buffer_putsnoflush(b, st->pid && !st->flagfinishing ? "true" : "false") ;
+  buffer_putsnoflush(b, st->pid && !st->flagfinishing ? st->flagthrottled ? "throttled" : "true" : "false") ;
 }
 
 static void pr_wantedup (buffer *b, s6_svstatus_t const *st)
@@ -210,6 +210,8 @@ static void legacy (s6_svstatus_t *st, int flagnum)
   buffer_putnoflush(buffer_1small, fmt, uint64_fmt(fmt, status.stamp.sec.x)) ;
   buffer_putnoflush(buffer_1small, " seconds", 8) ;
 
+  if (isup && status.flagthrottled)
+    buffer_putnoflush(buffer_1small, ", throttled", 11) ;
   if (isup && !normallyup)
     buffer_putnoflush(buffer_1small, ", normally down", 15) ;
   if (!isup && normallyup)

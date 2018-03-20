@@ -75,7 +75,9 @@ are as follows.
 <em>fields</em> is a list of comma-separated field names. The valid field
 names are the following:
   <ul>
-   <li> <tt>up</tt>: print <tt>true</tt> if the service is up and <tt>false</tt> if it is down. </li>
+   <li> <tt>up</tt>: print <tt>true</tt> if the service is up and <tt>false</tt> if it is down.
+If the service is being throttled (i.e. technically up, but sleeping for a certain
+amount of time before it is really launched), it prints <tt>throttled</tt> instead of <tt>true</tt>. </li>
    <li> <tt>wantedup</tt>: print <tt>true</tt> if <a href="s6-supervise.html">s6-supervise</a>
 is currently instructed to (re)start the service when it is down, and <tt>false</tt> if
 <a href="s6-supervise.html">s6-supervise</a> is currently instructed to leave the service alone. </li>
