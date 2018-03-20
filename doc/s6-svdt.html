@@ -1,0 +1,70 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-svdt program</title>
+    <meta name="Description" content="s6: the s6-svdt program" />
+    <meta name="Keywords" content="s6 command s6-svdt servicedir death tally process supervision s6-supervise" />
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-svdt program </h1>
+
+<p>
+s6-svstat prints the recorded death tally of a service, i.e. a list of the times
+the process died, with the cause of death.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-svdt [ -S | -s ] [ -n <em>maxlines</em> ] <em>servicedir</em>
+</pre>
+
+<p>
+ s6-svdt prints the contents of the recorded death tally of the service being
+currently supervised at the <em>servicedir</em>
+<a href="servicedir.html">service directory</a>, then exits 0.
+</p>
+
+<p>
+ For each recorded death, s6-svdt prints one line. This line contains the
+following fields, separated with spaces:
+</p>
+
+<ul>
+ <li> A <a href="https://cr.yp.to/daemontools/tai64n.html">TAI64N</a>
+timestamp .</li>
+ <li> The word "signal" if the death was caused by a signal, or the word
+"exitcode" if the death was a normal exit. </li>
+ <li> The name of the signal that caused the death, or the exit code
+of the process. </li>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-S</tt>&nbsp;: print signal names. This is the default. </li>
+ <li> <tt>-s</tt>&nbsp;: print signal numbers. The numerical value of the signal
+will be printed instead of the signal name. </li>
+ <li> <tt>-n&nbsp;<em>maxlines</em></tt>&nbsp;: limit the output to at most
+the latest <em>maxlines</em> deaths. </li>
+</ul>
+
+<h2> Exit codes </h2>
+
+<ul>
+ <li> 0: success </li>
+ <li> 100: wrong usage </li>
+ <li> 111: system call failed </li>
+</ul>
+
+</body>
+</html>

@@ -1,10 +1,11 @@
 Changelog for s6.
 
-In 2.7.0.1
+In 2.7.1.0
 ----------
 
  - Bugfixes.
  - s6-svwait et al. now exit 102 instead of hanging if s6-supervise dies.
+ - New command: s6-svdt
 
 
 In 2.7.0.0

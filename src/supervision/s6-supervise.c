@@ -343,7 +343,7 @@ static int uplastup_z (void)
 
   {
     unsigned int n ;
-    if (!read_uint("max-death-tally", &n)) n = 20 ;
+    if (!read_uint("max-death-tally", &n)) n = 100 ;
     if (n > S6_MAX_DEATH_TALLY) n = S6_MAX_DEATH_TALLY ;
     if (n)
     {
