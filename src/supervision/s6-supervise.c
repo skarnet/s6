@@ -332,6 +332,7 @@ static int uplastup_z (void)
   status.wstat = (int)status.pid ;
   status.flagpaused = 0 ;
   status.flagready = 0 ;
+  status.flagthrottled = 0 ;
   flagdying = 0 ;
   tain_copynow(&status.stamp) ;
   if (notifyfd >= 0)
@@ -339,6 +340,27 @@ static int uplastup_z (void)
     fd_close(notifyfd) ;
     notifyfd = -1 ;
   }
+
+  {
+    unsigned int n ;
+    if (!read_uint("max-death-tally", &n)) n = 20 ;
+    if (n > S6_MAX_DEATH_TALLY) n = S6_MAX_DEATH_TALLY ;
+    if (n)
+    {
+      s6_dtally_t tab[n+1] ;
+      ssize_t m = s6_dtally_read(".", tab, n) ;
+      if (m < 0) strerr_warnwu2sys("read ", S6_DTALLY_FILENAME) ;
+      else
+      {
+        tab[m].stamp = status.stamp ;
+        tab[m].sig = WIFSIGNALED(status.wstat) ? WTERMSIG(status.wstat) : 0 ;
+        tab[m].exitcode = WIFSIGNALED(status.wstat) ? 128 + WTERMSIG(status.wstat) : WEXITSTATUS(status.wstat) ;
+        if (m >= n ? s6_dtally_write(".", tab+1, n) : s6_dtally_write(".", tab, m+1))
+          strerr_warnwu2sys("write ", S6_DTALLY_FILENAME) ;
+      }
+    }
+  }
+
   status.pid = fork() ;
   if (status.pid < 0)
   {
@@ -617,6 +639,11 @@ int main (int argc, char const *const *argv)
     
     if (!ftrigw_clean(S6_SUPERVISE_EVENTDIR))
       strerr_warnwu2sys("ftrigw_clean ", S6_SUPERVISE_EVENTDIR) ;
+    {
+      int fd = open_trunc(S6_DTALLY_FILENAME) ;
+      if (fd < 0) strerr_diefu2sys(111, "truncate ", S6_DTALLY_FILENAME) ;
+      fd_close(fd) ;
+    }
 
     if (access("down", F_OK) == 0) status.flagwantup = 0 ;
     else if (errno != ENOENT)

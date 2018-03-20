@@ -17,5 +17,6 @@ void s6_svstatus_pack (char *pack, s6_svstatus_t const *sv)
     (sv->flagfinishing << 1) |
     (sv->flagwant << 2) |
     (sv->flagwantup << 3) |
-    (sv->flagready << 4) ;
+    (sv->flagready << 4) |
+    (sv->flagthrottled << 5) ;
 }

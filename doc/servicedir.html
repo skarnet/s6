@@ -143,6 +143,13 @@ milliseconds after which the <tt>./finish</tt> script, if it exists, will
 be killed with a SIGKILL. The default is 5000: finish scripts are killed
 if they're still alive after 5 seconds. A value of 0 allows finish scripts
 to run forever. </li>
+ <li> An optional regular file named <tt>max-death-tally</tt>. If such a file
+exists, it must only contain an unsigned integer, which is the maximum number of
+service death events that s6-supervise will keep track of. If the service dies
+more than this number of times, the oldest events will be forgotten. Tracking
+death events is useful, for instance, when throttling service restarts. The
+value cannot be greater than 4096. If the file does not exist, a default of 20
+is used. </li>
  <li> A <a href="fifodir.html">fifodir</a> named <tt>event</tt>. It is automatically
 created by <a href="s6-supervise.html">s6-supervise</a> if it does not exist.
 <em>foo</em><tt>/event</tt>

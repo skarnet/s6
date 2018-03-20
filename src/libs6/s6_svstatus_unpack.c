@@ -21,4 +21,5 @@ void s6_svstatus_unpack (char const *pack, s6_svstatus_t *sv)
   sv->flagwant = !!(pack[34] & 4) ;
   sv->flagwantup = !!(pack[34] & 8) ;
   sv->flagready = !!(pack[34] & 16) ;
+  sv->flagthrottled = !!(pack[34] & 32) ;
 }
