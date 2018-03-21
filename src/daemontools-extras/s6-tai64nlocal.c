@@ -4,14 +4,33 @@
 #include <errno.h>
 #include <skalibs/buffer.h>
 #include <skalibs/strerr2.h>
+#include <skalibs/sgetopt.h>
 #include <skalibs/tai.h>
 #include <skalibs/djbtime.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/skamisc.h>
 
-int main (void)
+#define USAGE "s6-tai64nlocal [ -g ]"
+
+int main (int argc, char const *const *argv)
 {
+  int islocal = 1 ;
   PROG = "s6-tai64nlocal" ;
+  {
+    subgetopt_t l = SUBGETOPT_ZERO ;
+    for (;;)
+    {
+      int opt = subgetopt_r(argc, argv, "g", &l) ;
+      if (opt == -1) break ;
+      switch (opt)
+      {
+        case 'g' : islocal = 0 ; break ;
+        default : strerr_dieusage(100, USAGE) ;
+      }
+    }
+    argc -= l.ind ; argv += l.ind ;
+  }
+
   for (;;)
   {
     unsigned int p = 0 ;
@@ -28,7 +47,7 @@ int main (void)
       if (p)
       {
         localtmn_t local ;
-        if (localtmn_from_tain(&local, &a, 1))
+        if (localtmn_from_tain(&local, &a, islocal))
         {
           char fmt[LOCALTMN_FMT+1] ;
           size_t len = localtmn_fmt(fmt, &local) ;

@@ -29,13 +29,19 @@ time.
 <h2> Interface </h2>
 
 <pre>
-     s6-tai64nlocal
+     s6-tai64nlocal [ -g ]
 </pre>
 
 <ul>
  <li> s6-tai64nlocal exits 0 when it sees the end of stdin. If there's an
 unfinished line, s6-tai64n processes it
 and writes it before exiting. </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-g</tt>&nbsp;: print GMT time instead of local time. </li>
 </ul>
 
 <h2> Notes </h2>
