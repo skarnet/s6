@@ -1,0 +1,98 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-permafailon program</title>
+    <meta name="Description" content="s6: the s6-permafailon program" />
+    <meta name="Keywords" content="s6 supervision finish permanent failure service" />
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-permafailon</tt> program </h1>
+
+<p>
+<tt>s6-permafailon</tt> is a program that is meant to be used
+in the <tt>./finish</tt> script of a
+<a href="servicedir.html">service directory</a> supervised by
+<a href="s6-supervise.html">s6-supervise</a>. When used, it
+reads and analyses the death tally of a service (i.e. the recent
+process death events that happened), and if the death tally
+matches a given pattern, it causes <em>permanent failure</em>
+of the service, i.e. it tells the supervisor not to try and
+restart it.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-permafailon <em>secs</em> <em>deathcount</em> <em>events</em> <em>prog...</em>
+</pre>
+
+<ul>
+ <li> <tt>s6-permafailon</tt> must have the service directory of the
+tested service as its current directory. This is the default if it is
+called from the <tt>finish</tt> script of the service. </li>
+ <li> It reads the <em>death tally</em> of the service, which is
+maintained by <a href="s6-supervise.html">s6-supervise</a>. </li>
+ <li> If the supervised process has died at least <em>deathcount</em>
+times in the last <em>secs</em> seconds with a cause listed in
+<em>events</em>, then <tt>s6-permafailon</tt> exits 125. </li>
+ <li> Else <tt>s6-permafailon</tt> execs into <em>prog...</em>. </li>
+</ul>
+
+<p>
+ <em>events</em> is a comma-separated list of events. An event can be
+one of the following:
+</p>
+
+<ul>
+ <li> An exit code, which is an integer between 0 and 255. Example: <tt>1</tt> </li>
+ <li> An exit code interval, which is two exit codes separated by a dash. Example: <tt>1-50</tt> </li>
+ <li> A signal name, or a signal number preceded by "SIG". Examples: <tt>SIGTERM</tt>, <tt>sigabrt</tt>, <tt>sig11</tt> </li>
+</ul>
+
+<h2> Usage </h2>
+
+<ul>
+  <li> <a href="s6-supervise.html">s6-supervise</a> detects when the <tt>./finish</tt>
+script of its service exits 125, and stops respawning the service. So, if the
+<tt>./finish</tt> script is a chain-loading command line starting with a
+<tt>s6-permafailon</tt> invocation (or containing such an invocation), when
+<tt>s6-permafailon</tt> exits 125, then the <tt>./finish</tt> script also
+exits 125 (because it is the same process), and the service is then marked as
+failing permanently. </li>
+ <li> The <tt>./finish</tt> script is <em>naturally</em> a chain-loading
+command line if it is written in the
+<a href="//skarnet.org/software/execline/">execline</a> language. It
+can also be made into a chain-loading command line from a shell script by using
+<tt>exec s6-permafailon secs deathcount events rest-of-chainloading-cmdline...</tt> </li>
+ <li> Multiple invocations of <tt>s6-permafailon</tt> can be chained, in order
+to test several death patterns. </li>
+ <li> If a permanent failure is triggered and <em>secs</em> is high, it is
+possible that when the administrator manually launches the service again,
+the next death triggers a permanent failure again. If this is not wanted,
+the administrator should clear the death tally with the
+<a href="s6-svdt-clear.html">s6-svdt-clear</a> command. </li>
+ <li> The current death tally can be viewed via the <a href="s6-svdt.html">s6-svdt</a>
+command. </li>
+</ul>
+
+<h2> Example </h2>
+
+<p>
+ <tt>s6-permafailon 60 5 1,101-103,SIGSEGV,SIBBUS <em>prog...</em></tt>
+will exit 125 if the service has died 5 times in the last 60 seconds with
+an exit code of 1, 101, 102 or 103, a SIGSEGV or a SIGBUS. Else it will
+chainload into the <em>prog...</em> command line.
+</p>
+
+</body>
+</html>

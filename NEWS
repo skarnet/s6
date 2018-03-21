@@ -5,7 +5,8 @@ In 2.7.1.0
 
  - Bugfixes.
  - s6-svwait et al. now exit 102 instead of hanging if s6-supervise dies.
- - New command: s6-svdt
+ - New commands: s6-svdt, s6-svdt-clear, s6-permafailon
+ - s6-tai64nlocal can now print GMT times with the -g option.
 
 
 In 2.7.0.0

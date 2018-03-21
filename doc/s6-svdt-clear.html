@@ -1,0 +1,58 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-svdt-clear program</title>
+    <meta name="Description" content="s6: the s6-svdt-clear program" />
+    <meta name="Keywords" content="s6 command s6-svdt-clear servicedir death tally clearing process supervision s6-supervise" />
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-svdt-clear</tt> program </h1>
+
+<p>
+<tt>s6-svdt-clear</tt> clears the recorded death tally of a service.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-svdt-clear <em>servicedir</em>
+</pre>
+
+<p>
+ s6-svdt-clear clears the recorded death tally of the service being
+currently supervised at the <em>servicedir</em>
+<a href="servicedir.html">service directory</a>.
+</p>
+
+<ul>
+ <li> 0: success </li>
+ <li> 100: wrong usage </li>
+ <li> 111: system call failed </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> Use of <tt>s6-svdt-clear</tt> impacts the listings obtained
+by the <a href="s6-svdt.html">s6-svdt</a> command. </li>
+ <li> It also impacts the behaviour of the
+<a href="s6-permafailon.html">s6-permafailon</a> command. This is
+the main reason to use <tt>s6-svdt-clear</tt>: once a service has
+failed permanently due to an excessive number of deaths in a given
+time, it can be useful to erase that record of deaths before
+starting the service again, in order to avoid permanently failing
+again too fast. </li>
+</ul>
+
+</body>
+</html>

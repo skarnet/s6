@@ -125,8 +125,10 @@ src/pipe-tools/s6-ftrig-notify.o src/pipe-tools/s6-ftrig-notify.lo: src/pipe-too
 src/pipe-tools/s6-ftrig-wait.o src/pipe-tools/s6-ftrig-wait.lo: src/pipe-tools/s6-ftrig-wait.c src/include/s6/ftrigr.h
 src/pipe-tools/s6-mkfifodir.o src/pipe-tools/s6-mkfifodir.lo: src/pipe-tools/s6-mkfifodir.c src/include/s6/ftrigw.h
 src/supervision/s6-notifyoncheck.o src/supervision/s6-notifyoncheck.lo: src/supervision/s6-notifyoncheck.c src/include/s6/ftrigr.h src/include/s6/s6-supervise.h
+src/supervision/s6-permafailon.o src/supervision/s6-permafailon.lo: src/supervision/s6-permafailon.c src/include/s6/s6-supervise.h
 src/supervision/s6-supervise.o src/supervision/s6-supervise.lo: src/supervision/s6-supervise.c src/include/s6/ftrigw.h src/include/s6/s6-supervise.h
 src/supervision/s6-svc.o src/supervision/s6-svc.lo: src/supervision/s6-svc.c src/include/s6/config.h src/include/s6/s6-supervise.h
+src/supervision/s6-svdt-clear.o src/supervision/s6-svdt-clear.lo: src/supervision/s6-svdt-clear.c src/include/s6/s6-supervise.h
 src/supervision/s6-svdt.o src/supervision/s6-svdt.lo: src/supervision/s6-svdt.c src/include/s6/s6-supervise.h
 src/supervision/s6-svlisten.o src/supervision/s6-svlisten.lo: src/supervision/s6-svlisten.c src/supervision/s6-svlisten.h
 src/supervision/s6-svlisten1.o src/supervision/s6-svlisten1.lo: src/supervision/s6-svlisten1.c src/supervision/s6-svlisten.h
@@ -245,12 +247,16 @@ s6-mkfifodir: EXTRA_LIBS :=
 s6-mkfifodir: src/pipe-tools/s6-mkfifodir.o ${LIBS6} -lskarnet
 s6-notifyoncheck: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB} ${SPAWN_LIB}
 s6-notifyoncheck: src/supervision/s6-notifyoncheck.o ${LIBS6} -lskarnet
+s6-permafailon: EXTRA_LIBS :=
+s6-permafailon: src/supervision/s6-permafailon.o ${LIBS6} -lskarnet
 s6-supervise: EXTRA_LIBS := ${TAINNOW_LIB}
 s6-supervise: src/supervision/s6-supervise.o ${LIBS6} -lskarnet
 s6-svc: EXTRA_LIBS :=
 s6-svc: src/supervision/s6-svc.o ${LIBS6} -lskarnet
 s6-svdt: EXTRA_LIBS :=
 s6-svdt: src/supervision/s6-svdt.o ${LIBS6} -lskarnet
+s6-svdt-clear: EXTRA_LIBS :=
+s6-svdt-clear: src/supervision/s6-svdt-clear.o ${LIBS6} -lskarnet
 s6-svlisten: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB} ${SPAWN_LIB}
 s6-svlisten: src/supervision/s6-svlisten.o src/supervision/s6_svlisten_signal_handler.o src/supervision/s6_svlisten_loop.o ${LIBS6} -lexecline -lskarnet
 s6-svlisten1: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB} ${SPAWN_LIB}
