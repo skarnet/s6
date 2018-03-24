@@ -1,2 +1,3 @@
 ${LIBS6}
 -lskarnet
+${TAINNOW_LIB}

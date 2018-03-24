@@ -93,7 +93,11 @@ int main (int argc, char const *const *argv, char const *const *envp)
     }
     if (r < n) goto cont ;
     tain_uint(&mintime, seconds) ;
-    tain_sub(&mintime, &tab[r-1].stamp, &mintime) ;
+    {
+      tain_t now ;
+      tain_now(&now) ;
+      tain_sub(&mintime, &now, &mintime) ;
+    }
 
     for (unsigned int i = 0 ; i < r ; i++)
     {
@@ -106,7 +110,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
         char fmtn[UINT_FMT] ;
         fmtevent[uint_fmt(fmtevent, tab[i].sig ? tab[i].sig : tab[i].exitcode)] = 0 ;
         fmtseconds[uint_fmt(fmtseconds, seconds)] = 0 ;
-        fmtn[uint_fmt(fmtseconds, n)] = 0 ;
+        fmtn[uint_fmt(fmtn, n)] = 0 ;
         strerr_warni8x("PERMANENT FAILURE triggered after ", fmtn, " events involving ", tab[i].sig ? "signal " : "exit code ", fmtevent, " in the last ", fmtseconds, " seconds") ;
         return 125 ;
       }

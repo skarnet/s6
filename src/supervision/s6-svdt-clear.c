@@ -8,6 +8,7 @@
 
 int main (int argc, char const *const *argv)
 {
+  PROG = "s6-svdt-clear" ;
   if (argc < 2) dieusage() ;
   if (!s6_dtally_write(argv[1], 0, 0))
     strerr_diefu2sys(111, "clear death tally for service ", argv[1]) ;

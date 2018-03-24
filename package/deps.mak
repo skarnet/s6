@@ -247,7 +247,7 @@ s6-mkfifodir: EXTRA_LIBS :=
 s6-mkfifodir: src/pipe-tools/s6-mkfifodir.o ${LIBS6} -lskarnet
 s6-notifyoncheck: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB} ${SPAWN_LIB}
 s6-notifyoncheck: src/supervision/s6-notifyoncheck.o ${LIBS6} -lskarnet
-s6-permafailon: EXTRA_LIBS :=
+s6-permafailon: EXTRA_LIBS := ${TAINNOW_LIB}
 s6-permafailon: src/supervision/s6-permafailon.o ${LIBS6} -lskarnet
 s6-supervise: EXTRA_LIBS := ${TAINNOW_LIB}
 s6-supervise: src/supervision/s6-supervise.o ${LIBS6} -lskarnet
