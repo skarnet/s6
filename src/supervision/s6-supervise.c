@@ -355,7 +355,7 @@ static int uplastup_z (void)
         tab[m].stamp = status.stamp ;
         tab[m].sig = WIFSIGNALED(status.wstat) ? WTERMSIG(status.wstat) : 0 ;
         tab[m].exitcode = WIFSIGNALED(status.wstat) ? 128 + WTERMSIG(status.wstat) : WEXITSTATUS(status.wstat) ;
-        if (m >= n ? s6_dtally_write(".", tab+1, n) : s6_dtally_write(".", tab, m+1))
+        if (!(m >= n ? s6_dtally_write(".", tab+1, n) : s6_dtally_write(".", tab, m+1)))
           strerr_warnwu2sys("write ", S6_DTALLY_FILENAME) ;
       }
     }
