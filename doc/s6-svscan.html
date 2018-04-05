@@ -200,7 +200,7 @@ uses <a href="s6-svscanctl.html">s6-svscanctl -n</a>), but inactive
 s6-supervise processes will not be restarted if they die.
 </p>
 
-<h2> Implementation notes </h2>
+<h2> Notes </h2>
 
 <ul>
  <li> s6-svscan is designed to run until the machine is shut down. It is
@@ -220,6 +220,19 @@ to guarantee that s6-svscan does not use heap memory at all.</small> </li>
  <li> When run with the <tt>-t0</tt> option, s6-svscan <em>never polls</em>,
 it only wakes up on notifications, just like s6-supervise. The s6 supervision
 tree can be used in energy-critical environments. </li>
+ <li> The supervision tree (i.e. the tree of processes made of s6-svscan and
+all its scions) is not supposed to have a controlling terminal; s6-svscan
+generally is either process 1 or a child of process 1, not something that is
+launched from a terminal. If you run s6-svscan from an interactive shell, be
+warned that typing ^C in the controlling terminal (which sends a SIGINT to
+all processes in the foreground process group in the terminal) will terminate
+the supervision tree, but not the supervised processes - so, the supervised
+processes will keep running as orphans. This is by design: supervised
+processes should be as resilient as possible, even when their supervisors
+die. However, if you want to launch s6-svscan from an interactive shell and
+need your services to die with the supervision tree when you ^C it, you can
+obtain this behaviour by creating <tt>./nosetsid</tt> files in every
+<a href="servicedir.html">service directory</a>. </li>
 </ul>
 
 </body>
