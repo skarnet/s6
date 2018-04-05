@@ -88,7 +88,7 @@ command. </li>
 <h2> Example </h2>
 
 <p>
- <tt>s6-permafailon 60 5 1,101-103,SIGSEGV,SIBBUS <em>prog...</em></tt>
+ <tt>s6-permafailon 60 5 1,101-103,SIGSEGV,SIGBUS <em>prog...</em></tt>
 will exit 125 if the service has died 5 times in the last 60 seconds with
 an exit code of 1, 101, 102 or 103, a SIGSEGV or a SIGBUS. Else it will
 chainload into the <em>prog...</em> command line.
