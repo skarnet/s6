@@ -26,7 +26,7 @@ socket, then executes a program.
 <h2> Interface </h2>
 
 <pre>
-     s6-ipcserver-socketbinder [ -d | -D ] [ -b <em>backlog</em> ] [ -M | -m ] [ -a <em>perms</em> ] <em>path</em> <em>prog...</em>
+     s6-ipcserver-socketbinder [ -d | -D ] [ -b <em>backlog</em> ] [ -M | -m ] [ -a <em>perms</em> ] [ -B ] <em>path</em> <em>prog...</em>
 </pre>
 
 <ul>
@@ -63,12 +63,13 @@ s6-ipcserver-socketbinder along with <tt>-m</tt>. </li>
 permissions <em>perms</em>, which is an octal number from 0000 to 0777.
 Default is 0777, meaning everyone can connect to it. 0700 means only processes having the
 same uid as the s6-ipcserver-socketbinder process can connect to it. </li>
+ <li> <tt>-B</tt>&nbsp;: the socket will be blocking. The default is nonblocking. </li>
 </ul>
 
 <h2> Notes </h2>
 
 <ul>
- <li> The socket is provided <strong>non-blocking</strong>. </li>
+ <li> The socket is provided <strong>non-blocking by default</strong>. </li>
  <li> s6-ipcserver-socketbinder is part of a set of basic blocks used to
 build a flexible Unix super-server. It normally should be given a
 command line crafted to make it execute into
