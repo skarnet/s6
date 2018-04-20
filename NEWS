@@ -1,5 +1,15 @@
 Changelog for s6.
 
+In 2.7.2.0
+----------
+
+ - s6-ipcserver-socketbinder now takes a -B option to make the socket blocking.
+ - s6-svscan now takes a "-d notif" option to notify readiness. This is
+*shallow readiness*, i.e. readiness will be reported when s6-svscan is ready
+to receive s6-svscanctl commands; it does *not* mean all the services started
+at s6-svscan launch will be ready.
+
+
 In 2.7.1.1
 ----------
 

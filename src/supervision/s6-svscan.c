@@ -5,6 +5,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <signal.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/sgetopt.h>
@@ -20,7 +21,8 @@
 #include <s6/config.h>
 #include <s6/s6-supervise.h>
 
-#define USAGE "s6-svscan [ -S | -s ] [ -c maxservices ] [ -t timeout ] [ dir ]"
+#define USAGE "s6-svscan [ -S | -s ] [ -c maxservices ] [ -t timeout ] [ -d notif ] [ dir ]"
+#define dieusage() strerr_dieusage(100, USAGE)
 
 #define FINISH_PROG S6_SVSCAN_CTLDIR "/finish"
 #define CRASH_PROG S6_SVSCAN_CTLDIR "/crash"
@@ -448,13 +450,14 @@ int main (int argc, char const *const *argv)
 {
   iopause_fd x[2] = { { -1, IOPAUSE_READ, 0 }, { -1, IOPAUSE_READ, 0 } } ;
   int divertsignals = 0 ;
+  unsigned int notif = 0 ;
   PROG = "s6-svscan" ;
   {
     subgetopt_t l = SUBGETOPT_ZERO ;
     unsigned int t = 0 ;
     for (;;)
     {
-      int opt = subgetopt_r(argc, argv, "Sst:c:", &l) ;
+      int opt = subgetopt_r(argc, argv, "Sst:c:d:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -462,7 +465,12 @@ int main (int argc, char const *const *argv)
         case 's' : divertsignals = 1 ; break ;
         case 't' : if (uint0_scan(l.arg, &t)) break ;
         case 'c' : if (uint0_scan(l.arg, &max)) break ;
-        default : strerr_dieusage(100, USAGE) ;
+        case 'd' :
+          if (!uint0_scan(l.arg, &notif)) dieusage() ;
+          if (notif < 3) strerr_dief1x(100, "notification fd must be 3 or more") ;
+          if (fcntl(notif, F_GETFD) < 0) strerr_dief1sys(100, "invalid notification fd") ;
+          break ;
+        default : dieusage() ;
       }
     }
     argc -= l.ind ; argv += l.ind ;
@@ -501,6 +509,12 @@ int main (int argc, char const *const *argv)
     if (selfpipe_trapset(&set) < 0) strerr_diefu1sys(111, "trap signals") ;
   }
 
+  if (notif)
+  {
+    fd_write(notif, "\n", 1) ;
+    fd_close(notif) ;
+    notif = 0 ;
+  }
 
   {
     struct svinfo_s blob[max] ; /* careful with that stack, Eugene */

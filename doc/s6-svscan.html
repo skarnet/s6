@@ -27,7 +27,7 @@ the root or a branch of a <em>supervision tree</em>.
 <h2> Interface </h2>
 
 <pre>
-     s6-svscan [ -S | -s ] [ -c max ] [ -t <em>rescan</em> ] [ <em>scandir</em> ]
+     s6-svscan [ -S | -s ] [ -d <em>notif</em> ] [ -c max ] [ -t <em>rescan</em> ] [ <em>scandir</em> ]
 </pre>
 
 <ul>
@@ -62,6 +62,17 @@ execution. </li>
  <li> <tt>-S&nbsp;</tt>&nbsp;: do not divert signals. This is the default for now;
 it may change in a future version of s6. </li>
  <li> <tt>-s&nbsp;</tt>&nbsp;: divert signals - see below. </li>
+ <li> <tt>-d&nbsp;<em>notif</em></tt>&nbsp;: notify readiness on file descriptor
+<em>notif</em>. When s6-svscan is ready to accept commands from
+<a href="s6-svscanctl.html">s6-svscanctl</a>, it will write a newline to <em>notif</em>.
+<em>notif</em> cannot be lesser than 3. By default, no notification is sent. Please
+note that using this option signals <em>shallow readiness</em>: s6-svscan being
+"ready" only means that it is ready to accept commands. It <em>does not mean</em>
+that all the services it launches at start are themselves ready, or even started, or
+even that the relevant <a href="s6-supervise.html">s6-supervise</a> processes have
+been started. If you need to test for <em>deep readiness</em>, meaning that all the
+services in the supervision tree have been started and are ready, you cannot rely
+on this option. </li>
  <li> <tt>-c&nbsp;<em>max</em></tt>&nbsp;: maintain services for up to <em>max</em>
 service directories. Default is 500. Lower limit is 2. There is no upper limit, but:
  <ul>
