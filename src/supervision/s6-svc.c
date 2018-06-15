@@ -10,7 +10,7 @@
 #include <s6/config.h>
 #include <s6/s6-supervise.h>
 
-#define USAGE "s6-svc [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T timeout ] [ -abqhkti12pcoduxOX ] servicedir"
+#define USAGE "s6-svc [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T timeout ] [ -abqhkti12pcyroduxOX ] servicedir"
 #define dieusage() strerr_dieusage(100, USAGE)
 
 #define DATASIZE 63
@@ -41,13 +41,14 @@ int main (int argc, char const *const *argv, char const *const *envp)
         case '2' :
         case 'p' :
         case 'c' :
+        case 'y' :
+        case 'r' :
         case 'o' :
         case 'd' :
         case 'u' :
         case 'x' :
         case 'O' :
         case 'X' :
-        case 'y' :
         {
           if (datalen >= DATASIZE) strerr_dief1x(100, "too many commands") ;
           data[datalen++] = opt ;

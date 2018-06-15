@@ -40,7 +40,7 @@ for historical and compatibility reasons.)
  A service directory <em>foo</em> may contain the following elements:
 
 <ul>
- <li> An executable file named <tt>run</tt>. It can be any executable
+ <li style="margin-bottom:1em"> An executable file named <tt>run</tt>. It can be any executable
 file (such as a binary file or a link to any other executable file),
 but most of the time it will be a script, called <em>run script</em>.
 This file is the most important one in your service directory: it
@@ -80,14 +80,13 @@ them afterwards. </li>
 <a href="s6-supervise.html">s6-supervise</a>, i.e. the real <em>foo</em>
 daemon. That process must not "background itself": being run by a supervision
 tree already makes it a "background" task. </li>
- </ul>
- <li> An optional executable file named <tt>finish</tt>. Like <tt>run</tt>,
+ </ul> </li>
+ <li style="margin-bottom:1em"> An optional executable file named <tt>finish</tt>. Like <tt>run</tt>,
 it can be any executable file. This <em>finish script</em>, if present,
 is executed everytime the <tt>run</tt> script dies. Generally, its main
 purpose is to clean up non-volatile data such as the filesystem after the supervised
 process has been killed. If the <em>foo</em> service is supposed to be up,
-<em>foo</em><tt>/run</tt> is restarted
-after <em>foo</em><tt>/finish</tt> dies.
+<em>foo</em><tt>/run</tt> is restarted after <em>foo</em><tt>/finish</tt> dies.
  <ul>
   <li> By default, a finish script must do its work and exit in less than                              
 5 seconds; if it takes more than that, it is killed. (The point is that the run
@@ -102,19 +101,19 @@ the signal that killed the run script). </li>
 interprets this as a permanent failure for the service, and does not restart it,
 as if an <a href="s6-svc.html">s6-svc -O</a> command had been sent. </li>
  </ul> </li>
- <li> A directory named <tt>supervise</tt>. It is automatically created by
+ <li style="margin-bottom:1em"> A directory named <tt>supervise</tt>. It is automatically created by
 <a href="s6-supervise.html">s6-supervise</a> if it does not exist. This is where
 <a href="s6-supervise.html">s6-supervise</a> stores its information. The directory
 must be writable. </li>
- <li> An optional, empty, regular file named <tt>down</tt>. If such a file exists,
+ <li style="margin-bottom:1em"> An optional, empty, regular file named <tt>down</tt>. If such a file exists,
 the default state of the service is considered down, not up: s6-supervise will not
 automatically start it until it receives a <tt>s6-svc -u</tt> command. If no
 <tt>down</tt> file exists, the default state of the service is up. </li>
- <li> An optional, empty, regular file named <tt>nosetsid</tt>. If such a file exists,
+ <li style="margin-bottom:1em"> An optional, empty, regular file named <tt>nosetsid</tt>. If such a file exists,
 s6-supervise will not make the service a process group and session leader; the service
 will be run in the same process group as s6-supervise. If no <tt>nosetsid</tt> file
 exists, the service has its own process group and is started as a session leader. </li>
- <li> An optional regular file named <tt>notification-fd</tt>. If such a file
+ <li style="margin-bottom:1em"> An optional regular file named <tt>notification-fd</tt>. If such a file
 exists, it means that the service supports
 <a href="notifywhenup.html">readiness notification</a>. The file must only
  contain an unsigned integer, which is the number of the file descriptor that
@@ -128,7 +127,7 @@ notification from the service and broadcast readiness, i.e. any
 <a href="s6-svlisten1.html">s6-svlisten1 -U</a> or
 <a href="s6-svlisten.html">s6-svlisten -U</a> processes will be
 triggered. </li>
- <li> An optional regular file named <tt>timeout-kill</tt>. If such a file
+ <li style="margin-bottom:1em"> An optional regular file named <tt>timeout-kill</tt>. If such a file
 exists, it must only contain an unsigned integer <em>t</em>. If <em>t</em>
 is nonzero, then on receipt of a <a href="s6-svc.html">s6-svc -d</a> command,
 which sends a SIGTERM and a SIGCONT to the service, a timeout of <em>t</em>
@@ -137,25 +136,30 @@ milliseconds, then it is sent a SIGKILL. If <tt>timeout-kill</tt> does not
 exist, or contains 0 or an invalid value, then the service is never
 forcibly killed (unless, of course, a <a href="s6-svc.html">s6-svc -k</a>
 command is sent). </li>
- <li> An optional regular file named <tt>timeout-finish</tt>. If such a file
+ <li style="margin-bottom:1em"> An optional regular file named <tt>timeout-finish</tt>. If such a file
 exists, it must only contain an unsigned integer, which is the number of
 milliseconds after which the <tt>./finish</tt> script, if it exists, will
 be killed with a SIGKILL. The default is 5000: finish scripts are killed
 if they're still alive after 5 seconds. A value of 0 allows finish scripts
 to run forever. </li>
- <li> An optional regular file named <tt>max-death-tally</tt>. If such a file
+ <li style="margin-bottom:1em"> An optional regular file named <tt>max-death-tally</tt>. If such a file
 exists, it must only contain an unsigned integer, which is the maximum number of
 service death events that s6-supervise will keep track of. If the service dies
 more than this number of times, the oldest events will be forgotten. Tracking
 death events is useful, for instance, when throttling service restarts. The
 value cannot be greater than 4096. If the file does not exist, a default of 100
 is used. </li>
- <li> A <a href="fifodir.html">fifodir</a> named <tt>event</tt>. It is automatically
+ <li style="margin-bottom:1em"> An optional regular file named <tt>down-signal</tt>. If such a file
+exists, it must only contain the name or number of a signal, followed by a
+newline. This signal will be used to kill the supervised process when a
+<a href="s6-svc.html">s6-svc -d</a> or <a href="s6-svc.html">s6-svc -r</a>
+command is used. If the file does not exist, SIGTERM will be used by default. </li>
+ <li style="margin-bottom:1em"> A <a href="fifodir.html">fifodir</a> named <tt>event</tt>. It is automatically
 created by <a href="s6-supervise.html">s6-supervise</a> if it does not exist.
 <em>foo</em><tt>/event</tt>
 is the rendez-vous point for listeners, where <a href="s6-supervise.html">s6-supervise</a>
 will send notifications when the service goes up or down. </li>
- <li> An optional service directory named <tt>log</tt>. If it exists and <em>foo</em>
+ <li style="margin-bottom:1em"> An optional service directory named <tt>log</tt>. If it exists and <em>foo</em>
 is in a <a href="scandir.html">scandir</a>, and <a href="s6-svscan.html">s6-svscan</a>
 runs on that scandir, then <em>two</em> services are monitored: <em>foo</em> and
 <em>foo</em><tt>/log</tt>. A pipe is open and maintained between <em>foo</em> and

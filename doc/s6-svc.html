@@ -28,7 +28,7 @@ knowing their PIDs, and without using horrible hacks such as .pid files.
 <h2> Interface </h2>
 
 <pre>
-     s6-svc [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T <em>timeout</em> ] [ -abqhkti12pcyoduxO ] <em>servicedir</em>
+     s6-svc [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T <em>timeout</em> ] [ -abqhkti12pcyoduxOr ] <em>servicedir</em>
 </pre>
 
 <p>
@@ -55,7 +55,10 @@ a command, or 100 if no s6-supervise process is running on <em>servicedir</em>.
  <li> <tt>-y</tt>&nbsp;: send a SIGWINCH to the supervised process </li>
  <li> <tt>-o</tt>&nbsp;: once. Equivalent to "-uO". </li>
  <li> <tt>-d</tt>&nbsp;: down. If the supervised process is up, send it
-a SIGTERM and a SIGCONT. Do not restart it. </li>
+a SIGTERM (by default) then a SIGCONT (to make sure even stopped processes
+receive the signal aimed to kill them) and do not restart it.
+The SIGTERM default can be changed by editing the <tt>./down-signal</tt>
+file in the <a href="servicedir.html">service directory</a>. </li>
  <li> <tt>-u</tt>&nbsp;: up. If the supervised process is down, start it.
 Automatically restart it when it dies. </li>
  <li> <tt>-x</tt>&nbsp;: exit. When the service is asked to be down and
@@ -71,6 +74,11 @@ stdin, stdout and stderr redirected to <tt>/dev/null</tt>. </li>
  <li> <tt>-O</tt>&nbsp;: mark the service to run once at most. iow: do not
 restart the supervised process when it dies. If it is down when the command
 is received, do not even start it. </li>
+ <li> <tt>-r</tt>&nbsp;: If the service is up, restart it, by sending it a
+signal to kill it and letting <a href="s6-supervise.html">s6-supervise</a>
+start it again. By default, the signal is a SIGTERM; this can be configured
+via the <tt>./down-signal</tt> file in the <a href="servicedir.html">service
+directory</a>. </li>
  <li> <tt>-T&nbsp;<em>timeout</em></tt>&nbsp;: if the <tt>-w<em>state</em></tt>
 option has been given, <tt>-T</tt> specifies a timeout
 (in milliseconds) after which s6-svc will exit 1 with an error message if
@@ -106,7 +114,7 @@ service directory. Traditionally, this makes web servers reload their
 configuration file.
 </p>
 
-<pre> s6-svc -t /service/sshd </pre>
+<pre> s6-svc -r /service/sshd </pre>
 <p>
  Kill (and automatically restart, if the wanted state of the service is up)
 the process represented by the <tt>/service/sshd</tt> service directory -
