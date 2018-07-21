@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <skalibs/stralloc.h>
+#include <skalibs/env.h>
 #include <skalibs/djbunix.h>
 #include <s6/accessrules.h>
 

@@ -6,6 +6,7 @@
 #include <skalibs/strerr2.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/tai.h>
+#include <skalibs/env.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/genalloc.h>
 #include <s6/s6-fdholder.h>

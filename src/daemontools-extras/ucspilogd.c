@@ -16,7 +16,7 @@
 #include <skalibs/buffer.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/stralloc.h>
-#include <skalibs/djbunix.h>
+#include <skalibs/env.h>
 #include <skalibs/skamisc.h>
 
 #define USAGE "ucspilogd [ -D default ] [ var... ]"
