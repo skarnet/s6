@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <skalibs/posixplz.h>
 #include <skalibs/types.h>
 #include <skalibs/cdb_make.h>
 #include <skalibs/strerr2.h>
@@ -20,9 +21,7 @@ static stralloc tmp = STRALLOC_ZERO ;
 
 static void cleanup (void)
 {
-  int e = errno ;
-  unlink(tmp.s) ;
-  errno = e ;
+  unlink_void(tmp.s) ;
 }
 
 static void dienomem (void)

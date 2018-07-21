@@ -4,7 +4,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <errno.h>
+#include <skalibs/posixplz.h>
 #include <skalibs/tai.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/djbunix.h>
@@ -32,7 +32,6 @@ int ftrig1_make (ftrig1_t *f, char const *path)
 {
   ftrig1_t ff = FTRIG1_ZERO ;
   size_t pathlen = strlen(path) ;
-  int e = 0 ;
   char tmp[pathlen + 46 + FTRIG1_PREFIXLEN] ;
   
   memcpy(tmp, path, pathlen) ;
@@ -54,28 +53,23 @@ int ftrig1_make (ftrig1_t *f, char const *path)
     umask(m) ;
   }
 
-  if (!stralloc_catb(&ff.name, tmp, pathlen+1)) { e = errno ; goto err0 ; }
-  if (!stralloc_catb(&ff.name, tmp + pathlen + 2, FTRIG1_PREFIXLEN + 44))
-  {
-    e = errno ; goto err1 ;
-  }
+  if (!stralloc_catb(&ff.name, tmp, pathlen+1)) goto err0 ;
+  if (!stralloc_catb(&ff.name, tmp + pathlen + 2, FTRIG1_PREFIXLEN + 44)) goto err1 ;
   ff.fd = open_read(tmp) ;
-  if (ff.fd == -1) { e = errno ; goto err1 ; }
+  if (ff.fd == -1) goto err1 ;
   ff.fdw = open_write(tmp) ;
-  if (ff.fdw == -1) { e = errno ; goto err2 ; }
+  if (ff.fdw == -1) goto err2 ;
   if (rename(tmp, ff.name.s) == -1) goto err3 ;
   *f = ff ;
   return 1 ;
 
  err3:
-  e = errno ;
   fd_close(ff.fdw) ;
  err2:
   fd_close(ff.fd) ;
  err1:
   stralloc_free(&ff.name) ;
  err0:
-  unlink(tmp) ;
-  errno = e ;
+  unlink_void(tmp) ;
   return 0 ;
 }

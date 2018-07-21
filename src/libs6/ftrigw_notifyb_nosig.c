@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <skalibs/posixplz.h>
 #include <skalibs/direntry.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/djbunix.h>
@@ -32,14 +33,14 @@ int ftrigw_notifyb_nosig (char const *path, char const *s, size_t len)
       fd = open_write(tmp) ;
       if (fd == -1)
       {
-        if (errno == ENXIO) unlink(tmp) ;
+        if (errno == ENXIO) unlink_void(tmp) ;
       }
       else
       {
         ssize_t r = fd_write(fd, s, len) ;
         if ((r < 0) || (size_t)r < len)
         {
-          if (errno == EPIPE) unlink(tmp) ;
+          if (errno == EPIPE) unlink_void(tmp) ;
            /* what to do if EGAIN ? full fifo -> fix the reader !
               There's a race condition in extreme cases though ;
               but it's still better to be nonblocking - the writer
@@ -54,9 +55,6 @@ int ftrigw_notifyb_nosig (char const *path, char const *s, size_t len)
       }
     }
   }
-  {
-    int e = errno ;
-    dir_close(dir) ;
-    return e ? (errno = e, -1) : (int)i ;
-  }
+  dir_close(dir) ;
+  return errno ? -1 : (int)i ;
 }

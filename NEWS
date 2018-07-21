@@ -12,6 +12,7 @@ at s6-svscan launch will be ready.
 customize the signal sent by s6-svc -d (and now s6-svc -r too).
  - New s6-svc option: -r. Sends the signal defined in the down-signal file
 (still SIGTERM by default).
+ - Adaptation to skalibs-2.7.0.0.
 
 
 In 2.7.1.1

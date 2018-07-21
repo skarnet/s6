@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <regex.h>
+#include <skalibs/posixplz.h>
 #include <skalibs/uint64.h>
 #include <skalibs/types.h>
 #include <skalibs/allreadwrite.h>
@@ -215,9 +216,7 @@ static inline int logdir_trim (logdir_t *ldp)
   }
   if (errno)
   {
-    int e = errno ;
     dir_close(dir) ;
-    errno = e ;
     return -1 ;
   }
   rewinddir(dir) ;
@@ -252,9 +251,7 @@ static inline int logdir_trim (logdir_t *ldp)
     }
     if (errno)
     {
-      int e = errno ;
       dir_close(dir) ;
-      errno = e ;
       return -1 ;
     }
     dir_close(dir) ;
@@ -586,9 +583,9 @@ static inline void logdir_init (unsigned int index, uint32_t s, uint32_t n, uint
   }
   else if (st.st_mode & S_IXUSR) goto opencurrent ;
   memcpy(x + dirlen + 1, "state", 6) ;
-  unlink(x) ;
+  unlink_void(x) ;
   memcpy(x + dirlen + 1, "newstate", 9) ;
-  unlink(x) ;
+  unlink_void(x) ;
   {
     int flagprocessed = 0 ;
     memcpy(x + dirlen + 1, "processed", 10) ;
@@ -600,13 +597,13 @@ static inline void logdir_init (unsigned int index, uint32_t s, uint32_t n, uint
     if (flagprocessed)
     {
       memcpy(x + dirlen + 1, "previous", 9) ;
-      unlink(x) ;
+      unlink_void(x) ;
       if (finish(ldp, "processed", 's') < 0)
         strerr_diefu2sys(111, "finish processed .s for logdir ", ldp->dir) ;
     }
     else
     {
-      unlink(x) ;
+      unlink_void(x) ;
       if (finish(ldp, "previous", 'u') < 0)
         strerr_diefu2sys(111, "finish previous .u for logdir ", ldp->dir) ;
     }

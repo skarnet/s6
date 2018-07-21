@@ -1,6 +1,6 @@
 /* ISC license. */
 
-#include <unistd.h>
+#include <skalibs/posixplz.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/djbunix.h>
 #include "ftrig1.h"
@@ -9,7 +9,7 @@ void ftrig1_free (ftrig1_t *p)
 {
   if (p->name.s)
   {
-    unlink(p->name.s) ;
+    unlink_void(p->name.s) ;
     stralloc_free(&p->name) ;
   }
   if (p->fd >= 0)

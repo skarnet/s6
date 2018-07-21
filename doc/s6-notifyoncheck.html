@@ -86,14 +86,14 @@ differentiated for clarity in the code:
  <li> <tt>-d</tt>&nbsp;: doublefork. s6-notifyoncheck will run as the
 grandchild of <em>prog...</em> instead of its direct child. This is useful
 if <em>prog...</em> never reaps zombies it does not know it has. </li>
- <li> <tt>-3&nbsp;<em>notiffd</em></tt>&nbsp;: use <em>fd</em> as the
+ <li> <tt>-3&nbsp;<em>notiffd</em></tt>&nbsp;: use <em>notiffd</em> as the
 file descriptor to send a readiness notification to. By default, this
 number is automatically read from the <tt>./notification-fd</tt> file. </li>
  <li> <tt>-s&nbsp;<em>initialsleep</em></tt>&nbsp;: sleep for
 <em>initialsleep</em> milliseconds before starting to poll the service
 for readiness. Default is 10 milliseconds. </li>
  <li> <tt>-T&nbsp;<em>globaltimeout</em></tt>&nbsp;: give up (and leave
-the service <em>up</em> but not <em>ready</em> if service readiness still
+the service <em>up</em> but not <em>ready</em>) if service readiness still
 has not been detected after <em>globaltimeout</em> milliseconds. Default
 is 0, meaning infinite: s6-notifyoncheck will keep polling until it succeeds. </li>
  <li> <tt>-t&nbsp;<em>localtimeout</em></tt>&nbsp;: on every attempt, if

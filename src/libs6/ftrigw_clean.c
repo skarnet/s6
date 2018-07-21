@@ -33,7 +33,7 @@ int ftrigw_clean (char const *path)
       else if ((errno == ENXIO) && (unlink(tmp) < 0)) e = errno ;
     }
   }
-  if (errno) e = errno ;
   dir_close(dir) ;
+  if (errno) e = errno ;
   return e ? (errno = e, 0) : 1 ;
 }
