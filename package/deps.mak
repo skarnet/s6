@@ -168,8 +168,8 @@ s6-applyuidgid: EXTRA_LIBS :=
 s6-applyuidgid: src/daemontools-extras/s6-applyuidgid.o -lskarnet
 s6-envdir: EXTRA_LIBS :=
 s6-envdir: src/daemontools-extras/s6-envdir.o -lskarnet
-s6-envuidgid: EXTRA_LIBS :=
-s6-envuidgid: src/daemontools-extras/s6-envuidgid.o -lskarnet
+s6-envuidgid: EXTRA_LIBS := ${MAYBEPTHREAD_LIB}
+s6-envuidgid: src/daemontools-extras/s6-envuidgid.o ${LIBNSSS} -lskarnet
 s6-fghack: EXTRA_LIBS :=
 s6-fghack: src/daemontools-extras/s6-fghack.o -lskarnet
 s6-log: EXTRA_LIBS := ${TAINNOW_LIB}
