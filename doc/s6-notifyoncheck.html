@@ -97,7 +97,7 @@ the service <em>up</em> but not <em>ready</em>) if service readiness still
 has not been detected after <em>globaltimeout</em> milliseconds. Default
 is 0, meaning infinite: s6-notifyoncheck will keep polling until it succeeds. </li>
  <li> <tt>-t&nbsp;<em>localtimeout</em></tt>&nbsp;: on every attempt, if
-<tt>./check</tt> still has not exited after <em>localtimeout</em> milliseconds,
+<tt>./data/check</tt> still has not exited after <em>localtimeout</em> milliseconds,
 kill it and declare that attempt failed. Default is 0, meaning infinite:
 s6-notifyoncheck will wait forever for <tt>./data/check</tt> to exit. </li>
  <li> <tt>-w&nbsp;<em>waitingtime</em></tt>&nbsp;: sleep for
