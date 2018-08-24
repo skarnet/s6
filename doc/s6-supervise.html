@@ -132,6 +132,16 @@ If it already exists, it uses it as is, without modifying the subscription right
 s6-supervise spawns <tt>./run</tt>. </li>
  <li> s6-supervise sends a <tt>'u'</tt> event to <tt>./event</tt> whenever it
 successfully spawns <tt>./run</tt>. </li>
+ <li> If there is a <tt>./notification-fd</tt> file in the service directory
+and s6-supervise is told that the service is ready, it
+sends a <tt>'U'</tt> event to <tt>./event</tt>. There are several ways
+to tell s6-supervise that the service is ready:
+  <ul>
+   <li> the daemon may <a href="notifywhenup.html">do so itself</a>. </li>
+   <li> the run script may have forked a
+<a href="s6-notifyoncheck.html">s6-notifyoncheck</a> process that polls the
+service for readiness. </li>
+  </ul> </li>
  <li> When <tt>./run</tt> dies, s6-supervise sends a <tt>'d'</tt> event to <tt>./event</tt>.
 It then spawns <tt>./finish</tt> if it exists.
 <tt>./finish</tt> will have <tt>./run</tt>'s exit code as first argument, or 256 if
