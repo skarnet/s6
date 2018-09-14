@@ -318,7 +318,7 @@ static int fill_siovec_with_ids_iter (char *thing, void *data)
 static int do_list (uint32_t cc, unixmessage_t const *m)
 {
   client_t *c = CLIENT(cc) ;
-  struct iovec v[numfds] ;
+  struct iovec v[1+numfds] ;
   unixmessage_v_t ans = { .v = v, .vlen = 1+numfds, .fds = 0, .nfds = 0 } ;
   struct iovec *vp = v + 1 ;
   char pack[5] = "" ;
