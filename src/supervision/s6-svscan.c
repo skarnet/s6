@@ -408,6 +408,7 @@ static void scan (void)
   DIR *dir ;
   if (!wantscan) return ;
   wantscan = 0 ;
+  tain_add_g(&deadline, &defaulttimeout) ;
   dir = opendir(".") ;
   if (!dir)
   {
@@ -529,7 +530,6 @@ int main (int argc, char const *const *argv)
     while (cont)
     {
       int r ;
-      tain_add_g(&deadline, &defaulttimeout) ;
       reap() ;
       scan() ;
       killthem() ;
