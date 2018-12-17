@@ -26,7 +26,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      int opt = subgetopt_r(argc, argv, "abqhkti12pcoduxOXyT:w:", &l) ;
+      int opt = subgetopt_r(argc, argv, "abqhkti12pcyroduxOXT:w:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
