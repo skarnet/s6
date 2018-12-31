@@ -117,7 +117,7 @@ it will become an <em>archived</em> log file named
 <a href="//skarnet.org/software/skalibs/libstddjb/tai.html">TAI64N</a>
 timestamp, is the absolute time of the rotation. If there are too
 many archived log files in the logdir, the older ones are then
-suppressed. Logging then resumes, to a brand new <tt>current</tt>
+deleted. Logging then resumes, to a brand new <tt>current</tt>
 file.
 </p>
 
@@ -197,7 +197,7 @@ directive). </li>
 <ul>
  <li> <strong>n<em>number</em></strong>: next logdirs will contain up to
 <em>number</em> archived log files. If there are more, the oldest archived
-log files will be suppressed, only the latest <em>number</em> will be kept.
+log files will be deleted, only the latest <em>number</em> will be kept.
 By default, <em>number</em> is 10. </li>
  <li> <strong>s<em>filesize</em></strong>: next rotations will occur when
 <tt>current</tt> log files approach <em>filesize</em> bytes. By default,
@@ -205,7 +205,7 @@ By default, <em>number</em> is 10. </li>
 higher than 268435455. </li>
  <li> <strong>S<em>totalsize</em></strong>: next logdirs will contain up
 to <em>totalsize</em> bytes of archived (and maybe processed) log files. If
-archived log files take more space than that, the older ones are suppressed
+archived log files take more space than that, the older ones are deleted
 until the total size fits. A <em>totalsize</em> of zero means no such limit;
 use <strong>n0</strong> instead if you don't want any archived log files. By
 default, <em>totalsize</em> is 0 (unlimited). </li>
