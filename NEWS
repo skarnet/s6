@@ -1,5 +1,12 @@
 Changelog for s6.
 
+In 2.7.2.3
+----------
+
+ - Bugfixes.
+ - Adaptation to skalibs-2.8.0.0.
+
+
 In 2.7.2.2
 ----------
 

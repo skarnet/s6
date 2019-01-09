@@ -194,7 +194,6 @@ int main (void)
   if (ndelay_on(0) < 0) strerr_diefu2sys(111, "ndelay_on ", "0") ;
   if (ndelay_on(1) < 0) strerr_diefu2sys(111, "ndelay_on ", "1") ;
   if (sig_ignore(SIGPIPE) < 0) strerr_diefu1sys(111, "ignore SIGPIPE") ;
-  ftrig1_init() ;
 
   {
     tain_t deadline ;

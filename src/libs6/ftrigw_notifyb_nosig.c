@@ -3,12 +3,14 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+
 #include <skalibs/posixplz.h>
 #include <skalibs/direntry.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/djbunix.h>
-#include "ftrig1.h"
+
 #include <s6/ftrigw.h>
+#include "ftrig1.h"
 
 int ftrigw_notifyb_nosig (char const *path, char const *s, size_t len)
 {
@@ -17,9 +19,10 @@ int ftrigw_notifyb_nosig (char const *path, char const *s, size_t len)
   if (!dir) return -1 ;
   {
     size_t pathlen = strlen(path) ;
-    char tmp[pathlen + FTRIG1_PREFIXLEN + 45] ;
+    char tmp[pathlen + FTRIG1_PREFIXLEN + 35] ;
     memcpy(tmp, path, pathlen) ;
-    tmp[pathlen] = '/' ; tmp[pathlen + FTRIG1_PREFIXLEN + 44] = 0 ;
+    tmp[pathlen] = '/' ;
+    tmp[pathlen + FTRIG1_PREFIXLEN + 34] = 0 ;
     for (;;)
     {
       direntry *d ;
@@ -27,9 +30,9 @@ int ftrigw_notifyb_nosig (char const *path, char const *s, size_t len)
       errno = 0 ;
       d = readdir(dir) ;
       if (!d) break ;
-      if (strncmp(d->d_name, FTRIG1_PREFIX, FTRIG1_PREFIXLEN)) continue ;
-      if (strlen(d->d_name) != FTRIG1_PREFIXLEN + 43) continue ;
-      memcpy(tmp + pathlen + 1, d->d_name, FTRIG1_PREFIXLEN + 43) ;
+      if (strncmp(d->d_name, FTRIG1_PREFIX ":@", FTRIG1_PREFIXLEN + 2)) continue ;
+      if (strlen(d->d_name) != FTRIG1_PREFIXLEN + 33) continue ;
+      memcpy(tmp + pathlen + 1, d->d_name, FTRIG1_PREFIXLEN + 33) ;
       fd = open_write(tmp) ;
       if (fd == -1)
       {

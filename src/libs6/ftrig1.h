@@ -3,6 +3,7 @@
 #ifndef FTRIG1_H
 #define FTRIG1_H
 
+#include <skalibs/gccattributes.h>
 #include <skalibs/stralloc.h>
 
 #define FTRIG1_PREFIX "ftrig1"
@@ -17,7 +18,7 @@ struct ftrig1_s
 } ;
 #define FTRIG1_ZERO { .fd = -1, .fdw = -1, .name = STRALLOC_ZERO }
 
-extern void ftrig1_init (void) ;
+extern void ftrig1_init (void) gccattr_deprecated ;
 extern int ftrig1_make (ftrig1_t *, char const *) ;
 extern void ftrig1_free (ftrig1_t *) ;
 
