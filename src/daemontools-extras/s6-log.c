@@ -1,5 +1,6 @@
 /* ISC license. */
 
+#include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <stdint.h>
@@ -10,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <regex.h>
+
 #include <skalibs/posixplz.h>
 #include <skalibs/uint64.h>
 #include <skalibs/types.h>
@@ -31,9 +33,10 @@
 #include <skalibs/siovec.h>
 #include <skalibs/skamisc.h>
 #include <skalibs/environ.h>
+
 #include <execline/config.h>
 
-#define USAGE "s6-log [ -q | -v ] [ -b ] [ -p ] [ -t ] [ -e ] [ -l linelimit ] logging_script"
+#define USAGE "s6-log [ -d notif ] [ -q | -v ] [ -b ] [ -p ] [ -t ] [ -e ] [ -l linelimit ] logging_script"
 #define dieusage() strerr_dieusage(100, USAGE)
 #define dienomem() strerr_diefu1sys(111, "stralloc_catb")
 
@@ -611,9 +614,7 @@ static inline void logdir_init (unsigned int index, uint32_t s, uint32_t n, uint
   if (finish(ldp, "current", 'u') < 0)
     strerr_diefu2sys(111, "finish current .u for logdir ", ldp->dir) ;
   memcpy(x + dirlen + 1, "state", 6) ;
-  ldp->fd = open_trunc(x) ;
-  if (ldp->fd < 0) strerr_diefu2sys(111, "open_trunc ", x) ;
-  fd_close(ldp->fd) ;
+  if (truncate(x, 0) == -1) strerr_diefu2sys(111, "truncate ", x) ;
   st.st_size = 0 ;
   memcpy(x + dirlen + 1, "current", 8) ;
  opencurrent:
@@ -1141,14 +1142,17 @@ static inline void handle_signals (void)
 int main (int argc, char const *const *argv)
 {
   unsigned int sellen, actlen, scriptlen ;
-  unsigned int linelimit = 0, gflags = 0, compat_gflags = 0 ;
+  unsigned int linelimit = 8192 ;
+  unsigned int notif = 0 ;
+  unsigned int gflags = 0 ;
+  unsigned int compat_gflags = 0 ;
   int flagblock = 0 ;
   PROG = "s6-log" ;
   {
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      int opt = subgetopt_r(argc, argv, "qvbptel:", &l) ;
+      int opt = subgetopt_r(argc, argv, "qvbptel:d:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -1159,6 +1163,11 @@ int main (int argc, char const *const *argv)
         case 't' : gflags |= 1 ; compat_gflags |= 1 ; break ;
         case 'e' : gflags |= 1 ; compat_gflags |= 2 ; break ;
         case 'l' : if (!uint0_scan(l.arg, &linelimit)) dieusage() ; break ;
+        case 'd' :
+          if (!uint0_scan(l.arg, &notif)) dieusage() ;
+          if (notif < 3) strerr_dief1x(100, "notification fd must be 3 or more") ;
+          if (fcntl(notif, F_GETFD) < 0) strerr_dief1sys(100, "invalid notification fd") ;
+          break ;
         default : dieusage() ;
       }
     }
@@ -1194,6 +1203,11 @@ int main (int argc, char const *const *argv)
         strerr_diefu1sys(111, "selfpipe_trapset") ;
     }
     x[0].events = IOPAUSE_READ ;
+    if (notif)
+    {
+      fd_write(notif, "\n", 1) ;
+      fd_close(notif) ;
+    }
 
     for (;;)
     {

@@ -27,7 +27,7 @@ with full POSIX regular expression support.
 <h2> Interface </h2>
 
 <pre>
-     s6-log [ -q | -v ] [ -b ] [ -p ] [ -t ] [ -e ] [ -l linelimit ] <em>logging script</em>
+     s6-log [ -d <em>notif</em> ] [ -q | -v ] [ -b ] [ -p ] [ -t ] [ -e ] [ -l <em>linelimit</em> ] <em>logging script</em>
 </pre>
 
 <p>
@@ -41,6 +41,13 @@ it receives a SIGTERM or a SIGHUP.
 <h2> Options </h2>
 
 <ul>
+ <li> <tt>-d&nbsp;<em>notif</em></tt>&nbsp;:
+<a href="notifywhenup.html">readiness notification.</a>
+With this option, s6-log writes a newline character to file descriptor
+<em>notif</em> when it is <em>ready</em>, i.e. when it has successfully
+parsed its logging script and initialized all its necessary resources
+such as the logdirs defined in the script, and is now listening to stdin
+in order to process log lines. </li>
  <li> <tt>-b</tt>&nbsp;: blocking mode. With this option, s6-log stops
 reading its standard input while it has unflushed buffers. This ensures that
 every log line has been fully processed before reading the next one; this is also
@@ -71,8 +78,7 @@ Currently supported verbosity levels:
 may appear anywhere after <em>linelimit</em> or more bytes. <em>linelimit</em>
 cannot be less than 48. Using this option ensures that an ill-formatted log
 stream will not make s6-log uncontrollably eat memory by trying to read and
-process an extremely long line in one go. The default is no cap on line
-length. </li>
+process an extremely long line in one go. The default is 8192 bytes. </li>
 </ul>
 
 <h2> Logdirs </h2>
