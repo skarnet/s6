@@ -620,8 +620,8 @@ static inline void handle_control (int fd)
     else if (!r) break ;
     else
     {
-      size_t pos = byte_chr("abqhkti12fFpcyroduxOX", 20, c) ;
-      if (pos < 20) (*actions[state][V_a + pos])() ;
+      size_t pos = byte_chr("abqhkti12fFpcyroduxOX", 21, c) ;
+      if (pos < 21) (*actions[state][V_a + pos])() ;
     }
   }
 }
