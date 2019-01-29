@@ -614,7 +614,9 @@ static inline void logdir_init (unsigned int index, uint32_t s, uint32_t n, uint
   if (finish(ldp, "current", 'u') < 0)
     strerr_diefu2sys(111, "finish current .u for logdir ", ldp->dir) ;
   memcpy(x + dirlen + 1, "state", 6) ;
-  if (truncate(x, 0) == -1) strerr_diefu2sys(111, "truncate ", x) ;
+  r = open_trunc(x) ;
+  if (r == -1) strerr_diefu2sys(111, "open_trunc ", x) ;
+  fd_close(r) ;
   st.st_size = 0 ;
   memcpy(x + dirlen + 1, "current", 8) ;
  opencurrent:
