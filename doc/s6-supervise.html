@@ -122,6 +122,8 @@ the service stops, as if a
 <ul>
  <li> s6-supervise switches to the <em>servicedir</em>
 <a href="servicedir.html">service directory</a>. </li>
+ <li> It creates a <tt>supervise/</tt> subdirectory (if it doesn't exist yet) to
+store its internal data. </li>
  <li> It exits 100 if another s6-supervise process is already monitoring this service. </li>
  <li> If the <tt>./event</tt> <a href="fifodir.html">fifodir</a> does not exist,
 s6-supervise creates it and allows subscriptions to it from processes having the same

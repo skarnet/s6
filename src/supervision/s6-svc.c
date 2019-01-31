@@ -69,7 +69,6 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (!argc) dieusage() ;
   if (argc > 1) strerr_warn1x("ignoring extra arguments") ;
 
-  if (datalen <= 1) return 0 ;
   if (updown[1] == 'U' || updown[1] == 'R')
   {
     size_t arglen = strlen(argv[0]) ;
@@ -89,7 +88,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     char const *newargv[11] ;
     unsigned int m = 0 ;
     char fmt[UINT_FMT] ;
-    newargv[m++] = S6_BINPREFIX "s6-svlisten1" ;
+    newargv[m++] = datalen > 1 ? S6_BINPREFIX "s6-svlisten1" : S6_BINPREFIX "s6-svwait" ;
     newargv[m++] = updown ;
     if (timeout)
     {
@@ -99,10 +98,13 @@ int main (int argc, char const *const *argv, char const *const *envp)
     }
     newargv[m++] = "--" ;
     newargv[m++] = argv[0] ;
-    newargv[m++] = S6_BINPREFIX "s6-svc" ;
-    newargv[m++] = data ;
-    newargv[m++] = "--" ;
-    newargv[m++] = argv[0] ;
+    if (datalen > 1)
+    {
+      newargv[m++] = S6_BINPREFIX "s6-svc" ;
+      newargv[m++] = data ;
+      newargv[m++] = "--" ;
+      newargv[m++] = argv[0] ;
+    }
     newargv[m++] = 0 ;
     xpathexec_run(newargv[0], newargv, envp) ;
   }
