@@ -10,11 +10,6 @@
 
 #include "ftrig1.h"
 
-void ftrig1_init (void)
-{
-  /* deprecated */
-}
-
 int ftrig1_make (ftrig1_t *f, char const *path)
 {
   ftrig1_t ff = FTRIG1_ZERO ;
