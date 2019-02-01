@@ -29,6 +29,7 @@ int ftrig1_make (ftrig1_t *f, char const *path)
   memcpy(tmp + pathlen + FTRIG1_PREFIXLEN + 28, ":XXXXXX", 8) ;
   ff.fd = mkptemp(tmp) ;
   if (ff.fd == -1) return 0 ;
+  if (ndelay_on(ff.fd) == -1) goto err1 ;
   ff.fdw = open_write(tmp) ;
   if (ff.fdw == -1) goto err1 ;
   if (!stralloc_ready(&ff.name, pathlen + FTRIG1_PREFIXLEN + 36)) goto err2 ;
