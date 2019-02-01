@@ -60,7 +60,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     char tmp[S6_SUDO_BANNERB_LEN] ;
     r = buffer_timed_get_g(&b6, tmp, S6_SUDO_BANNERB_LEN, &deadline) ;
     if (!r)
-      strerr_dief1x(111, "connect to the s6-sudod server - check that you have appropriate permissions") ;
+      strerr_diefu1x(111, "connect to the s6-sudod server - check that you have appropriate permissions") ;
     if (r < S6_SUDO_BANNERB_LEN)
       strerr_diefu1sys(111, "read banner from s6-sudod") ;
     if (strncmp(tmp, S6_SUDO_BANNERB, S6_SUDO_BANNERB_LEN))
