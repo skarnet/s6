@@ -7,8 +7,11 @@ In 2.8.0.0
  - Adaptation to skalibs-2.8.0.0.
  - s6-log can now notify readiness with the new -d option.
  - s6-log now has a default line limit of 8 kB.
- - s6-ipcserver-access now takes a -I option to automatically accept
-connections from clients running with the same euid/egid pair.
+ - In the accessrules library, checking against uidgid now checks the
+uid/self key if the client and the server have the same uid, and the
+gid/self key if the client and the server have the same gid. That means
+s6-ipcserver-access can now be configured to allow/deny/specialcase
+connections where the client's credentials are the same as the server's.
 
 
 In 2.7.2.2

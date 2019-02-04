@@ -30,7 +30,7 @@ the application program on the s6-ipcserver command line.
 <h2> Interface </h2>
 
 <pre>
-     s6-ipcserver-access [ -v <em>verbosity</em> ] [ -E | -e ] [ -l <em>localname</em> ] [ -I ] [ -i <em>rulesdir</em> | -x <em>rulesfile</em> ] <em>prog...</em>
+     s6-ipcserver-access [ -v <em>verbosity</em> ] [ -E | -e ] [ -l <em>localname</em> ] [ -i <em>rulesdir</em> | -x <em>rulesfile</em> ] <em>prog...</em>
 </pre>
 
 <ul>
@@ -95,9 +95,6 @@ This is the default. </li>
  <li> <tt>-l&nbsp;<em>localname</em></tt>&nbsp;: use <em>localname</em>
 as the value for the ${PROTO}LOCALPATH environment variable, instead of
 looking it up via getsockname(). </li>
- <li> <tt>-I</tt>&nbsp;: accept identity connections. If a client connects
-with the same effective uid/gid pair as s6-ipcserver-access is running under,
-then the ruleset check is bypassed and the connection is accepted. </li>
  <li> <tt>-i&nbsp;<em>rulesdir</em></tt>&nbsp;: check client credentials
 against a filesystem-based database in the <em>rulesdir</em> directory. </li>
  <li> <tt>-x&nbsp;<em>rulesfile</em></tt>&nbsp;: check client credentials
@@ -141,7 +138,9 @@ them with the
 function. In other words, it tries to match:
 
 <ul>
+ <li> (if the client's effective uid is the same as <tt>s6-ipcserver-access</tt>'s effective uid) <tt>uid/self</tt> </li>
  <li> <tt>uid/</tt><em>uid</em> </li>
+ <li> (if the client's effective gid is the same as <tt>s6-ipcserver-access</tt>'s effective gid) <tt>gid/self</tt> </li>
  <li> <tt>gid/</tt><em>gid</em> </li>
  <li> <tt>uid/default</tt> </li>
 </ul>

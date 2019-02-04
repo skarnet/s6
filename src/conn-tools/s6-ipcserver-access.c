@@ -14,7 +14,7 @@
 #include <execline/config.h>
 #include <s6/accessrules.h>
 
-#define USAGE "s6-ipcserver-access [ -v verbosity ] [ -e | -E ] [ -l localname ] [ -I ] [ -i rulesdir | -x rulesfile ] prog..."
+#define USAGE "s6-ipcserver-access [ -v verbosity ] [ -e | -E ] [ -l localname ] [ -i rulesdir | -x rulesfile ] prog..."
 
 static unsigned int verbosity = 1 ;
 
@@ -118,14 +118,13 @@ int main (int argc, char const *const *argv, char const *const *envp)
   uid_t uid = 0 ;
   gid_t gid = 0 ;
   unsigned int rulestype = 0 ;
-  int identity = 0 ;
   int doenv = 1 ;
   PROG = "s6-ipcserver-access" ;
   {
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      int opt = subgetopt_r(argc, argv, "v:Eel:Ii:x:", &l) ;
+      int opt = subgetopt_r(argc, argv, "v:Eel:i:x:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -133,7 +132,6 @@ int main (int argc, char const *const *argv, char const *const *envp)
         case 'E' : doenv = 0 ; break ;
         case 'e' : doenv = 1 ; break ;
         case 'l' : localname = l.arg ; break ;
-        case 'I' : identity = 1 ; break ;
         case 'i' : rules = l.arg ; rulestype = 1 ; break ;
         case 'x' : rules = l.arg ; rulestype = 2 ; break ;
         default : dieusage() ;
@@ -162,7 +160,6 @@ int main (int argc, char const *const *argv, char const *const *envp)
     if (!gid0_scan(x, &gid)) strerr_dieinvalid(100, tmp) ;
   }
 
-  if (identity && uid == geteuid() && gid == getegid()) goto accepted ;
   if (check(&params, rules, rulestype, uid, gid)) goto accepted ;
 
   if (verbosity >= 2) log_deny(getpid(), uid, gid) ;
