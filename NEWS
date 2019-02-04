@@ -7,6 +7,8 @@ In 2.8.0.0
  - Adaptation to skalibs-2.8.0.0.
  - s6-log can now notify readiness with the new -d option.
  - s6-log now has a default line limit of 8 kB.
+ - s6-ipcserver-access now takes a -I option to automatically accept
+connections from clients running with the same euid/egid pair.
 
 
 In 2.7.2.2
