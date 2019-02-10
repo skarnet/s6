@@ -130,7 +130,8 @@ triggered. </li>
  <li style="margin-bottom:1em"> An optional regular file named <tt>timeout-kill</tt>. If such a file
 exists, it must only contain an unsigned integer <em>t</em>. If <em>t</em>
 is nonzero, then on receipt of a <a href="s6-svc.html">s6-svc -d</a> command,
-which sends a SIGTERM and a SIGCONT to the service, a timeout of <em>t</em>
+which sends a SIGTERM (by default, see <tt>down-signal</tt> below) and a
+SIGCONT to the service, a timeout of <em>t</em>
 milliseconds is set; and if the service is still not dead after <em>t</em>
 milliseconds, then it is sent a SIGKILL. If <tt>timeout-kill</tt> does not
 exist, or contains 0 or an invalid value, then the service is never
