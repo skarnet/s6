@@ -4,8 +4,9 @@
 #include <sys/uio.h>
 #include <stdint.h>
 #include <errno.h>
+
+#include <skalibs/posixishard.h>
 #include <skalibs/gccattributes.h>
-#include <skalibs/error.h>
 #include <skalibs/uint16.h>
 #include <skalibs/genalloc.h>
 #include <skalibs/gensetdyn.h>

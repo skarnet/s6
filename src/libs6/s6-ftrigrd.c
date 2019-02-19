@@ -6,6 +6,8 @@
 #include <errno.h>
 #include <signal.h>
 #include <regex.h>
+
+#include <skalibs/posixishard.h>
 #include <skalibs/types.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/error.h>
@@ -18,6 +20,7 @@
 #include <skalibs/iopause.h>
 #include <skalibs/textmessage.h>
 #include <skalibs/textclient.h>
+
 #include "ftrig1.h"
 #include <s6/ftrigr.h>
 

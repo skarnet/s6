@@ -2,9 +2,10 @@
 
 #include <stdint.h>
 #include <errno.h>
+
+#include <skalibs/posixishard.h>
 #include <skalibs/uint32.h>
 #include <skalibs/bytestr.h>
-#include <skalibs/error.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/unixmessage.h>
 #include <s6/s6-fdholder.h>

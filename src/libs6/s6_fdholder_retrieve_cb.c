@@ -1,8 +1,10 @@
 /* ISC license. */
 
 #include <errno.h>
-#include <skalibs/error.h>
+
+#include <skalibs/posixishard.h>
 #include <skalibs/unixmessage.h>
+
 #include <s6/s6-fdholder.h>
 
 int s6_fdholder_retrieve_cb (unixmessage_t const *m, void *p)

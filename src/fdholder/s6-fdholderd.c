@@ -10,6 +10,8 @@
 #include <errno.h>
 #include <signal.h>
 #include <regex.h>
+
+#include <skalibs/posixishard.h>
 #include <skalibs/types.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/sgetopt.h>

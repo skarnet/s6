@@ -5,6 +5,8 @@
 #include <unistd.h>
 #include <errno.h>
 #include <signal.h>
+
+#include <skalibs/posixishard.h>
 #include <skalibs/types.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/error.h>
@@ -17,6 +19,7 @@
 #include <skalibs/iopause.h>
 #include <skalibs/textmessage.h>
 #include <skalibs/textclient.h>
+
 #include <s6/s6lock.h>
 
 #define USAGE "s6lockd lockdir"

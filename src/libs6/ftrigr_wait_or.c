@@ -1,8 +1,10 @@
 /* ISC license. */
 
 #include <errno.h>
-#include <skalibs/error.h>
+
+#include <skalibs/posixishard.h>
 #include <skalibs/iopause.h>
+
 #include <s6/ftrigr.h>
 
 int ftrigr_wait_or (ftrigr_t *a, uint16_t const *idlist, unsigned int n, tain_t const *deadline, tain_t *stamp, char *c)

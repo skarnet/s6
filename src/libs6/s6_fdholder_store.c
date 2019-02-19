@@ -1,8 +1,9 @@
 /* ISC license. */
 
 #include <errno.h>
+
+#include <skalibs/posixishard.h>
 #include <skalibs/allreadwrite.h>
-#include <skalibs/error.h>
 #include <skalibs/tai.h>
 #include <skalibs/unixmessage.h>
 #include <s6/s6-fdholder.h>

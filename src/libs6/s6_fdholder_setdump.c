@@ -4,12 +4,15 @@
 #include <stdint.h>
 #include <string.h>
 #include <errno.h>
+
+#include <skalibs/posixishard.h>
 #include <skalibs/uint32.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/error.h>
 #include <skalibs/tai.h>
 #include <skalibs/unixmessage.h>
+
 #include <s6/s6-fdholder.h>
 
 int s6_fdholder_setdump (s6_fdholder_t *a, s6_fdholder_fd_t const *list, unsigned int ntot, tain_t const *deadline, tain_t *stamp)
