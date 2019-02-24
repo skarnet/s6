@@ -12,6 +12,7 @@ uid/self key if the client and the server have the same uid, and the
 gid/self key if the client and the server have the same gid. That means
 s6-ipcserver-access can now be configured to allow/deny/specialcase
 connections where the client's credentials are the same as the server's.
+ - Everything builds as PIC by default.
 
 
 In 2.7.2.2

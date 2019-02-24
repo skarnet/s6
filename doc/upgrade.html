@@ -21,14 +21,19 @@
 <h2> in 2.8.0.0 </h2>
 
 <ul>
- <li> skalibs dependency bumped to 2.8.0.0. </li>
- <li> execline dependency bumped to 2.5.1.0. </li>
+ <li> <a href="//skarnet.org/software/skalibs/"></a>skalibs</a>
+dependency bumped to 2.8.0.0. </li>
+ <li> <a href="//skarnet.org/software/execline/">execline</a>
+dependency bumped to 2.5.1.0. </li>
  <li> New <tt>-d <em>notif</em></tt> option to <a href="s6-log.html">s6-log</a>. </li>
  <li> New default for the <tt>-l <em>linelimit</em></tt> option to <a href="s6-log.html">s6-log</a>:
 8192 bytes. </li>
  <li> In the <a href="libs6/accessrules.html">accessrules</a> library, checking against uid/gid
 now checks the <tt>uid/self</tt> key if the client and the server have the same uid, and
 the <tt>gid/self</tt> key if the client and the server have the same gid. </li>
+ <li> Everything now builds as PIC by default no matter
+the toolchain's settings. Use the <tt>--disable-all-pic</tt> configure
+option to build executables and static libraries as non-PIC. </li>
 </ul>
 
 <h2> in 2.7.2.2 </h2>

@@ -40,7 +40,7 @@ Optional features:
   --disable-static              do not build static libraries [enabled]
   --disable-allstatic           do not prefer linking against static libraries [enabled]
   --enable-static-libc          make entirely static binaries [disabled]
-  --enable-all-pic              build everything as PIC [enabled iff toolchain builds PIE]
+  --disable-all-pic             don't build executables or static libs as PIC [enabled]
   --enable-slashpackage[=ROOT]  assume /package installation at ROOT [disabled]
   --enable-absolute-paths       do not rely on PATH to access this package's binaries,
                                   hardcode absolute BINDIR/foobar paths instead [disabled]
@@ -144,7 +144,7 @@ sysdeps='$prefix/lib/skalibs/sysdeps'
 manualsysdeps=false
 shared=false
 static=true
-allpic=detect
+allpic=true
 slashpackage=false
 abspath=false
 usensss=false
@@ -307,20 +307,6 @@ if [ "x$target" != "x$(cat $sysdeps/target)" ] ; then
   exit 1
 fi
 
-if test $allpic = detect ; then
-  echo "Checking whether we need to build everything as PIC..."
-  if $CC_AUTO $CPPFLAGS_AUTO $CPPFLAGS $CPPFLAGS_POST $CFLAGS_AUTO $CFLAGS $CFLAGS_POST -dM -E - < /dev/null | grep -qF __PIE__ ; then
-    allpic=true
-    echo "  ... yes"
-  else
-    allpic=false
-    echo "  ... no"
-  fi
-fi
-if $allpic ; then
-  tryflag CFLAGS_AUTO -fPIC
-fi
-
 spawn_lib=$(cat $sysdeps/spawn.lib)
 socket_lib=$(cat $sysdeps/socket.lib)
 sysclock_lib=$(cat $sysdeps/sysclock.lib)
@@ -328,6 +314,9 @@ tainnow_lib=$(cat $sysdeps/tainnow.lib)
 timer_lib=$(cat $sysdeps/timer.lib)
 util_lib=$(cat $sysdeps/util.lib)
 
+if $allpic ; then
+  tryflag CPPFLAGS_AUTO -fPIC
+fi
 tryflag CFLAGS_AUTO -std=c99
 tryflag CFLAGS -fomit-frame-pointer
 tryflag CFLAGS_AUTO -fno-exceptions
