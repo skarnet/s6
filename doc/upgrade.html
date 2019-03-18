@@ -34,6 +34,12 @@ the <tt>gid/self</tt> key if the client and the server have the same gid. </li>
  <li> Everything now builds as PIC by default no matter
 the toolchain's settings. Use the <tt>--disable-all-pic</tt> configure
 option to build executables and static libraries as non-PIC. </li>
+ <li> This is a major version release of s6. It is recommended to first stop
+all your s6 services, then upgrade, then immediately restart your
+supervision tree, then start your services again. Failure to do so
+*will* cause issues if you're relying on s6-ftrigrd notifications
+(which is the case, for instance, with services managed by
+<a href="//skarnet.org/software/s6-rc/">s6-rc</a>). </li>
 </ul>
 
 <h2> in 2.7.2.2 </h2>
