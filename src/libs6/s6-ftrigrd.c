@@ -7,6 +7,7 @@
 #include <signal.h>
 #include <regex.h>
 
+#include <skalibs/posixplz.h>
 #include <skalibs/posixishard.h>
 #include <skalibs/types.h>
 #include <skalibs/allreadwrite.h>
@@ -160,7 +161,7 @@ static int parse_protocol (struct iovec const *v, void *context)
         answer(ENFILE) ;
         break ;
       }
-      r = regcomp(&a[n].re, s + 16 + pathlen, REG_EXTENDED) ;
+      r = skalibs_regcomp(&a[n].re, s + 16 + pathlen, REG_EXTENDED) ;
       if (r)
       {
         answer(r == REG_ESPACE ? ENOMEM : EINVAL) ;

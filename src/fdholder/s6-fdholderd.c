@@ -11,6 +11,7 @@
 #include <signal.h>
 #include <regex.h>
 
+#include <skalibs/posixplz.h>
 #include <skalibs/posixishard.h>
 #include <skalibs/types.h>
 #include <skalibs/allreadwrite.h>
@@ -528,7 +529,7 @@ static int makere (regex_t *re, char const *s, char const *var)
   size_t varlen = strlen(var) ;
   if (str_start(s, var) && (s[varlen] == '='))
   {
-    int r = regcomp(re, s + varlen + 1, REG_EXTENDED | REG_NOSUB) ;
+    int r = skalibs_regcomp(re, s + varlen + 1, REG_EXTENDED | REG_NOSUB) ;
     if (r)
     {
       if (verbosity)
@@ -546,7 +547,7 @@ static int makere (regex_t *re, char const *s, char const *var)
 
 static void defaultre (regex_t *re)
 {
-  int r = regcomp(re, ".^", REG_EXTENDED | REG_NOSUB) ;
+  int r = skalibs_regcomp(re, ".^", REG_EXTENDED | REG_NOSUB) ;
   if (r)
   {
     char buf[256] ;

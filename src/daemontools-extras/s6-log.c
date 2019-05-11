@@ -786,7 +786,7 @@ static inline void script_secondpass (char const *const *argv, scriptelem_t *scr
         sel_t selitem = { .type = (*argv)[0] != 'f' ? (*argv)[0] == '+' ? SELTYPE_PLUS : SELTYPE_MINUS : SELTYPE_DEFAULT } ;
         if ((*argv)[0] != 'f')
         {
-          int r = regcomp(&selitem.re, *argv + 1, REG_EXTENDED | REG_NOSUB | REG_NEWLINE) ;
+          int r = skalibs_regcomp(&selitem.re, *argv + 1, REG_EXTENDED | REG_NOSUB | REG_NEWLINE) ;
           if (r == REG_ESPACE)
           {
             errno = ENOMEM ;
