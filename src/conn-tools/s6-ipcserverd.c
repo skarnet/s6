@@ -384,7 +384,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
         strerr_diefu1sys(111, "iopause") ;
 
       if (x[0].revents & IOPAUSE_EXCEPT) strerr_dief1x(111, "trouble with selfpipe") ;
-      if (x[0].revents & IOPAUSE_READ) handle_signals() ;
+      if (x[0].revents & IOPAUSE_READ) { handle_signals() ; continue ; }
       if (numconn < maxconn)
       {
         if (x[1].revents & IOPAUSE_EXCEPT) strerr_dief1x(111, "trouble with socket") ;
