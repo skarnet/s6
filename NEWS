@@ -1,5 +1,15 @@
 Changelog for s6.
 
+In 2.9.0.0
+----------
+
+ - Bugfixes.
+ - The s6-fdholder-*c programs have been removed. They were unused: the
+separation between (for instance) s6-fdholder-store and s6-fdholder-storec
+added more complexity and more code than it brought benefits. The s6
+package is now 7 binaries leaner.
+
+
 In 2.8.0.1
 ----------
 

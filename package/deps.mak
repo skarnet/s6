@@ -31,20 +31,13 @@ src/daemontools-extras/s6-tai64n.o src/daemontools-extras/s6-tai64n.lo: src/daem
 src/daemontools-extras/s6-tai64nlocal.o src/daemontools-extras/s6-tai64nlocal.lo: src/daemontools-extras/s6-tai64nlocal.c
 src/daemontools-extras/ucspilogd.o src/daemontools-extras/ucspilogd.lo: src/daemontools-extras/ucspilogd.c
 src/fdholder/s6-fdholder-daemon.o src/fdholder/s6-fdholder-daemon.lo: src/fdholder/s6-fdholder-daemon.c src/include/s6/config.h
-src/fdholder/s6-fdholder-delete.o src/fdholder/s6-fdholder-delete.lo: src/fdholder/s6-fdholder-delete.c src/include/s6/config.h
-src/fdholder/s6-fdholder-deletec.o src/fdholder/s6-fdholder-deletec.lo: src/fdholder/s6-fdholder-deletec.c src/include/s6/s6-fdholder.h
-src/fdholder/s6-fdholder-getdump.o src/fdholder/s6-fdholder-getdump.lo: src/fdholder/s6-fdholder-getdump.c src/include/s6/config.h
-src/fdholder/s6-fdholder-getdumpc.o src/fdholder/s6-fdholder-getdumpc.lo: src/fdholder/s6-fdholder-getdumpc.c src/include/s6/s6-fdholder.h
-src/fdholder/s6-fdholder-list.o src/fdholder/s6-fdholder-list.lo: src/fdholder/s6-fdholder-list.c src/include/s6/config.h
-src/fdholder/s6-fdholder-listc.o src/fdholder/s6-fdholder-listc.lo: src/fdholder/s6-fdholder-listc.c src/include/s6/s6-fdholder.h
-src/fdholder/s6-fdholder-retrieve.o src/fdholder/s6-fdholder-retrieve.lo: src/fdholder/s6-fdholder-retrieve.c src/include/s6/config.h
-src/fdholder/s6-fdholder-retrievec.o src/fdholder/s6-fdholder-retrievec.lo: src/fdholder/s6-fdholder-retrievec.c src/include/s6/s6-fdholder.h
-src/fdholder/s6-fdholder-setdump.o src/fdholder/s6-fdholder-setdump.lo: src/fdholder/s6-fdholder-setdump.c src/include/s6/config.h
-src/fdholder/s6-fdholder-setdumpc.o src/fdholder/s6-fdholder-setdumpc.lo: src/fdholder/s6-fdholder-setdumpc.c src/include/s6/s6-fdholder.h
-src/fdholder/s6-fdholder-store.o src/fdholder/s6-fdholder-store.lo: src/fdholder/s6-fdholder-store.c src/include/s6/config.h
-src/fdholder/s6-fdholder-storec.o src/fdholder/s6-fdholder-storec.lo: src/fdholder/s6-fdholder-storec.c src/include/s6/s6-fdholder.h
-src/fdholder/s6-fdholder-transferdump.o src/fdholder/s6-fdholder-transferdump.lo: src/fdholder/s6-fdholder-transferdump.c src/include/s6/config.h
-src/fdholder/s6-fdholder-transferdumpc.o src/fdholder/s6-fdholder-transferdumpc.lo: src/fdholder/s6-fdholder-transferdumpc.c src/include/s6/s6-fdholder.h
+src/fdholder/s6-fdholder-delete.o src/fdholder/s6-fdholder-delete.lo: src/fdholder/s6-fdholder-delete.c src/include/s6/s6-fdholder.h
+src/fdholder/s6-fdholder-getdump.o src/fdholder/s6-fdholder-getdump.lo: src/fdholder/s6-fdholder-getdump.c src/include/s6/s6-fdholder.h
+src/fdholder/s6-fdholder-list.o src/fdholder/s6-fdholder-list.lo: src/fdholder/s6-fdholder-list.c src/include/s6/s6-fdholder.h
+src/fdholder/s6-fdholder-retrieve.o src/fdholder/s6-fdholder-retrieve.lo: src/fdholder/s6-fdholder-retrieve.c src/include/s6/s6-fdholder.h
+src/fdholder/s6-fdholder-setdump.o src/fdholder/s6-fdholder-setdump.lo: src/fdholder/s6-fdholder-setdump.c src/include/s6/s6-fdholder.h
+src/fdholder/s6-fdholder-store.o src/fdholder/s6-fdholder-store.lo: src/fdholder/s6-fdholder-store.c src/include/s6/s6-fdholder.h
+src/fdholder/s6-fdholder-transferdump.o src/fdholder/s6-fdholder-transferdump.lo: src/fdholder/s6-fdholder-transferdump.c src/include/s6/s6-fdholder.h
 src/fdholder/s6-fdholderd.o src/fdholder/s6-fdholderd.lo: src/fdholder/s6-fdholderd.c src/include/s6/accessrules.h src/include/s6/s6-fdholder.h
 src/libs6/ftrig1_free.o src/libs6/ftrig1_free.lo: src/libs6/ftrig1_free.c src/libs6/ftrig1.h
 src/libs6/ftrig1_make.o src/libs6/ftrig1_make.lo: src/libs6/ftrig1_make.c src/libs6/ftrig1.h
@@ -188,36 +181,22 @@ s6-tai64nlocal: EXTRA_LIBS :=
 s6-tai64nlocal: src/daemontools-extras/s6-tai64nlocal.o -lskarnet
 ucspilogd: EXTRA_LIBS :=
 ucspilogd: src/daemontools-extras/ucspilogd.o -lskarnet
-s6-fdholder-daemon: EXTRA_LIBS :=
-s6-fdholder-daemon: src/fdholder/s6-fdholder-daemon.o -lskarnet
-s6-fdholder-delete: EXTRA_LIBS :=
-s6-fdholder-delete: src/fdholder/s6-fdholder-delete.o -lskarnet
-s6-fdholder-deletec: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
-s6-fdholder-deletec: src/fdholder/s6-fdholder-deletec.o ${LIBS6} -lskarnet
-s6-fdholder-getdump: EXTRA_LIBS :=
-s6-fdholder-getdump: src/fdholder/s6-fdholder-getdump.o -lskarnet
-s6-fdholder-getdumpc: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
-s6-fdholder-getdumpc: src/fdholder/s6-fdholder-getdumpc.o ${LIBS6} -lskarnet
-s6-fdholder-list: EXTRA_LIBS :=
-s6-fdholder-list: src/fdholder/s6-fdholder-list.o -lskarnet
-s6-fdholder-listc: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
-s6-fdholder-listc: src/fdholder/s6-fdholder-listc.o ${LIBS6} -lskarnet
-s6-fdholder-retrieve: EXTRA_LIBS :=
-s6-fdholder-retrieve: src/fdholder/s6-fdholder-retrieve.o -lskarnet
-s6-fdholder-retrievec: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
-s6-fdholder-retrievec: src/fdholder/s6-fdholder-retrievec.o ${LIBS6} -lskarnet
-s6-fdholder-setdump: EXTRA_LIBS :=
-s6-fdholder-setdump: src/fdholder/s6-fdholder-setdump.o -lskarnet
-s6-fdholder-setdumpc: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
-s6-fdholder-setdumpc: src/fdholder/s6-fdholder-setdumpc.o ${LIBS6} -lskarnet
-s6-fdholder-store: EXTRA_LIBS :=
-s6-fdholder-store: src/fdholder/s6-fdholder-store.o -lskarnet
-s6-fdholder-storec: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
-s6-fdholder-storec: src/fdholder/s6-fdholder-storec.o ${LIBS6} -lskarnet
-s6-fdholder-transferdump: EXTRA_LIBS :=
-s6-fdholder-transferdump: src/fdholder/s6-fdholder-transferdump.o -lskarnet
-s6-fdholder-transferdumpc: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
-s6-fdholder-transferdumpc: src/fdholder/s6-fdholder-transferdumpc.o ${LIBS6} -lskarnet
+s6-fdholder-daemon: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-fdholder-daemon: src/fdholder/s6-fdholder-daemon.o ${LIBS6} -lskarnet
+s6-fdholder-delete: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-fdholder-delete: src/fdholder/s6-fdholder-delete.o ${LIBS6} -lskarnet
+s6-fdholder-getdump: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-fdholder-getdump: src/fdholder/s6-fdholder-getdump.o ${LIBS6} -lskarnet
+s6-fdholder-list: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-fdholder-list: src/fdholder/s6-fdholder-list.o ${LIBS6} -lskarnet
+s6-fdholder-retrieve: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-fdholder-retrieve: src/fdholder/s6-fdholder-retrieve.o ${LIBS6} -lskarnet
+s6-fdholder-setdump: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-fdholder-setdump: src/fdholder/s6-fdholder-setdump.o ${LIBS6} -lskarnet
+s6-fdholder-store: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-fdholder-store: src/fdholder/s6-fdholder-store.o ${LIBS6} -lskarnet
+s6-fdholder-transferdump: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-fdholder-transferdump: src/fdholder/s6-fdholder-transferdump.o ${LIBS6} -lskarnet
 s6-fdholderd: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
 s6-fdholderd: src/fdholder/s6-fdholderd.o ${LIBS6} -lskarnet
 ifeq ($(strip $(STATIC_LIBS_ARE_PIC)),)

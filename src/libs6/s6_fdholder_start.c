@@ -14,6 +14,6 @@ int s6_fdholder_start (s6_fdholder_t *a, char const *path, tain_t const *deadlin
     fd_close(fd) ;
     return 0 ;
   }
-  unixconnection_init(&a->connection, fd, fd) ;
+  s6_fdholder_init(a, fd) ;
   return 1 ;
 }

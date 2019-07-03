@@ -1,22 +1,25 @@
 /* ISC license. */
 
+#include <string.h>
+#include <stdlib.h>
 #include <skalibs/types.h>
-#include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
-#include <skalibs/djbunix.h>
-#include <s6/config.h>
+#include <skalibs/sgetopt.h>
+#include <skalibs/tai.h>
+#include <s6/s6-fdholder.h>
 
 #define USAGE "s6-fdholder-setdump [ -t timeout ] socket"
 #define dieusage() strerr_dieusage(100, USAGE)
 
-int main (int argc, char const *const *argv, char const *const *envp)
+int main (int argc, char const *const *argv)
 {
-  char const *newargv[8] ;
-  unsigned int timeout = 0 ;
-  unsigned int m = 0 ;
-  char fmtt[UINT_FMT] ;
+  s6_fdholder_t a = S6_FDHOLDER_ZERO ;
+  tain_t deadline ;
+  unsigned int dumplen ;
+  char const *x ;
   PROG = "s6-fdholder-setdump" ;
   {
+    unsigned int t = 0 ;
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
@@ -24,25 +27,53 @@ int main (int argc, char const *const *argv, char const *const *envp)
       if (opt == -1) break ;
       switch (opt)
       {
-        case 't' : if (!uint0_scan(l.arg, &timeout)) dieusage() ; break ;
+        case 't' : if (!uint0_scan(l.arg, &t)) dieusage() ; break ;
         default : dieusage() ;
       }
     }
     argc -= l.ind ; argv += l.ind ;
+    if (t) tain_from_millisecs(&deadline, t) ;
+    else deadline = tain_infinite_relative ;
   }
   if (!argc) dieusage() ;
 
-  newargv[m++] = S6_BINPREFIX "s6-ipcclient" ;
-  newargv[m++] = "-l0" ;
-  newargv[m++] = "--" ;
-  newargv[m++] = argv[0] ;
-  newargv[m++] = S6_BINPREFIX "s6-fdholder-setdumpc" ;
-  if (timeout)
+  x = getenv("S6_FD#") ;
+  if (!x) strerr_dienotset(100, "S6_FD#") ;
+  if (!uint0_scan(x, &dumplen)) strerr_dieinvalid(100, "S6_FD#") ;
+  tain_now_g() ;
+  tain_add_g(&deadline, &deadline) ;
+  if (!s6_fdholder_start_g(&a, argv[0], &deadline))
+    strerr_diefu2sys(111, "connect to a fd-holder daemon at ", argv[0]) ;
+  if (dumplen)
   {
-    fmtt[uint_fmt(fmtt, timeout)] = 0 ;
-    newargv[m++] = "-t" ;
-    newargv[m++] = fmtt ;
+    unsigned int i = 0 ;
+    s6_fdholder_fd_t dump[dumplen] ;
+    char s[11 + UINT_FMT] ;
+    for (; i < dumplen ; i++)
+    {
+      size_t len ;
+      unsigned int fd ;
+      memcpy(s, "S6_FD_", 6) ;
+      s[6 + uint_fmt(s+6, i)] = 0 ;
+      x = getenv(s) ;
+      if (!x) strerr_dienotset(100, s) ;
+      if (!uint0_scan(x, &fd)) strerr_dieinvalid(100, s) ;
+      dump[i].fd = fd ;
+      memcpy(s, "S6_FDID_", 8) ;
+      s[8 + uint_fmt(s+8, i)] = 0 ;
+      x = getenv(s) ;
+      if (!x) strerr_dienotset(100, s) ;
+      len = strlen(x) ;
+      if (!len || len > S6_FDHOLDER_ID_SIZE) strerr_dieinvalid(100, s) ;
+      memcpy(dump[i].id, x, len+1) ;
+      memcpy(s, "S6_FDLIMIT_", 11) ;
+      s[11 + uint_fmt(s+11, i)] = 0 ;
+      x = getenv(s) ;
+      if (!x) tain_add_g(&dump[i].limit, &tain_infinite_relative) ;
+      else if (!timestamp_scan(x, &dump[i].limit)) strerr_dieinvalid(100, s) ;
+    }
+    if (!s6_fdholder_setdump_g(&a, dump, dumplen, &deadline))
+      strerr_diefu1sys(1, "set dump") ;
   }
-  newargv[m++] = 0 ;
-  xpathexec_run(newargv[0], newargv, envp) ;
+  return 0 ;
 }
