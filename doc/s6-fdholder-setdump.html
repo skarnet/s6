@@ -32,15 +32,11 @@ that daemon.
 </pre>
 
 <ul>
- <li> s6-fdholder-setdump executes into <tt><a href="s6-ipcclient.html">s6-ipcclient</a> <em>path</em>
-<a href="s6-fdholder-setdumpc.html">s6-fdholder-setdumpc</a> <em>id</em></tt>. It does nothing else: it is just a
-convenience program. The <a href="s6-ipcclient.html">s6-ipcclient</a> program connects
-to a Unix socket at <em>path</em>, and the
-<a href="s6-fdholder-setdumpc.html">s6-fdholder-setdumpc</a> program transmits the
-file descriptors over the socket. </li>
- <li> It should be used to connect to a
-<a href="s6-fdholderd.html">s6-fdholderd</a> daemon, which will store the set of
-file descriptors. </li>
+ <li> <tt>s6-fdholder-setdump</tt> connects to a
+<a href="s6-fdholderd.html">s6-fdholderd</a> server process listening on
+<em>path</em>. </li>
+ <li> It attempts to pass a complete state - i.e. a set of file descriptors
+with identifiers and expiration dates - to the server. </li>
 </ul>
 
 <h2> Options </h2>
@@ -53,14 +49,26 @@ only here to protect users against programming errors (connecting to the
 wrong socket, for instance). </li>
 </ul>
 
+<h2> Exit codes </h2>
+
+<ul>
+ <li> 0: success. </li>
+ <li> 1: the server denied the operation. The meaning of the error messages
+is explained <a href="s6-fdholder-errorcodes.html">here</a>. </li>
+ <li> 100: wrong usage. </li>
+ <li> 111: system call failed - that includes attempting to connect to a
+nonexistent socket, or one where no <a href="s6-fdholderd.html">s6-fdholderd</a>
+daemon is listening. </li>
+</ul>
+
 <h2> Notes </h2>
 
 <ul>
  <li> The file descriptors to transmit to the server should of course be
-already open in the s6-fdholder-setdump program; also, s6-fdholder-setdump
+already open in the <tt>s6-fdholder-setdump</tt> program; also, <tt>s6-fdholder-setdump</tt>
 should have certain environment variables that describe that set of file
 descriptors. The format of the environment is the same as the one set by
-<a href="s6-fdholder-getdumpc.html">s6-fdholder-getdumpc</a>. </li>
+<a href="s6-fdholder-getdump.html">s6-fdholder-getdump</a>. </li>
  <li> Getting the whole state of a s6-fdholderd daemon requires specific
 privileges. Make sure you properly
 <a href="s6-fdholderd.html#configuration">configure the s6-fdholderd

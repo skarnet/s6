@@ -34,16 +34,13 @@ environment.
 </pre>
 
 <ul>
- <li> s6-fdholder-getdump executes into <tt><a href="s6-ipcclient.html">s6-ipcclient</a> <em>path</em>
-<a href="s6-fdholder-getdumpc.html">s6-fdholder-getdumpc</a> <em>prog...</em></tt>.
-It does nothing else: it is just a convenience program.
-The <a href="s6-ipcclient.html">s6-ipcclient</a> program connects
-to a Unix socket at <em>path</em>, and the
-<a href="s6-fdholder-getdumpc.html">s6-fdholder-getdumpc</a> program
-gets the server's state over the socket. </li>
- <li> It executes into <em>prog...</em> with as many more open
-file descriptors as there were in the daemon, and information about those
-file descriptors in the environment. </li>
+ <li> <tt>s6-fdholder-getdump</tt> connects to a
+<a href="s6-fdholderd.html">s6-fdholderd</a> server process listening on
+<em>path</em>. </li>
+ <li> It retrieves a copy of the whole set of file descriptors
+stored in that daemon, including their identifiers and expiration dates. </li>
+ <li> It then executes into <em>prog...</em> with the additional open descriptors
+and the additional environment variables. </li>
 </ul>
 
 <h2> Options </h2>
@@ -54,6 +51,43 @@ processed in <em>timeout</em> milliseconds, then fail with an error message.
 Communications with the server should be near-instant, so this option is
 only here to protect users against programming errors (connecting to the
 wrong socket, for instance). </li>
+</ul>
+
+<h2> Exit codes </h2>
+
+<ul>
+ <li> On success, the program doesn't exit; instead, it execs into <em>prog...</em>. </li>
+ <li> 1: the server denied the operation. The meaning of the error messages
+is explained <a href="s6-fdholder-errorcodes.html">here</a>. </li>
+ <li> 100: wrong usage. </li>
+ <li> 111: system call failed - that includes attempting to connect to a
+nonexistent socket, or one where no <a href="s6-fdholderd.html">s6-fdholderd</a>
+daemon is listening. </li>
+</ul>
+
+<h2> Environment format </h2>
+
+<p>
+ <em>prog...</em> is executed with the following environment variables
+set:
+</p>
+
+<ul>
+ <li> <tt>S6_FD#</tt>&nbsp;: contains the number <em>n</em> of file
+descriptors retrieved from the server. </li>
+ <li> Then, for every <em>i</em> between 0 and <em>n</em>-1 inclusive:
+ <ul>
+  <li> <tt>S6_FD_<em>i</em></tt>&nbsp;: contains the number of the <em>i</em>th
+open file descriptor. </li>
+  <li> <tt>S6_FDID_<em>i</em></tt>&nbsp;: contains the identifier of the
+<em>i</em>th open file descriptor. </li>
+  <li> <tt>S6_FDLIMIT_<em>i</em></tt>&nbsp;: contains the expiration date of
+the <em>i</em>th open file descriptor, if applicable. That date is stored in
+<a href="http://cr.yp.to/libtai/tai64.html#tai64n">external TAI64N
+format</a>. </li>
+If the file descriptor is not supposed to expire, that environment variable
+is not defined. </li>
+ </ul> </li>
 </ul>
 
 <h2> Usage example </h2>
@@ -73,16 +107,6 @@ program does the same thing more efficiently.
 <h2> Notes </h2>
 
 <ul>
- <li> s6-fdholder-getdump really executes into <tt>s6-ipcclient
-s6-fdholder-getdumpc
-<a href="//skarnet.org/software/execline/fdclose.html">fdclose</a>
-6 fdclose 7 <em>prog...</em></tt>, so that <em>prog...</em> does not
-have a connection with the fd-holding daemon anymore. If you want to
-keep the server connection open for <em>prog...</em>, use
-<tt>s6-ipcclient s6-fdholder-getdumpc</tt> manually. </li>
- <li> The exact format of the environment given to <em>prog...</em>
-is described in the 
-<a href="s6-fdholder-getdumpc.html">s6-fdholder-getdumpc</a> page. </li>
  <li> Getting the whole state of a s6-fdholderd daemon requires specific
 privileges. Make sure you properly
 <a href="s6-fdholderd.html#configuration">configure the s6-fdholderd

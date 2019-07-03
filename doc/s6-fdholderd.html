@@ -47,13 +47,13 @@ lost; if they need to be preserved, the admin should make sure to
 one operation, then disconnect. </li>
  <li> Possible operations include:
  <ul>
-  <li> <a href="s6-fdholder-storec.html">Storing a file descriptor</a> </li>
-  <li> <a href="s6-fdholder-retrievec.html">Retrieving a file descriptor</a> </li>
-  <li> <a href="s6-fdholder-deletec.html">Deleting a file descriptor</a> </li>
-  <li> <a href="s6-fdholder-listc.html">Listing stored file descriptor
+  <li> <a href="s6-fdholder-store.html">Storing a file descriptor</a> </li>
+  <li> <a href="s6-fdholder-retrieve.html">Retrieving a file descriptor</a> </li>
+  <li> <a href="s6-fdholder-delete.html">Deleting a file descriptor</a> </li>
+  <li> <a href="s6-fdholder-list.html">Listing stored file descriptor
 identifiers</a> </li>
-  <li> <a href="s6-fdholder-getdumpc.html">Getting the whole server state</a> </li>
-  <li> <a href="s6-fdholder-setdumpc.html">Setting the whole server state</a>,
+  <li> <a href="s6-fdholder-getdump.html">Getting the whole server state</a> </li>
+  <li> <a href="s6-fdholder-setdump.html">Setting the whole server state</a>,
 or more accurately adding a set of file descriptors to the already existing
 state </li>
  </ul> </li>
@@ -117,12 +117,12 @@ changes in the filesystem are automatically picked up. </li>
 
 <ul>
  <li> Every file descriptor is stored in the s6-fdholderd daemon via the
-<a href="s6-fdholder-storec.html">s6-fdholder-storec</a> program, with
+<a href="s6-fdholder-store.html">s6-fdholder-store</a> program, with
 an <em>identifier</em>. That identifier is a zero-terminated character
 string, containing 1 to 255 characters. </li>
  <li> Any non-null character can be used in an identifier. Non-printable or
 special characters will be quoted when printed by
-<a href="s6-fdholder-listc.html">s6-fdholder-listc</a>. However, it is
+<a href="s6-fdholder-list.html">s6-fdholder-list</a>. However, it is
 recommended to only use reasonable characters in identifiers: clients
 should be able to know at a glance what file descriptor is represented by
 an identifier. Identifiers have no special meaning to the server. </li>

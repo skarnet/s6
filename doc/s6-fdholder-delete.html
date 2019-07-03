@@ -32,18 +32,11 @@ daemon storage.
 </pre>
 
 <ul>
- <li> s6-fdholder-delete executes into <tt><a href="s6-ipcclient.html">s6-ipcclient</a> <em>path</em>
-<a href="s6-fdholder-deletec.html">s6-fdholder-deletec</a> <em>id</em> </tt>.
-It does nothing else: it is just a convenience program.
-The <a href="s6-ipcclient.html">s6-ipcclient</a> program connects
-to a Unix socket at <em>path</em>, and the
-<a href="s6-fdholder-deletec.html">s6-fdholder-deletec</a> program
-sends instruction to the server. </li>
- <li> It should be used to connect to a
-<a href="s6-fdholderd.html">s6-fdholderd</a> daemon, which will receive
-the instruction to close and remove the file descriptor identified
-by <em>id</em>. </li>
- <li> It then exits 0. </li>
+ <li> <tt>s6-fdholder-delete</tt> connects to a
+<a href="s6-fdholderd.html">s6-fdholderd</a> server process listening on
+<em>path</em>. </li>
+ <li> It tells the server to close the file descriptor that has been
+stored with identifier <em>id</em>. </li>
 </ul>
 
 <h2> Options </h2>
@@ -56,6 +49,18 @@ only here to protect users against programming errors (connecting to the
 wrong socket, for instance). </li>
 </ul>
 
+<h2> Exit codes </h2>
+
+<ul>
+ <li> 0: success. </li>
+ <li> 1: the server denied the operation. The meaning of the error messages
+is explained <a href="s6-fdholder-errorcodes.html">here</a>. </li>
+ <li> 100: wrong usage. </li>
+ <li> 111: system call failed - that includes attempting to connect to a
+nonexistent socket, or one where no <a href="s6-fdholderd.html">s6-fdholderd</a>
+daemon is listening. </li>
+</ul>
+
 <h2> Usage example </h2>
 
 <pre>
@@ -63,9 +68,9 @@ wrong socket, for instance). </li>
 </pre>
 
 <p>
- will tell a
-s6-fdholderd daemon listening on the <tt>/service/fdholderd/s</tt>
-socket to close the filedescriptor identified as MYSOCKET.
+will tell a s6-fdholderd daemon listening on the
+<tt>/service/fdholderd/s</tt> socket to close the file descriptor 
+dentified as MYSOCKET.
 </p>
 
 </body>

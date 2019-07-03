@@ -30,22 +30,33 @@
 </pre>
 
 <ul>
- <li> s6-fdholder-list executes into <tt><a href="s6-ipcclient.html">s6-ipcclient</a> <em>path</em>
-<a href="s6-fdholder-listc.html">s6-fdholder-listc</a> <em>id</em></tt>. It does nothing else: it is just a
-convenience program. The <a href="s6-ipcclient.html">s6-ipcclient</a> program connects
-to a Unix socket at <em>path</em>, and the
-<a href="s6-fdholder-listc.html">s6-fdholder-listc</a> program transmits
-the instruction over the socket, and gets and prints the result. </li>
+ <li> <tt>s6-fdholder-list</tt> connects to a
+<a href="s6-fdholderd.html">s6-fdholderd</a> server process listening on
+<em>path</em>. </li>
+ <li> It gets the list of identifiers corresponding to the currently held
+file descriptors. It prints that list to stdout, one per line. </li>
 </ul>
 
 <h2> Options </h2>
 
 <ul>
-<li> <tt>-t&nbsp;<em>timeout</em></tt>&nbsp;: if the operation cannot be
+ <li> <tt>-t&nbsp;<em>timeout</em></tt>&nbsp;: if the operation cannot be
 processed in <em>timeout</em> milliseconds, then fail with an error message.
 Communications with the server should be near-instant, so this option is
 only here to protect users against programming errors (connecting to the
 wrong socket, for instance). </li>
+</ul>
+
+<h2> Exit codes </h2>
+
+<ul>
+ <li> 0: success. </li>
+ <li> 1: the server denied the operation. The meaning of the error messages
+is explained <a href="s6-fdholder-errorcodes.html">here</a>. </li>
+ <li> 100: wrong usage. </li>
+ <li> 111: system call failed - that includes attempting to connect to a
+nonexistent socket, or one where no <a href="s6-fdholderd.html">s6-fdholderd</a>
+daemon is listening. </li>
 </ul>
 
 </body>

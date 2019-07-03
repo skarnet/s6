@@ -31,15 +31,16 @@ transfers the content of the first one to the second one.
 </pre>
 
 <ul>
- <li> s6-fdholder-transferdump executes into a more complex command line
-involving two
-<a href="s6-ipcclient.html">s6-ipcclient</a> invocations and ending with
-<a href="s6-fdholder-transferdumpc.html">s6-fdholder-transferdumpc</a>. It
-is just a convenience program: the real transfer is performed by
-<a href="s6-fdholder-transferdumpc.html">s6-fdholder-transferdumpc</a>. </li>
- <li> The file descriptor transfer will occur from the
-<a href="s6-fdholderd.html">s6-fdholderd</a> daemon listening on
-<em>pathfrom</em> to the one listening on <em>pathto</em>. </li>
+  <li> <tt>s6-fdholder-transferdump</tt> connects to a
+<a href="s6-fdholderd.html">s6-fdholderd</a> server process listening on
+<em>pathfrom</em> and gets the whole set of file descriptors from
+this server, with their identifiers and (when relevant) expiration
+dates. </li>
+ <li> It then connects to a different instance of
+<a href="s6-fdholderd.html">s6-fdholderd</a>, listening on <em>pathto</em>,
+and stores the set of file descriptors to it. The set is
+<em>added</em> to the second server, which keeps the descriptors
+it was already holding. </li>
 </ul>
 
 <h2> Options </h2>
@@ -53,6 +54,34 @@ then fail with an error message.
 Communications with the servers should be near-instant, so this option is
 only here to protect users against programming errors (connecting to the
 wrong socket, for instance). </li>
+</ul>
+
+<h2> Exit codes </h2>
+
+<ul>
+ <li> 0: success. </li>
+ <li> 1: the source server denied the operation. The meaning of the error messages
+is explained <a href="s6-fdholder-errorcodes.html">here</a>. </li>
+ <li> 2: the destination server denied the operation. The meaning of the error messages
+is explained <a href="s6-fdholder-errorcodes.html">here</a>. </li>
+ <li> 100: wrong usage. </li>
+ <li> 111: system call failed - that includes attempting to connect to a
+nonexistent socket, or one where no <a href="s6-fdholderd.html">s6-fdholderd</a>
+daemon is listening. </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> Dumping the entire state of <a href="s6-fdholderd.html">s6-fdholderd</a>
+requires special authorizations. Make sure the s6-fdholderd instances are
+<a href="s6-fdholderd.html#configuration">configured</a> to accept
+dump-getting and dump-setting requests from your client. </li>
+ <li> A typical use case of
+<a href="s6-fdholder-transferdump.html">s6-fdholder-transferdump</a> is
+when the main fd-holding daemon needs to upgrade, or restart for some reason.
+Transferring the file descriptors into another, temporary fd-holding daemon
+instance allows it to restart without losing the descriptors. </li>
 </ul>
 
 </body>
