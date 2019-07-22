@@ -1,5 +1,6 @@
 #!/bin/sh
 
+cd `dirname "$0"`
 . package/info
 
 usage () {
@@ -91,7 +92,7 @@ stripdir () {
 }
 
 tryflag () {
-  echo "checking whether compiler accepts $2 ..."
+  echo "Checking whether compiler accepts $2 ..."
   echo "typedef int x;" > "$tmpc"
   if $CC_AUTO $CPPFLAGS_AUTO $CPPFLAGS $CPPFLAGS_POST $CFLAGS_AUTO $CFLAGS $CFLAGS_POST "$2" -c -o /dev/null "$tmpc" >/dev/null 2>&1 ; then
     echo "  ... yes"
@@ -105,7 +106,7 @@ tryflag () {
 }
 
 tryldflag () {
-  echo "checking whether linker accepts $2 ..."
+  echo "Checking whether linker accepts $2 ..."
   echo "typedef int x;" > "$tmpc"
   if $CC_AUTO $CFLAGS_AUTO $CFLAGS $CFLAGS_POST $LDFLAGS_AUTO $LDFLAGS $LDFLAGS_POST -nostdlib "$2" -o /dev/null "$tmpc" >/dev/null 2>&1 ; then
     echo "  ... yes"
@@ -272,14 +273,29 @@ if test -n "$target" && test x${build} != x${target} ; then
 else
   cross=
 fi
-echo "checking for C compiler..."
-trycc ${cross}${CC}
+echo "Checking for C compiler..."
+trycc ${CC}
+if test -n "$CC_AUTO" ; then
+  b=`basename "$CC"`
+  adjust_cross=false
+  if test "$b" != "$CC" ; then
+    adjust_cross=true
+    echo "$0: warning: compiler $CC is declared with its own path. If it's not accessible via PATH, you will need to pass AR, RANLIB and STRIP make variables to the make invocation." 1>&2
+  fi
+  if test -n "$cross" ; then
+    if test "$b" = "${b##$cross}" ; then
+      echo "$0: warning: compiler $CC is declared as a cross-compiler for target $target but does not start with prefix ${cross}" 1>&2
+    elif $adjust_cross ; then
+      cross=`dirname "$CC"`/"$cross"
+    fi
+  fi
+fi
 trycc ${cross}gcc
 trycc ${cross}clang
 trycc ${cross}cc
 test -n "$CC_AUTO" || { echo "$0: cannot find a C compiler" ; exit 1 ; }
 echo "  ... $CC_AUTO"
-echo "checking whether C compiler works... "
+echo "Checking whether C compiler works... "
 echo "typedef int x;" > "$tmpc"
 if $CC_AUTO $CPPFLAGS_AUTO $CPPFLAGS $CPPFLAGS_POST $CFLAGS_AUTO $CFLAGS $CFLAGS_POST -c -o /dev/null "$tmpc" 2>"$tmpe" ; then
   echo "  ... yes"
@@ -289,7 +305,7 @@ else
   exit 1
 fi
 
-echo "checking target system type..."
+echo "Checking target system type..."
 if test -z "$target" ; then
   if test -n "$build" ; then
     target=$build ;
@@ -361,7 +377,7 @@ if test -z "$vpaths" ; then
   done < package/deps-build  
 fi
 
-echo "creating config.mak..."
+echo "Creating config.mak..."
 cmdline=$(quote "$0")
 for i ; do cmdline="$cmdline $(quote "$i")" ; done
 exec 3>&1 1>config.mak
@@ -438,7 +454,7 @@ fi
 exec 1>&3 3>&-
 echo "  ... done."
 
-echo "creating src/include/${package}/config.h..."
+echo "Creating src/include/${package}/config.h..."
 mkdir -p -m 0755 src/include/${package}
 exec 3>&1 1> src/include/${package}/config.h
 cat <<EOF
