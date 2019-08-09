@@ -4,6 +4,7 @@ In 2.9.0.0
 ----------
 
  - Bugfixes.
+ - Adaptation to skalibs-2.9.0.0.
  - The s6-fdholder-*c programs have been removed. They were unused: the
 separation between (for instance) s6-fdholder-store and s6-fdholder-storec
 added more complexity and more code than it brought benefits. The s6
