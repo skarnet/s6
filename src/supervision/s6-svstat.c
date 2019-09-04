@@ -274,7 +274,7 @@ int main (int argc, char const *const *argv)
   if (!s6_svstatus_read(argv[0], &status))
     strerr_diefu2sys(111, "read status for ", argv[0]) ;
 
-  tain_now_g() ;
+  tain_wallclock_read_g() ;
   if (tain_future(&status.stamp)) tain_copynow(&status.stamp) ;
 
   {

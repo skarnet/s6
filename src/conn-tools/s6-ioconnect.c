@@ -106,6 +106,7 @@ int main (int argc, char const *const *argv)
     if (!iobuffer_init(&b[i], a[i][0].fd, a[i][1].fd)) strerr_diefu1sys(111, "iobuffer_init") ;
   }
   if (sig_ignore(SIGPIPE) == -1) strerr_diefu1sys(111, "sig_ignore") ;
+  tain_now_set_stopwatch() ;
   tain_now_g() ;
   x[0].fd = selfpipe_init() ;
   if (x[0].fd < 0) strerr_diefu1sys(111, "selfpipe_init") ;

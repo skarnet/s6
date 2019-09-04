@@ -53,6 +53,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (!fd_sanitize() || !fd_ensure_open(2, 1))
     strerr_diefu1sys(111, "sanitize stdin/stdout/stderr") ;
 
+  tain_now_set_stopwatch() ;
   tain_now_g() ;
   tain_add_g(&deadline, &deadline) ;
   {

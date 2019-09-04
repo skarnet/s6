@@ -95,7 +95,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     tain_uint(&mintime, seconds) ;
     {
       tain_t now ;
-      tain_now(&now) ;
+      tain_wallclock_read(&now) ;
       tain_sub(&mintime, &now, &mintime) ;
     }
 

@@ -203,7 +203,8 @@ int main (int argc, char const *const *argv)
     if (selfpipe_trapset(&set) < 0)
       strerr_diefu1sys(111, "trap signals") ;
   }
-  
+
+  tain_now_set_stopwatch() ;
   tain_now_g() ;
   tain_addsec_g(&deadline, 2) ;
 

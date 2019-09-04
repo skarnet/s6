@@ -109,7 +109,7 @@ static void set_down_and_ready (char const *s, unsigned int n)
   status.pid = 0 ;
   status.flagfinishing = 0 ;
   status.flagready = 1 ;
-  tain_copynow(&status.readystamp) ;
+  tain_wallclock_read(&status.readystamp) ;
   state = DOWN ;
   if (tain_future(&dontrespawnbefore)) deadline = dontrespawnbefore ;
   else tain_copynow(&deadline) ;
@@ -310,7 +310,7 @@ static void trystart (void)
   state = UP ;
   status.pid = pid ;
   status.flagready = 0 ;
-  tain_copynow(&status.stamp) ;
+  tain_wallclock_read(&status.stamp) ;
   tain_addsec_g(&dontrespawnbefore, 1) ;
   announce() ;
   ftrigw_notifyb_nosig(S6_SUPERVISE_EVENTDIR, "u", 1) ;
@@ -354,7 +354,7 @@ static int uplastup_z (void)
   status.flagready = 0 ;
   status.flagthrottled = 0 ;
   flagdying = 0 ;
-  tain_copynow(&status.stamp) ;
+  tain_wallclock_read(&status.stamp) ;
   if (notifyfd >= 0)
   {
     fd_close(notifyfd) ;
@@ -559,7 +559,7 @@ static inline void handle_notifyfd (void)
     r = sanitize_read(fd_read(notifyfd, buf, 4096)) ;
     if (r > 0 && memchr(buf, '\n', r))
     {
-      tain_copynow(&status.readystamp) ;
+      tain_wallclock_read(&status.readystamp) ;
       status.flagready = 1 ;
       announce() ;
       ftrigw_notifyb_nosig(S6_SUPERVISE_EVENTDIR, "U", 1) ;
@@ -669,9 +669,10 @@ int main (int argc, char const *const *argv)
     else if (errno != ENOENT)
       strerr_diefu1sys(111, "access ./down") ;
 
+    tain_now_set_stopwatch() ;
     tain_now_g() ;
     settimeout(0) ;
-    tain_copynow(&status.stamp) ;
+    tain_wallclock_read(&status.stamp) ;
     status.readystamp = status.stamp ;
     announce() ;
     ftrigw_notifyb_nosig(S6_SUPERVISE_EVENTDIR, "s", 1) ;

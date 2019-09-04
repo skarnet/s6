@@ -898,18 +898,23 @@ static void script_run (scriptelem_t const *script, unsigned int scriptlen, char
   size_t hlen = 0 ;
   char hstamp[32] ;
   char tstamp[TIMESTAMP+1] ;
-  if (gflags & 1)
+  if (gflags & 3)
   {
-    timestamp_g(tstamp) ;
-    tstamp[TIMESTAMP] = ' ' ;
-  }
-  if (gflags & 2)
-  {
-    localtmn_t l ;
-    localtmn_from_tain_g(&l, 1) ;
-    hlen = localtmn_fmt(hstamp, &l) ;
-    hstamp[hlen++] = ' ' ;
-    hstamp[hlen++] = ' ' ;
+    tain_t now ;
+    tain_wallclock_read(&now) ;
+    if (gflags & 1)
+    {
+      timestamp_fmt(tstamp, &now) ;
+      tstamp[TIMESTAMP] = ' ' ;
+    }
+    if (gflags & 2)
+    {
+      localtmn_t l ;
+      localtmn_from_tain(&l, &now, 1) ;
+      hlen = localtmn_fmt(hstamp, &l) ;
+      hstamp[hlen++] = ' ' ;
+      hstamp[hlen++] = ' ' ;
+    }
   }
   
   for (; i < scriptlen ; i++)
@@ -1179,6 +1184,7 @@ int main (int argc, char const *const *argv)
   if (linelimit && linelimit < LINELIMIT_MIN) linelimit = LINELIMIT_MIN ;
   if (compat_gflags && verbosity) strerr_warnw1x("options -t and -e are deprecated") ;
   if (!fd_sanitize()) strerr_diefu1sys(111, "ensure stdin/stdout/stderr are open") ;
+  tain_now_set_stopwatch() ; /* only for timeouts; wallclock is used for timestamping */
   if (!tain_now_g() && verbosity) strerr_warnwu1sys("read current time - timestamps may be wrong for a while") ;
   if (ndelay_on(0) < 0) strerr_diefu3sys(111, "set std", "in", " non-blocking") ;
   if (ndelay_on(1) < 0) strerr_diefu3sys(111, "set std", "out", " non-blocking") ;

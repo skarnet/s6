@@ -57,6 +57,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     int p[2] = { 0, 1 } ;
     pid_t pid ;
     char c ;
+    tain_now_set_stopwatch() ;
     tain_now_g() ;
     tain_from_millisecs(&deadline, timeout) ;
     tain_add_g(&deadline, &deadline) ;

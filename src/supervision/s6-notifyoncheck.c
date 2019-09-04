@@ -140,6 +140,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (fcntl(fd, F_GETFD) < 0)
     strerr_dief2sys(111, "notification-fd", " sanity check failed") ;
 
+  tain_now_set_stopwatch() ;
   tain_now_g() ;
   tain_add_g(&globaldeadline, &globaldeadline) ;
 

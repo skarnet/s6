@@ -762,6 +762,9 @@ int main (int argc, char const *const *argv, char const *const *envp)
       fd_write(1, "\n", 1) ;
       fd_close(1) ;
     }
+
+    /* We are long-lived and have to check absolute fd deadlines,
+       so we purposefully remain in wallclock mode. */
     tain_now_g() ;
 
     for (;;)

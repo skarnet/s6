@@ -39,6 +39,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   }
   if (argc < 2) dieusage() ;
 
+  tain_now_set_stopwatch() ;
   tain_now_g() ;
   tain_add_g(&deadline, &deadline) ;
   if (!s6_fdholder_start_g(&a, argv[0], &deadline))
