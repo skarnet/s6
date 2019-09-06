@@ -1184,8 +1184,8 @@ int main (int argc, char const *const *argv)
   if (linelimit && linelimit < LINELIMIT_MIN) linelimit = LINELIMIT_MIN ;
   if (compat_gflags && verbosity) strerr_warnw1x("options -t and -e are deprecated") ;
   if (!fd_sanitize()) strerr_diefu1sys(111, "ensure stdin/stdout/stderr are open") ;
-  tain_now_set_stopwatch() ; /* only for timeouts; wallclock is used for timestamping */
-  if (!tain_now_g() && verbosity) strerr_warnwu1sys("read current time - timestamps may be wrong for a while") ;
+  if (!tain_now_set_stopwatch_g() && verbosity)
+    strerr_warnwu1sys("set monotonic clock and read current time - timestamps may be wrong for a while") ;
   if (ndelay_on(0) < 0) strerr_diefu3sys(111, "set std", "in", " non-blocking") ;
   if (ndelay_on(1) < 0) strerr_diefu3sys(111, "set std", "out", " non-blocking") ;
   script_firstpass(argv, &sellen, &actlen, &scriptlen, &gflags) ;

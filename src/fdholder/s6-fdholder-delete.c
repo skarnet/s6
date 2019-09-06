@@ -32,8 +32,7 @@ int main (int argc, char const *const *argv)
     else deadline = tain_infinite_relative ;
   }
   if (argc < 2) dieusage() ;
-  tain_now_set_stopwatch() ;
-  tain_now_g() ;
+  tain_now_set_stopwatch_g() ;
   tain_add_g(&deadline, &deadline) ;
   if (!s6_fdholder_start_g(&a, argv[0], &deadline))
     strerr_diefu2sys(111, "connect to a fd-holder daemon at ", argv[0]) ;

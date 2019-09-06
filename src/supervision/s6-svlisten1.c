@@ -45,8 +45,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     if (t) tain_from_millisecs(&tto, t) ; else tto = tain_infinite_relative ;
   }
   if (argc < 2) dieusage() ;
-  tain_now_set_stopwatch() ;
-  tain_now_g() ;
+  tain_now_set_stopwatch_g() ;
   tain_add_g(&deadline, &tto) ;
   spfd = s6_svlisten_selfpipe_init() ;
   s6_svlisten_init(1, argv, &foo, &id, &upstate, &readystate, &deadline) ;

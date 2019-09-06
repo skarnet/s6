@@ -669,8 +669,7 @@ int main (int argc, char const *const *argv)
     else if (errno != ENOENT)
       strerr_diefu1sys(111, "access ./down") ;
 
-    tain_now_set_stopwatch() ;
-    tain_now_g() ;
+    tain_now_set_stopwatch_g() ;
     settimeout(0) ;
     tain_wallclock_read(&status.stamp) ;
     status.readystamp = status.stamp ;

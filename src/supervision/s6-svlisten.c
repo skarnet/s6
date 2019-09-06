@@ -56,8 +56,7 @@ int main (int argc, char const **argv, char const *const *envp)
     strerr_warnw3x("-o is unsupported when combined with -", wantready ? "R" : "r", "- using -a instead") ;
   }
 
-  tain_now_set_stopwatch() ;
-  tain_now_g() ;
+  tain_now_set_stopwatch_g() ;
   tain_add_g(&deadline, &tto) ;
   spfd = s6_svlisten_selfpipe_init() ;
 

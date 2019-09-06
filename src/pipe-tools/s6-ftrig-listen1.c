@@ -55,8 +55,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   }
   if (argc < 3) strerr_dieusage(100, USAGE) ;
 
-  tain_now_set_stopwatch() ;
-  tain_now_g() ;
+  tain_now_set_stopwatch_g() ;
   tain_add_g(&deadline, &tto) ;
 
   if (!ftrigr_startf_g(&a, &deadline)) strerr_diefu1sys(111, "ftrigr_startf") ;

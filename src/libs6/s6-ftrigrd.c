@@ -201,8 +201,7 @@ int main (void)
 
   {
     tain_t deadline ;
-    tain_now_set_stopwatch() ;
-    tain_now_g() ;
+    tain_now_set_stopwatch_g() ;
     tain_addsec_g(&deadline, 2) ;
     if (!textclient_server_01x_init_g(FTRIGR_BANNER1, FTRIGR_BANNER1_LEN, FTRIGR_BANNER2, FTRIGR_BANNER2_LEN, &deadline))
       strerr_diefu1sys(111, "sync with client") ;

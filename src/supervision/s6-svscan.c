@@ -520,8 +520,7 @@ int main (int argc, char const *const *argv)
   {
     struct svinfo_s blob[max] ; /* careful with that stack, Eugene */
     services = blob ;
-    tain_now_set_stopwatch() ; /* now try a backwards clock jump, bitch */
-    tain_now_g() ;
+    tain_now_set_stopwatch_g() ;
 
 
     /* Loop phase.

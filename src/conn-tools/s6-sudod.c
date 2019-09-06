@@ -55,8 +55,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if ((ndelay_on(0) < 0) || (ndelay_on(1) < 0))
     strerr_diefu1sys(111, "make socket non-blocking") ;
 
-  tain_now_set_stopwatch() ;
-  tain_now_g() ;
+  tain_now_set_stopwatch_g() ;
   tain_add_g(&deadline, &deadline) ;
   buffer_putnoflush(buffer_1small, S6_SUDO_BANNERB, S6_SUDO_BANNERB_LEN) ;
   if (!buffer_timed_flush_g(buffer_1small, &deadline))

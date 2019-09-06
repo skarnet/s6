@@ -59,8 +59,7 @@ int main (int argc, char const **argv, char const *const *envp)
   argc1 = el_semicolon(argv) ;
   if (!argc1 || (argc1 & 1) || (argc == argc1 + 1)) dieusage() ;
   if (argc1 >= argc) strerr_dief1x(100, "unterminated fifodir+regex block") ;
-  tain_now_set_stopwatch() ;
-  tain_now_g() ;
+  tain_now_set_stopwatch_g() ;
   tain_add_g(&deadline, &tto) ;
   x[0].fd = selfpipe_init() ;
   if (x[0].fd < 0) strerr_diefu1sys(111, "selfpipe_init") ;
