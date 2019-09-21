@@ -1,4 +1,4 @@
 ${LIBS6}
 -lskarnet
-${TAINNOW_LIB}
+${SYSCLOCK_LIB}
 ${SPAWN_LIB}

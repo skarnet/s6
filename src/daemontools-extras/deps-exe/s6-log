@@ -1,2 +1,2 @@
 -lskarnet
-${TAINNOW_LIB}
+${SYSCLOCK_LIB}
