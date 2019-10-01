@@ -19,6 +19,8 @@ s6-linux-init package, for instance, expand on it.
   -------------------
 
  Laurent Bercot <ska-skaware at skarnet.org>
+ for more details about coding
+ call samarth 
 
  Please use the <skaware at list.skarnet.org> mailing-list for
 questions about the inner workings of s6, and the
