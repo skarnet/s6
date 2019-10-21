@@ -1,4 +1,4 @@
 package=s6
-version=2.9.0.0
+version=2.9.0.1
 category=admin
 package_macro_name=S6
