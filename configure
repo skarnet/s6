@@ -406,7 +406,7 @@ SYSCLOCK_LIB := ${sysclock_lib}
 TIMER_LIB := ${timer_lib}
 UTIL_LIB := ${util_lib}
 
-CC := ${CC_AUTO##${cross}}
+CC := $CC_AUTO
 CPPFLAGS_AUTO := $CPPFLAGS_AUTO
 CPPFLAGS := $CPPFLAGS $CPPFLAGS_POST
 CFLAGS_AUTO := $CFLAGS_AUTO
