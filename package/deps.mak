@@ -133,72 +133,72 @@ src/supervision/s6-svwait.o src/supervision/s6-svwait.lo: src/supervision/s6-svw
 src/supervision/s6_svlisten_loop.o src/supervision/s6_svlisten_loop.lo: src/supervision/s6_svlisten_loop.c src/supervision/s6-svlisten.h src/include/s6/ftrigr.h src/include/s6/s6-supervise.h
 src/supervision/s6_svlisten_signal_handler.o src/supervision/s6_svlisten_signal_handler.lo: src/supervision/s6_svlisten_signal_handler.c src/supervision/s6-svlisten.h
 
-s6-accessrules-cdb-from-fs: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
-s6-accessrules-cdb-from-fs: src/conn-tools/s6-accessrules-cdb-from-fs.o -lskarnet
-s6-accessrules-fs-from-cdb: EXTRA_LIBS :=
-s6-accessrules-fs-from-cdb: src/conn-tools/s6-accessrules-fs-from-cdb.o -lskarnet
-s6-connlimit: EXTRA_LIBS :=
-s6-connlimit: src/conn-tools/s6-connlimit.o -lskarnet
-s6-ioconnect: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
-s6-ioconnect: src/conn-tools/s6-ioconnect.o -lskarnet
-s6-ipcclient: EXTRA_LIBS := ${SOCKET_LIB}
-s6-ipcclient: src/conn-tools/s6-ipcclient.o -lskarnet
-s6-ipcserver: EXTRA_LIBS :=
-s6-ipcserver: src/conn-tools/s6-ipcserver.o -lskarnet
-s6-ipcserver-access: EXTRA_LIBS := ${SOCKET_LIB}
-s6-ipcserver-access: src/conn-tools/s6-ipcserver-access.o ${LIBS6} -lskarnet
-s6-ipcserver-socketbinder: EXTRA_LIBS := ${SOCKET_LIB}
-s6-ipcserver-socketbinder: src/conn-tools/s6-ipcserver-socketbinder.o -lskarnet
-s6-ipcserverd: EXTRA_LIBS := ${SOCKET_LIB}
-s6-ipcserverd: src/conn-tools/s6-ipcserverd.o -lskarnet
-s6-sudo: EXTRA_LIBS :=
-s6-sudo: src/conn-tools/s6-sudo.o -lskarnet
-s6-sudoc: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
-s6-sudoc: src/conn-tools/s6-sudoc.o -lskarnet
-s6-sudod: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
-s6-sudod: src/conn-tools/s6-sudod.o -lskarnet
-s6-applyuidgid: EXTRA_LIBS :=
-s6-applyuidgid: src/daemontools-extras/s6-applyuidgid.o -lskarnet
-s6-envdir: EXTRA_LIBS :=
-s6-envdir: src/daemontools-extras/s6-envdir.o -lskarnet
-s6-envuidgid: EXTRA_LIBS := ${MAYBEPTHREAD_LIB}
-s6-envuidgid: src/daemontools-extras/s6-envuidgid.o ${LIBNSSS} -lskarnet
-s6-fghack: EXTRA_LIBS :=
-s6-fghack: src/daemontools-extras/s6-fghack.o -lskarnet
-s6-log: EXTRA_LIBS := ${SYSCLOCK_LIB}
-s6-log: src/daemontools-extras/s6-log.o -lskarnet
-s6-setlock: EXTRA_LIBS := ${SYSCLOCK_LIB} ${SPAWN_LIB}
-s6-setlock: src/daemontools-extras/s6-setlock.o -lskarnet
-s6-setsid: EXTRA_LIBS :=
-s6-setsid: src/daemontools-extras/s6-setsid.o -lskarnet
-s6-setuidgid: EXTRA_LIBS :=
-s6-setuidgid: src/daemontools-extras/s6-setuidgid.o -lskarnet
-s6-softlimit: EXTRA_LIBS :=
-s6-softlimit: src/daemontools-extras/s6-softlimit.o -lskarnet
-s6-tai64n: EXTRA_LIBS := ${SYSCLOCK_LIB}
-s6-tai64n: src/daemontools-extras/s6-tai64n.o -lskarnet
-s6-tai64nlocal: EXTRA_LIBS :=
-s6-tai64nlocal: src/daemontools-extras/s6-tai64nlocal.o -lskarnet
-ucspilogd: EXTRA_LIBS :=
-ucspilogd: src/daemontools-extras/ucspilogd.o -lskarnet
-s6-fdholder-daemon: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
-s6-fdholder-daemon: src/fdholder/s6-fdholder-daemon.o ${LIBS6} -lskarnet
-s6-fdholder-delete: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
-s6-fdholder-delete: src/fdholder/s6-fdholder-delete.o ${LIBS6} -lskarnet
-s6-fdholder-getdump: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
-s6-fdholder-getdump: src/fdholder/s6-fdholder-getdump.o ${LIBS6} -lskarnet
-s6-fdholder-list: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
-s6-fdholder-list: src/fdholder/s6-fdholder-list.o ${LIBS6} -lskarnet
-s6-fdholder-retrieve: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
-s6-fdholder-retrieve: src/fdholder/s6-fdholder-retrieve.o ${LIBS6} -lskarnet
-s6-fdholder-setdump: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
-s6-fdholder-setdump: src/fdholder/s6-fdholder-setdump.o ${LIBS6} -lskarnet
-s6-fdholder-store: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
-s6-fdholder-store: src/fdholder/s6-fdholder-store.o ${LIBS6} -lskarnet
-s6-fdholder-transferdump: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
-s6-fdholder-transferdump: src/fdholder/s6-fdholder-transferdump.o ${LIBS6} -lskarnet
-s6-fdholderd: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
-s6-fdholderd: src/fdholder/s6-fdholderd.o ${LIBS6} -lskarnet
+s6-accessrules-cdb-from-fs: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
+s6-accessrules-cdb-from-fs: src/conn-tools/s6-accessrules-cdb-from-fs.o
+s6-accessrules-fs-from-cdb: EXTRA_LIBS := -lskarnet
+s6-accessrules-fs-from-cdb: src/conn-tools/s6-accessrules-fs-from-cdb.o
+s6-connlimit: EXTRA_LIBS := -lskarnet
+s6-connlimit: src/conn-tools/s6-connlimit.o
+s6-ioconnect: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
+s6-ioconnect: src/conn-tools/s6-ioconnect.o
+s6-ipcclient: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
+s6-ipcclient: src/conn-tools/s6-ipcclient.o
+s6-ipcserver: EXTRA_LIBS := -lskarnet
+s6-ipcserver: src/conn-tools/s6-ipcserver.o
+s6-ipcserver-access: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
+s6-ipcserver-access: src/conn-tools/s6-ipcserver-access.o ${LIBS6}
+s6-ipcserver-socketbinder: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
+s6-ipcserver-socketbinder: src/conn-tools/s6-ipcserver-socketbinder.o
+s6-ipcserverd: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
+s6-ipcserverd: src/conn-tools/s6-ipcserverd.o
+s6-sudo: EXTRA_LIBS := -lskarnet
+s6-sudo: src/conn-tools/s6-sudo.o
+s6-sudoc: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
+s6-sudoc: src/conn-tools/s6-sudoc.o
+s6-sudod: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
+s6-sudod: src/conn-tools/s6-sudod.o
+s6-applyuidgid: EXTRA_LIBS := -lskarnet
+s6-applyuidgid: src/daemontools-extras/s6-applyuidgid.o
+s6-envdir: EXTRA_LIBS := -lskarnet
+s6-envdir: src/daemontools-extras/s6-envdir.o
+s6-envuidgid: EXTRA_LIBS := -lskarnet ${MAYBEPTHREAD_LIB}
+s6-envuidgid: src/daemontools-extras/s6-envuidgid.o ${LIBNSSS}
+s6-fghack: EXTRA_LIBS := -lskarnet
+s6-fghack: src/daemontools-extras/s6-fghack.o
+s6-log: EXTRA_LIBS := -lskarnet ${SYSCLOCK_LIB}
+s6-log: src/daemontools-extras/s6-log.o
+s6-setlock: EXTRA_LIBS := -lskarnet ${SYSCLOCK_LIB} ${SPAWN_LIB}
+s6-setlock: src/daemontools-extras/s6-setlock.o
+s6-setsid: EXTRA_LIBS := -lskarnet
+s6-setsid: src/daemontools-extras/s6-setsid.o
+s6-setuidgid: EXTRA_LIBS := -lskarnet
+s6-setuidgid: src/daemontools-extras/s6-setuidgid.o
+s6-softlimit: EXTRA_LIBS := -lskarnet
+s6-softlimit: src/daemontools-extras/s6-softlimit.o
+s6-tai64n: EXTRA_LIBS := -lskarnet ${SYSCLOCK_LIB}
+s6-tai64n: src/daemontools-extras/s6-tai64n.o
+s6-tai64nlocal: EXTRA_LIBS := -lskarnet
+s6-tai64nlocal: src/daemontools-extras/s6-tai64nlocal.o
+ucspilogd: EXTRA_LIBS := -lskarnet
+ucspilogd: src/daemontools-extras/ucspilogd.o
+s6-fdholder-daemon: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
+s6-fdholder-daemon: src/fdholder/s6-fdholder-daemon.o ${LIBS6}
+s6-fdholder-delete: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
+s6-fdholder-delete: src/fdholder/s6-fdholder-delete.o ${LIBS6}
+s6-fdholder-getdump: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
+s6-fdholder-getdump: src/fdholder/s6-fdholder-getdump.o ${LIBS6}
+s6-fdholder-list: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
+s6-fdholder-list: src/fdholder/s6-fdholder-list.o ${LIBS6}
+s6-fdholder-retrieve: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
+s6-fdholder-retrieve: src/fdholder/s6-fdholder-retrieve.o ${LIBS6}
+s6-fdholder-setdump: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
+s6-fdholder-setdump: src/fdholder/s6-fdholder-setdump.o ${LIBS6}
+s6-fdholder-store: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
+s6-fdholder-store: src/fdholder/s6-fdholder-store.o ${LIBS6}
+s6-fdholder-transferdump: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
+s6-fdholder-transferdump: src/fdholder/s6-fdholder-transferdump.o ${LIBS6}
+s6-fdholderd: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
+s6-fdholderd: src/fdholder/s6-fdholderd.o ${LIBS6}
 ifeq ($(strip $(STATIC_LIBS_ARE_PIC)),)
 libs6.a.xyzzy: src/libs6/ftrigr1_zero.o src/libs6/ftrigr_check.o src/libs6/ftrigr_checksa.o src/libs6/ftrigr_ack.o src/libs6/ftrigr_end.o src/libs6/ftrigr_start.o src/libs6/ftrigr_startf.o src/libs6/ftrigr_subscribe.o src/libs6/ftrigr_unsubscribe.o src/libs6/ftrigr_update.o src/libs6/ftrigr_updateb.o src/libs6/ftrigr_wait_and.o src/libs6/ftrigr_wait_or.o src/libs6/ftrigr_zero.o src/libs6/ftrigw_clean.o src/libs6/ftrigw_fifodir_make.o src/libs6/ftrigw_notify.o src/libs6/ftrigw_notifyb.o src/libs6/ftrigw_notifyb_nosig.o src/libs6/s6_accessrules_backend_cdb.o src/libs6/s6_accessrules_backend_fs.o src/libs6/s6_accessrules_keycheck_ip4.o src/libs6/s6_accessrules_keycheck_ip6.o src/libs6/s6_accessrules_keycheck_reversedns.o src/libs6/s6_accessrules_keycheck_uidgid.o src/libs6/s6_accessrules_params_free.o src/libs6/s6_accessrules_uidgid_cdb.o src/libs6/s6_accessrules_uidgid_fs.o src/libs6/s6_supervise_lock.o src/libs6/s6_supervise_lock_mode.o src/libs6/s6_dtally_pack.o src/libs6/s6_dtally_unpack.o src/libs6/s6_dtally_read.o src/libs6/s6_dtally_write.o src/libs6/s6_svc_lock_take.o src/libs6/s6_svc_lock_release.o src/libs6/s6_svc_ok.o src/libs6/s6_svc_write.o src/libs6/s6_svc_writectl.o src/libs6/s6_svstatus_pack.o src/libs6/s6_svstatus_read.o src/libs6/s6_svstatus_unpack.o src/libs6/s6_svstatus_write.o src/libs6/s6lock_acquire.o src/libs6/s6lock_check.o src/libs6/s6lock_end.o src/libs6/s6lock_release.o src/libs6/s6lock_start.o src/libs6/s6lock_startf.o src/libs6/s6lock_update.o src/libs6/s6lock_wait_and.o src/libs6/s6lock_wait_or.o src/libs6/s6lock_zero.o src/libs6/s6_fdholder_delete.o src/libs6/s6_fdholder_delete_async.o src/libs6/s6_fdholder_end.o src/libs6/s6_fdholder_getdump.o src/libs6/s6_fdholder_list.o src/libs6/s6_fdholder_list_async.o src/libs6/s6_fdholder_list_cb.o src/libs6/s6_fdholder_retrieve.o src/libs6/s6_fdholder_retrieve_async.o src/libs6/s6_fdholder_retrieve_cb.o src/libs6/s6_fdholder_setdump.o src/libs6/s6_fdholder_start.o src/libs6/s6_fdholder_store.o src/libs6/s6_fdholder_store_async.o
 else
@@ -206,47 +206,47 @@ libs6.a.xyzzy: src/libs6/ftrigr1_zero.lo src/libs6/ftrigr_check.lo src/libs6/ftr
 endif
 libs6.so.xyzzy: EXTRA_LIBS := -lskarnet
 libs6.so.xyzzy: src/libs6/ftrigr1_zero.lo src/libs6/ftrigr_check.lo src/libs6/ftrigr_checksa.lo src/libs6/ftrigr_ack.lo src/libs6/ftrigr_end.lo src/libs6/ftrigr_start.lo src/libs6/ftrigr_startf.lo src/libs6/ftrigr_subscribe.lo src/libs6/ftrigr_unsubscribe.lo src/libs6/ftrigr_update.lo src/libs6/ftrigr_updateb.lo src/libs6/ftrigr_wait_and.lo src/libs6/ftrigr_wait_or.lo src/libs6/ftrigr_zero.lo src/libs6/ftrigw_clean.lo src/libs6/ftrigw_fifodir_make.lo src/libs6/ftrigw_notify.lo src/libs6/ftrigw_notifyb.lo src/libs6/ftrigw_notifyb_nosig.lo src/libs6/s6_accessrules_backend_cdb.lo src/libs6/s6_accessrules_backend_fs.lo src/libs6/s6_accessrules_keycheck_ip4.lo src/libs6/s6_accessrules_keycheck_ip6.lo src/libs6/s6_accessrules_keycheck_reversedns.lo src/libs6/s6_accessrules_keycheck_uidgid.lo src/libs6/s6_accessrules_params_free.lo src/libs6/s6_accessrules_uidgid_cdb.lo src/libs6/s6_accessrules_uidgid_fs.lo src/libs6/s6_supervise_lock.lo src/libs6/s6_supervise_lock_mode.lo src/libs6/s6_dtally_pack.lo src/libs6/s6_dtally_unpack.lo src/libs6/s6_dtally_read.lo src/libs6/s6_dtally_write.lo src/libs6/s6_svc_lock_take.lo src/libs6/s6_svc_lock_release.lo src/libs6/s6_svc_ok.lo src/libs6/s6_svc_write.lo src/libs6/s6_svc_writectl.lo src/libs6/s6_svstatus_pack.lo src/libs6/s6_svstatus_read.lo src/libs6/s6_svstatus_unpack.lo src/libs6/s6_svstatus_write.lo src/libs6/s6lock_acquire.lo src/libs6/s6lock_check.lo src/libs6/s6lock_end.lo src/libs6/s6lock_release.lo src/libs6/s6lock_start.lo src/libs6/s6lock_startf.lo src/libs6/s6lock_update.lo src/libs6/s6lock_wait_and.lo src/libs6/s6lock_wait_or.lo src/libs6/s6lock_zero.lo src/libs6/s6_fdholder_delete.lo src/libs6/s6_fdholder_delete_async.lo src/libs6/s6_fdholder_end.lo src/libs6/s6_fdholder_getdump.lo src/libs6/s6_fdholder_list.lo src/libs6/s6_fdholder_list_async.lo src/libs6/s6_fdholder_list_cb.lo src/libs6/s6_fdholder_retrieve.lo src/libs6/s6_fdholder_retrieve_async.lo src/libs6/s6_fdholder_retrieve_cb.lo src/libs6/s6_fdholder_setdump.lo src/libs6/s6_fdholder_start.lo src/libs6/s6_fdholder_store.lo src/libs6/s6_fdholder_store_async.lo
-s6-ftrigrd: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
-s6-ftrigrd: src/libs6/s6-ftrigrd.o src/libs6/ftrig1_free.o src/libs6/ftrig1_make.o -lskarnet
-s6lockd: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
-s6lockd: src/libs6/s6lockd.o -lskarnet
-s6lockd-helper: EXTRA_LIBS :=
-s6lockd-helper: src/libs6/s6lockd-helper.o -lskarnet
-s6-cleanfifodir: EXTRA_LIBS :=
-s6-cleanfifodir: src/pipe-tools/s6-cleanfifodir.o ${LIBS6} -lskarnet
-s6-ftrig-listen: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
-s6-ftrig-listen: src/pipe-tools/s6-ftrig-listen.o ${LIBS6} -lexecline -lskarnet
-s6-ftrig-listen1: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
-s6-ftrig-listen1: src/pipe-tools/s6-ftrig-listen1.o ${LIBS6} -lskarnet
-s6-ftrig-notify: EXTRA_LIBS :=
-s6-ftrig-notify: src/pipe-tools/s6-ftrig-notify.o ${LIBS6} -lskarnet
-s6-ftrig-wait: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
-s6-ftrig-wait: src/pipe-tools/s6-ftrig-wait.o ${LIBS6} -lskarnet
-s6-mkfifodir: EXTRA_LIBS :=
-s6-mkfifodir: src/pipe-tools/s6-mkfifodir.o ${LIBS6} -lskarnet
-s6-notifyoncheck: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
-s6-notifyoncheck: src/supervision/s6-notifyoncheck.o ${LIBS6} -lskarnet
-s6-permafailon: EXTRA_LIBS := ${SYSCLOCK_LIB}
-s6-permafailon: src/supervision/s6-permafailon.o ${LIBS6} -lskarnet
-s6-supervise: EXTRA_LIBS := ${SYSCLOCK_LIB}
-s6-supervise: src/supervision/s6-supervise.o ${LIBS6} -lskarnet
-s6-svc: EXTRA_LIBS :=
-s6-svc: src/supervision/s6-svc.o ${LIBS6} -lskarnet
-s6-svdt: EXTRA_LIBS :=
-s6-svdt: src/supervision/s6-svdt.o ${LIBS6} -lskarnet
-s6-svdt-clear: EXTRA_LIBS :=
-s6-svdt-clear: src/supervision/s6-svdt-clear.o ${LIBS6} -lskarnet
-s6-svlisten: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
-s6-svlisten: src/supervision/s6-svlisten.o src/supervision/s6_svlisten_signal_handler.o src/supervision/s6_svlisten_loop.o ${LIBS6} -lexecline -lskarnet
-s6-svlisten1: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
-s6-svlisten1: src/supervision/s6-svlisten1.o src/supervision/s6_svlisten_signal_handler.o src/supervision/s6_svlisten_loop.o ${LIBS6} -lskarnet
-s6-svok: EXTRA_LIBS :=
-s6-svok: src/supervision/s6-svok.o ${LIBS6} -lskarnet
-s6-svscan: EXTRA_LIBS := ${SYSCLOCK_LIB} ${SPAWN_LIB}
-s6-svscan: src/supervision/s6-svscan.o ${LIBS6} -lskarnet
-s6-svscanctl: EXTRA_LIBS :=
-s6-svscanctl: src/supervision/s6-svscanctl.o ${LIBS6} -lskarnet
-s6-svstat: EXTRA_LIBS := ${SYSCLOCK_LIB}
-s6-svstat: src/supervision/s6-svstat.o ${LIBS6} -lskarnet
-s6-svwait: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
-s6-svwait: src/supervision/s6-svwait.o src/supervision/s6_svlisten_loop.o ${LIBS6} -lskarnet
+s6-ftrigrd: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
+s6-ftrigrd: src/libs6/s6-ftrigrd.o src/libs6/ftrig1_free.o src/libs6/ftrig1_make.o
+s6lockd: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
+s6lockd: src/libs6/s6lockd.o
+s6lockd-helper: EXTRA_LIBS := -lskarnet
+s6lockd-helper: src/libs6/s6lockd-helper.o
+s6-cleanfifodir: EXTRA_LIBS := -lskarnet
+s6-cleanfifodir: src/pipe-tools/s6-cleanfifodir.o ${LIBS6}
+s6-ftrig-listen: EXTRA_LIBS := -lexecline -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
+s6-ftrig-listen: src/pipe-tools/s6-ftrig-listen.o ${LIBS6}
+s6-ftrig-listen1: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
+s6-ftrig-listen1: src/pipe-tools/s6-ftrig-listen1.o ${LIBS6}
+s6-ftrig-notify: EXTRA_LIBS := -lskarnet
+s6-ftrig-notify: src/pipe-tools/s6-ftrig-notify.o ${LIBS6}
+s6-ftrig-wait: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
+s6-ftrig-wait: src/pipe-tools/s6-ftrig-wait.o ${LIBS6}
+s6-mkfifodir: EXTRA_LIBS := -lskarnet
+s6-mkfifodir: src/pipe-tools/s6-mkfifodir.o ${LIBS6}
+s6-notifyoncheck: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
+s6-notifyoncheck: src/supervision/s6-notifyoncheck.o ${LIBS6}
+s6-permafailon: EXTRA_LIBS := -lskarnet ${SYSCLOCK_LIB}
+s6-permafailon: src/supervision/s6-permafailon.o ${LIBS6}
+s6-supervise: EXTRA_LIBS := -lskarnet ${SYSCLOCK_LIB}
+s6-supervise: src/supervision/s6-supervise.o ${LIBS6}
+s6-svc: EXTRA_LIBS := -lskarnet
+s6-svc: src/supervision/s6-svc.o ${LIBS6}
+s6-svdt: EXTRA_LIBS := -lskarnet
+s6-svdt: src/supervision/s6-svdt.o ${LIBS6}
+s6-svdt-clear: EXTRA_LIBS := -lskarnet
+s6-svdt-clear: src/supervision/s6-svdt-clear.o ${LIBS6}
+s6-svlisten: EXTRA_LIBS := -lexecline -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
+s6-svlisten: src/supervision/s6-svlisten.o src/supervision/s6_svlisten_signal_handler.o src/supervision/s6_svlisten_loop.o ${LIBS6}
+s6-svlisten1: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
+s6-svlisten1: src/supervision/s6-svlisten1.o src/supervision/s6_svlisten_signal_handler.o src/supervision/s6_svlisten_loop.o ${LIBS6}
+s6-svok: EXTRA_LIBS := -lskarnet
+s6-svok: src/supervision/s6-svok.o ${LIBS6}
+s6-svscan: EXTRA_LIBS := -lskarnet ${SYSCLOCK_LIB} ${SPAWN_LIB}
+s6-svscan: src/supervision/s6-svscan.o ${LIBS6}
+s6-svscanctl: EXTRA_LIBS := -lskarnet
+s6-svscanctl: src/supervision/s6-svscanctl.o ${LIBS6}
+s6-svstat: EXTRA_LIBS := -lskarnet ${SYSCLOCK_LIB}
+s6-svstat: src/supervision/s6-svstat.o ${LIBS6}
+s6-svwait: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
+s6-svwait: src/supervision/s6-svwait.o src/supervision/s6_svlisten_loop.o ${LIBS6}
