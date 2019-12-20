@@ -75,7 +75,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
 {
   ftrigr_t a = FTRIGR_ZERO ;
   iopause_fd x[2] = { { .events = IOPAUSE_READ }, { .events = IOPAUSE_READ } } ;
-  char const *childargv[4] = { EXECLINE_EXTBINPREFIX "execlineb", "-c", 0, 0 } ;
+  char const *childargv[4] = { EXECLINE_EXTBINPREFIX "execlineb", "-Pc", 0, 0 } ;
   char const *checkprog = 0 ;
   unsigned int fd ;
   int df = 0 ;
