@@ -18,6 +18,18 @@
 
 <h1> What has changed in s6 </h1>
 
+<h2> in 2.9.1.0 </h2>
+
+<ul>
+ <li> The <a href="//skarnet.org/software/execline/">execline</a>
+dependency is now optional, and can be disabled via the <tt>--disable-execline</tt>
+option to configure. Functionality that depends on execline in s6 binaries is
+disabled when execline support is disabled. </li>
+ <li> A new '?' directive has been added to <a href="s6-log.html">s6-log</a>,
+it declares a processor command line that is spawned with the <tt>/bin/sh</tt>
+interpreter. </li>
+</ul>
+
 <h2> in 2.9.0.1 </h2>
 
 <ul>

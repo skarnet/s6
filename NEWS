@@ -1,5 +1,14 @@
 Changelog for s6.
 
+In 2.9.1.0
+----------
+
+ - Bugfixes.
+ - execline support is now optional. Some functionality is not available
+when execline support is disabled.
+ - New '?' directive to s6-log, to spawn a processor with /bin/sh.
+
+
 In 2.9.0.1
 ----------
 

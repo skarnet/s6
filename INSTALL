@@ -7,7 +7,7 @@ Build Instructions
   - A POSIX-compliant C development environment
   - GNU make version 3.81 or later
   - skalibs version 2.9.1.0 or later: http://skarnet.org/software/skalibs/
-  - execline version 2.5.3.0 or later: http://skarnet.org/software/execline/
+  - Optional: execline version 2.5.3.0 or later: http://skarnet.org/software/execline/
 
  This software will run on any operating system that implements
 POSIX.1-2008, available at:
@@ -39,6 +39,7 @@ off them.
 
  You can customize paths via flags given to configure.
  See ./configure --help for a list of all available configure options.
+ The execline dependency can be removed with --disable-execline.
 
 
 * Environment variables
