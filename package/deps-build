@@ -1,3 +1,3 @@
 /package/prog/skalibs
 /package/admin/nsss $usensss
-/package/admin/execline
+/package/admin/execline $useexecline

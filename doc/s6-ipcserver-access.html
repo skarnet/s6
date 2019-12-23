@@ -168,7 +168,10 @@ is modified according to the contents of <tt>env</tt>. </li>
  <li> An <tt>exec</tt> file containing <em>newprog</em> completely
 bypasses the rest of s6-ipcserver-access' command line. After
 environment modifications, if any, s6-ipcserver-access execs into
-<tt><a href="//skarnet.org/software/execline/execlineb.html">execlineb</a> -c <em>newprog</em></tt>. </li>
+<tt><a href="//skarnet.org/software/execline/execlineb.html">execlineb</a> -c <em>newprog</em></tt>.
+Please be aware that the <tt>exec</tt> file functionality is only supported
+when s6 has been built with execline support. Otherwise, a warning message
+is printed and executable diversion is <em>not</em> performed. </li>
 </ul>
 
 </body>

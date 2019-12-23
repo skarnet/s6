@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <signal.h>
 #include <unistd.h>
+
 #include <skalibs/sgetopt.h>
 #include <skalibs/types.h>
 #include <skalibs/strerr2.h>
@@ -12,7 +13,8 @@
 #include <skalibs/djbunix.h>
 #include <skalibs/sig.h>
 #include <skalibs/selfpipe.h>
-#include <execline/execline.h>
+
+#include <s6/compat.h>
 #include <s6/ftrigr.h>
 
 #define USAGE "s6-ftrig-listen [ -a | -o ] [ -t timeout ] fifodir1 regexp1 ... \"\" prog..."
@@ -56,7 +58,7 @@ int main (int argc, char const **argv, char const *const *envp)
     argc -= subgetopt_here.ind ; argv += subgetopt_here.ind ;
   }
   if (argc < 4) dieusage() ;
-  argc1 = el_semicolon(argv) ;
+  argc1 = s6_el_semicolon(argv) ;
   if (!argc1 || (argc1 & 1) || (argc == argc1 + 1)) dieusage() ;
   if (argc1 >= argc) strerr_dief1x(100, "unterminated fifodir+regex block") ;
   tain_now_set_stopwatch_g() ;

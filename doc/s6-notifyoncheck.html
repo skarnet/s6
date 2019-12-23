@@ -114,7 +114,10 @@ instead of <tt>./data/check</tt>. The <em>checkprog</em> string will be parsed b
 can contain a full command line. This option is mainly useful is the program
 used to poll the service is very simple and can be inlined as a simple
 command line, to avoid needing to manage a whole script and a <tt>./data/check</tt>
-file. </li>
+file. This option is only supported if the
+<a href="//skarnet.org/software/execline/">execline</a> package is installed;
+if it is not, the <tt>-c</tt> option cannot be used and the checking
+script must always be placed in <tt>./data/check</tt>. </li>
 </ul>
 
 <h2> Usage </h2>

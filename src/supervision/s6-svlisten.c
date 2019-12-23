@@ -1,13 +1,15 @@
 /* ISC license. */
 
 #include <stdint.h>
+
 #include <skalibs/sgetopt.h>
 #include <skalibs/types.h>
 #include <skalibs/bitarray.h>
 #include <skalibs/tai.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/djbunix.h>
-#include <execline/execline.h>
+
+#include <s6/compat.h>
 #include "s6-svlisten.h"
 
 #define USAGE "s6-svlisten [ -U | -u | -d | -D | -r | -R ] [ -a | -o ] [ -t timeout ] servicedir... \"\" prog..."
@@ -46,8 +48,7 @@ int main (int argc, char const **argv, char const *const *envp)
     if (t) tain_from_millisecs(&tto, t) ; else tto = tain_infinite_relative ;
   }
   if (argc < 3) dieusage() ;
-
-  argc1 = el_semicolon(argv) ;
+  argc1 = s6_el_semicolon(argv) ;
   if (!argc1 || argc == argc1 + 1) dieusage() ;
   if (argc1 >= argc) strerr_dief1x(100, "unterminated servicedir block") ;
   if (wantrestart && or)

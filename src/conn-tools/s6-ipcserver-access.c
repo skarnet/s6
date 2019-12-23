@@ -11,8 +11,13 @@
 #include <skalibs/env.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/webipc.h>
-#include <execline/config.h>
+
+#include <s6/config.h>
 #include <s6/accessrules.h>
+
+#ifdef S6_USE_EXECLINE
+#include <execline/config.h>
+#endif
 
 #define USAGE "s6-ipcserver-access [ -v verbosity ] [ -e | -E ] [ -l localname ] [ -i rulesdir | -x rulesfile ] prog..."
 
@@ -204,9 +209,13 @@ int main (int argc, char const *const *argv, char const *const *envp)
   }
 
   if (params.exec.len)
+#ifdef S6_USE_EXECLINE
   {
     char *specialargv[4] = { EXECLINE_EXTBINPREFIX "execlineb", "-Pc", params.exec.s, 0 } ;
     xpathexec_r((char const *const *)specialargv, envp, env_len(envp), params.env.s, params.env.len) ;
   }
-  else xpathexec_r(argv, envp, env_len(envp), params.env.s, params.env.len) ;
+#else
+  strerr_warnw1x("exec file found but ignored because s6 was compiled without execline support!") ;
+#endif
+  xpathexec_r(argv, envp, env_len(envp), params.env.s, params.env.len) ;
 }

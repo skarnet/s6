@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <limits.h>
 #include <sys/wait.h>
+
 #include <skalibs/types.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/bytestr.h>
@@ -15,11 +16,18 @@
 #include <skalibs/djbunix.h>
 #include <skalibs/selfpipe.h>
 #include <skalibs/iopause.h>
-#include <execline/config.h>
-#include <s6/s6-supervise.h>
-#include <s6/ftrigr.h>
 
+#include <s6/s6.h>
+
+#ifdef S6_USE_EXECLINE
+#include <execline/config.h>
 #define USAGE "s6-notifyoncheck [ -d ] [ -3 fd ] [ -s initialsleep ] [ -T globaltimeout ] [ -t localtimeout ] [ -w waitingtime ] [ -n tries ] [ -c \"checkprog...\" ] prog..."
+#define OPTIONS "d3:s:T:t:w:n:c:"
+#else
+#define USAGE "s6-notifyoncheck [ -d ] [ -3 fd ] [ -s initialsleep ] [ -T globaltimeout ] [ -t localtimeout ] [ -w waitingtime ] [ -n tries ] prog..."
+#define OPTIONS "d3:s:T:t:w:n:"
+#endif
+
 #define dieusage() strerr_dieusage(100, USAGE)
 
 
@@ -70,13 +78,14 @@ static int handle_event (ftrigr_t *a, uint16_t id, pid_t pid)
   return 0 ;
 }
 
-
 int main (int argc, char const *const *argv, char const *const *envp)
 {
   ftrigr_t a = FTRIGR_ZERO ;
   iopause_fd x[2] = { { .events = IOPAUSE_READ }, { .events = IOPAUSE_READ } } ;
-  char const *childargv[4] = { EXECLINE_EXTBINPREFIX "execlineb", "-Pc", 0, 0 } ;
+  char const *childargv[4] = { "./data/check", 0, 0, 0 } ;
+#ifdef S6_USE_EXECLINE
   char const *checkprog = 0 ;
+#endif
   unsigned int fd ;
   int df = 0 ;
   int autodetect = 1 ;
@@ -91,7 +100,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     unsigned int initialsleep = 10, globaltimeout = 0, localtimeout = 0, waitingtime = 1000 ;
     for (;;)
     {
-      int opt = subgetopt_r(argc, argv, "d3:s:T:t:w:n:c:", &l) ;
+      int opt = subgetopt_r(argc, argv, OPTIONS, &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -102,7 +111,9 @@ int main (int argc, char const *const *argv, char const *const *envp)
         case 't' : if (!uint0_scan(l.arg, &localtimeout)) dieusage() ; break ;
         case 'w' : if (!uint0_scan(l.arg, &waitingtime)) dieusage() ; break ;
         case 'n' : if (!uint0_scan(l.arg, &tries)) dieusage() ; break ;
+#ifdef S6_USE_EXECLINE
         case 'c' : checkprog = l.arg ; break ;
+#endif
         default : dieusage() ;
       }
     }
@@ -124,12 +135,14 @@ int main (int argc, char const *const *argv, char const *const *envp)
     if (r < 0) strerr_diefu1sys(111, "sanity-check current service directory") ;
     if (!r) strerr_dief1x(100, "s6-supervise not running.") ;
   }
-  if (checkprog) childargv[2] = checkprog ;
-  else
+#ifdef S6_USE_EXECLINE
+  if (checkprog)
   {
-    childargv[0] = "./data/check" ;
-    childargv[1] = 0 ;
+    childargv[0] = EXECLINE_EXTBINPREFIX "execlineb" ;
+    childargv[1] = "-Pc" ;
+    childargv[2] = checkprog ;
   }
+#endif
 
   if (autodetect)
   {

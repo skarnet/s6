@@ -34,7 +34,11 @@
 #include <skalibs/skamisc.h>
 #include <skalibs/environ.h>
 
+#include <s6/config.h>
+
+#ifdef S6_USE_EXECLINE
 #include <execline/config.h>
+#endif
 
 #define USAGE "s6-log [ -d notif ] [ -q | -v ] [ -b ] [ -p ] [ -t ] [ -e ] [ -l linelimit ] logging_script"
 #define dieusage() strerr_dieusage(100, USAGE)
@@ -304,7 +308,11 @@ static int finish (logdir_t *ldp, char const *name, char suffix)
 
 static inline void exec_processor (logdir_t *ldp)
 {
+#ifdef S6_USE_EXECLINE
   char const *cargv[4] = { ldp->flags & 4 ? "/bin/sh" : EXECLINE_EXTBINPREFIX "execlineb", ldp->flags & 4 ? "-c" : "-Pc", ldp->processor, 0 } ;
+#else
+  char const *cargv[4] = { "/bin/sh", "-c", ldp->processor, 0 } ;
+#endif
   int fd ;
   PROG = "s6-log (processor child)" ;
   if (chdir(ldp->dir) < 0) strerr_diefu2sys(111, "chdir to ", ldp->dir) ;
@@ -713,7 +721,9 @@ static inline void script_firstpass (char const *const *argv, unsigned int *sell
       case 'r' :
       case 'E' :
       case '^' :
+#ifdef S6_USE_EXECLINE
       case '!' :
+#endif
       case '?' :
         break ;
       case 't' :
@@ -838,10 +848,12 @@ static inline void script_secondpass (char const *const *argv, scriptelem_t *scr
       case '^' :
         if (!uint0_scan(*argv + 1, &status_size)) goto fail ;
         break ;
+#ifdef S6_USE_EXECLINE
       case '!' :
         processor = (*argv)[1] ? *argv + 1 : 0 ;
         flags &= ~4 ;
         break ;
+#endif
       case '?' :
         processor = (*argv)[1] ? *argv + 1 : 0 ;
         flags |= 4 ;

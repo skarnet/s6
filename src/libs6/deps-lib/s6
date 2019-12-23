@@ -26,12 +26,13 @@ s6_accessrules_keycheck_uidgid.o
 s6_accessrules_params_free.o
 s6_accessrules_uidgid_cdb.o
 s6_accessrules_uidgid_fs.o
-s6_supervise_lock.o
-s6_supervise_lock_mode.o
+s6_compat_el_semicolon.o
 s6_dtally_pack.o
 s6_dtally_unpack.o
 s6_dtally_read.o
 s6_dtally_write.o
+s6_supervise_lock.o
+s6_supervise_lock_mode.o
 s6_svc_lock_take.o
 s6_svc_lock_release.o
 s6_svc_ok.o

@@ -1,7 +1,7 @@
 s6_svlisten_signal_handler.o
 s6_svlisten_loop.o
 ${LIBS6}
--lexecline
+${LIBEXECLINE}
 -lskarnet
 ${SOCKET_LIB}
 ${SYSCLOCK_LIB}
