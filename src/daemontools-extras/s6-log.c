@@ -304,7 +304,7 @@ static int finish (logdir_t *ldp, char const *name, char suffix)
 
 static inline void exec_processor (logdir_t *ldp)
 {
-  char const *cargv[4] = { EXECLINE_EXTBINPREFIX "execlineb", "-Pc", ldp->processor, 0 } ;
+  char const *cargv[4] = { ldp->flags & 4 ? "/bin/sh" : EXECLINE_EXTBINPREFIX "execlineb", ldp->flags & 4 ? "-c" : "-Pc", ldp->processor, 0 } ;
   int fd ;
   PROG = "s6-log (processor child)" ;
   if (chdir(ldp->dir) < 0) strerr_diefu2sys(111, "chdir to ", ldp->dir) ;
@@ -714,6 +714,7 @@ static inline void script_firstpass (char const *const *argv, unsigned int *sell
       case 'E' :
       case '^' :
       case '!' :
+      case '?' :
         break ;
       case 't' :
         if ((*argv)[1]) goto fail ;
@@ -839,6 +840,11 @@ static inline void script_secondpass (char const *const *argv, scriptelem_t *scr
         break ;
       case '!' :
         processor = (*argv)[1] ? *argv + 1 : 0 ;
+        flags &= ~4 ;
+        break ;
+      case '?' :
+        processor = (*argv)[1] ? *argv + 1 : 0 ;
+        flags |= 4 ;
         break ;
       case 't' :
         flags |= 1 ;

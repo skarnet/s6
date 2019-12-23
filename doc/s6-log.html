@@ -237,6 +237,11 @@ an unpadded, unlimited status file. By default, <em>statussize</em> is 1001. </l
 <tt>execlineb</tt> must be found in s6-log's PATH.
 If <em>processor</em> is empty, no processor will be set for the next logdirs.
 By default, no processor is set. </li>
+ <li> <strong>?<em>processor</em></strong>: registers
+<tt>/bin/sh -c <em>processor</em></tt> as a processor for the next logdirs.
+It is just like the <tt>!</tt> directive, except that the processor string
+is interpreted by <tt>/bin/sh</tt>, not <tt>execlineb</tt>. It is useful
+for people who have built s6 without execline support. </li>
  <li> <strong>t</strong>: the logged line will be prepended with a
 <a href="//skarnet.org/software/skalibs/libstddjb/tai.html">TAI64N
 timestamp</a> (and a space) before being processed by the next action
