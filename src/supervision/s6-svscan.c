@@ -55,6 +55,15 @@ static unsigned int wantkill = 0 ;
 static int cont = 1 ;
 static unsigned int consoleholder = 0 ;
 
+static void restore_console (void)
+{
+  if (consoleholder)
+  {
+    fd_move(2, consoleholder) ;
+    if (fd_copy(1, 2) < 0) strerr_warnwu1sys("restore stdout") ;
+  }
+}
+
 static void panicnosp (char const *) gccattr_noreturn ;
 static void panicnosp (char const *errmsg)
 {
@@ -71,6 +80,7 @@ static void panic (char const *errmsg)
 {
   int e = errno ;
   selfpipe_finish() ;
+  restore_console() ;
   errno = e ;
   panicnosp(errmsg) ;
 }
@@ -565,6 +575,7 @@ int main (int argc, char const *const *argv)
 
     selfpipe_finish() ;
     killthem() ;
+    restore_console() ;
     reap() ;
   }
   {
