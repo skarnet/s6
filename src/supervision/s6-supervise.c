@@ -19,7 +19,6 @@
 #include <skalibs/djbunix.h>
 #include <skalibs/sig.h>
 #include <skalibs/selfpipe.h>
-#include <skalibs/environ.h>
 #include <skalibs/skamisc.h>
 #include <s6/ftrigw.h>
 #include <s6/s6-supervise.h>
@@ -279,7 +278,7 @@ static void trystart (void)
       failcoe(p[1]) ;
       strerr_diefu1sys(127, "access ./nosetsid") ;
     }
-    execve("./run", (char *const *)cargv, (char *const *)environ) ;
+    execv("./run", (char *const *)cargv) ;
     failcoe(p[1]) ;
     strerr_dieexec(127, "run") ;
   }
@@ -397,7 +396,7 @@ static int uplastup_z (void)
     fmt0[uint_fmt(fmt0, WIFSIGNALED(status.wstat) ? 256 : WEXITSTATUS(status.wstat))] = 0 ;
     fmt1[uint_fmt(fmt1, WTERMSIG(status.wstat))] = 0 ;
     maybesetsid() ;
-    execve("./finish", cargv, (char *const *)environ) ;
+    execv("./finish", cargv) ;
     _exit(127) ;
   }
   status.flagfinishing = 1 ;

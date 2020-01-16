@@ -70,8 +70,8 @@ static void panicnosp (char const *errmsg)
   char const *eargv[2] = { CRASH_PROG, 0 } ;
   strerr_warnwu1sys(errmsg) ;
   strerr_warnw2x("executing into ", eargv[0]) ;
-  execve(eargv[0], (char *const *)eargv, (char *const *)environ) ;
- /* and if that execve fails, screw it and just die */
+  execv(eargv[0], (char *const *)eargv) ;
+ /* and if that exec fails, screw it and just die */
   strerr_dieexec(111, eargv[0]) ;
 }
 
@@ -580,7 +580,7 @@ int main (int argc, char const *const *argv)
   }
   {
     char const *eargv[3] = { FINISH_PROG, finish_arg, 0 } ;
-    execve(eargv[0], (char **)eargv, (char *const *)environ) ;
+    execv(eargv[0], (char **)eargv) ;
   }
   panicnosp("exec finish script " FINISH_PROG) ;
 }
