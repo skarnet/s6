@@ -111,10 +111,9 @@ endif
 $(DESTDIR)$(datadir)/%: src/etc/%
 	exec $(INSTALL) -D -m 644 $< $@
 
-$(DESTDIR)$(dynlibdir)/lib%.so: lib%.so.xyzzy
+$(DESTDIR)$(dynlibdir)/lib%.so $(DESTDIR)$(dynlibdir)/lib%.so.$(version_M): lib%.so.xyzzy
 	$(INSTALL) -D -m 755 $< $@.$(version) && \
-	$(INSTALL) -l $(@F).$(version) $@.$(version_m) && \
-	$(INSTALL) -l $(@F).$(version_m) $@.$(version_M) && \
+	$(INSTALL) -l $(@F).$(version) $@.$(version_M) && \
 	exec $(INSTALL) -l $(@F).$(version_M) $@
 
 $(DESTDIR)$(libexecdir)/% $(DESTDIR)$(bindir)/%: % package/modes
