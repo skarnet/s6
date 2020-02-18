@@ -8,6 +8,8 @@ In 2.9.1.0
 when execline support is disabled.
  - New '?' directive to s6-log, to spawn a processor with /bin/sh.
  - New console holder functionality for easier s6-svscan-log support.
+ - On systems that define SIGPWR and SIGWINCH, s6-svscan -s now calls
+a user handler for those signals.
 
 
 In 2.9.0.1

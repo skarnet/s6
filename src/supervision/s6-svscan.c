@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
+
 #include <skalibs/allreadwrite.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/types.h>
@@ -18,6 +19,7 @@
 #include <skalibs/sig.h>
 #include <skalibs/selfpipe.h>
 #include <skalibs/environ.h>
+
 #include <s6/config.h>
 #include <s6/s6-supervise.h>
 
@@ -528,6 +530,12 @@ int main (int argc, char const *const *argv)
     {
       sigaddset(&set, SIGUSR1) ;
       sigaddset(&set, SIGUSR2) ;
+#ifdef SIGPWR
+      sigaddset(&set, SIGPWR) ;
+#endif
+#ifdef SIGWINCH
+      sigaddset(&set, SIGWINCH) ;
+#endif
     }
     if (selfpipe_trapset(&set) < 0) strerr_diefu1sys(111, "trap signals") ;
   }
