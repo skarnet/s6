@@ -4,6 +4,7 @@
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/djbunix.h>
+
 #include <s6/config.h>
 
 #define USAGE "s6-sudo [ -q | -Q | -v ] [ -p bindpath ] [ -l localname ] [ -e ] [ -t timeout ] [ -T timeoutrun ] path [ args... ]"

@@ -77,7 +77,7 @@ static void doit (struct cdb_make *c, stralloc *sa, size_t start)
     if (tmp.len > tmpbase + 4103)
     {
       cleanup() ;
-      strerr_diefu2sys(100, sa->s, "too big") ;
+      strerr_dief2sys(100, sa->s, " too big") ;
     }
     envlen = tmp.len - tmpbase - 3 ;
     tmp.len = tmpbase ;

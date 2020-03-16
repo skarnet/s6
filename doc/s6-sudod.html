@@ -27,7 +27,7 @@ program over a Unix socket, then forks another program.
 <h2> Interface </h2>
 
 <pre>
-     s6-sudod [ -0 ] [ -1 ] [ -2 ] [ -t <em>timeout</em> ] [ <em>sargv...</em> ]
+     s6-sudod [ -0 ] [ -1 ] [ -2 ] [ -d ] [ -t <em>timeout</em> ] [ <em>sargv...</em> ]
 </pre>
 
 <ul>
@@ -66,6 +66,11 @@ run with its stdout pointing to <tt>/dev/null</tt> instead. </li>
  <li> <tt>-2</tt>&nbsp;: do not inherit stderr from s6-sudoc. The child will be
 run with its stderr being a copy of s6-sudod's stderr instead. (This is useful
 to still log the child's error messages without sending them to the client.) </li>
+ <li> <tt>-d</tt>&nbsp;: detach. The child will keep running until it naturally
+exits, even if the client disconnects. Setting this option also enforces
+<tt>-0</tt>, <tt>-1</tt> and <tt>-2</tt>. Bear in mind that this option
+relinquishes a lot of control over the child, and administrators should make sure
+it is appropriately short-lived. </li>
  <li> <tt>-t&nbsp;<em>timeout</em></tt>&nbsp;: if s6-sudod has not
 received all the needed data from the client after <em>timeout</em>
 milliseconds, it will exit without spawning a child. By default, <em>timeout</em>
@@ -150,7 +155,8 @@ transmitted to <em>sargv</em>.
 <h2> Notes </h2>
 
 <ul>
- <li> If s6-sudoc is killed, or exits after <em>timeoutrun</em> milliseconds,
+ <li> If the <tt>-d</tt> option to s6-sudod has not been given, and
+s6-sudoc is killed (or exits after <em>timeoutrun</em> milliseconds)
 while the server program is still running, s6-sudod will send a SIGTERM and a
 SIGCONT to its child, then exit 1. However, sending a SIGTERM to the child
 does not guarantee that it will die; and
@@ -164,6 +170,11 @@ handled transparently by the s6-sudoc + s6-sudod mechanism. The mechanism
 was designed to allow programs to gain privileges in specific situations:
 short-lived, simple, noninteractive processes. It was not designed to emulate
 the full suid functionality and will not go out of its way to do so. </li>
+ <li> Administrators should also make sure that it's not a problem if
+s6-sudod's child keeps running after the s6-sudoc client exits, if they
+have given the <tt>-d</tt> option to s6-sudod. In particular, they should
+study what happens if another connection to the same service occurs while
+an instance is still running. </li>
  <li> <em>sargv</em> may be empty. In that case, the client is in complete
 control of the command line executed as <em>serveruser</em>. This setup is
 permitted by s6-sudod, but it is very dangerous, and extreme attention should

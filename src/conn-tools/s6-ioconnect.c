@@ -4,6 +4,7 @@
 #include <sys/socket.h>
 #include <errno.h>
 #include <signal.h>
+
 #include <skalibs/types.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/sgetopt.h>
@@ -18,7 +19,6 @@
 
 #define USAGE "s6-ioconnect [ -t timeout ] [ -r fdr ] [ -w fdw ] [ -0 ] [ -1 ] [ -6 ] [ -7 ]"
 #define dieusage() strerr_dieusage(100, USAGE)
-
 
 typedef struct ioblah_s ioblah_t, *ioblah_t_ref ;
 struct ioblah_s

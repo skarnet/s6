@@ -7,6 +7,7 @@
 #include <signal.h>
 #include <sys/uio.h>
 #include <sys/wait.h>
+
 #include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/buffer.h>
@@ -17,6 +18,7 @@
 #include <skalibs/env.h>
 #include <skalibs/unix-timed.h>
 #include <skalibs/unixmessage.h>
+
 #include "s6-sudo.h"
 
 #define USAGE "s6-sudoc [ -e ] [ -t timeoutconn ] [ -T timeoutrun ] [ args... ]"

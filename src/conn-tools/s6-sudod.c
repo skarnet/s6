@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
+
 #include <skalibs/types.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/sgetopt.h>
@@ -20,41 +21,77 @@
 #include <skalibs/djbunix.h>
 #include <skalibs/unix-timed.h>
 #include <skalibs/unixmessage.h>
+
 #include "s6-sudo.h"
 
-#define USAGE "s6-sudod [ -0 ] [ -1 ] [ -2 ] [ -t timeout ] args..."
+#define USAGE "s6-sudod [ -0 ] [ -1 ] [ -2 ] [ -d ] [ -t timeout ] args..."
 #define dieusage() strerr_dieusage(100, USAGE)
 #define dienomem() strerr_diefu1sys(111, "stralloc_catb")
 
-int main (int argc, char const *const *argv, char const *const *envp)
+static int handle_signals (pid_t pid, int *wstat)
 {
-  subgetopt_t l = SUBGETOPT_ZERO ;
-  unixmessage_t m ;
-  unsigned int nullfds = 0, t = 0 ;
-  pid_t pid ;
-  size_t envc = env_len(envp) ;
-  uint32_t cargc, cenvc, carglen, cenvlen ;
-  int spfd ;
-  tain_t deadline = TAIN_INFINITE_RELATIVE ;
-  PROG = "s6-sudod" ;
+  int done = 0 ;
   for (;;)
   {
-    int opt = subgetopt_r(argc, argv, "012t:", &l) ;
-    if (opt < 0) break ;
-    switch (opt)
+    int sig = selfpipe_read() ;
+    switch (sig)
     {
-      case '0' : nullfds |= 1 ; break ;
-      case '1' : nullfds |= 2 ; break ;
-      case '2' : nullfds |= 4 ; break ;
-      case 't' : if (!uint0_scan(l.arg, &t)) dieusage() ; break ;
-      default : dieusage() ;
+      case -1 : strerr_diefu1sys(111, "read from selfpipe") ;
+      case 0 : return done ;
+      case SIGCHLD :
+      {
+        int w ;
+        pid_t r = wait_pid_nohang(pid, &w) ;
+        if ((r < 0) && (errno != ECHILD))
+          strerr_diefu1sys(111, "wait_pid_nohang") ;
+        else if (r > 0)
+        {
+          done = 1 ;
+          *wstat = w ;
+        }
+        break ;
+      }
+      default :
+        strerr_dief1sys(101, "internal inconsistency, please submit a bug-report") ;
     }
   }
-  argc -= l.ind ; argv += l.ind ;
-  if (t) tain_from_millisecs(&deadline, t) ;
+}
+
+int main (int argc, char const *const *argv, char const *const *envp)
+{
+  iopause_fd x[2] = { { .events = IOPAUSE_READ }, { .fd = 0, .events = 0, .revents = 0 } } ;
+  unixmessage_t m ;
+  unsigned int nullfds = 0 ;
+  pid_t pid ;
+  int wstat ;
+  size_t envc = env_len(envp) ;
+  uint32_t cargc, cenvc, carglen, cenvlen ;
+  tain_t deadline = TAIN_INFINITE_RELATIVE ;
+  PROG = "s6-sudod" ;
+
+  {
+    subgetopt_t l = SUBGETOPT_ZERO ;
+    unsigned int t = 0 ;
+    for (;;)
+    {
+      int opt = subgetopt_r(argc, argv, "012dt:", &l) ;
+      if (opt < 0) break ;
+      switch (opt)
+      {
+        case '0' : nullfds |= 1 ; break ;
+        case '1' : nullfds |= 2 ; break ;
+        case '2' : nullfds |= 4 ; break ;
+        case 'd' : nullfds |= 15 ; break ;
+        case 't' : if (!uint0_scan(l.arg, &t)) dieusage() ; break ;
+        default : dieusage() ;
+      }
+    }
+    argc -= l.ind ; argv += l.ind ;
+    if (t) tain_from_millisecs(&deadline, t) ;
+  }
+
   if ((ndelay_on(0) < 0) || (ndelay_on(1) < 0))
     strerr_diefu1sys(111, "make socket non-blocking") ;
-
   tain_now_set_stopwatch_g() ;
   tain_add_g(&deadline, &deadline) ;
   buffer_putnoflush(buffer_1small, S6_SUDO_BANNERB, S6_SUDO_BANNERB_LEN) ;
@@ -136,8 +173,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
       if ((j < envc) && !tenvp[j][len+1]) tenvp[j] = var ;
     }
 
-    spfd = selfpipe_init() ;
-    if (spfd < 0) strerr_diefu1sys(111, "selfpipe_init") ;
+    x[0].fd = selfpipe_init() ;
+    if (x[0].fd < 0) strerr_diefu1sys(111, "selfpipe_init") ;
     if (selfpipe_trap(SIGCHLD) < 0) strerr_diefu1sys(111, "trap SIGCHLD") ;
     if (pipe(p) < 0) strerr_diefu1sys(111, "pipe") ;
     if (coe(p[1]) < 0) strerr_diefu1sys(111, "coe pipe") ;
@@ -185,49 +222,27 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (!buffer_timed_flush_g(buffer_1small, &deadline))
     strerr_diefu1sys(111, "send confirmation to client") ;
 
+  for (;;)
   {
-    iopause_fd x[2] = { { .fd = 0, .events = 0 }, { .fd = spfd, .events = IOPAUSE_READ } } ;
-    int cont = 1 ;
-    while (cont)
+    if (iopause_g(x, 1 + !x[1].revents, 0) < 0) strerr_diefu1sys(111, "iopause") ;
+    if (x[0].revents && handle_signals(pid, &wstat)) break ;
+    if (x[1].revents && !(nullfds & 8))
     {
-      if (iopause_g(x, 2, 0) < 0) strerr_diefu1sys(111, "iopause") ;
-      if (x[1].revents)
-      {
-        for (;;)
-        {
-          int c = selfpipe_read() ;
-          if (c < 0) strerr_diefu1sys(111, "read from selfpipe") ;
-          else if (!c) break ;
-          else if (c == SIGCHLD)
-          {
-            int wstat ;
-            c = wait_pid_nohang(pid, &wstat) ;
-            if ((c < 0) && (errno != ECHILD))
-              strerr_diefu1sys(111, "wait_pid_nohang") ;
-            else if (c > 0)
-            {
-              char pack[UINT_PACK] ;
-              uint_pack_big(pack, (unsigned int)wstat) ;
-              buffer_putnoflush(buffer_1small, pack, UINT_PACK) ;
-              cont = 0 ;
-            }
-          }
-          else
-            strerr_dief1sys(101, "internal inconsistency, please submit a bug-report") ;
-        }
-      }
-      if (x[0].revents && cont)
-      {
-        kill(pid, SIGTERM) ;
-        kill(pid, SIGCONT) ;
-        x[0].fd = -1 ;
-        return 1 ;
-      }
+      kill(pid, SIGTERM) ;
+      kill(pid, SIGCONT) ;
+      return 1 ;
     }
   }
-  if (ndelay_off(1) < 0)
-    strerr_diefu1sys(111, "set stdout blocking") ;
-  if (!buffer_flush(buffer_1small))
-    strerr_diefu1sys(111, "write status to client") ;
+
+  if (!x[1].revents)
+  {
+    char pack[UINT_PACK] ;
+    uint_pack_big(pack, (unsigned int)wstat) ;
+    buffer_putnoflush(buffer_1small, pack, UINT_PACK) ;
+    if (ndelay_off(1) < 0)
+      strerr_diefu1sys(111, "set stdout blocking") ;
+    if (!buffer_flush(buffer_1small))
+      strerr_diefu1sys(111, "write status to client") ;
+  }
   return 0 ;
 }
