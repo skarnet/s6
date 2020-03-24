@@ -1,5 +1,5 @@
 ${LIBS6}
-${LIBEXECLINE}
+${EXECLINE_LIB}
 -lskarnet
 ${SOCKET_LIB}
 ${SYSCLOCK_LIB}

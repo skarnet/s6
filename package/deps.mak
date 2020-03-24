@@ -218,8 +218,8 @@ s6lockd-helper: EXTRA_LIBS := -lskarnet
 s6lockd-helper: src/libs6/s6lockd-helper.o
 s6-cleanfifodir: EXTRA_LIBS := -lskarnet
 s6-cleanfifodir: src/pipe-tools/s6-cleanfifodir.o ${LIBS6}
-s6-ftrig-listen: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
-s6-ftrig-listen: src/pipe-tools/s6-ftrig-listen.o ${LIBS6} ${LIBEXECLINE}
+s6-ftrig-listen: EXTRA_LIBS := ${EXECLINE_LIB} -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
+s6-ftrig-listen: src/pipe-tools/s6-ftrig-listen.o ${LIBS6}
 s6-ftrig-listen1: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
 s6-ftrig-listen1: src/pipe-tools/s6-ftrig-listen1.o ${LIBS6}
 s6-ftrig-notify: EXTRA_LIBS := -lskarnet
@@ -240,8 +240,8 @@ s6-svdt: EXTRA_LIBS := -lskarnet
 s6-svdt: src/supervision/s6-svdt.o ${LIBS6}
 s6-svdt-clear: EXTRA_LIBS := -lskarnet
 s6-svdt-clear: src/supervision/s6-svdt-clear.o ${LIBS6}
-s6-svlisten: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
-s6-svlisten: src/supervision/s6-svlisten.o src/supervision/s6_svlisten_signal_handler.o src/supervision/s6_svlisten_loop.o ${LIBS6} ${LIBEXECLINE}
+s6-svlisten: EXTRA_LIBS := ${EXECLINE_LIB} -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
+s6-svlisten: src/supervision/s6-svlisten.o src/supervision/s6_svlisten_signal_handler.o src/supervision/s6_svlisten_loop.o ${LIBS6}
 s6-svlisten1: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
 s6-svlisten1: src/supervision/s6-svlisten1.o src/supervision/s6_svlisten_signal_handler.o src/supervision/s6_svlisten_loop.o ${LIBS6}
 s6-svok: EXTRA_LIBS := -lskarnet
