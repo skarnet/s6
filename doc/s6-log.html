@@ -452,7 +452,7 @@ error descriptor</em>, i.e. fd 2. <em>This is why it's open for.</em> </li>
  <li> When process 1 starts, the logging chain is rooted to the
 <em>machine console</em>: anything process 1 sends to its stderr
 appears, without modification, on the machine console, which should
-at any time remain the last resort place where logs are sent. </em>
+at any time remain the last resort place where logs are sent. </li>
  <li> Process 1 should spawn and supervise a <em>catch-all logging
 mechanism</em> that handles logs from every service that does not
 take care of its own logging. Error messages from this logging

@@ -126,8 +126,8 @@ special characters will be quoted when printed by
 recommended to only use reasonable characters in identifiers: clients
 should be able to know at a glance what file descriptor is represented by
 an identifier. Identifiers have no special meaning to the server. </li>
- <li> A good convention is to use <tt>unix:/<em>path</em>/<em>to</em>/<em>socket</em></tt> for
-Unix domain sockets and <tt><em>protocol</em>:<em>ip</em>:</em><em>port</em></tt>
+ <li> A good convention is to use <tt>unix:<em>path</em>/<em>to</em>/<em>socket</em></tt> for
+Unix domain sockets and <tt><em>protocol</em>:<em>ip</em>:<em>port</em></tt>
 for INET domain sockets. </li>
  <li> An identifier is chosen by the storing client, within the limits of
 what the server authorizes it to use. </li>

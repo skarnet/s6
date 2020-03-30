@@ -56,7 +56,7 @@ if your service is logged, the run script should make sure that its
 stderr goes into the log pipe (which is on stdout by default), which
 is achieved by <tt><a href="//skarnet.org/software/execline/fdmove.html">fdmove</a>
 -c 2 1</tt> in <a href="//skarnet.org/software/execline/">execline</a>,
-and <tt>exec 2>&1</tt> in <a href="http://pubs.opengroup.org/onlinepubs/9699919799/utilities/sh.html">shell</a>.
+and <tt>exec 2&gt;&amp;1</tt> in <a href="http://pubs.opengroup.org/onlinepubs/9699919799/utilities/sh.html">shell</a>.
 By default, in a normal supervision tree situation, a run script's stdin will
 be <tt>/dev/null</tt>, and its stdout and stderr will both be a pipe to a
 catch-all logging program. </li>
