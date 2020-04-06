@@ -3,6 +3,7 @@ Changelog for s6.
 In 2.9.2.0
 ----------
 
+ - Bugfixes.
  - New -d option to s6-sudod.
 
 
