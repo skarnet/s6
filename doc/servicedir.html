@@ -51,15 +51,28 @@ every time the service must be started, i.e. normally when
 the service goes down when it is supposed to be up. A run script
 should normally:
  <ul>
-  <li> adjust redirections for stdin, stdout and stderr. For instance,
-if your service is logged, the run script should make sure that its
-stderr goes into the log pipe (which is on stdout by default), which
+  <li> adjust redirections for stdin, stdout and stderr. When a run
+script starts, it inherits its standard file descriptors from
+<a href="s6-supervise.html">s6-supervise</a>, which itself inherits them from
+<a href="s6-svscan.html">s6-svscan</a>. stdin is normally <tt>/dev/null</tt>.
+If s6-svscan was launched by another init system, stdout and stderr likely
+point to that init system's default log (or <tt>/dev/null</tt> in the case
+of sysvinit). If s6-svscan is running as pid 1 via the help of software like
+<a href="//skarnet.org/software/s6-linux-init/">s6-linux-init</a>, then its
+stdout and stderr point to a <em>catch-all logger</em>, which catches and
+logs any output of the supervision tree that has not been caught by a
+dedicated logger. If the defaults provided by your installation are not
+suitable for your run script, then your run script should perform the proper
+redirections before executing into the final daemon. For instance, dedicated
+logging mechanisms, such as the <tt>log</tt> subdirectory (see below) or the
+<a href="//skarnet.org/software/s6-rc/">s6-rc</a> pipeline feature, pipe your
+run script's <em>stdout</em> to the logging service, but chances are you want
+to log <em>stderr</em> as well, so the run script should make sure that its
+stderr goes into the log pipe. This
 is achieved by <tt><a href="//skarnet.org/software/execline/fdmove.html">fdmove</a>
 -c 2 1</tt> in <a href="//skarnet.org/software/execline/">execline</a>,
 and <tt>exec 2&gt;&amp;1</tt> in <a href="http://pubs.opengroup.org/onlinepubs/9699919799/utilities/sh.html">shell</a>.
-By default, in a normal supervision tree situation, a run script's stdin will
-be <tt>/dev/null</tt>, and its stdout and stderr will both be a pipe to a
-catch-all logging program. </li>
+ </li>
 <li> adjust the environment for your <em>foo</em> daemon. Normally the run script
 inherits its environment from <a href="s6-supervise.html">s6-supervise</a>,
 which normally inherits its environment from <a href="s6-svscan.html">s6-svscan</a>,
