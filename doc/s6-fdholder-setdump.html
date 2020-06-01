@@ -69,10 +69,14 @@ already open in the <tt>s6-fdholder-setdump</tt> program; also, <tt>s6-fdholder-
 should have certain environment variables that describe that set of file
 descriptors. The format of the environment is the same as the one set by
 <a href="s6-fdholder-getdump.html">s6-fdholder-getdump</a>. </li>
- <li> Getting the whole state of a s6-fdholderd daemon requires specific
+ <li> Setting the whole state of a s6-fdholderd daemon requires specific
 privileges. Make sure you properly
 <a href="s6-fdholderd.html#configuration">configure the s6-fdholderd
 access rights</a> so your client can perform that operation. </li>
+ <li> Previously held fds will still be kept by the server (so, "setting"
+the state is more like "adding to" the state), unless there is an identifier
+collision, in which case the fd in the transmitted set takes precedence and
+the previously held fd is overwritten. </li>
 </ul>
 
 </body>
