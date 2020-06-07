@@ -53,8 +53,19 @@ for every variable sent by <a href="s6-sudoc.html">s6-sudoc</a>, if the
 variable is <strong>present but empty</strong> in s6-sudod's environment, then
 its value is overriden by the value given by s6-sudoc. A variable that is
 already nonempty, or that doesn't exist, in s6-sudod's environment, will not
-be transmitted to the child.
+be transmitted to the child. In other words:
 </p>
+
+<ul>
+ <li> If there's no variable <tt>X</tt> in s6-sudod's environment, the child
+will have no variable <tt>X</tt> defined </li>
+ <li> If there's a non-empty variable <tt>X</tt> in s6-sudod's environment,
+the child will inherit that variable, with its value, from s6-sudod </li>
+ <li> If there's an empty variable <tt>X</tt> in s6-sudod's environment,
+and s6-sudoc transmits variable <tt>X</tt>, then the child will inherit that
+variable with the value from s6-sudoc. (If s6-sudoc does not transmit <tt>X</tt>,
+the variable will be present, but empty, in the child's environment.) </li>
+</ul>
 
 <h2> Options </h2>
 
