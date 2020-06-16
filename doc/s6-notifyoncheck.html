@@ -157,6 +157,9 @@ command line that will execute into your daemon. </li>
 If s6-notifyoncheck runs after the run script's process has lost its
 root privileges, make sure that <tt>./data/check</tt> is accessible
 and runnable as that user. </li>
+ <li> Note that s6-notifyoncheck should be used to check if <em>the
+current service itself</em> is running. You cannot use it to
+poll for the readiness of another service. </li>
 </ul>
 
 </body>
