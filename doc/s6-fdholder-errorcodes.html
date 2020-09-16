@@ -20,7 +20,7 @@
 
 <p>
  The following error messages (and corresponding
-<a href="http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/errno.h.html">errno codes</a>)
+<a href="https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/errno.h.html">errno codes</a>)
 can be returned by the
 <a href="s6-fdholderd.html">s6-fdholderd</a> daemon to its various clients.
 This page explains why they occur.
@@ -32,7 +32,7 @@ for socket</tt> (EPROTOTYPE): the client connected to the wrong
 kind of server and they cannot communicate. This is generally a
 programming error. It can also
 signal a bug in the s6-fdholder tools, but protocol bugs have
-usually been wiped out before a s6 release. </li>
+usually been wiped out before an s6 release. </li>
  <li> <tt>Broken pipe</tt> (EPIPE): the client was not authorized to
 connect to the server, which closed the connection. You need to
 <a href="s6-fdholderd.html#configuration">configure the access
@@ -47,7 +47,7 @@ attempted to store more file descriptors than the server can hold.
 Or, the client attempted to retrieve more file descriptors than it
 can hold. You should check the <tt>-n</tt> option to
 <a href="s6-fdholderd.html">s6-fdholderd</a>, as well as the
-<a href="http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sys_resource.h.html">RLIMIT_NOFILE</a>
+<a href="https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sys_resource.h.html">RLIMIT_NOFILE</a>
 resource limits used by the client and the server, and adjust them
 accordingly. </li>
  <li> <tt>Resource busy</tt> (EBUSY): the client attempted to store

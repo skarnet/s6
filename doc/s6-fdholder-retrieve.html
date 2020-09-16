@@ -21,8 +21,8 @@
 <p>
 <tt>s6-fdholder-retrieve</tt> connects to a
 <a href="s6-fdholderd.html">fd-holding daemon</a> listening on a
-Unix domain socket, and retrieves a file descriptor from that
-daemon, then executes a program with that file descriptor as the
+Unix domain socket, and retrieves a file descriptor from this
+daemon, then executes a program with this file descriptor as the
 program's standard input.
 </p>
 
@@ -63,7 +63,7 @@ wrong socket, for instance). </li>
  <li> 1: the server denied the operation. The meaning of the error messages
 is explained <a href="s6-fdholder-errorcodes.html">here</a>. </li>
  <li> 100: wrong usage. </li>
- <li> 111: system call failed - that includes attempting to connect to a
+ <li> 111: system call failed - this includes attempting to connect to a
 nonexistent socket, or one where no <a href="s6-fdholderd.html">s6-fdholderd</a>
 daemon is listening. </li>
 </ul>
@@ -77,7 +77,7 @@ daemon is listening. </li>
 <p>
  will retrieve a file descriptor stored under the MYSOCKET identifier in
 the s6-fdholderd daemon listening on the <tt>/service/fdholderd/s</tt>
-socket, and execute into <tt>s6-ipcserverd cat</tt> with that file
+socket, and execute into <tt>s6-ipcserverd cat</tt> with this file
 descriptor as stdin. In this case, if MYSOCKET referred to a Unix domain
 socket, <a href="s6-ipcserverd.html">s6-ipcserverd</a> will then accept
 client connections on it and spawn a <tt>cat</tt> program for every

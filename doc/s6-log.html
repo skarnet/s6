@@ -20,7 +20,7 @@
 
 <p>
 s6-log is a reliable logging program with automated log rotation, similar to
-daemontools' <a href="http://cr.yp.to/daemontools/multilog.html">multilog</a>,
+daemontools' <a href="https://cr.yp.to/daemontools/multilog.html">multilog</a>,
 with full POSIX regular expression support.
 </p>
 
@@ -51,7 +51,7 @@ in order to process log lines. </li>
  <li> <tt>-b</tt>&nbsp;: blocking mode. With this option, s6-log stops
 reading its standard input while it has unflushed buffers. This ensures that
 every log line has been fully processed before reading the next one; this is also
-<a href="http://cr.yp.to/daemontools/multilog.html">multilog</a>'s behaviour.
+<a href="https://cr.yp.to/daemontools/multilog.html">multilog</a>'s behaviour.
 By default, s6-log keeps reading from stdin even if its buffers still
 contain data. <tt>-b</tt> is safer, but may slow down your service; the default
 is faster, but may lead to unbound memory use if you have a lot of output to
@@ -99,7 +99,7 @@ to make sure only one instance is running at the same time. </li>
 If <tt>current</tt> has the executable-by-user flag, it means that no
 s6-log process is currently writing to it and the previous
 s6-log process managed to cleanly finalize it. If it does not,
-either a s6-log process is writing to it or the previous one
+either an s6-log process is writing to it or the previous one
 has been interrupted without finalizing it. </li>
  <li> <tt>state</tt>: last processor's output, see below. </li>
  <li> <tt>previous</tt>: a rotation is happening in that logdir. </li>
@@ -185,7 +185,7 @@ line is selected.
 
 <ul>
  <li> <strong>+<em>regexp</em></strong>: select yet-unselected lines that match <em>regexp</em>, which must be a
-<a href="http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap09.html#tag_09_04">POSIX
+<a href="https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap09.html#tag_09_04">POSIX
 Extended Regular Expression</a>. </li>
  <li> <strong>-<em>regexp</em></strong>: deselect yet-selected lines that match <em>regexp</em>, which must be a
 POSIX Extended Regular Expression. </li>
@@ -250,7 +250,7 @@ timestamp</a> (and a space) before being processed by the next action
 directive. Giving the <tt>t</tt> directive several times before an action
 directive has no effect. </li>
  <li> <strong>T</strong>: the selected line will be prepended with a
-<a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601
+<a href="https://en.wikipedia.org/wiki/ISO_8601">ISO 8601
 timestamp</a> for combined date and time representing <em>local time</em>
 according to the system's timezone, with a space (not a 'T')
 between the date and the time and two spaces after the time, before being
@@ -333,7 +333,7 @@ a maximum of 30 such files or a total of 15 MB of compressed archive files. </li
 </ul>
 
 
-<h2> Why use execlineb to interpret the "processor" string ? </h2>
+<h2> Why use execlineb to interpret the "processor" string? </h2>
 
 <p>
  Because it is <em>exactly</em> what
@@ -346,7 +346,7 @@ is for.
 to be able to run a complete command line, with an executable name and its
 arguments. </li>
  <li> We could interpret the <em>processor</em> string via <tt>/bin/sh</tt>.
-This is what <a href="http://cr.yp.to/daemontools/multilog.html">multilog</a>
+This is what <a href="https://cr.yp.to/daemontools/multilog.html">multilog</a>
 does. However, <tt>/bin/sh</tt>, despite being the traditional Unix interpreter,
 is overpowered for this. We don't need a complete shell script interpreter:
 most <em>processor</em> commands will be very simple, with only two or three
@@ -363,7 +363,7 @@ reason to use the
 seriously, it <em>really</em> is the perfect tool for the job. </li>
 </ul>
 
-<h2> Why have another logging mechanism ? </h2>
+<h2> Why have another logging mechanism? </h2>
 
 <p>
  Because the syslog mechanism and all its implementations (save one) suck.
@@ -375,7 +375,7 @@ I'm not being judgmental; I'm just stating the obvious.
 </a>
 
 <p>
-<a href="http://blog.gerhards.net/2007/08/why-does-world-need-another-syslogd.html">When
+<a href="https://blog.gerhards.net/2007/08/why-does-world-need-another-syslogd.html">When
 asked why he started rsyslog</a>, Rainer Gerhards came up with a lot of
 hand-waving and not a single word about technical points. There is a
 reason for that: rsyslog is forked from sysklogd! So, no matter how
@@ -416,7 +416,7 @@ up a disk before a rotation occurs. I am all for separating tasks that
 can be separated, but there is no choice here: <em>logging and log
 rotation management must be done <strong>by the same tool</strong></em>.
 Only a few non-mainstream implementations of syslogd do this, including the
-<a href="http://busybox.net/">Busybox</a> one - and that is a
+<a href="https://busybox.net/">Busybox</a> one - and that is a
 feature added by the Busybox developers who are aware of the problem
 but want to maintain compatibility with the historical syslogd.
 Neither syslogd (-ng or not) nor rsyslogd manages its log files: that's a
@@ -425,14 +425,14 @@ flaw that no amount of external tools is going to fix. </li>
 complex processes running as root mean: bugs turning into security holes. </li>
  <li> syslog requires a syslogd service, and fails otherwise. A syslogd
 service may not be present, it may fail... or it may want to log stuff.
-Who's going to take care of syslogd's error messages ? </li>
+Who's going to take care of syslogd's error messages? </li>
 </ul>
 
 <p>
  syslog is slow, it's unsafe, and it's incomplete. The only reason people
 use it is because it's historical, it exists, and there hasn't been any
 serious alternative yet, except maybe
-<a href="http://cr.yp.to/daemontools/multilog.html">multilog</a>, which
+<a href="https://cr.yp.to/daemontools/multilog.html">multilog</a>, which
 s6-log improves upon.
 </p>
 
@@ -502,7 +502,7 @@ system console. </li>
 </ul>
 
 <a name="howtouse">
-<h3> What does s6-log have to do with all this ? </h3>
+<h3> What does s6-log have to do with all this? </h3>
 </a>
 
 <p>
@@ -524,7 +524,7 @@ not waste resources. </li>
 is as powerful as a traditional syslogd. </li>
  <li> s6-log can log to a RAM filesystem and thus is suitable as a
 catch-all logger. Clever tricks like Upstart's <em>logd</em> or daemontools'
-<a href="http://cr.yp.to/daemontools/readproctitle.html">readproctitle</a>
+<a href="https://cr.yp.to/daemontools/readproctitle.html">readproctitle</a>
 are just that: tricks. s6-log gives a unified interface to all of
 your system's loggers. </li>
 </ul>

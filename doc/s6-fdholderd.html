@@ -84,7 +84,7 @@ It is impossible to set it higher than the number of files that can
 be opened by the s6-fdholderd process, minus a few descriptors
 needed for correct operation. Before running s6-fdholderd, make sure to
 <a href="s6-softlimit.html">properly adjust</a> the
-<a href="http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sys_resource.h.html">number
+<a href="https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sys_resource.h.html">number
 of openable files</a> of the current process. </li>
  <li> <tt>-t&nbsp;<em>clienttimeout</em></tt>&nbsp;: disconnect a client
 if it's in the middle of an operation and it has not written or read any
@@ -96,7 +96,7 @@ before exiting after receiving a SIGTERM. By default, <em>lameducktimeout</em>
 is 0, which means infinite. </li>
  <li> <tt>-x&nbsp;<em>rulesfile</em></tt>&nbsp;: read access rights
 configuration from
-<a href="http://en.wikipedia.org/wiki/Cdb_%28software%29">CDB</a>
+<a href="https://en.wikipedia.org/wiki/Cdb_%28software%29">CDB</a>
 file <em>rulesfile</em>. </li>
  <li> <tt>-i&nbsp;<em>rulesdir</em></tt>&nbsp;: read access rights
 configuration from the filesystem in directory <em>rulesdir</em>. </li>
@@ -148,7 +148,7 @@ it is possible to reuse the same identifier. </li>
 <a href="s6-fdholder-daemon.html">s6-fdholder-daemon</a>), it is necessary
 to configure it. This is done by a series of rules, or <em>ruleset</em>,
 stored in either a <em>rulesfile</em> in the
-<a href="http://en.wikipedia.org/wiki/Cdb_%28software%29">CDB</a> format,
+<a href="https://en.wikipedia.org/wiki/Cdb_%28software%29">CDB</a> format,
 or in a <em>rulesdir</em>, i.e. a directory in the filesystem following a
 certain format. s6-fdholderd will refuse to run if neither the <tt>-i</tt>
 nor the <tt>-x</tt> option has been provided.
@@ -210,8 +210,8 @@ file named <tt>S6_FDHOLDER_STORE_REGEX</tt> is found is the <tt>env/</tt>
 subdirectory of one of the subdirectories checked by
 <a href="libs6/accessrules.html#uidgid">s6_accessrules_keycheck_uidgid</a>.
 This file should contain a single line, which will be interpreted as an
-<a href="http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap09.html#tag_09_04">extended
-regular expression</a> by s6-fdholderd; the regular expression describes the
+<a href="https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap09.html#tag_09_04">Extended
+Regular Expression</a> by s6-fdholderd; the regular expression describes the
 set of identifiers that the client is allowed to use to store file
 descriptors. For instance, <tt>^unix:/tmp/</tt> indicates that a client
 that matches this rule will be allowed to store or delete file descriptors
@@ -222,8 +222,8 @@ file named <tt>S6_FDHOLDER_RETRIEVE_REGEX</tt> is found is the <tt>env/</tt>
 subdirectory of one of the subdirectories checked by
 <a href="libs6/accessrules.html#uidgid">s6_accessrules_keycheck_uidgid</a>.
 This file should contain a single line, which will be interpreted as an
-<a href="http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap09.html#tag_09_04">extended
-regular expression</a> by s6-fdholderd; the regular expression describes the
+<a href="https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap09.html#tag_09_04">Extended
+Regular Expression</a> by s6-fdholderd; the regular expression describes the
 set of identifiers that the client is allowed to use to retrieve file
 descriptors. For instance, <tt>^unix:/tmp/</tt> indicates that a client
 that matches this rule will be allowed to retrieve file descriptors that are
@@ -253,7 +253,7 @@ to a dedicated uid that is only used to perform dump transfers. </li>
 <h3> Configuration examples </h3>
 
 <p>
- Assuming you want to run a s6-fdholderd daemon in the
+ Assuming you want to run an s6-fdholderd daemon in the
 <tt>/service/fdholder</tt> directory with the <tt>-i rules</tt> option,
 you should:
 </p>

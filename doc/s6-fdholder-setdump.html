@@ -56,7 +56,7 @@ wrong socket, for instance). </li>
  <li> 1: the server denied the operation. The meaning of the error messages
 is explained <a href="s6-fdholder-errorcodes.html">here</a>. </li>
  <li> 100: wrong usage. </li>
- <li> 111: system call failed - that includes attempting to connect to a
+ <li> 111: system call failed - this includes attempting to connect to a
 nonexistent socket, or one where no <a href="s6-fdholderd.html">s6-fdholderd</a>
 daemon is listening. </li>
 </ul>
@@ -69,7 +69,7 @@ already open in the <tt>s6-fdholder-setdump</tt> program; also, <tt>s6-fdholder-
 should have certain environment variables that describe that set of file
 descriptors. The format of the environment is the same as the one set by
 <a href="s6-fdholder-getdump.html">s6-fdholder-getdump</a>. </li>
- <li> Setting the whole state of a s6-fdholderd daemon requires specific
+ <li> Setting the whole state of an s6-fdholderd daemon requires specific
 privileges. Make sure you properly
 <a href="s6-fdholderd.html#configuration">configure the s6-fdholderd
 access rights</a> so your client can perform that operation. </li>

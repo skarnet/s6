@@ -22,7 +22,7 @@
 <p>
  s6 is a small suite of programs for UNIX, designed to allow process supervision
 (a.k.a service supervision),
-in the line of <a href="http://cr.yp.to/daemontools.html">daemontools</a>
+in the line of <a href="https://cr.yp.to/daemontools.html">daemontools</a>
 and <a href="http://smarden.org/runit/">runit</a>, as well as various
 operations on processes and daemons. It is meant to be a toolbox for
 low-level process and service administration, providing different sets of
@@ -37,15 +37,15 @@ provided by s6 - besides process supervision:
 </p>
 
 <ul>
- <li> <a href="http://en.wikipedia.org/wiki/Syslog">syslogd</a> functionality,
+ <li> <a href="https://en.wikipedia.org/wiki/Syslog">syslogd</a> functionality,
 using much less resources than the traditional syslogd. </li>
  <li> Reliable service readiness notification, which is the basis for
 service dependency management. </li>
  <li> Controlled privileged gain as with
-<a href="http://en.wikipedia.org/wiki/Sudo">sudo</a>, without using
+<a href="https://en.wikipedia.org/wiki/Sudo">sudo</a>, without using
 any suid programs. </li>
  <li> The useful parts of
-<a href="http://0pointer.de/blog/projects/socket-activation.html">socket
+<a href="https://0pointer.de/blog/projects/socket-activation.html">socket
 activation</a><sup><a href="#fn1" id="r1">[1]</a></sup>
 without having to change application code or link servers
 against any specific library, and without having to switch to any
@@ -67,7 +67,7 @@ supervision that might help you understand the basics.
 <li> <a href="why.html">Why another supervision suite?</a> Isn't <a href="http://smarden.org/runit/">runit</a> good enough?</li>
 <li> What is <a href="ftrig.html">instant notification</a>? What does the
 <a href="libs6/ftrigr.html">ftrigr library</a> do exactly?</li>
-<li> How to run a s6-svscan-based supervision tree <a href="s6-svscan-not-1.html">without replacing init</a> </li>
+<li> How to run an s6-svscan-based supervision tree <a href="s6-svscan-not-1.html">without replacing init</a> </li>
 <li> How to <a href="s6-svscan-1.html">replace init</a> </li>
 <li> How to perform <a href="socket-activation.html">socket activation
 with s6</a> </li>
@@ -97,7 +97,7 @@ certain binaries that spawn scripts interpreted with
 
 <p>
  s6 is free software. It is available under the
-<a href="http://opensource.org/licenses/ISC">ISC license</a>.
+<a href="https://opensource.org/licenses/ISC">ISC license</a>.
 </p>
 
 <h3> Download </h3>
@@ -168,7 +168,7 @@ a user interface to control those processes and monitor service states.
 
 <p>
  These programs are a rewrite of the corresponding utilities from
-<a href="http://cr.yp.to/daemontools.html">daemontools</a>, with
+<a href="https://cr.yp.to/daemontools.html">daemontools</a>, with
 a few extras.
 </p>
 
@@ -304,7 +304,7 @@ Linux system with s6-svscan as process 1. </li>
 is a project that automates integration of s6 into Docker images. </li>
  <li> <a href="//skarnet.org/software/s6-rc/">s6-rc</a> is a
 dependency-based service manager for s6. </li>
- <li> <a href="http://jjacky.com/anopa">anopa</a> is another dependency-based
+ <li> <a href="https://jjacky.com/anopa">anopa</a> is another dependency-based
 service manager for s6. </li>
 </ul>
 
@@ -321,9 +321,9 @@ and answer questions. </li>
 <h3> Similar work </h3>
 
 <ul>
- <li> <a href="http://cr.yp.to/daemontools.html">daemontools</a>, the pioneering
+ <li> <a href="https://cr.yp.to/daemontools.html">daemontools</a>, the pioneering
 process supervision software suite. </li>
- <li> <a href="http://untroubled.org/daemontools-encore/">daemontools-encore</a>,
+ <li> <a href="https://untroubled.org/daemontools-encore/">daemontools-encore</a>,
 a derived work from daemontools with enhancements. (Note that although s6 follows
 the same naming scheme, the same general design, and many of the same architecture
 choices as daemontools, it is still original work, sharing no code at all with
@@ -341,24 +341,24 @@ different way than the previous items on this list. </li>
 <h3> Other init systems </h3>
 
 <ul>
- <li> Felix von Leitner's <a href="http://www.fefe.de/minit/">minit</a> is an
+ <li> Felix von Leitner's <a href="https://www.fefe.de/minit/">minit</a> is an
 init system for Linux, with process supervision capabilities. </li>
- <li> <a href="http://git.suckless.org/sinit">suckless init</a> is
+ <li> <a href="https://git.suckless.org/sinit">suckless init</a> is
 considered by many as the smallest possible init. I disagree: suckless
 init is incorrect, because it
 has no supervision capabilities, and thus, killing all processes but init
 can brick the machine. Nevertheless, suckless init, like many other
 suckless projects, is a neat exercise in minimalism. </li>
- <li> <a href="http://freshmeat.net/projects/sysvinit/">sysvinit</a> is the
+ <li> <a href="https://nongnu.org/sysvinit/">sysvinit</a> is the
 traditional init system for Linux. </li>
- <li> <a href="http://upstart.ubuntu.com/">Upstart</a> is a well-known init system
+ <li> <a href="https://upstart.ubuntu.com/">Upstart</a> is a well-known init system
 for Linux, with complete service management, that comes with the Ubuntu
 distribution. It includes a coffee machine and the kitchen sink.</li>
  <li> <a href="//skarnet.org/software/systemd.html">systemd</a> is a problem in its own category. </li>
  <li> The various BSD flavors have their own style of
-<a href="http://www.freebsd.org/doc/handbook/boot-init.html">init</a>. </li>
+<a href="https://www.freebsd.org/doc/handbook/boot-init.html">init</a>. </li>
  <li> MacOS X has its own init spaghetti monster called
-<a href="http://en.wikipedia.org/wiki/Launchd">launchd</a>. </li>
+<a href="https://en.wikipedia.org/wiki/Launchd">launchd</a>. </li>
 </ul>
 
 <p>

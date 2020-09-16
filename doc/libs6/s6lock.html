@@ -40,7 +40,7 @@ options are usually available. </li>
 <a href="../localservice.html">s6lockd service</a> concurrently
 accessed by several applications using such locks to gate shared
 resources. </li>
- <li> If you're not using a s6lockd service,
+ <li> If you're not using an s6lockd service,
 make sure your application is not disturbed by children it doesn't
 know it has. Using nonblocking waits, ignoring pids you don't know, and
 using a
@@ -65,13 +65,13 @@ s6lock_start_g(&amp;a, path, &amp;deadline) ;
 </pre>
 
 <p>
-<tt>s6lock_start_g</tt> starts a session by connecting to a s6lockd service
+<tt>s6lock_start_g</tt> starts a session by connecting to an s6lockd service
 listening on <em>path</em>. The working directory is set by the administrator
 of the service. <br />
-<tt>s6lock_startf_g</tt> starts a session with a s6lockd process as a child,
+<tt>s6lock_startf_g</tt> starts a session with an s6lockd process as a child,
 using <em>lockdir</em> as its working directory.
 <br />
-<tt>a</tt> is a s6lock_t structure that must be declared in the stack and
+<tt>a</tt> is an s6lock_t structure that must be declared in the stack and
 initialized to S6LOCK_ZERO.
 If the session initialization fails, the function returns 0 and errno is set;
 else the function returns 1.

@@ -71,7 +71,7 @@ to log <em>stderr</em> as well, so the run script should make sure that its
 stderr goes into the log pipe. This
 is achieved by <tt><a href="//skarnet.org/software/execline/fdmove.html">fdmove</a>
 -c 2 1</tt> in <a href="//skarnet.org/software/execline/">execline</a>,
-and <tt>exec 2&gt;&amp;1</tt> in <a href="http://pubs.opengroup.org/onlinepubs/9699919799/utilities/sh.html">shell</a>.
+and <tt>exec 2&gt;&amp;1</tt> in <a href="https://pubs.opengroup.org/onlinepubs/9699919799/utilities/sh.html">shell</a>.
  </li>
 <li> adjust the environment for your <em>foo</em> daemon. Normally the run script
 inherits its environment from <a href="s6-supervise.html">s6-supervise</a>,
@@ -209,7 +209,7 @@ directory.
 </p>
 
 <a name="where">
- <h2> Where to store my service directories&nbsp;? </h2>
+ <h2> Where should I store my service directories? </h2>
 </a>
 
 <p>
@@ -241,7 +241,7 @@ collection. This is the easy setup, not requiring an external init system
 to mount your filesystems - however, it requires your root filesystem to be
 read-write, which is unacceptable if you are concerned with reliability - if
 you are, for instance, designing an embedded platform. </li>
- <li> <a href="http://code.dogmap.org/">Some people</a> like to have
+ <li> <a href="https://code.dogmap.org/">Some people</a> like to have
 their service directories in a read-only filesystem, with <tt>supervise</tt>
 symlinks pointing to various places in writable filesystems. This setup looks
 a bit complex to me: it requires careful handling of the writable

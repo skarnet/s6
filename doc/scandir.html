@@ -34,7 +34,7 @@ listed in the scan directory will be supervised.
 <p>
  There is normally only one scan directory per system, although nothing
 prevents a system administrator from having more.
-<a href="http://cr.yp.to/daemontools.html">daemontools</a> traditionally
+<a href="https://cr.yp.to/daemontools.html">daemontools</a> traditionally
 uses <tt>/service</tt>, and <a href="http://smarden.org/runit/">runit</a>
 traditionally uses <tt>/etc/service</tt>. s6 does not care where your
 scan directory is, but I would advise <tt>/service</tt> for compatibility
@@ -82,7 +82,7 @@ system - and on your personal preference too.
 </p>
 
 <p>
- Standard <a href="http://cr.yp.to/daemontools.html">daemontools</a> and
+ Standard <a href="https://cr.yp.to/daemontools.html">daemontools</a> and
 <a href="http://smarden.org/runit/">runit</a> installations like to have
 a fixed scan directory containing symlinks to service directories located
 in the service repository. In other words, the service repository contains
@@ -96,7 +96,7 @@ subdirectories in every managed service directory. This can be achieved for
 instance via symlinks, or by having the service repository stored on a writable
 filesystem. </li>
  <li> The scan program (<a href="s6-svscan.html">s6-svscan</a>,
-<a href="http://cr.yp.to/daemontools/svscan.html">svscan</a>,
+<a href="https://cr.yp.to/daemontools/svscan.html">svscan</a>,
 <a href="http://smarden.org/runit/runsvdir.8.html">runsvdir</a>...) is
 started late enough for all the necessary filesystems to be mounted. </li>
 </ul>

@@ -28,7 +28,7 @@ description of the different parts of s6.
 
 <p>
  At its core, s6 is a <em>process supervision suite</em>, like its ancestor
-<a href="http://cr.yp.to/daemontools.html">daemontools</a> and its
+<a href="https://cr.yp.to/daemontools.html">daemontools</a> and its
 close cousin
 <a href="http://smarden.org/runit/">runit</a>.
 </p>
@@ -288,7 +288,7 @@ sometimes, they are daemons themselves, designed to be supervised.
 <p>
  s6, like other <a href="//skarnet.org/software/">skarnet.org
 software</a>, makes heavy use of
-<a href="http://en.wikipedia.org/wiki/Chain_loading#Chain_loading_in_Unix">chain
+<a href="https://en.wikipedia.org/wiki/Chain_loading#Chain_loading_in_Unix">chain
 loading</a>, also known as "Bernstein chaining": a lot of s6 tools will
 perform some action that changes the process state, then execute into the
 rest of their command line. This allows the user to change the process state
@@ -461,7 +461,7 @@ descriptors. </li>
 
 <p>
  Note that "socket activation", one of the main advertised benefits of the
-<a href="http://www.freedesktop.org/wiki/Software/systemd/">systemd</a>
+<a href="https://www.freedesktop.org/wiki/Software/systemd/">systemd</a>
 init system, sounds similar to fd-holding.
 The reality is that socket activation is a mixture of several different
 mechanisms, one of which is fd-holding; s6 allows you to implement the

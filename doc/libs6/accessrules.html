@@ -88,7 +88,7 @@ under, in the format understood by
 <a href="../s6-accessrules-cdb-from-fs.html">s6-accessrules-cdb-from-fs</a>. </li>
  <li> <tt>s6_accessrules_backend_cdb</tt> takes a <tt>struct cdb *</tt>
 <em>handle</em> and looks up <em>key</em> in the
-<a href="http://cr.yp.to/cdb.html">CDB</a> it points to. <em>handle</em> must
+<a href="https://cr.yp.to/cdb.html">CDB</a> it points to. <em>handle</em> must
 already be mapped to a CDB file. Such a file can be built with the
 <a href="../s6-accessrules-cdb-from-fs.html">s6-accessrules-cdb-from-fs</a>
 utility. </li>
@@ -143,7 +143,7 @@ starting with <em>key</em> itself and ending with <em>key</em>'s TLD,
 it looks up <tt>reversedns/<em>k</em></tt>. The final dot is excluded from
 <em>k</em>. If no match can be found, the function checks <tt>reversedns/@</tt>
 and returns the result. For instance, if <em>key</em> is "foo.bar.com",
-the following strings are looked up, in that order:
+the following strings are looked up, in this order:
   <ul>
    <li> reversedns/foo.bar.com </li>
    <li> reversedns/bar.com </li>
@@ -158,7 +158,7 @@ netmask <em>mask</em> from 32 to 0, it constructs the IPv4 network
 prefix <em>addr</em> corresponding to that address, and looks up
 <tt>ip4/<em>addr</em>_<em>mask</em></tt>. For instance, if <em>key</em>
 is "\300\250\001\007", representing the 192.168.1.7 address, the following
-strings are looked up, in that order:
+strings are looked up, in this order:
  <ul>
   <li> ip4/192.168.1.7_32 </li>
   <li> ip4/192.168.1.6_31 </li>
@@ -187,7 +187,7 @@ and looks up
 <tt>ip6/<em>addr</em>_<em>mask</em></tt>. For instance, if <em>key</em>
 is "*\0\024P@\002\b\003\0\0\0\0\0\0\020\006", representing the
 2a00:1450:4002:803::1006 address, the following
-strings are looked up, in that order:
+strings are looked up, in this order:
  <ul>
   <li> ip6/2a00:1450:4002:803::1006_128 </li>
   <li> ip6/2a00:1450:4002:803::1006_127 </li>

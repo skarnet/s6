@@ -63,7 +63,7 @@ for writing to correctly transmit  an EOF. </li>
 
 <ul>
  <li> Transmitting EOF across full-duplex sockets
-<a href="http://cr.yp.to/tcpip/twofd.html">is ugly</a>. The right thing
+<a href="https://cr.yp.to/tcpip/twofd.html">is ugly</a>. The right thing
 in every case cannot be automatically determined, so it is up to the user
 to mention that a socket must be shut down. Most of the time, though,
 shutting down sockets after EOF <em>is</em> the right thing to do, so
@@ -77,7 +77,7 @@ for testing purposes. <tt>s6-ioconnect</tt> is to s6-tcpclient as
 what it gets. </li>
  <li> On modern Linux systems, s6-ioconnect will perform zero-copy
 data transmission, via the
-<a href="http://man7.org/linux/man-pages/man2/splice.2.html">splice</a>
+<a href="https://man7.org/linux/man-pages/man2/splice.2.html">splice</a>
 system call. </li>
  <li> The s6-ioconnect utility was once part of the
 <a href="//skarnet.org/software/s6-networking/">s6-networking</a>

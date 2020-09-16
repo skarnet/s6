@@ -26,14 +26,14 @@
  <li> Good (?) old System V init, which can be made to supervise services if you perform <tt>/etc/inittab</tt> voodoo.
 BSD init can also be used the same way with the <tt>/etc/ttys</tt> file, but for some reason, nobody among BSD
 developers is using <tt>/etc/ttys</tt> to this purpose, so I won't consider BSD init here. </li>
- <li> <a href="http://cr.yp.to/daemontools.html">daemontools</a>, the pioneer </li>
- <li> <a href="http://untroubled.org/daemontools-encore/">daemontools-encore</a>, Bruce Guenter's upgrade to daemontools </li>
+ <li> <a href="https://cr.yp.to/daemontools.html">daemontools</a>, the pioneer </li>
+ <li> <a href="https://untroubled.org/daemontools-encore/">daemontools-encore</a>, Bruce Guenter's upgrade to daemontools </li>
  <li> <a href="http://smarden.org/runit/">runit</a>, Gerrit Pape's suite, well-integrated with Debian </li>
  <li> <a href="http://b0llix.net/perp/">perp</a>, Wayne Marshall's take on supervision </li>
  <li> Integrated init systems providing a lot of features, process supervision being one of them.
-For instance, <a href="http://upstart.ubuntu.com/">Upstart</a>, MacOS X's 
-<a href="http://developer.apple.com/library/mac/#documentation/Darwin/Reference/ManPages/man8/launchd.8.html">launchd</a>,
-and Fedora's <a href="http://freedesktop.org/wiki/Software/systemd">systemd</a>. </li>
+For instance, <a href="https://upstart.ubuntu.com/">Upstart</a>, MacOS X's 
+<a href="https://developer.apple.com/library/mac/#documentation/Darwin/Reference/ManPages/man8/launchd.8.html">launchd</a>,
+and Fedora's <a href="https://freedesktop.org/wiki/Software/systemd">systemd</a>. </li>
 </ul>
 
 <p>
@@ -67,7 +67,7 @@ never wakes up unless it receives a command via s6-svscanctl. </li>
  <li> System V init <em>is</em> process 1, so no problem here. </li>
  <li> Integrated init systems, by definition, provide a process 1. </li>
  <li> daemontools was not designed to take over init, although
-<a href="http://code.dogmap.org./svscan-1/">it can be made to work</a> with
+<a href="https://code.dogmap.org./svscan-1/">it can be made to work</a> with
 enough hacking skills. Same thing with daemontools-encore. </li>
  <li> runit provides an <em>init</em> functionality, but the mechanism is
 separate from the supervision itself; the <tt>runit</tt> process, not the
@@ -102,7 +102,9 @@ process 1 against libdbus. This is insane.
 Process 1 should be <em>absolutely stable</em>, it should be guaranteed
 to never crash, so the whole of its source code should be under control. At
 Upstart's level of complexity, those goals are outright impossible to achieve,
-so this approach is flawed by design. </li>
+so this approach is flawed by design. It is a shame, because the concepts
+and ideas behind Upstart are <em>good</em> and <em>sound</em>; it's the
+implementation choices that are its downfall. </li>
  <li> launchd suffers from the same kind of problems. Example: Services
 running under launchd must be configured
 <a href="https://developer.apple.com/library/mac/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html">using
@@ -163,10 +165,10 @@ and instantly respond to commands they may receive. <tt>s6-supervise</tt> has
 even been implemented as a full deterministic finite automaton, to ensure it
 always does the right thing under any circumstance. Other supervision suites
 do not achieve that for now. </li>
- <li> daemontools' <a href="http://cr.yp.to/daemontools/svscan.html">svscan</a>
+ <li> daemontools' <a href="https://cr.yp.to/daemontools/svscan.html">svscan</a>
 maintains an open pipe between a daemon and its logger, so even if the daemon,
 the logger, <em>and</em> both
-<a href="http://cr.yp.to/daemontools/supervise.html">supervise</a> processes
+<a href="https://cr.yp.to/daemontools/supervise.html">supervise</a> processes
 die, the pipe is still the same so <em>no logs are lost, ever</em>, unless
 svscan itself dies. </li>
  <li> runit has only one supervisor, <a href="http://smarden.org/runit/runsv.8.html">runsv</a>,

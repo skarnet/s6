@@ -150,7 +150,7 @@ process is <a href="s6-log.html">s6-log</a>, this triggers a log rotation.
 
 <ul>
  <li> s6-svc writes control commands into the <tt><em>servicedir</em>/supervise/control</tt>
-FIFO. A s6-supervise process running on <em>servicedir</em> will be listening to this FIFO,
+FIFO. An s6-supervise process running on <em>servicedir</em> will be listening to this FIFO,
 and will read and interpret those commands. </li>
  <li> When invoked with one of the <tt>-w</tt> options, s6-svc executes into
 <a href="s6-svlisten1.html">s6-svlisten1</a>, which will listen to service state

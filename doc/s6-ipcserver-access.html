@@ -67,7 +67,7 @@ its parent:
 <ul>
  <li> ${PROTO}LOCALPATH: set to the local "address" of the socket, as
 reported by the
-<a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/getsockname.html">getsockname()</a>
+<a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/getsockname.html">getsockname()</a>
 system call, truncated to 99 characters max. </li>
 </ul>
 
@@ -98,7 +98,7 @@ looking it up via getsockname(). </li>
  <li> <tt>-i&nbsp;<em>rulesdir</em></tt>&nbsp;: check client credentials
 against a filesystem-based database in the <em>rulesdir</em> directory. </li>
  <li> <tt>-x&nbsp;<em>rulesfile</em></tt>&nbsp;: check client credentials
-against a <a href="http://en.wikipedia.org/wiki/Cdb_(software)">cdb</a>
+against a <a href="https://en.wikipedia.org/wiki/Cdb_(software)">cdb</a>
 database in the <em>rulesfile</em> file. <tt>-i</tt> and <tt>-x</tt> are
 mutually exclusive. If none of those options is given, no credential checking will be
 performed, and a warning will be emitted on every connection if
@@ -118,7 +118,7 @@ if the <tt>-i</tt> option has been given. This option is the most flexible
 one: the directory format is simple enough for scripts to understand and
 modify it, and the ruleset can be changed dynamically. This is practical,
 for instance, for roaming users. </li>
-<li> or in a <a href="http://en.wikipedia.org/wiki/Cdb_(software)">CDB
+<li> or in a <a href="https://en.wikipedia.org/wiki/Cdb_(software)">CDB
 file</a>, if the <tt>-x</tt> option has been given. This option is the most
 efficient one if the ruleset is static enough: a lot less system calls are
 needed to perform searches in a CDB than in the filesystem. </li>

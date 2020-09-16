@@ -69,7 +69,7 @@ verbose, or more verbose, depending on if <em>verbosity</em> is 0,
 1, or more. The default is 1. </li>
  <li> <tt>-d</tt>&nbsp;: allow instant rebinding to the same path
 even if it has been used not long ago - this is the SO_REUSEADDR flag to
-<a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/setsockopt.html">setsockopt()</a>
+<a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/setsockopt.html">setsockopt()</a>
 and is generally used with server programs. This is the default. Note that
 <em>path</em> will be deleted if it already exists at program start time. </li>
  <li> <tt>-D</tt>&nbsp;: disallow instant rebinding to the same path. </li>
@@ -87,7 +87,7 @@ be opened by the s6-fdholder-daemon process minus a few descriptors
 needed for correct <a href="s6-fdholderd.html">s6-fdholderd</a>
 operation. Before running s6-fdholder-daemon, make sure to
 <a href="s6-softlimit.html">properly adjust</a> the
-<a href="http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sys_resource.h.html">number
+<a href="https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sys_resource.h.html">number
 of openable files</a> of the current process. </li>
  <li> <tt>-b&nbsp;<em>backlog</em></tt>&nbsp;: set a maximum of
 <em>backlog</em> backlog connections on the socket. Extra
@@ -137,7 +137,7 @@ of s6-fdholderd applies to s6-fdholder-daemon as well; in particular,
 make sure to properly
 <a href="s6-fdholderd.html#configuration">configure the clients'
 access rights</a>. </li>
- <li> s6-fdholder-daemon is meant to be used in a s6 run script, as
+ <li> s6-fdholder-daemon is meant to be used in an s6 run script, as
 a supervised local service. It does not fork itself or write to syslog.
 However, it can be run under any infrastructure, including other
 supervision infrastructures, OpenRC, systemd, or SysV scripts. </li>

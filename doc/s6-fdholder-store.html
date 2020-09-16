@@ -47,7 +47,7 @@ By default, <em>fd</em> is 0 (i.e. the program's stdin will be stored). </li>
  <li> <tt>-T&nbsp;<em>fdtimeout</em></tt>&nbsp;: the descriptor is stored with
 an expiration time of <em>fdtimeout</em> milliseconds, which means the
 <a href="s6-fdholderd.html">s6-fdholderd</a> daemon will close and get rid of
-the descriptor after that time. By default, <em>fdtimeout</em> is 0, which
+the descriptor after this time. By default, <em>fdtimeout</em> is 0, which
 means infinite - no expiration time. </li>
  <li> <tt>-t&nbsp;<em>timeout</em></tt>&nbsp;: if the operation cannot be
 processed in <em>timeout</em> milliseconds, then fail with an error message.
@@ -63,7 +63,7 @@ wrong socket, for instance). </li>
  <li> 1: the server denied the operation. The meaning of the error messages 
 is explained <a href="s6-fdholder-errorcodes.html">here</a>. </li>          
  <li> 100: wrong usage. </li>                                               
- <li> 111: system call failed - that includes attempting to connect to a    
+ <li> 111: system call failed - this includes attempting to connect to a    
 nonexistent socket, or one where no <a href="s6-fdholderd.html">s6-fdholderd</a>
 daemon is listening. </li>                                                      
 </ul>                                                                           

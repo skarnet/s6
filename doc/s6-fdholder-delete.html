@@ -56,7 +56,7 @@ wrong socket, for instance). </li>
  <li> 1: the server denied the operation. The meaning of the error messages
 is explained <a href="s6-fdholder-errorcodes.html">here</a>. </li>
  <li> 100: wrong usage. </li>
- <li> 111: system call failed - that includes attempting to connect to a
+ <li> 111: system call failed - this includes attempting to connect to a
 nonexistent socket, or one where no <a href="s6-fdholderd.html">s6-fdholderd</a>
 daemon is listening. </li>
 </ul>
@@ -68,7 +68,7 @@ daemon is listening. </li>
 </pre>
 
 <p>
-will tell a s6-fdholderd daemon listening on the
+will tell an s6-fdholderd daemon listening on the
 <tt>/service/fdholderd/s</tt> socket to close the file descriptor 
 dentified as MYSOCKET.
 </p>

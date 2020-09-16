@@ -39,11 +39,11 @@ user: it will be spawned by the
 
 <ol>
  <li> Use the <tt>s6lock_startf()</tt> library call.
-A <tt>s6lockd</tt> child will then be spawned from your
+An <tt>s6lockd</tt> child will then be spawned from your
 calling process, and automatically reaped when you call
 <tt>s6lock_end()</tt>. It requires care with applications that
 trap SIGCHLD. It also requires care with lock file permissions:
-a s6lockd instance might not be able
+an s6lockd instance might not be able
 to open a lock file created by a former instance run by another
 client with different permissions. </li>
  <li> Use the <tt>s6lock_start()</tt> library call, together with a
@@ -56,10 +56,10 @@ simplifies permissions management considerably. </li>
 <p>
 When run as a service, s6lockd has no "standalone" mode: it is
 designed to work with a Unix
-domain superserver, like
+domain super-server, like
 <a href="../s6-ipcserver.html">s6-ipcserver</a>.
-s6lockd follows the <a href="http://cr.yp.to/proto/ucspi.txt">UCSPI</a>
-interface, it can be directly executed from the superserver.
+s6lockd follows the <a href="https://cr.yp.to/proto/ucspi.txt">UCSPI</a>
+interface, it can be directly executed from the super-server.
 </p>
 
 <h2> Notes </h2>
@@ -67,7 +67,7 @@ interface, it can be directly executed from the superserver.
 <ul>
  <li> Unix does not natively provide a way to stop blocking on a lock
 acquisition after a timeout. To emulate such behaviour, s6lockd actually
-spawns a <a href="s6lockd-helper.html">s6lockd-helper</a> child per
+spawns an <a href="s6lockd-helper.html">s6lockd-helper</a> child per
 requested lock. </li>
 </ul>
 

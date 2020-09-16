@@ -33,7 +33,7 @@ socket, then executes a program.
  <li> s6-ipcserver-socketbinder creates a Unix domain socket
 and binds it to <em>path</em>. It prepares the socket to accept
 connections by calling
-<a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/listen.html">listen()</a>. </li>
+<a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/listen.html">listen()</a>. </li>
  <li> It then execs into <em>prog...</em> with the open socket
 as its standard input. </li>
 </ul>
@@ -43,7 +43,7 @@ as its standard input. </li>
 <ul>
  <li> <tt>-d</tt>&nbsp;: allow instant rebinding to the same path
 even if it has been used not long ago - this is the SO_REUSEADDR flag to
-<a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/setsockopt.html">setsockopt()</a>
+<a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/setsockopt.html">setsockopt()</a>
 and is generally used with server programs. This is the default. Note that
 <em>path</em> will be deleted if it already exists at program start time. </li>
  <li> <tt>-D</tt>&nbsp;: disallow instant rebinding to the same path. </li>

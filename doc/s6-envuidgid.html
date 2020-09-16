@@ -54,7 +54,7 @@ to its numerical value, and the UID and GIDLIST variables will not be touched. <
 interpreted as <em>user<tt>:</tt>group</em>. The GIDLIST variable will not be
 touched. If <em>user</em> does not exist, the UID variable will be set to 0 unless
 a better default is provided with the <tt>-D</tt> option.
-if <em>group</em> does not exist, the GID variable will be set to 0 unless a
+If <em>group</em> does not exist, the GID variable will be set to 0 unless a
 better default is provided with the <tt>-D</tt> option. </li>
  <li> <tt>-n</tt>&nbsp;: numerical fallback. If <em>account</em> cannot be
 found in the user or group database, try to interpret the given values literally.
@@ -65,19 +65,19 @@ will set UID to 0 and GID to 42. </li>
 an error message. This is the default. </li>
  <li> <tt>-D&nbsp;<em>uid</em>:<em>gid</em>:<em>gidlist</em></tt>&nbsp;: if <em>account</em>
 is unknown, use <em>uid</em>, <em>gid</em> and <em>gidlist</em> as the values for
-UID and GID and GIDLIST. </li>
+UID, GID and GIDLIST. </li>
 </ul>
 
 <h2> Notes </h2>
 
 <ul>
  <li> s6-envuidgid without options behaves like
-<a href="http://cr.yp.to/daemontools/envuidgid.html">envuidgid</a>, except that
+<a href="https://cr.yp.to/daemontools/envuidgid.html">envuidgid</a>, except that
 the exit code is 1 if <em>account</em> doesn't exist, and it also exports
 supplementary groups. </li>
  <li> s6-envuidgid is useful when running a program that must start as root but can
 drop its privileges later. Such a program can read its new uid/gid/groups info
-from the UID, GID and GIDLIST environment variables. Superservers such as
+from the UID, GID and GIDLIST environment variables. Super-servers such as
 <a href="//skarnet.org/software/s6-networking/s6-tcpserver4.html">s6-tcpserver4</a>
 make use of this. </li>
 </ul>

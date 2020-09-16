@@ -39,10 +39,10 @@ stdout is a pipe writing to the client; its stderr is the same as the client's; 
 there's an additional pipe from s6-ftrigrd to the client, used for asynchronous
 notifications. </li>
  <li> If the client program uses <tt>ftrigr_start()</tt>, then it tries to connect
-to a Unix domain socket. A ftrigrd <a href="../localservice.html">local service</a> should be listening to that
-socket, i.e. a Unix domain superserver such as
+to a Unix domain socket. An ftrigrd <a href="../localservice.html">local service</a> should be listening to that
+socket, i.e. a Unix domain super-server such as
 <a href="s6-ipcserver.html">s6-ipcserver</a>
-spawning a s6-ftrigrd program on every connection. Then a s6-ftrigrd instance is created
+spawning an s6-ftrigrd program on every connection. Then an s6-ftrigrd instance is created
 for the client. </li>
  <li> When the client uses <tt>ftrigr_end()</tt>, or closes s6-ftrigrd's stdin in
 any way, s6-ftrigrd exits 0. </li>
@@ -71,7 +71,7 @@ to read them. To avoid uncontrolled growth, make sure your client calls
 </p>
 
 <p>
- A s6-ftrigrd instance can only handle up to FTRIGRD_MAX (defined in <tt>s6/ftrigr.h</tt>)
+ An s6-ftrigrd instance can only handle up to FTRIGRD_MAX (defined in <tt>s6/ftrigr.h</tt>)
 subscriptions at once. By default, this number is 1000, which is more than enough for
 any reasonable system.
 </p>

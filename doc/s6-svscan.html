@@ -32,7 +32,7 @@ the root or a branch of a <em>supervision tree</em>.
 
 <ul>
  <li> If given a <em>scandir</em> argument, s6-svscan switches to it. Else it uses
-its current directory as <a href="scandir.html">scan directory</a>. </li>
+its current directory as the <a href="scandir.html">scan directory</a>. </li>
  <li> It exits 100 if another s6-svscan process is already monitoring this
 <a href="scandir.html">scan directory</a>. </li>
  <li> If the <tt>./.s6-svscan</tt> control directory does not exist,
@@ -174,7 +174,7 @@ command, s6-svscan runs a <em>reaper</em> routine.
 
 <p>
 The reaper acknowledges (via some
-<a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/wait.html">wait()</a>
+<a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/wait.html">wait()</a>
 function), without blocking, every terminated child of s6-svscan, even ones it does not
 know it has. This is especially important when <a href="s6-svscan-1.html">s6-svscan is
 run as process 1</a>.
@@ -204,7 +204,7 @@ It skips names starting with dots. It will not create services for more than
 <p>
  For every new subdirectory <em>dir</em> it finds, the scanner spawns a
 <a href="s6-supervise.html">s6-supervise</a> process on it. If
-<em>dir</em><tt>/log</tt> exists, it spawns a s6-supervise process on
+<em>dir</em><tt>/log</tt> exists, it spawns an s6-supervise process on
 both <em>dir</em> and <em>dir</em><tt>/log</tt>, and maintains a
 never-closing pipe from the service's stdout to the logger's stdin.
 This is <em>starting the service</em>, with or without a corresponding

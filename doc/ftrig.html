@@ -73,7 +73,7 @@ it's not handling an event, and only wake up when needed.
  Of course, the problem of notification is that it's often more difficult
 to implement. Notification frameworks are generally more complex, involving
 lots of asynchronism; polling is widely used
-<a href="http://lib.store.yahoo.net/lib/demotivators/mediocritydemotivationalposter.jpg">because
+<a href="https://lib.store.yahoo.net/lib/demotivators/mediocritydemotivationalposter.jpg">because
 it's easy.</a>
 </p>
 
@@ -86,11 +86,11 @@ notify process A.
 
 <ul>
  <li> Signals. The simplest Unix notification mechanism. Sending events amounts
-to a <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/kill.html">kill()</a>
-call, and receiving events amounts to installing a signal handler (preferrably
+to a <a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/kill.html">kill()</a>
+call, and receiving events amounts to installing a signal handler (preferably
 using a <a href="//skarnet.org/software/skalibs/libstddjb/selfpipe.html">self-pipe</a>
 if mixing signals with an event loop). Unfortunately, Unix signals, even the more
-recent and powerful real-time Posix signals, have important limitations when it's
+recent and powerful real-time POSIX signals, have important limitations when it's
 about generic notification:
  <ul>
   <li> non-root processes can only send signals to a very restricted and

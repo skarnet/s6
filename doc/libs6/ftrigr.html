@@ -45,7 +45,7 @@ simply ignoring pids you don't know.
 
 <p>
  If your application has trouble handling unknown
-children, consider using a ftrigrd service. (And fix your application!)
+children, consider using an ftrigrd service. (And fix your application!)
 </p>
 
 <h3> A programming example </h3>
@@ -112,11 +112,11 @@ ftrigr_startf(&amp;a, &amp;deadline, &amp;stamp) ;
 </pre>
 
 <p>
-<tt>ftrigr_start</tt> starts a session with a ftrigrd service listening on
+<tt>ftrigr_start</tt> starts a session with an ftrigrd service listening on
 <em>path</em>. <br />
-<tt>ftrigr_startf</tt> starts a session with a ftrigrd process as a child
+<tt>ftrigr_startf</tt> starts a session with an ftrigrd process as a child
 (which is the simplest usage). <br />
-<tt>a</tt> is a ftrigr_t structure that must be declared in the stack and
+<tt>a</tt> is an ftrigr_t structure that must be declared in the stack and
 initialized to FTRIGR_ZERO.
 <tt>stamp</tt> must be an accurate enough timestamp. <br />
 If the session initialization fails, the function returns 0 and errno is set;
