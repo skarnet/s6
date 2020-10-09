@@ -91,7 +91,7 @@ for readiness, and route its result into the s6 notification system:
 <a href="s6-notifyoncheck.html">s6-notifyoncheck</a>.
 </p>
 
-<h2> How to use a check program with s6 </h2>
+<h2> How to use a check program with s6 (i.e. readiness checking via polling) </h2>
 
 <ul>
  <li> Let's say you have a daemon <em>foo</em>, started under s6 via a
@@ -121,8 +121,7 @@ mark <em>foo</em> as ready. </li>
   </ul> </li>
 </ul>
 
-<h2> How to design a daemon so it uses the s6 notification mechanism
-<em>without</em> resorting to polling </h2>
+<h2> How to design a daemon so it uses the s6 mechanism <em>without</em> resorting to polling (i.e. readiness notification) </h2>
 
 <p>
  The <a href="s6-notifyoncheck.html">s6-notifyoncheck</a> mechanism was
