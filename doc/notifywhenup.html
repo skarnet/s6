@@ -168,7 +168,7 @@ written in the <tt>notification-fd</tt> file. </li>
  <li> And that is all. <strong>Do not</strong> use <tt>s6-notifyoncheck</tt>
 in this case, because you do not need to poll to know whether <em>foo</em>
 is ready; instead, <em>foo</em> will directly communicate its readiness to
-<a href="s6-supervise.html">s6-supervise</a>, which is a much more efficient
+<a href="s6-supervise.html">s6-supervise</a>, and that is a much more efficient
 mechanism. </li>
 </ul>
 
@@ -185,8 +185,8 @@ readiness event to programs that are waiting for it - for instance the
 make sure that other programs only start when the daemon is ready. For
 instance, the
 <a href="//skarnet.org/software/s6-rc/">s6-rc</a> service manager uses
-that mechanism to handle dependencies when starting services that depend
-on daemons. </li>
+that mechanism to bring sets of services up or down: a service starts as
+soon as all its dependencies are ready, but never earlier. </li>
 </ul>
 
 </body>
