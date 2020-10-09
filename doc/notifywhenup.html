@@ -91,5 +91,104 @@ for readiness, and route its result into the s6 notification system:
 <a href="s6-notifyoncheck.html">s6-notifyoncheck</a>.
 </p>
 
+<h2> How to use a check program with s6 </h2>
+
+<ul>
+ <li> Let's say you have a daemon <em>foo</em>, started under s6 via a
+<tt>/run/service/foo</tt> service directory, and that comes with a
+<tt>foo-check</tt> program that exhibits different behaviours when
+<em>foo</em> is ready and when it is not. </li>
+ <li> Create an executable script <tt>/run/service/foo/data/check</tt>
+that calls <tt>foo-check</tt>. Make sure this script exits 0 when
+<em>foo</em> is ready and nonzero when it's not. </li>
+ <li> In your <tt>/run/service/foo/run</tt> script that starts <em>foo</em>,
+instead of executing into <tt>foo</tt>, execute into
+<tt>s6-notifyoncheck foo</tt>. Read the
+<a href="s6-notifyoncheck.html">s6-notifyoncheck</a> page if you need to
+give it options to tune the polling. </li>
+ <li> <tt>echo 3 &gt; /run/service/foo/notification-fd</tt>. If file descriptor
+3 is already open when your run script executes <em>foo</em>, replace 3 with
+a file descriptor you <em>know</em> is not already open. </li> 
+ <li> That's it.
+  <ul>
+   <li> Your check script will be automatically invoked by
+<a href="s6-notifyoncheck.html">s6-notifyoncheck</a>, until it succeeds. </li>
+   <li> <a href="s6-notifyoncheck.html">s6-notifyoncheck</a> will send the
+readiness notification to the file descriptor given in the <tt>notification-fd</tt>
+file. </li>
+   <li> <a href="s6-supervise.html">s6-supervise</a> will receive it and will
+mark <em>foo</em> as ready. </li>
+  </ul> </li>
+</ul>
+
+<h2> How to design a daemon so it uses the s6 notification mechanism
+<em>without</em> resorting to polling </h2>
+
+<p>
+ The <a href="s6-notifyoncheck.html">s6-notifyoncheck</a> mechanism was
+made to accommodate daemons that provide a check program but do not notify
+readiness themselves; it works, but is suboptimal.
+ If you are writing the <em>foo</em> daemon, here is how you can make things better:
+</p>
+
+<ul>
+ <li> Readiness notification should be optional, so you should guard all
+the following with a run-time option to <em>foo</em>. </li>
+ <li> Assume a file descriptor other than 0, 1 or 2 is going to be open.
+You can hardcode 3 (or 4); or you can make it configurable via a command line
+option. See for instance the <tt>-D <em>notif</em></tt> option to the
+<a href="//skarnet.org/software/mdevd/mdevd.html">mdevd</a> program. It
+really doesn't matter what this number is; the important thing is that your
+daemon knows that this fd is already open, and is not using it for another
+purpose. </li>
+ <li> Do nothing with this file descriptor until your daemon is ready. </li>
+ <li> When your daemon is ready, write a newline to this file descriptor.
+  <ul>
+   <li> If you like, you may write other data before the newline, just in
+case it is printed to the terminal. It is not necessary, and it is best to
+keep that data short. If the line is read by
+<a href="s6-supervise.html">s6-supervise</a>, it will be entirely ignored;
+only the newline is important. </li>
+  </ul>
+ <li> Then close that file descriptor. </li>
+</ul>
+
+<p>
+ The user who then makes <em>foo</em> run under s6 just has to do the
+following:
+</p>
+
+<ul>
+ <li> Write 3, or the file descriptor the <em>foo</em> daemon uses
+to notify readiness, to the <tt>/run/service/foo/notification-fd</tt> file. </li>
+ <li> In the <tt>/run/service/foo/run</tt> script, invoke <tt>foo</tt>
+with the option that activates the readiness notification. If <em>foo</em>
+makes the notification fd configurable, the user needs to make sure that
+the number that is given to this option is the same as the number that is
+written in the <tt>notification-fd</tt> file. </li>
+ <li> And that is all. <strong>Do not</strong> use <tt>s6-notifyoncheck</tt>
+in this case, because you do not need to poll to know whether <em>foo</em>
+is ready; instead, <em>foo</em> will directly communicate its readiness to
+<a href="s6-supervise.html">s6-supervise</a>, which is a much more efficient
+mechanism. </li>
+</ul>
+
+ <h2> What does <a href="s6-supervise.html">s6-supervise</a> do with this
+readiness information? </h2>
+
+<ul>
+ <li> <a href="s6-supervise.html">s6-supervise</a> maintains a readiness
+state for other programs to read. You can check for it, for instance, via
+the <a href="s6-svstat.html">s6-svstat</a> program. </li>
+ <li> <a href="s6-supervise.html">s6-supervise</a> also broadcasts the
+readiness event to programs that are waiting for it - for instance the
+<a href="s6-svwait.html">s6-svwait</a> program. This can be used to
+make sure that other programs only start when the daemon is ready. For
+instance, the
+<a href="//skarnet.org/software/s6-rc/">s6-rc</a> service manager uses
+that mechanism to handle dependencies when starting services that depend
+on daemons. </li>
+</ul>
+
 </body>
 </html>
