@@ -59,23 +59,23 @@ int s6_supervise_lock_mode (char const *subdir, unsigned int subdirmode, unsigne
     if (!S_ISFIFO(st.st_mode))
       strerr_diefu2x(100, control, " is not a FIFO") ;
   }
-  fdlock = open_createcoe(lock) ;
+  fdlock = openc_create(lock) ;
   if (fdlock < 0)
     strerr_diefu2sys(111, "open_create ", lock) ;
   if (lock_ex(fdlock) < 0)
     strerr_diefu2sys(111, "lock ", lock) ;
-  fdctlw = open_writecoe(control) ;
+  fdctlw = openc_write(control) ;
   if (fdctlw >= 0) strerr_dief1x(100, "directory already locked") ;
   if (errno != ENXIO)
     strerr_diefu2sys(111, "open_write ", control) ;
-  fdctl = open_readcoe(control) ;
+  fdctl = openc_read(control) ;
   if (fdctl < 0)
     strerr_diefu2sys(111, "open_read ", control) ;
-  fdctlw = open_writecoe(control) ;
+  fdctlw = openc_write(control) ;
   if (fdctlw < 0)
     strerr_diefu2sys(111, "open_write ", control) ;
   fd_close(fdlock) ;
 
   return fdctl ;
-  /* fdctlw is leaking. That's okay, it's coe. */
+  /* we leak fdctlw but it's coe. */
 }
