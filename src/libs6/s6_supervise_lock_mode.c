@@ -29,21 +29,25 @@ int s6_supervise_lock_mode (char const *subdir, unsigned int subdirmode, unsigne
   memcpy(lock + subdirlen, "/lock", 6) ;
   if (mkdir(subdir, (mode_t)subdirmode) == -1)
   {
-    if (errno != EEXIST) strerr_diefu2sys(111, "mkdir ", subdir) ;
-    else
+    char buf[S6_PATH_MAX] ;
+    ssize_t r ;
+    if (errno == EEXIST) strerr_diefu2sys(111, "mkdir ", subdir) ;
+    r = readlink(subdir, buf, S6_PATH_MAX) ;
+    if (r < 0)
     {
-      char buf[S6_PATH_MAX] ;
-      ssize_t r = readlink(subdir, buf, S6_PATH_MAX) ;
-      if (r < 0)
+      if (errno != EINVAL)
       {
         errno = EEXIST ;
         strerr_diefu2sys(111, "mkdir ", subdir) ;
       }
-      if (r == S6_PATH_MAX)
-      {
-        errno = ENAMETOOLONG ;
-        strerr_diefu2sys(111, "readlink ", subdir) ;
-      }
+    }
+    else if (r == S6_PATH_MAX)
+    {
+      errno = ENAMETOOLONG ;
+      strerr_diefu2sys(111, "readlink ", subdir) ;
+    }
+    else
+    {
       buf[r] = 0 ;
       if (mkdir(buf, (mode_t)subdirmode) == -1)
         strerr_diefu2sys(111, "mkdir ", buf) ;
