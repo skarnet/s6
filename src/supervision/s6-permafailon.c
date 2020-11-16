@@ -57,7 +57,7 @@ static void list_scan (char const *s, unsigned char *codes, sigset_t *sigs)
 
 int main (int argc, char const *const *argv, char const *const *envp)
 {
-  unsigned char codes[32] ;
+  unsigned char codes[32] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0" ;
   sigset_t sigs ;
   unsigned int total, seconds, n ;
   struct stat st ;
