@@ -1,9 +1,10 @@
 Changelog for s6.
 
-In 2.9.2.1
-----------
+In 2.10.0.0
+-----------
 
  - Bugfixes.
+ - Changes to s6-svscan and s6-svscanctl.
 
 
 In 2.9.2.0

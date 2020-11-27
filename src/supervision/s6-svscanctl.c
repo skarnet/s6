@@ -4,7 +4,7 @@
 #include <skalibs/strerr2.h>
 #include <s6/s6-supervise.h>
 
-#define USAGE "s6-svscanctl [ -phratszbnNiq0678 ] svscandir"
+#define USAGE "s6-svscanctl [ -zabhitqnN ] svscandir"
 #define dieusage() strerr_dieusage(100, USAGE)
 
 #define DATASIZE 64
@@ -22,22 +22,15 @@ int main (int argc, char const *const *argv)
       if (opt == -1) break ;
       switch (opt)
       {
-        case 'p' :
-        case 'h' :
-        case 'r' :
-        case 'a' :
-        case 't' :
-        case 's' :
         case 'z' :
+        case 'a' :
         case 'b' :
+        case 'h' :
+        case 'i' :
+        case 't' :
+        case 'q' :
         case 'n' :
         case 'N' :
-        case 'i' :
-        case 'q' :
-        case '0' :
-        case '6' :
-        case '7' :
-        case '8' :
         {
           if (datalen >= DATASIZE) strerr_dief1x(100, "too many commands") ;
           data[datalen++] = opt ;
