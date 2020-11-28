@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <signal.h>
 
+#include <skalibs/posixplz.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/types.h>
@@ -18,7 +19,7 @@
 #include <skalibs/direntry.h>
 #include <skalibs/sig.h>
 #include <skalibs/selfpipe.h>
-#include <skalibs/environ.h>
+#include <skalibs/exec.h>
 
 #include <s6/config.h>
 #include <s6/s6-supervise.h>
@@ -331,7 +332,7 @@ static void trystart (unsigned int i, char const *name, int islog)
        && !strcmp(name, SPECIAL_LOGGER_SERVICE)
        && fd_move(2, consoleholder) < 0)  /* autoclears coe */
          strerr_diefu1sys(111, "restore console fd for service " SPECIAL_LOGGER_SERVICE) ;
-      xpathexec_run(S6_BINPREFIX "s6-supervise", cargv, (char const **)environ) ;
+      xexec_a(S6_BINPREFIX "s6-supervise", cargv) ;
     }
   }
   services[i].pid[islog] = pid ;
@@ -496,16 +497,8 @@ int main (int argc, char const *const *argv)
       {
         case 'c' : if (uint0_scan(l.arg, &max)) break ;
         case 't' : if (uint0_scan(l.arg, &t)) break ;
-        case 'd' :
-          if (!uint0_scan(l.arg, &notif)) dieusage() ;
-          if (notif < 3) strerr_dief1x(100, "notification fd must be 3 or more") ;
-          if (fcntl(notif, F_GETFD) < 0) strerr_dief1sys(100, "invalid notification fd") ;
-          break ;
-        case 'X' :
-          if (!uint0_scan(l.arg, &consoleholder)) dieusage() ;
-          if (consoleholder < 3) strerr_dief1x(100, "console holder fd must be 3 or more") ;
-          if (fcntl(consoleholder, F_GETFD) < 0) strerr_dief1sys(100, "invalid console holder fd") ;
-          break ;
+        case 'd' : if (!uint0_scan(l.arg, &notif)) dieusage() ; break ;
+        case 'X' : if (!uint0_scan(l.arg, &consoleholder)) dieusage() ; break ;
         default : dieusage() ;
       }
     }
@@ -515,11 +508,10 @@ int main (int argc, char const *const *argv)
     if (max < 2) max = 2 ;
   }
 
-  /* Init phase.
-     If something fails here, we can die, because it means that
-     something is seriously wrong with the system, and we can't
-     run correctly anyway.
-  */
+  if (notif < 3) strerr_dief1x(100, "notification fd must be 3 or more") ;
+  if (fcntl(notif, F_GETFD) < 0) strerr_dief1sys(100, "invalid notification fd") ;
+  if (consoleholder < 3) strerr_dief1x(100, "console holder fd must be 3 or more") ;
+  if (fcntl(consoleholder, F_GETFD) < 0) strerr_dief1sys(100, "invalid console holder fd") ;
 
   if (argc && (chdir(argv[0]) < 0)) strerr_diefu1sys(111, "chdir") ;
   if (consoleholder && coe(consoleholder) < 0) strerr_diefu1sys(111, "coe console holder") ;
@@ -560,9 +552,7 @@ int main (int argc, char const *const *argv)
     services = blob ;
     tain_now_set_stopwatch_g() ;
 
-
-    /* Loop phase.
-       From now on, we must not die.
+    /* From now on, we must not die.
        Temporize on recoverable errors, and panic on serious ones. */
 
     while (cont)

@@ -4,13 +4,13 @@
 
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
-#include <skalibs/env.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/webipc.h>
+#include <skalibs/exec.h>
 
 #define USAGE "s6-ipcclient [ -q | -Q | -v ] [ -p bindpath ] [ -l localname ] path prog..."
 
-int main (int argc, char const *const *argv, char const *const *envp)
+int main (int argc, char const *const *argv)
 {
   char const *bindpath = 0 ;
   char const *localname = 0 ;
@@ -62,6 +62,6 @@ int main (int argc, char const *const *argv, char const *const *envp)
       strerr_diefu2sys(111, "set up fd ", "6") ;
     if (fd_copy(7, 6) < 0)
       strerr_diefu2sys(111, "set up fd ", "7") ;
-    xpathexec_r(argv+1, envp, env_len(envp), modif, i) ;
+    xmexec_n(argv+1, modif, i, 2) ;
   }
 }

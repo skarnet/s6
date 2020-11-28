@@ -18,6 +18,7 @@
 #include <skalibs/iopause.h>
 #include <skalibs/selfpipe.h>
 #include <skalibs/env.h>
+#include <skalibs/exec.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/unix-timed.h>
 #include <skalibs/unixmessage.h>
@@ -176,15 +177,13 @@ int main (int argc, char const *const *argv, char const *const *envp)
     x[0].fd = selfpipe_init() ;
     if (x[0].fd < 0) strerr_diefu1sys(111, "selfpipe_init") ;
     if (selfpipe_trap(SIGCHLD) < 0) strerr_diefu1sys(111, "trap SIGCHLD") ;
-    if (pipe(p) < 0) strerr_diefu1sys(111, "pipe") ;
-    if (coe(p[1]) < 0) strerr_diefu1sys(111, "coe pipe") ;
+    if (pipecoe(p) < 0) strerr_diefu1sys(111, "pipe") ;
     pid = fork() ;
     if (pid < 0) strerr_diefu1sys(111, "fork") ;
     if (!pid)
     {
       char c ;
       PROG = "s6-sudod (child)" ;
-      fd_close(p[0]) ;
       if ((fd_move(2, m.fds[2]) < 0)
        || (fd_move(1, m.fds[1]) < 0)
        || (fd_move(0, m.fds[0]) < 0))
@@ -194,7 +193,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
         strerr_diefu1sys(111, "move fds") ;
       }
       selfpipe_finish() ;
-      pathexec0_run(targv, tenvp) ;
+      exec0_e(targv, tenvp) ;
       c = errno ;
       fd_write(p[1], &c, 1) ;
       strerr_dieexec(c == ENOENT ? 127 : 126, targv[0]) ;

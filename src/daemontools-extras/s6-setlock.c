@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <signal.h>
+
 #include <skalibs/allreadwrite.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
@@ -10,6 +11,8 @@
 #include <skalibs/tai.h>
 #include <skalibs/iopause.h>
 #include <skalibs/djbunix.h>
+#include <skalibs/exec.h>
+
 #include <s6/config.h>
 
 #define USAGE "s6-setlock [ -r | -w ] [ -n | -N | -t timeout ] lockfile prog..."
@@ -20,7 +23,7 @@ typedef lockfunc_t *lockfunc_t_ref ;
 
 static lockfunc_t_ref f[2][2] = { { &lock_sh, &lock_shnb }, { &lock_ex, &lock_exnb } } ;
 
-int main (int argc, char const *const *argv, char const *const *envp)
+int main (int argc, char const *const *argv)
 {
   unsigned int nb = 0, ex = 1 ;
   unsigned int timeout = 0 ;
@@ -82,5 +85,5 @@ int main (int argc, char const *const *argv, char const *const *envp)
     fd_close(p[0]) ;
     if (uncoe(p[1]) < 0) strerr_diefu1sys(111, "uncoe fd to helper") ;
   }
-  xpathexec_run(argv[1], argv+1, envp) ;
+  xexec(argv+1) ;
 }

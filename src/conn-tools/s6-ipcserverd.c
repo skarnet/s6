@@ -8,18 +8,19 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
+
+#include <skalibs/posixplz.h>
 #include <skalibs/types.h>
 #include <skalibs/gccattributes.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
-#include <skalibs/env.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/sig.h>
 #include <skalibs/selfpipe.h>
 #include <skalibs/iopause.h>
-#include <skalibs/getpeereid.h>
 #include <skalibs/webipc.h>
+#include <skalibs/exec.h>
 
 #define USAGE "s6-ipcserverd [ -v verbosity ] [ -1 ] [ -P | -p ] [ -c maxconn ] [ -C localmaxconn ] prog..."
 
@@ -102,7 +103,7 @@ static void log_status (void)
   strerr_warni3x("status: ", fmt, fmtmaxconn) ;
 }
 
-static void log_deny (uid_t uid, gid_t gid, unsigned int num)
+static inline void log_deny (uid_t uid, gid_t gid, unsigned int num)
 {
   char fmtuid[UID_FMT] = "?" ;
   char fmtgid[GID_FMT] = "?" ;
@@ -116,7 +117,7 @@ static void log_deny (uid_t uid, gid_t gid, unsigned int num)
   strerr_warni7sys("deny ", fmtuid, ":", fmtgid, " count ", fmtnum, fmtlocalmaxconn) ;
 }
 
-static void log_accept (pid_t pid, uid_t uid, gid_t gid, unsigned int num)
+static inline void log_accept (pid_t pid, uid_t uid, gid_t gid, unsigned int num)
 {
   char fmtuidgid[UID_FMT + GID_FMT + 1] = "?:?" ;
   char fmtpid[UINT_FMT] ;
@@ -133,7 +134,7 @@ static void log_accept (pid_t pid, uid_t uid, gid_t gid, unsigned int num)
   strerr_warni7x("allow ", fmtuidgid, " pid ", fmtpid, " count ", fmtnum, fmtlocalmaxconn) ;
 }
 
-static void log_close (pid_t pid, uid_t uid, int w)
+static inline void log_close (pid_t pid, uid_t uid, int w)
 {
   char fmtpid[PID_FMT] ;
   char fmtuid[UID_FMT] = "?" ;
@@ -153,7 +154,7 @@ static void killthem (int sig)
   for (; i < numconn ; i++) kill(piduid[i].left, sig) ;
 }
 
-static void wait_children (void)
+static inline void wait_children (void)
 {
   for (;;)
   {
@@ -181,7 +182,7 @@ static void wait_children (void)
   }
 }
 
-static void handle_signals (void)
+static inline void handle_signals (void)
 {
   for (;;) switch (selfpipe_read())
   {
@@ -227,8 +228,8 @@ static void handle_signals (void)
 
  /* New connection handling */
 
-static void run_child (int, uid_t, gid_t, unsigned int, char const *, char const *const *, char const *const *) gccattr_noreturn ;
-static void run_child (int s, uid_t uid, gid_t gid, unsigned int num, char const *remotepath, char const *const *argv, char const *const *envp)
+static void run_child (int, uid_t, gid_t, unsigned int, char const *, char const *const *) gccattr_noreturn ;
+static void run_child (int s, uid_t uid, gid_t gid, unsigned int num, char const *remotepath, char const *const *argv)
 {
   size_t rplen = strlen(remotepath) + 1 ;
   unsigned int n = 0 ;
@@ -255,10 +256,10 @@ static void run_child (int s, uid_t uid, gid_t gid, unsigned int num, char const
   fmt[n++] = 0 ;
   memcpy(fmt+n, "IPCREMOTEPATH=", 14) ; n += 14 ;
   memcpy(fmt+n, remotepath, rplen) ; n += rplen ;
-  xpathexec_r(argv, envp, env_len(envp), fmt, n) ;
+  xmexec_n(argv, fmt, n, 5) ;
 }
 
-static void new_connection (int s, char const *remotepath, char const *const *argv, char const *const *envp)
+static void new_connection (int s, char const *remotepath, char const *const *argv)
 {
   uid_t uid = 0 ;
   gid_t gid = 0 ;
@@ -285,7 +286,7 @@ static void new_connection (int s, char const *remotepath, char const *const *ar
   else if (!pid)
   {
     selfpipe_finish() ;
-    run_child(s, uid, gid, num+1, remotepath, argv, envp) ;
+    run_child(s, uid, gid, num+1, remotepath, argv) ;
   }
 
   if (i < uidlen) uidnum[i].right = num + 1 ;
@@ -304,7 +305,7 @@ static void new_connection (int s, char const *remotepath, char const *const *ar
 }
 
 
-int main (int argc, char const *const *argv, char const *const *envp)
+int main (int argc, char const *const *argv)
 {
   iopause_fd x[2] = { { .events = IOPAUSE_READ }, { .fd = 0, .events = IOPAUSE_READ | IOPAUSE_EXCEPT } } ;
   PROG = "s6-ipcserverd" ;
@@ -399,7 +400,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
           }
           else
           {
-            new_connection(sock, remotepath, argv, envp) ;
+            new_connection(sock, remotepath, argv) ;
             fd_close(sock) ;
           }
         }

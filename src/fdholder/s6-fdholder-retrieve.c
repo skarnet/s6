@@ -5,12 +5,14 @@
 #include <skalibs/sgetopt.h>
 #include <skalibs/tai.h>
 #include <skalibs/djbunix.h>
+#include <skalibs/exec.h>
+
 #include <s6/s6-fdholder.h>
 
 #define USAGE "s6-fdholder-retrieve [ -D ] [ -t timeout ] socket id prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 
-int main (int argc, char const *const *argv, char const *const *envp)
+int main (int argc, char const *const *argv)
 {
   s6_fdholder_t a = S6_FDHOLDER_ZERO ;
   tain_t deadline ;
@@ -49,5 +51,5 @@ int main (int argc, char const *const *argv, char const *const *envp)
     if (uncoe(0) < 0) strerr_diefu1sys(111, "uncoe stdin") ;
   }
   else if (fd_move(0, fd) < 0) strerr_diefu1sys(111, "move fd") ;
-  xpathexec_run(argv[2], argv+2, envp) ;
+  xexec(argv+2) ;
 }

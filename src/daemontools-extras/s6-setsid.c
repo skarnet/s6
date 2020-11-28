@@ -2,16 +2,17 @@
 
 #include <unistd.h>
 #include <signal.h>
+
 #include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/sig.h>
-#include <skalibs/djbunix.h>
+#include <skalibs/exec.h>
 
 #define USAGE "s6-setsid [ -s | -b | -f | -g ] [ -i | -I | -q ] [ -d ctty ] prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 
-int main (int argc, char const *const *argv, char const *const *envp)
+int main (int argc, char const *const *argv)
 {
   unsigned int ctty = 0, what = 0, insist = 1 ;
   PROG = "s6-setsid" ;
@@ -66,5 +67,5 @@ int main (int argc, char const *const *argv, char const *const *envp)
     default : break ;
   }
 
-  xpathexec_run(argv[0], argv, envp) ;
+  xexec(argv) ;
 }

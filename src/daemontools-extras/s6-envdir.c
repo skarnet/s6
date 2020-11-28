@@ -1,15 +1,16 @@
 /* ISC license. */
 
 #include <errno.h>
+
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/env.h>
-#include <skalibs/djbunix.h>
+#include <skalibs/exec.h>
 
 #define USAGE "s6-envdir [ -I | -i ] [ -n ] [ -f ] [ -c nullchar ] dir prog..."
 
-int main (int argc, char const *const *argv, char const *const *envp)
+int main (int argc, char const *const *argv)
 {
   stralloc modifs = STRALLOC_ZERO ;
   subgetopt_t l = SUBGETOPT_ZERO ;
@@ -35,5 +36,5 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (argc < 2) strerr_dieusage(100, USAGE) ;
   if ((envdir_internal(*argv++, &modifs, options, nullis) < 0) && (insist || (errno != ENOENT)))
     strerr_diefu1sys(111, "envdir") ;
-  xpathexec_r(argv, envp, env_len(envp), modifs.s, modifs.len) ;
+  xmexec_m(argv, modifs.s, modifs.len) ;
 }

@@ -1,14 +1,16 @@
 /* ISC license. */
 
 #include <string.h>
+
 #include <skalibs/strerr2.h>
-#include <skalibs/djbunix.h>
+#include <skalibs/exec.h>
+
 #include <s6/config.h>
 
 #define USAGE "s6-setuidgid username prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 
-int main (int argc, char *const *argv, char const *const *envp)
+int main (int argc, char *const *argv)
 {
   char const *newargv[argc + 7] ;
   char *colon ;
@@ -39,5 +41,5 @@ int main (int argc, char *const *argv, char const *const *envp)
   newargv[m++] = "--" ;
   while (*argv) newargv[m++] = *argv++ ;
   newargv[m++] = 0 ;
-  xpathexec_run(newargv[0], newargv, envp) ;
+  xexec(newargv) ;
 }

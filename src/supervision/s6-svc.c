@@ -3,10 +3,12 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+
 #include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
-#include <skalibs/djbunix.h>
+#include <skalibs/exec.h>
+
 #include <s6/config.h>
 #include <s6/s6-supervise.h>
 
@@ -15,7 +17,7 @@
 
 #define DATASIZE 63
 
-int main (int argc, char const *const *argv, char const *const *envp)
+int main (int argc, char const *const *argv)
 {
   char data[DATASIZE+1] = "-" ;
   unsigned int datalen = 1 ;
@@ -106,12 +108,12 @@ int main (int argc, char const *const *argv, char const *const *envp)
       newargv[m++] = argv[0] ;
     }
     newargv[m++] = 0 ;
-    xpathexec_run(newargv[0], newargv, envp) ;
+    xexec(newargv) ;
   }
   else switch (s6_svc_writectl(argv[0], S6_SUPERVISE_CTLDIR, data + 1, datalen - 1))
   {
     case -1 : strerr_diefu2sys(111, "control ", argv[0]) ;
-    case -2 : strerr_dief3sys(100, "something is wrong with the ", argv[0], "/" S6_SUPERVISE_CTLDIR " directory. errno reported") ;
+    case -2 : strerr_dief3sys(100, "something is wrong with the ", argv[0], "/" S6_SUPERVISE_CTLDIR " directory") ;
     case 0 : strerr_diefu3x(100, "control ", argv[0], ": supervisor not listening") ;
   }
   return 0 ;

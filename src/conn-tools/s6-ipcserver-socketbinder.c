@@ -3,16 +3,18 @@
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <unistd.h>
+
 #include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/webipc.h>
+#include <skalibs/exec.h>
 
 #define USAGE "s6-ipcserver-socketbinder [ -d | -D ] [ -b backlog ] [ -M | -m ] [ -a perms ] [ -B ] path prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 
-int main (int argc, char const *const *argv, char const *const *envp)
+int main (int argc, char const *const *argv)
 {
   unsigned int backlog = SOMAXCONN ;
   int flagreuse = 1 ;
@@ -54,5 +56,5 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (backlog && ipc_listen(0, backlog) < 0)
     strerr_diefu2sys(111, "listen to ", argv[0]) ;
 
-  xpathexec_run(argv[1], argv + 1, envp) ;
+  xexec(argv+1) ;
 }

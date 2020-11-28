@@ -16,6 +16,7 @@
 #include <skalibs/djbunix.h>
 #include <skalibs/selfpipe.h>
 #include <skalibs/iopause.h>
+#include <skalibs/exec.h>
 
 #include <s6/s6.h>
 
@@ -176,7 +177,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
 
  */
 
-  if (pipe(p) < 0) strerr_diefu1sys(111, "pipe") ;
+  if (pipecoe(p) < 0) strerr_diefu1sys(111, "pipe") ;
   switch (df ? doublefork() : fork())
   {
     case -1: strerr_diefu1sys(111, df ? "doublefork" : "fork") ;
@@ -185,10 +186,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
     {
       char c ;
       close((int)fd) ;
-      close(p[1]) ;
       if (read(p[0], &c, 1) < 1) strerr_diefu1x(111, "synchronize with child") ;
-      close(p[0]) ;
-      xpathexec_run(argv[0], argv, envp) ;
+      xexec_e(argv, envp) ;
     }
   }
 
@@ -206,7 +205,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   x[1].fd = ftrigr_fd(&a) ;
 
   if (fd_write(p[1], "", 1) < 1) strerr_diefu1sys(2, "synchronize with parent") ;
-  fd_close(p[1]) ;
+  close(p[1]) ;
 
  /* Loop around a sleep and a ./data/check invocation */
 

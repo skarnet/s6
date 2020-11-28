@@ -3,14 +3,14 @@
 #include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
-#include <skalibs/djbunix.h>
+#include <skalibs/exec.h>
 
 #include <s6/config.h>
 
 #define USAGE "s6-sudo [ -q | -Q | -v ] [ -p bindpath ] [ -l localname ] [ -e ] [ -t timeout ] [ -T timeoutrun ] path [ args... ]"
 #define dieusage() strerr_dieusage(100, USAGE)
 
-int main (int argc, char const *const *argv, char const *const *envp)
+int main (int argc, char const *const *argv)
 {
   unsigned int verbosity = 1, t = 0, T = 0 ;
   char const *bindpath = 0 ;
@@ -39,6 +39,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     argc -= l.ind ; argv += l.ind ;
   }
   if (!argc) dieusage() ;
+  if (verbosity > 4) verbosity = 4 ;
   {
     char const *eargv[9 + argc + ((verbosity < 2 ? 1 : verbosity-1)) + ((!!bindpath + !!localname) << 1) + nodoenv] ;
     char fmt1[UINT_FMT] ;
@@ -62,6 +63,6 @@ int main (int argc, char const *const *argv, char const *const *envp)
     eargv[n++] = "--" ;
     while (argc--) eargv[n++] = *argv++ ;
     eargv[n++] = 0 ;
-    xpathexec_run(eargv[0], eargv, envp) ;
+    xexec(eargv) ;
   }
 }

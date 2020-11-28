@@ -3,14 +3,16 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <stdlib.h>
+
 #include <skalibs/gccattributes.h>
 #include <skalibs/types.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/cdb.h>
-#include <skalibs/env.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/webipc.h>
+#include <skalibs/exec.h>
 
 #include <s6/config.h>
 #include <s6/accessrules.h>
@@ -113,7 +115,7 @@ static inline int check (s6_accessrules_params_t *params, char const *rules, uns
   }
 }
 
-int main (int argc, char const *const *argv, char const *const *envp)
+int main (int argc, char const *const *argv)
 {
   s6_accessrules_params_t params = S6_ACCESSRULES_PARAMS_ZERO ;
   char const *rules = 0 ;
@@ -147,7 +149,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (!argc) dieusage() ;
   if (!*argv[0]) dieusage() ;
 
-  proto = env_get2(envp, "PROTO") ;
+  proto = getenv("PROTO") ;
   if (!proto) strerr_dienotset(100, "PROTO") ;
   protolen = strlen(proto) ;
 
@@ -156,11 +158,11 @@ int main (int argc, char const *const *argv, char const *const *envp)
     char tmp[protolen + 11] ;
     memcpy(tmp, proto, protolen) ;
     memcpy(tmp + protolen, "REMOTEEUID", 11) ;
-    x = env_get2(envp, tmp) ;
+    x = getenv(tmp) ;
     if (!x) strerr_dienotset(100, tmp) ;
     if (!uid0_scan(x, &uid)) strerr_dieinvalid(100, tmp) ;
     tmp[protolen + 7] = 'G' ;
-    x = env_get2(envp, tmp) ;
+    x = getenv(tmp) ;
     if (!x) strerr_dienotset(100, tmp) ;
     if (!gid0_scan(x, &gid)) strerr_dieinvalid(100, tmp) ;
   }
@@ -212,10 +214,10 @@ int main (int argc, char const *const *argv, char const *const *envp)
 #ifdef S6_USE_EXECLINE
   {
     char *specialargv[4] = { EXECLINE_EXTBINPREFIX "execlineb", "-Pc", params.exec.s, 0 } ;
-    xpathexec_r((char const *const *)specialargv, envp, env_len(envp), params.env.s, params.env.len) ;
+    xmexec_m((char const *const *)specialargv, params.env.s, params.env.len) ;
   }
 #else
   strerr_warnw1x("exec file found but ignored because s6 was compiled without execline support!") ;
 #endif
-  xpathexec_r(argv, envp, env_len(envp), params.env.s, params.env.len) ;
+  xmexec_m(argv, params.env.s, params.env.len) ;
 }

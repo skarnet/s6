@@ -32,7 +32,7 @@
 #include <skalibs/selfpipe.h>
 #include <skalibs/siovec.h>
 #include <skalibs/skamisc.h>
-#include <skalibs/environ.h>
+#include <skalibs/exec.h>
 
 #include <s6/config.h>
 
@@ -330,7 +330,7 @@ static inline void exec_processor (logdir_t *ldp)
   if (fd_move(5, fd) < 0) strerr_diefu3sys(111, "fd_move ", ldp->dir, "/newstate") ;
   selfpipe_finish() ;
   sig_restore(SIGPIPE) ;
-  xpathexec_run(cargv[0], cargv, (char const *const *)environ) ;
+  xexec(cargv) ;
 }
 
 static int rotator (logdir_t *ldp)

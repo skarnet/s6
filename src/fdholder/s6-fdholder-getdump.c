@@ -2,13 +2,15 @@
 
 #include <string.h>
 #include <limits.h>
+
 #include <skalibs/types.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/tai.h>
-#include <skalibs/env.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/genalloc.h>
+#include <skalibs/exec.h>
+
 #include <s6/s6-fdholder.h>
 
 #define USAGE "s6-fdholder-getdump [ -t timeout ] socket prog..."
@@ -81,6 +83,6 @@ int main (int argc, char const *const *argv, char const *const *envp)
       }
       modifs[pos++] = 0 ;
     }
-    xpathexec_r(argv+1, envp, env_len(envp), modifs, pos) ;
+    xmexec_n(argv+1, modifs, pos, 1 + 3*n) ;
   }
 }

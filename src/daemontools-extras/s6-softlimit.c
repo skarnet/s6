@@ -2,10 +2,11 @@
 
 #include <sys/types.h>
 #include <sys/resource.h>
+
 #include <skalibs/strerr2.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/uint64.h>
-#include <skalibs/djbunix.h>
+#include <skalibs/exec.h>
 
 #define USAGE "s6-softlimit [ -a allbytes ] [ -c corebytes ] [ -d databytes ] [ -f filebytes ] [ -l lockbytes ] [ -m membytes ] [ -o openfiles ] [ -p processes ] [ -r residentbytes ] [ -s stackbytes ] [ -t cpusecs ] prog..."
 
@@ -24,7 +25,7 @@ static void doit (int res, char const *arg)
   if (setrlimit(res, &r) < 0) strerr_diefu1sys(111, "setrlimit") ;
 }
 
-int main (int argc, char const *const *argv, char const *const *envp)
+int main (int argc, char const *const *argv)
 {
   subgetopt_t l = SUBGETOPT_ZERO ;
   PROG = "s6-softlimit" ;
@@ -111,5 +112,5 @@ int main (int argc, char const *const *argv, char const *const *envp)
   }
   argc -= l.ind ; argv += l.ind ;
   if (!argc) strerr_dieusage(100, USAGE) ;
-  xpathexec_run(argv[0], argv, envp) ;
+  xexec(argv) ;
 }

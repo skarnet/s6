@@ -5,11 +5,12 @@
 #include <grp.h>
 #include <errno.h>
 #include <limits.h>
+
 #include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
-#include <skalibs/env.h>
 #include <skalibs/djbunix.h>
+#include <skalibs/exec.h>
 
 #define USAGE "s6-envuidgid [ -i | -D defaultuid:defaultgid ] [ -u | -g | -B ] [ -n ] account prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
@@ -64,7 +65,7 @@ static int prot_readgroups (char const *name, gid_t *tab, unsigned int max)
   return errno ? -1 : n ;
 }
 
-int main (int argc, char *const *argv, char const *const *envp)
+int main (int argc, char *const *argv)
 {
   char const *user = 0 ;
   char const *group = 0 ;
@@ -173,6 +174,6 @@ int main (int argc, char *const *argv, char const *const *envp)
       pos += gid_fmtlist(fmt + pos, tab, n) ;
       fmt[pos++] = 0 ;
     }
-    xpathexec_r((char const *const *)argv + 1, envp, env_len(envp), fmt, pos) ;
+    xmexec_m((char const *const *)argv + 1, fmt, pos) ;
   }
 }

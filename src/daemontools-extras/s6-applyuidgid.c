@@ -3,17 +3,19 @@
 #include <unistd.h>
 #include <grp.h>
 #include <limits.h>
+#include <stdlib.h>
+
 #include <skalibs/types.h>
 #include <skalibs/setgroups.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/sgetopt.h>
-#include <skalibs/env.h>
 #include <skalibs/djbunix.h>
+#include <skalibs/exec.h>
 
 #define USAGE "s6-applyuidgid [ -z ] [ -u uid ] [ -g gid ] [ -G gidlist ] [ -U ] prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 
-int main (int argc, char const *const *argv, char const *const *envp)
+int main (int argc, char const *const *argv)
 {
   uid_t uid = 0 ;
   gid_t gid = 0 ;
@@ -35,13 +37,13 @@ int main (int argc, char const *const *argv, char const *const *envp)
         case 'G' : if (!gid_scanlist(gids, NGROUPS_MAX, l.arg, &gidn) && *l.arg) dieusage() ; break ;
         case 'U' :
         {
-          char const *x = env_get2(envp, "UID") ;
+          char const *x = getenv("UID") ;
           if (!x) strerr_dienotset(100, "UID") ;
           if (!uid0_scan(x, &uid)) strerr_dieinvalid(100, "UID") ;
-          x = env_get2(envp, "GID") ;
+          x = getenv("GID") ;
           if (!x) strerr_dienotset(100, "GID") ;
           if (!gid0_scan(x, &gid)) strerr_dieinvalid(100, "GID") ;
-          x = env_get2(envp, "GIDLIST") ;
+          x = getenv("GIDLIST") ;
           if (!x) strerr_dienotset(100, "GIDLIST") ;
           if (!gid_scanlist(gids, NGROUPS_MAX+1, x, &gidn) && *x)
             strerr_dieinvalid(100, "GIDLIST") ;
@@ -61,6 +63,6 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (uid && setuid(uid) < 0)
     strerr_diefu1sys(111, "setuid") ;
 
-  if (unexport) xpathexec_r(argv, envp, env_len(envp), "UID\0GID\0GIDLIST", 16) ;
-  else xpathexec_run(argv[0], argv, envp) ;
+  if (unexport) xmexec_n(argv, "UID\0GID\0GIDLIST", 16, 3) ;
+  else xexec(argv) ;
 }

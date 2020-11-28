@@ -9,7 +9,7 @@
 #include <skalibs/bitarray.h>
 #include <skalibs/sig.h>
 #include <skalibs/tai.h>
-#include <skalibs/djbunix.h>
+#include <skalibs/exec.h>
 
 #include <s6/s6-supervise.h>
 
@@ -59,7 +59,7 @@ static inline void list_scan (char const *s, unsigned char *codes, sigset_t *sig
   }
 }
 
-int main (int argc, char const *const *argv, char const *const *envp)
+int main (int argc, char const *const *argv)
 {
   unsigned char codes[32] ;
   sigset_t sigs ;
@@ -122,5 +122,5 @@ int main (int argc, char const *const *argv, char const *const *envp)
   }
 
  cont:
-  xpathexec0_run(argv + 4, envp) ;
+  xexec0(argv+4) ;
 }
