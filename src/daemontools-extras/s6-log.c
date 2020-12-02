@@ -580,13 +580,14 @@ static inline void logdir_init (unsigned int index, uint32_t s, uint32_t n, uint
   ldp->fd = -1 ;
   ldp->rstate = ROTSTATE_WRITABLE ;
   r = mkdir(ldp->dir, S_IRWXU | S_ISGID) ;
-  if ((r < 0) && (errno != EEXIST)) strerr_diefu2sys(111, "mkdir ", name) ;
+  if (r < 0 && errno != EEXIST) strerr_diefu2sys(111, "mkdir ", name) ;
   memcpy(x, name, dirlen) ;
   memcpy(x + dirlen, "/lock", 6) ;
-  ldp->fdlock = open_append(x) ;
-  if ((ldp->fdlock) < 0) strerr_diefu2sys(111, "open_append ", x) ;
-  if (lock_exnb(ldp->fdlock) < 0) strerr_diefu2sys(111, "lock_exnb ", x) ;
-  if (coe(ldp->fdlock) < 0) strerr_diefu2sys(111, "coe ", x) ;
+  ldp->fdlock = openc_create(x) ;
+  if (ldp->fdlock < 0) strerr_diefu2sys(111, "open ", x) ;
+  r = fd_lock(ldp->fdlock, 1, 1) ;
+  if (!r) errno = EBUSY ;
+  if (r < 1) strerr_diefu2sys(111, "lock ", x) ;
   memcpy(x + dirlen + 1, "current", 8) ;
   if (stat(x, &st) < 0)
   {

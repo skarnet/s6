@@ -27,6 +27,8 @@
 #define USAGE "s6-svscan [ -c maxservices ] [ -t timeout ] [ -d notif ] [ -X consoleholder ] [ dir ]"
 #define dieusage() strerr_dieusage(100, USAGE)
 
+#define CTL S6_SVSCAN_CTLDIR "/control"
+#define LCK S6_SVSCAN_CTLDIR "/lock"
 #define FINISH_PROG S6_SVSCAN_CTLDIR "/finish"
 #define CRASH_PROG S6_SVSCAN_CTLDIR "/crash"
 #define SIGNAL_PROG S6_SVSCAN_CTLDIR "/SIG"
@@ -480,6 +482,49 @@ static inline void scan (void)
   }
 }
 
+static inline int control_init (void)
+{
+  mode_t m = umask(0) ;
+  int fdctl, fdlck, r ;
+  if (mkdir(S6_SVSCAN_CTLDIR, 0700) < 0)
+  {
+    struct stat st ;
+    if (errno != EEXIST)
+      strerr_diefu1sys(111, "mkdir " S6_SVSCAN_CTLDIR) ;
+    if (stat(CTL, &st) < 0)
+      strerr_diefu1sys(111, "stat " S6_SVSCAN_CTLDIR) ;
+    if (!S_ISDIR(st.st_mode))
+      strerr_dief1x(100, S6_SVSCAN_CTLDIR " exists and is not a directory") ;
+  }
+
+  fdlck = open(LCK, O_WRONLY | O_NONBLOCK | O_CREAT | O_CLOEXEC, 0600) ;
+  if (fdlck < 0) strerr_diefu1sys(111, "open " LCK) ;
+  r = fd_lock(fdlck, 1, 1) ;
+  if (r < 0) strerr_diefu1sys(111, "lock " LCK) ;
+  if (!r) strerr_dief1x(100, "another instance of s6-svscan is already running on the same directory") ;
+ /* fdlck leaks but it's coe */
+
+  if (mkfifo(CTL, 0600) < 0)
+  {
+    struct stat st ;
+    if (errno != EEXIST)
+      strerr_diefu1sys(111, "mkfifo " CTL) ;
+    if (stat(CTL, &st) < 0)
+      strerr_diefu1sys(111, "stat " CTL) ;
+    if (!S_ISFIFO(st.st_mode))
+      strerr_dief1x(100, CTL " is not a FIFO") ;
+  }
+  fdctl = openc_read(CTL) ;
+  if (fdctl < 0)
+    strerr_diefu1sys(111, "open " CTL " for reading") ;
+  r = openc_write(CTL) ;
+  if (r < 0)
+    strerr_diefu1sys(111, "open " CTL " for writing") ;
+ /* r leaks but it's coe */
+
+  umask(m) ;
+  return fdctl ;
+}
 
 int main (int argc, char const *const *argv)
 {
@@ -515,7 +560,7 @@ int main (int argc, char const *const *argv)
 
   if (argc && (chdir(argv[0]) < 0)) strerr_diefu1sys(111, "chdir") ;
   if (consoleholder && coe(consoleholder) < 0) strerr_diefu1sys(111, "coe console holder") ;
-  x[1].fd = s6_supervise_lock(S6_SVSCAN_CTLDIR) ;
+  x[1].fd = control_init() ;
   x[0].fd = selfpipe_init() ;
   if (x[0].fd < 0) strerr_diefu1sys(111, "selfpipe_init") ;
 

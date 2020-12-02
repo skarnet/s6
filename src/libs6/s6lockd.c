@@ -131,8 +131,8 @@ static int parse_protocol (struct iovec const *v, void *context)
     case '<' : /* lock path */
     {
       s6lockio_t f = S6LOCKIO_ZERO ;
-      char const *cargv[3] = { S6LOCKD_HELPER_PROG, 0, 0 } ;
-      char const *cenvp[2] = { 0, 0 } ;
+      char const *cargv[4] = { S6LOCKD_HELPER_PROG, "r", 0, 0 } ;
+      char const *nullenv = 0 ;
       uint32_t options, pathlen ;
       if (v->iov_len < 23)
       {
@@ -150,9 +150,9 @@ static int parse_protocol (struct iovec const *v, void *context)
       f.id = id ;
       s[21] = '.' ;
       s[22] = '/' ;
-      cargv[1] = (char const *)s + 21 ;
-      if (options & S6LOCK_OPTIONS_EX) cenvp[0] = "S6LOCK_EX=1" ;
-      f.pid = child_spawn2(cargv[0], cargv, cenvp, f.p) ;
+      if (options & S6LOCK_OPTIONS_EX) cargv[1] = "w" ;
+      cargv[2] = (char const *)s + 21 ;
+      f.pid = child_spawn2(cargv[0], cargv, &nullenv, f.p) ;
       if (!f.pid)
       {
         answer(errno) ;

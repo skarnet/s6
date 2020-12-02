@@ -18,11 +18,6 @@
 #define USAGE "s6-setlock [ -r | -w ] [ -n | -N | -t timeout ] lockfile prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 
-typedef int lockfunc_t (int) ;
-typedef lockfunc_t *lockfunc_t_ref ;
-
-static lockfunc_t_ref f[2][2] = { { &lock_sh, &lock_shnb }, { &lock_ex, &lock_exnb } } ;
-
 int main (int argc, char const *const *argv)
 {
   unsigned int nb = 0, ex = 1 ;
@@ -47,14 +42,17 @@ int main (int argc, char const *const *argv)
 
   if (nb < 2)
   {
+    int r ;
     int fd = open_create(argv[0]) ;
-    if (fd == -1) strerr_diefu2sys(111, "open_create ", argv[0]) ;
-    if ((*f[ex][nb])(fd) == -1) strerr_diefu2sys(1, "lock ", argv[0]) ;
+    if (fd < 0) strerr_diefu2sys(111, "open_create ", argv[0]) ;
+    r = fd_lock(fd, ex, nb) ;
+    if (!r) errno = EBUSY ;
+    if (r < 1) strerr_diefu2sys(1, "lock ", argv[0]) ;
   }
   else
   {
-    char const *cargv[3] = { "s6lockd-helper", argv[0], 0 } ;
-    char const *cenvp[2] = { ex ? "S6LOCK_EX=1" : 0, 0 } ;
+    char const *cargv[4] = { "s6lockd-helper", ex ? "w" : "r", argv[0], 0 } ;
+    char const *nullenv = { 0 } ;
     iopause_fd x = { .events = IOPAUSE_READ } ;
     tain_t deadline ;
     int p[2] = { 0, 1 } ;
@@ -63,7 +61,7 @@ int main (int argc, char const *const *argv)
     tain_now_set_stopwatch_g() ;
     tain_from_millisecs(&deadline, timeout) ;
     tain_add_g(&deadline, &deadline) ;
-    pid = child_spawn2(S6_LIBEXECPREFIX "s6lockd-helper", cargv, cenvp, p) ;
+    pid = child_spawn2(S6_LIBEXECPREFIX "s6lockd-helper", cargv, &nullenv, p) ;
     if (!pid) strerr_diefu2sys(111, "spawn ", S6_LIBEXECPREFIX "s6lockd-helper") ;
     x.fd = p[0] ;
     for (;;)

@@ -3,13 +3,16 @@
 /* For SIGWINCH */
 #include <skalibs/nonposix.h>
 
-#include <sys/wait.h>
 #include <unistd.h>
 #include <string.h>
 #include <strings.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <limits.h>
 #include <signal.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
+
 #include <skalibs/allreadwrite.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/types.h>
@@ -20,10 +23,19 @@
 #include <skalibs/sig.h>
 #include <skalibs/selfpipe.h>
 #include <skalibs/skamisc.h>
+
 #include <s6/ftrigw.h>
 #include <s6/s6-supervise.h>
 
 #define USAGE "s6-supervise dir"
+#define CTL S6_SUPERVISE_CTLDIR "/control"
+#define LCK S6_SUPERVISE_CTLDIR "/lock"
+
+#ifdef PATH_MAX
+# define S6_PATH_MAX PATH_MAX
+#else
+# define S6_PATH_MAX 4096
+#endif
 
 typedef enum trans_e trans_t, *trans_t_ref ;
 enum trans_e
@@ -625,6 +637,83 @@ static inline void handle_control (int fd)
   }
 }
 
+static int trymkdir (char const *s)
+{
+  char buf[S6_PATH_MAX] ;
+  ssize_t r ;
+  if (mkdir(s, 0700) >= 0) return 1 ;
+  if (errno != EEXIST) strerr_diefu2sys(111, "mkdir ", s) ;
+  r = readlink(s, buf, S6_PATH_MAX) ;
+  if (r < 0)
+  {
+    struct stat st ;
+    if (errno != EINVAL)
+    {
+      errno = EEXIST ;
+      strerr_diefu2sys(111, "mkdir ", s) ;
+    }
+    if (stat(s, &st) < 0)
+      strerr_diefu2sys(111, "stat ", s) ;
+    if (!S_ISDIR(st.st_mode))
+      strerr_dief2x(100, s, " exists and is not a directory") ;
+    return 0 ;
+  }
+  else if (r == S6_PATH_MAX)
+  {
+    errno = ENAMETOOLONG ;
+    strerr_diefu2sys(111, "readlink ", s) ;
+  }
+  else
+  {
+    buf[r] = 0 ;
+    if (mkdir(buf, 0700) < 0)
+      strerr_diefu2sys(111, "mkdir ", buf) ;
+    return 1 ;
+  }
+}
+
+static inline int control_init (void)
+{
+  mode_t m = umask(0) ;
+  int fdctl, fdlck, r ;
+  if (trymkdir(S6_SUPERVISE_EVENTDIR))
+  {
+    if (chown(S6_SUPERVISE_EVENTDIR, -1, getegid()) < 0)
+      strerr_diefu1sys(111, "chown " S6_SUPERVISE_EVENTDIR) ;
+    if (chmod(S6_SUPERVISE_EVENTDIR, 03730) < 0)
+      strerr_diefu1sys(111, "chmod " S6_SUPERVISE_EVENTDIR) ;
+  }
+
+  trymkdir(S6_SUPERVISE_CTLDIR) ;
+  fdlck = open(LCK, O_WRONLY | O_NONBLOCK | O_CREAT | O_CLOEXEC, 0600) ;
+  if (fdlck < 0) strerr_diefu1sys(111, "open " LCK) ;
+  r = fd_lock(fdlck, 1, 1) ;
+  if (r < 0) strerr_diefu1sys(111, "lock " LCK) ;
+  if (!r) strerr_dief1x(100, "another instance of s6-supervise is already running") ;
+ /* fdlck leaks but it's coe */
+
+  if (mkfifo(CTL, 0600) < 0)
+  {
+    struct stat st ;
+    if (errno != EEXIST)
+      strerr_diefu1sys(111, "mkfifo " CTL) ;
+    if (stat(CTL, &st) < 0)
+      strerr_diefu1sys(111, "stat " CTL) ;
+    if (!S_ISFIFO(st.st_mode))
+      strerr_dief1x(100, CTL " is not a FIFO") ;
+  }
+  fdctl = openc_read(CTL) ;
+  if (fdctl < 0)
+    strerr_diefu1sys(111, "open " CTL " for reading") ;
+  r = openc_write(CTL) ;
+  if (r < 0)
+    strerr_diefu1sys(111, "open " CTL " for writing") ;
+ /* r leaks but it's coe */
+
+  umask(m) ;
+  return fdctl ;
+}
+
 int main (int argc, char const *const *argv)
 {
   iopause_fd x[3] = { { -1, IOPAUSE_READ, 0 }, { -1, IOPAUSE_READ, 0 }, { -1, IOPAUSE_READ, 0 } } ;
@@ -640,9 +729,7 @@ int main (int argc, char const *const *argv)
     memcpy(progname + proglen + 1, argv[1], namelen + 1) ;
     PROG = progname ;
     if (!fd_sanitize()) strerr_diefu1sys(111, "sanitize stdin and stdout") ;
-    if (!ftrigw_fifodir_make(S6_SUPERVISE_EVENTDIR, getegid(), 0))
-      strerr_diefu2sys(111, "mkfifodir ", S6_SUPERVISE_EVENTDIR) ;
-    x[1].fd = s6_supervise_lock(S6_SUPERVISE_CTLDIR) ;
+    x[1].fd = control_init() ;
     x[0].fd = selfpipe_init() ;
     if (x[0].fd == -1) strerr_diefu1sys(111, "init selfpipe") ;
     if (sig_ignore(SIGPIPE) < 0) strerr_diefu1sys(111, "ignore SIGPIPE") ;
