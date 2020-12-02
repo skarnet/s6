@@ -7,9 +7,9 @@
 #include <string.h>
 #include <strings.h>
 #include <errno.h>
-#include <fcntl.h>
 #include <limits.h>
 #include <signal.h>
+#include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 
@@ -142,9 +142,9 @@ static void bail (void)
 
 static void closethem (void)
 {
-  fd_close(0) ;
-  fd_close(1) ;
-  fd_close(2) ;
+  close(0) ;
+  close(1) ;
+  close(2) ;
   open_readb("/dev/null") ;
   open_write("/dev/null") ; ndelay_off(1) ;
   open_write("/dev/null") ; ndelay_off(2) ;
@@ -685,7 +685,7 @@ static inline int control_init (void)
   }
 
   trymkdir(S6_SUPERVISE_CTLDIR) ;
-  fdlck = open(LCK, O_WRONLY | O_NONBLOCK | O_CREAT | O_CLOEXEC, 0600) ;
+  fdlck = open3(LCK, O_WRONLY | O_NONBLOCK | O_CREAT | O_CLOEXEC, 0644) ;
   if (fdlck < 0) strerr_diefu1sys(111, "open " LCK) ;
   r = fd_lock(fdlck, 1, 1) ;
   if (r < 0) strerr_diefu1sys(111, "lock " LCK) ;
