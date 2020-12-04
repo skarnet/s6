@@ -497,7 +497,7 @@ static inline int control_init (void)
       strerr_dief1x(100, S6_SVSCAN_CTLDIR " exists and is not a directory") ;
   }
 
-  fdlck = open(LCK, O_WRONLY | O_NONBLOCK | O_CREAT | O_CLOEXEC, 0644) ;
+  fdlck = open(LCK, O_WRONLY | O_NONBLOCK | O_CREAT | O_CLOEXEC, 0600) ;
   if (fdlck < 0) strerr_diefu1sys(111, "open " LCK) ;
   r = fd_lock(fdlck, 1, 1) ;
   if (r < 0) strerr_diefu1sys(111, "lock " LCK) ;

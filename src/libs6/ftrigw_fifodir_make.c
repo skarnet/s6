@@ -8,7 +8,7 @@
 int ftrigw_fifodir_make (char const *path, gid_t gid, int force)
 {
   mode_t m = umask(0) ;
-  if (mkdir(path, 0700) == -1)
+  if (mkdir(path, 0700) < 0)
   {
     struct stat st ;
     umask(m) ;
@@ -19,7 +19,7 @@ int ftrigw_fifodir_make (char const *path, gid_t gid, int force)
     if (!force) return 1 ;
   }
   else umask(m) ;
-  if ((gid != (gid_t)-1) && (chown(path, -1, gid) == -1)) return 0 ;
-  if (chmod(path, (gid != (gid_t)-1) ? 03730 : 01733) == -1) return 0 ;
+  if ((gid != (gid_t)-1) && (chown(path, -1, gid) < 0)) return 0 ;
+  if (chmod(path, gid != (gid_t)-1 ? 03730 : 01733) < 0) return 0 ;
   return 1 ;
 }

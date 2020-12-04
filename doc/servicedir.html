@@ -122,15 +122,6 @@ must be writable. </li>
 the default state of the service is considered down, not up: s6-supervise will not
 automatically start it until it receives a <tt>s6-svc -u</tt> command. If no
 <tt>down</tt> file exists, the default state of the service is up. </li>
- <li style="margin-bottom:1em"> An optional, empty, regular file named <tt>nosetsid</tt>.
-If this file exists and starts with the word <tt>setpgrp</tt>, s6-supervise will run the service
-in a new process group (the run script will be a process group leader), but not in a new session.
-If this file exists and <em>does not</em> start with <tt>setpgrp</tt>, 
-s6-supervise will start the service in the same session and process group as itself.
-If no <tt>nosetsid</tt> file exists, the service has its own process group and is started
-as a session leader - which is the default and should normally not be changed. Using the
-<tt>nosetsid</tt> file is a hack; it should only be used in testing environments for
-job control convenience, and probably never outside that use case. </li>
  <li style="margin-bottom:1em"> An optional regular file named <tt>notification-fd</tt>. If such a file
 exists, it means that the service supports
 <a href="notifywhenup.html">readiness notification</a>. The file must only

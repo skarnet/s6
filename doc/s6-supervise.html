@@ -108,11 +108,15 @@ daemon as <tt>fdmove -c 2 1 fdmove 1 3 prog...</tt> (in execline), or
 <ul>
  <li> SIGTERM: bring down the service and exit, as if a
 <a href="s6-svc.html">s6-svc -xd</a> command had been received </li>
- <li> SIGHUP: exit as soon as the service stops, as if a
-<a href="s6-svc.html">s6-svc -x</a> command had been received </li>
- <li> SIGQUIT: close stdin, stdout and stderr and exit as soon as
-the service stops, as if a
-<a href="s6-svc.html">s6-svc -X</a> command had been received </li>
+ <li> SIGHUP: close its own stdin and stdout, and exit as soon as the
+service stops, as if a <a href="s6-svc.html">s6-svc -x</a> command
+had been received </li>
+ <li> SIGQUIT: exit immediately without touching the service in any
+way. </li>
+ <li> SIGINT: send a SIGINT to the process group of the service, then
+exit immediately. (The point here is to correctly forward SIGINT
+in the case where s6-supervise is running in a terminal and the user
+sent ^C to interrupt it.) </li>
 </ul>
 
 <a name="#detailed">
@@ -183,17 +187,9 @@ better to have a collection of <a href="servicedir.html">service directories</a>
 single <a href="scandir.html">scan directory</a>, and just run
 <a href="s6-svscan.html">s6-svscan</a> on that scan directory. s6-svscan will spawn
 the necessary s6-supervise processes, and will also take care of logged services. </li>
- <li> s6-supervise is not supposed to have a controlling terminal: it's generally
-launched by a <a href="s6-svscan.html">s6-svscan</a> process that itself does not
-have a controlling terminal. If you run s6-supervise from an interactive shell, be
-warned that typing ^C in the controlling terminal (which sends a SIGINT to
-all processes in the foreground process group in the terminal) will terminate
-s6-supervise, but not the supervised processes - so, the daemon will keep running
-as an orphan. This is by design: supervised processes should be as resilient as
-possible, even when their supervisors die. However, if you want to launch
-s6-supervise from an interactive shell and need your service to die when you ^C it,
-you can obtain this behaviour by creating a <tt>./nosetsid</tt> file in the
-<a href="servicedir.html">service directory</a>. </li>
+ <li> s6-supervise always spawns its child in a new session, as a session leader.
+The goal is to protect the supervision tree from misbehaved services that would
+send signals to their whole process group. </li>
  <li> You can use <a href="s6-svc.html">s6-svc</a> to send commands to the s6-supervise
 process; mostly to change the service state and send signals to the monitored
 process. </li>

@@ -4,7 +4,16 @@ In 2.10.0.0
 -----------
 
  - Bugfixes.
- - Changes to s6-svscan and s6-svscanctl.
+ - Changes to s6-svscan and s6-svscanctl: the list of commands
+that can be sent to s6-svscan has been thoroughly cleaned up.
+s6-svscan now scans and prunes on SIGHUP.
+ - Changes to s6-supervise and s6-svc: -X not supported anymore,
+nosetsid not supported anymore. SIGHUP now properly closes
+stdin/stdout to allow the service to naturally exit on EOF;
+SIGQUIT semantics changed to immediately bail. SIGINT is now
+trapped and forwarded to the service's process group.
+ - New binary: s6-svperms, implementing a split permissions
+model. (By default, everything is the same as before.)
 
 
 In 2.9.2.0

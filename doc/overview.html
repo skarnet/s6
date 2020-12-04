@@ -379,6 +379,30 @@ implemented for instance in the
 <a href="//skarnet.org/software/s6-rc/">s6-rc</a> package.
 </p>
 
+<h2> Fine-grained control over services </h2>
+
+<p>
+ s6 provides you with a few more tools to control and monitor your
+services. services. For instance:
+</p>
+
+<ul>
+ <li> <a href="s6-svstat.html">s6-svstat</a> gives you access to
+the detailed state of a service </li>
+ <li> <a href="s6-svperms">s6-svperms</a> allows you to configure
+what users can read that state, what users can send control
+commands to your service, and what users can be notified of
+service start/stop events </li>
+ <li> <a href="s6-svdt.html">s6-svdt</a>
+allows you to see what caused the latest deaths of a supervised
+process </li>
+</ul>
+
+<p>
+ These tools make s6 the most powerful and flexible of the existing
+process supervision suites.
+</p>
+
 <h2> Additional utilities </h2>
 
 <p>

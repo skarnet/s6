@@ -27,7 +27,7 @@ the root or a branch of a <em>supervision tree</em>.
 <h2> Interface </h2>
 
 <pre>
-     s6-svscan [ -S | -s ] [ -d <em>notif</em> ] [ -X <em>consoleholder</em> ] [ -c max ] [ -t <em>rescan</em> ] [ <em>scandir</em> ]
+     s6-svscan [ -d <em>notif</em> ] [ -X <em>consoleholder</em> ] [ -c max ] [ -t <em>rescan</em> ] [ <em>scandir</em> ]
 </pre>
 
 <ul>
@@ -37,9 +37,8 @@ its current directory as the <a href="scandir.html">scan directory</a>. </li>
 <a href="scandir.html">scan directory</a>. </li>
  <li> If the <tt>./.s6-svscan</tt> control directory does not exist,
 s6-svscan creates it. However, it is recommended to already have a <tt>.s6-svscan</tt>
-subdirectory in your scan directory, because s6-svscan may try and execute into the
-<tt>.s6-svscan/crash</tt> or <tt>.s6-svscan/finish</tt> files at some point - so those
-files should exist and be executable. </li>
+subdirectory in your scan directory, because it is used to configure s6-svscan
+operation, see below.
  <li> From this point on, s6-svscan never dies. It tries its best to keep
 control of what's happening. In case of a major system call failure, which means
 that the kernel or hardware is broken in some fashion, it executes into the
@@ -49,19 +48,14 @@ that the kernel or hardware is broken in some fashion, it executes into the
  <li> s6-svscan then occasionally runs <em>scans</em> or <em>reaps</em>,
 see below. </li>
  <li> s6-svscan runs until it is told to stop via <a href="s6-svscanctl.html">
-s6-svscanctl</a>, or a signal.
-Then it executes into the <tt>.s6-svscan/finish</tt> program. The program is
-given an argument that depends on the s6-svscanctl options that were used. </li>
- <li> If that execution fails, s6-svscan falls back on a <tt>.s6-svscan/crash</tt>
-execution. </li>
+s6-svscanctl</a>, or an appropriate signal (see below).
+Then it executes into the <tt>.s6-svscan/finish</tt> program, if present; if
+not, it exits 0.
 </ul>
 
 <h2> Options </h2>
 
 <ul>
- <li> <tt>-S&nbsp;</tt>&nbsp;: do not divert signals. This is the default for now;
-it may change in a future version of s6. </li>
- <li> <tt>-s&nbsp;</tt>&nbsp;: divert signals - see below. </li>
  <li> <tt>-d&nbsp;<em>notif</em></tt>&nbsp;: notify readiness on file descriptor
 <em>notif</em>. When s6-svscan is ready to accept commands from
 <a href="s6-svscanctl.html">s6-svscanctl</a>, it will write a newline to <em>notif</em>.
@@ -94,76 +88,82 @@ of 500 is safe and provides enough room for every reasonable system. </li>
  <li> <tt>-t&nbsp;<em>rescan</em></tt>&nbsp;: perform a scan every <em>rescan</em>
 milliseconds. If <em>rescan</em> is 0 (the default), automatic scans are never performed after
 the first one and s6-svscan will only detect new services when told to via a
-<a href="s6-svscanctl.html">s6-svscanctl -a</a> command.
-It is <em>strongly</em> discouraged to set
-<em>rescan</em> to a positive value under 500. </li>
+<a href="s6-svscanctl.html">s6-svscanctl -a</a> command. Use of this option is
+discouraged; it should only be given to emulate the behaviour of other supervision
+suites. (<tt>-t5000</tt> for daemontools' svscan, <tt>-t14000</tt> for runit's
+runsvdir.) </li>
 </ul>
 
 <h2> Signals </h2>
 
 <p>
- s6-svscan always reacts to the following signals:
+ s6-svscan has special handling for the following signals:
 </p>
 
 <ul>
- <li> SIGCHLD&nbsp;: triggers the reaper. </li>
- <li> SIGALRM&nbsp;: triggers the scanner. </li>
- <li> SIGABRT&nbsp;: acts as if a <tt>s6-svscanctl -b</tt> command had been received. </li>
+ <li> SIGCHLD </li>
+ <li> SIGALRM </li>
+ <li> SIGABRT </li>
+ <li> SIGHUP </li>
+ <li> SIGINT </li>
+ <li> SIGTERM </li>
+ <li> SIGQUIT </li>
+ <li> SIGUSR1 </li>
+ <li> SIGUSR2 </li>
+ <li> SIGPWR (on systems that support it)</li>
+ <li> SIGWINCH (on systems that support it)</li>
 </ul>
 
 <p>
- By default, it also reacts to the following signals:
+ Signals that are not in the above list are not caught by s6-svscan and will
+have the system's default effect.
+</p>
+
+<p>
+ The behaviour for the first three signals in the list is always fixed:
 </p>
 
 <ul>
- <li> SIGTERM&nbsp;: acts as if a <tt>s6-svscanctl -t</tt> command had been received. </li>
- <li> SIGHUP&nbsp;: acts as if a <tt>s6-svscanctl -h</tt> command had been received. </li>
- <li> SIGQUIT&nbsp;: acts as if a <tt>s6-svscanctl -q</tt> command had been received. </li>
- <li> SIGINT&nbsp;: acts as if a <tt>s6-svscanctl -6</tt> command had been received. </li>
+ <li> SIGCHLD&nbsp;: trigger the reaper. </li>
+ <li> SIGALRM&nbsp;: trigger the scanner. </li>
+ <li> SIGABRT&nbsp;: immediately exec into <tt>.s6-svscan/finish</tt> (or exit 0 if that script does not exist), without waiting for any processes to die </li>
 </ul>
 
 <p>
- But if the <tt>-s</tt> option was given, then instead of those default actions,
-s6-svscan uses configurable handlers: it forks and executes a program every time
-it receives one of the following signals.
+ The behaviour for the rest of the list is configurable: on receipt of a
+<tt>SIG<em>FOO</em></tt>,
+s6-svscan will try to run an executable <tt>.s6-svscan/SIG<em>FOO</em></tt> file. For
+instance, a <tt>.s6-svscan/SIGTERM</tt> executable script will be run on receipt of
+a SIGTERM. If the file cannot be found, or cannot be executed for any reason, the
+default behaviour for the signal will be applied. Default behaviours are:
 </p>
 
 <ul>
- <li> SIGTERM&nbsp;: fork and execute <tt>.s6-svscan/SIGTERM</tt> </li>
- <li> SIGHUP&nbsp;: fork and execute <tt>.s6-svscan/SIGHUP</tt> </li>
- <li> SIGQUIT&nbsp;: fork and execute <tt>.s6-svscan/SIGQUIT</tt> </li>
- <li> SIGINT&nbsp;: fork and execute <tt>.s6-svscan/SIGINT</tt> </li>
- <li> SIGUSR1&nbsp;: fork and execute <tt>.s6-svscan/SIGUSR1</tt> </li>
- <li> SIGUSR2&nbsp;: fork and execute <tt>.s6-svscan/SIGUSR2</tt> </li>
- <li> SIGPWR (on systems that define it)&nbsp;: fork and execute <tt>.s6-svscan/SIGPWR</tt> </li>
- <li> SIGWINCH (on systems that define it)&nbsp;: fork and execute <tt>.s6-svscan/SIGWINCH</tt> </li>
+ <li> SIGHUP&nbsp;: rescan and prune the supervision tree, i.e. make sure that new
+service directories visible from the scan directory have a
+<a href="s6-supervise.html">s6-supervise</a> process running on them, and instruct
+<a href="s6-supervise.html">s6-supervise</a> processes running on service directories
+that have become invisible from the scan directory to stop their service and exit.
+This behaviour can also be achieved via the
+<tt>s6-svscanctl -an <em>scandir</em> </tt> command. This is the closest that s6-svscan
+can get to the traditional "reload your configuration" behaviour. </li>
+ <li> SIGINT&nbsp;: same as SIGTERM below. </li>
+ <li> SIGTERM&nbsp;: Instruct all the <a href="s6-supervise.html">s6-supervise</a> to
+stop their service and exit; wait for the whole supervision tree to die, without
+losing any logs; then exec into <tt>.s6-svscan/finish</tt> or exit 0. This behaviour
+can also be achieved via the <tt>s6-svscanctl -t <em>scandir</em></tt> command. </li>
+ <li> SIGQUIT&nbsp;: same as SIGTERM above, except that if a service is logged
+(i.e. there is a <em>foo</em> service <em>and</em> a <em>foo</em>/log service)
+then the logging service will also be killed, instead of being allowed to exit
+naturally after its producer has flushed its output and died. This can solve
+problems with badly written logging programs, but it can also cause loss of logs
+since the logger may die before the producer has finished flushing everything. The
+behaviour can also be achieved via the <tt>s6-svscanctl -q <em>scandir</em></tt> command;
+you should only use this if SIGTERM/<tt>-t</tt> fails to properly tear down the
+supervision tree. </li>
+ <li> Others: no effect if an appropriate executable file in <tt>.s6-svscan/</tt>
+cannot be run. </li>
 </ul>
-
-<p>
- If an action cannot be taken (the relevant file doesn't exist, or isn't
-executable, or any kind of error happens), s6-svscan prints a warning
-message to its standard error but does nothing else with the signal.
-</p>
-
-<p>
- The <tt>-s</tt> mechanism is useful, for instance, when s6-svscan is running as
-process 1 and needs to trap signals such as SIGINT (sent on some systems by
-a Ctrl-Alt-Del press) in order to perform some specific work instead of
-executing into <tt>.s6-svscan/finish</tt> on the spot.
-</p>
-
-<p>
- s6-svscan will not exit its loop on its own when it receives a signal such as
-SIGINT and the <tt>-s</tt> option has been given. To make it exit its loop,
-invoke a <a href="s6-svscanctl.html">s6-svscanctl</a> command from the signal
-handling script. For instance, a <tt>.s6-svscan/SIGINT</tt> script could look
-like this:
-</p>
-
-<pre>  #!/command/execlineb -P
-  foreground { shutdown-the-services }
-  s6-svscanctl -i .
-</pre>
 
 <h2> The reaper </h2>
 
@@ -189,9 +189,10 @@ one second later.
 <h2> The scanner </h2>
 
 <p>
- Every <em>rescan</em> milliseconds, or upon receipt of a SIGALRM or a
+ Upon receipt of a SIGALRM or a
 <a href="s6-svscanctl.html">s6-svscanctl -a</a> command, s6-svscan runs a
-<em>scanner</em> routine.
+<em>scanner</em> routine. (It also runs it every <em>rescan</em> milliseconds
+if the <tt>-t</tt> option has been given.)
 </p>
 
 <p>
@@ -217,8 +218,8 @@ Every service the scanner finds is flagged as "active".
 started in an earlier scan, but the current scan can't find the corresponding
 directory, the service is then flagged as inactive. No command is sent
 to stop inactive s6-supervise processes (unless the administrator
-uses <a href="s6-svscanctl.html">s6-svscanctl -n</a>), but inactive
-s6-supervise processes will not be restarted if they die.
+uses <a href="s6-svscanctl.html">s6-svscanctl -n</a> or a SIGHUP), but
+inactive s6-supervise processes will not be restarted if they die.
 </p>
 
 <h2> Notes </h2>
@@ -238,22 +239,10 @@ process commands at any time, even when the computer is in trouble. </li>
 memory</em>. <small>However, s6-svscan uses opendir(), and most opendir()
 implementations internally use heap memory - so unfortunately, it's impossible
 to guarantee that s6-svscan does not use heap memory at all.</small> </li>
- <li> When run with the <tt>-t0</tt> option, s6-svscan <em>never polls</em>,
-it only wakes up on notifications, just like s6-supervise. The s6 supervision
-tree can be used in energy-critical environments. </li>
- <li> The supervision tree (i.e. the tree of processes made of s6-svscan and
-all its scions) is not supposed to have a controlling terminal; s6-svscan
-generally is either process 1 or a child of process 1, not something that is
-launched from a terminal. If you run s6-svscan from an interactive shell, be
-warned that typing ^C in the controlling terminal (which sends a SIGINT to
-all processes in the foreground process group in the terminal) will terminate
-the supervision tree, but not the supervised processes - so, the supervised
-processes will keep running as orphans. This is by design: supervised
-processes should be as resilient as possible, even when their supervisors
-die. However, if you want to launch s6-svscan from an interactive shell and
-need your services to die with the supervision tree when you ^C it, you can
-obtain this behaviour by creating <tt>./nosetsid</tt> files in every
-<a href="servicedir.html">service directory</a>. </li>
+ <li> Unless run with a nonzero <tt>-t</tt> option, which is only a legacy
+feature used to emulate other supervision suites such as daemontools or runit,
+s6-svscan <em>never polls</em>; it only wakes up on notifications.
+The s6 supervision tree can be used in energy-critical environments. </li>
 </ul>
 
 </body>

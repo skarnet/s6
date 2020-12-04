@@ -40,9 +40,9 @@
 typedef enum trans_e trans_t, *trans_t_ref ;
 enum trans_e
 {
-  V_TIMEOUT, V_CHLD, V_TERM, V_HUP, V_QUIT,
-  V_a, V_b, V_q, V_h, V_k, V_t, V_i, V_1, V_2, V_f, V_F, V_p, V_c, V_y, V_r,
-  V_o, V_d, V_u, V_x, V_O, V_X
+  V_TIMEOUT, V_CHLD, V_TERM, V_HUP, V_QUIT, V_INT,
+  V_a, V_b, V_q, V_h, V_k, V_t, V_i, V_1, V_2, V_p, V_c, V_y, V_r,
+  V_o, V_d, V_u, V_x, V_O
 } ;
 
 typedef enum state_e state_t, *state_t_ref ;
@@ -140,14 +140,22 @@ static void bail (void)
   cont = 0 ;
 }
 
+static void sigint (void)
+{
+  pid_t pgid = getpgid(status.pid) ;
+  if (pgid == -1) strerr_warnwu1sys("getpgid") ;
+  else killpg(pgid, SIGINT) ;
+  bail() ;
+}
+
 static void closethem (void)
 {
-  close(0) ;
-  close(1) ;
-  close(2) ;
-  open_readb("/dev/null") ;
-  open_write("/dev/null") ; ndelay_off(1) ;
-  open_write("/dev/null") ; ndelay_off(2) ;
+  fd_close(0) ;
+  fd_close(1) ;
+  if (open_readb("/dev/null"))
+    strerr_warnwu2sys("open /dev/null for ", "reading") ;
+  else if (open_write("/dev/null") != 1 || ndelay_off(1) < 0)
+      strerr_warnwu2sys("open /dev/null for ", "writing") ;
 }
 
 static void killa (void)
@@ -226,24 +234,6 @@ static void failcoe (int fd)
   errno = e ;
 }
 
-static int maybesetsid (void)
-{
-  char buf[8] = "-------" ;
-  ssize_t r = openreadnclose("nosetsid", buf, 8) ;
-  if (r < 0)
-  {
-    if (errno != ENOENT) return 0 ;
-    setsid() ;
-  }
-  else
-  {
-    if (r == 8 && buf[7] == '\n') buf[--r] = 0 ;
-    if (r == 7 && !strncasecmp(buf, "setpgrp", 7))
-      setpgid(0, 0) ;
-  }
-  return 1 ;
-}
-
 static void trystart (void)
 {
   int p[2] ;
@@ -285,11 +275,7 @@ static void trystart (void)
       failcoe(p[1]) ;
       strerr_diefu1sys(127, "move notification descriptor") ;
     }
-    if (!maybesetsid())
-    {
-      failcoe(p[1]) ;
-      strerr_diefu1sys(127, "access ./nosetsid") ;
-    }
+    setsid() ;
     execv("./run", (char *const *)cargv) ;
     failcoe(p[1]) ;
     strerr_dieexec(127, "run") ;
@@ -407,7 +393,7 @@ static int uplastup_z (void)
     selfpipe_finish() ;
     fmt0[uint_fmt(fmt0, WIFSIGNALED(status.wstat) ? 256 : WEXITSTATUS(status.wstat))] = 0 ;
     fmt1[uint_fmt(fmt1, WTERMSIG(status.wstat))] = 0 ;
-    maybesetsid() ;
+    setsid() ;
     execv("./finish", cargv) ;
     _exit(127) ;
   }
@@ -481,17 +467,12 @@ static void up_u (void)
 static void up_x (void)
 {
   state = LASTUP ;
-}
-
-static void up_X (void)
-{
   closethem() ;
-  up_x() ;
 }
 
 static void up_term (void)
 {
-  up_x() ;
+  state = LASTUP ;
   up_d() ;
 }
 
@@ -522,12 +503,7 @@ static void finish_u (void)
 static void finish_x (void)
 {
   state = LASTFINISH ;
-}
-
-static void finish_X (void)
-{
   closethem() ;
-  finish_x() ;
 }
 
 static void lastfinish_z (void)
@@ -536,23 +512,23 @@ static void lastfinish_z (void)
   bail() ;
 }
 
-static action_t_ref const actions[5][26] =
+static action_t_ref const actions[5][24] =
 {
-  { &downtimeout, &nop, &bail, &bail, &bail,
-    &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop,
-    &down_o, &down_d, &down_u, &bail, &down_O, &bail },
-  { &uptimeout, &up_z, &up_term, &up_x, &up_X,
-    &killa, &killb, &killq, &killh, &killk, &killt, &killi, &kill1, &kill2, &nop, &nop, &killp, &killc, &killy, &killr,
-    &up_o, &up_d, &up_u, &up_x, &up_o, &up_X },
-  { &finishtimeout, &finish_z, &finish_x, &finish_x, &finish_X,
-    &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop,
-    &up_o, &down_d, &finish_u, &finish_x, &up_o, &finish_X },
-  { &uptimeout, &lastup_z, &up_d, &nop, &closethem,
-    &killa, &killb, &killq, &killh, &killk, &killt, &killi, &kill1, &kill2, &nop, &nop, &killp, &killc, &killy, &killr,
-    &up_o, &up_d, &nop, &nop, &up_o, &closethem },
-  { &finishtimeout, &lastfinish_z, &nop, &nop, &closethem,
-    &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop,
-    &nop, &nop, &nop, &nop, &nop, &closethem }
+  { &downtimeout, &nop, &bail, &bail, &bail, &bail,
+    &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop,
+    &down_o, &down_d, &down_u, &bail, &down_O },
+  { &uptimeout, &up_z, &up_term, &up_x, &bail, &sigint,
+    &killa, &killb, &killq, &killh, &killk, &killt, &killi, &kill1, &kill2, &killp, &killc, &killy, &killr,
+    &up_o, &up_d, &up_u, &up_x, &up_o },
+  { &finishtimeout, &finish_z, &finish_x, &finish_x, &bail, &sigint,
+    &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop,
+    &up_o, &down_d, &finish_u, &finish_x, &up_o },
+  { &uptimeout, &lastup_z, &up_d, &closethem, &bail, &sigint,
+    &killa, &killb, &killq, &killh, &killk, &killt, &killi, &kill1, &kill2, &killp, &killc, &killy, &killr,
+    &up_o, &up_d, &nop, &nop, &up_o },
+  { &finishtimeout, &lastfinish_z, &nop, &closethem, &bail, &sigint,
+    &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop,
+    &nop, &nop, &nop, &nop, &nop }
 } ;
 
 
@@ -615,6 +591,9 @@ static inline void handle_signals (void)
       case SIGQUIT :
         (*actions[state][V_QUIT])() ;
         break ;
+      case SIGINT :
+        (*actions[state][V_INT])() ;
+        break ;
       default :
         strerr_dief1x(101, "internal error: inconsistent signal state. Please submit a bug-report.") ;
     }
@@ -631,8 +610,8 @@ static inline void handle_control (int fd)
     else if (!r) break ;
     else
     {
-      size_t pos = byte_chr("abqhkti12fFpcyroduxOX", 21, c) ;
-      if (pos < 21) (*actions[state][V_a + pos])() ;
+      size_t pos = byte_chr("abqhkti12pcyroduxO", 18, c) ;
+      if (pos < 18) (*actions[state][V_a + pos])() ;
     }
   }
 }
@@ -736,10 +715,11 @@ int main (int argc, char const *const *argv)
     {
       sigset_t set ;
       sigemptyset(&set) ;
+      sigaddset(&set, SIGCHLD) ;
       sigaddset(&set, SIGTERM) ;
       sigaddset(&set, SIGHUP) ;
       sigaddset(&set, SIGQUIT) ;
-      sigaddset(&set, SIGCHLD) ;
+      sigaddset(&set, SIGINT) ;
       if (selfpipe_trapset(&set) < 0) strerr_diefu1sys(111, "trap signals") ;
     }
     

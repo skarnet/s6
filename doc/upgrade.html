@@ -25,8 +25,20 @@
 dependency bumped to 2.10.0.0. </li>
  <li> <a href="//skarnet.org/software/execline/">execline</a>
 dependency bumped to 2.7.0.0. </li>
- <li> <a href="s6-svscan.html">s6-svscan</a> and
-<a href="s6-svscanctl.html">s6-svscanctl</a> have changed. </li>
+ <li> Commands received by <a href="s6-svscan.html">s6-svscan</a> and
+sent by <a href="s6-svscanctl.html">s6-svscanctl</a> have changed significantly.
+Different semantics of SIGHUP for <a href="s6-svscan.html">s6-svscan</a>. </li>
+ <li> Commands received by <a href="s6-supervise.html">s6-supervise</a> and
+sent by <a href="s6-svc.html">s6-svc</a> have changed slightly
+(no <tt>s6-svc -X</tt> anymore). Different semantics of SIGHUP and SIGQUIT
+for <a href="s6-supervise.html">s6-supervise</a>. </li>
+ <li> <a href="s6-supervise.html">s6-supervise</a> now handles SIGINT
+appropriately, by forwarding it to its child's process group. </li>
+ <li> The <tt>nosetsid</tt> file is not recognized anymore in service
+directories. <a href="s6-supervise.html">s6-supervise</a> now always starts
+it child as a session leader. </li>
+ <li> Split permissions on service control are now officially supported.
+New binary: <a href="s6-svperms.html">s6-svperms</a>. </li>
 </ul>
 
 <h2> in 2.9.2.0 </h2>

@@ -1,0 +1,135 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-svperms program</title>
+    <meta name="Description" content="s6: the s6-svperms program" />
+    <meta name="Keywords" content="s6 command s6-svperms service control permission unix rights events process supervision s6-supervise" />
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-svperms</tt> program </h1>
+
+<p>
+<tt>s6-svperms</tt> allows the user to see, or modify, for a given
+list of services: who can read their states, who can send them
+control commands, and who can subscribe to up/down events for those
+services.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-svperms [ -v ] [ -u | -g <em>group</em> | -G <em>group</em> | -o | -O <em>group</em> ] [ -e | -E <em>group</em> ] <em>servicedirs...</em>
+</pre>
+
+<p>
+ Without options, or with only the <tt>-v</tt> option,
+<tt>s6-svperms</tt> prints 3 lines to stdout for every service directory
+listed in <em>servicedirs</em>. Every line contains the name
+of the service directory, then the following information:
+</p>
+
+<ul>
+ <li> <tt>status:</tt> - indicates who is allowed to read status
+information on the service, with commands such as
+<a href="s6-svstat.html">s6-svstat</a> or
+<a href="s6-svdt.html">s6-svdt</a>. The values can be <tt>owner</tt>,
+for only the owner of the service; <tt>group: <em>name</em></tt>, for
+the owner and members of group <em>name</em>; or <tt>public</tt>,
+for all users. </li>
+ <li> <tt>control:</tt> - indicates who is allowed to send control
+commands to the service, with commands such as
+<a href="s6-svc.html">s6 -svc</a>. The values can be <tt>owner</tt>,
+for only the owner of the service; or <tt>group: <em>name</em></tt>,
+for the owner and members of group <em>name</em>. </li>
+ <li> <tt>events:</tt> - indicates who is allowed to subscribed to
+events sent by <a href="s6-supervise.html">s6-supervise</a> for this
+service, with commands such as <a href="s6-svwait.html">s6-svwait</a>
+or <a href="s6-svlisten1.html">s6-svlisten1</a>. The values can be
+<tt>group: <em>name</em></tt>, for the owner and members of group
+<em>name</em>, or <tt>public</tt>, for all users.
+</ul>
+
+<p>
+ If something goes wrong while reading a part of the configuration of
+a service directory, <tt>s6-svperms</tt> does not print the corresponding
+line to stdout; instead, it prints a warning message to stderr.
+</p>
+
+<p>
+ When invoked with other options, <tt>s6-svperms</tt> modifies the
+permissions of the service directories listed in <em>servicedirs...</em> as
+specified by the options. The same permissions will be applied to all
+the services listed in <em>servicedirs...</em>.
+</p>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-v</tt>&nbsp;: re-read the permissions after writing them, and
+print them to stdout.
+ <li> <tt>-u</tt>&nbsp;: restrict the <tt>status:</tt> and <tt>control:</tt>
+permissions to <tt>owner</tt>: only the owner of a service directory will
+be able to read its state or control the service. This is the default when
+<a href="s6-supervise.html">s6-supervise</a> starts a service for the first
+time. </li>
+ <li> <tt>-g&nbsp;<em>group</em></tt>&nbsp;: allow members of group
+<em>group</em> to read the status of the service, but not to control it -
+control will be restricted to the owner. </li>
+ <li> <tt>-G&nbsp;<em>group</em></tt>&nbsp;: allow members of group
+<em>group</em> to read <em>and</em> control the service. </li>
+ <li> <tt>-o</tt>&nbsp;: allow everyone to read the status of the service,
+but restrict <tt>control:</tt> to the owner. </li>
+ <li> <tt>-O&nbsp;<em>group</em></tt>&nbsp;: allow everyone to read the
+status, and allow members of group <em>group</em> to control the
+service. </li>
+ <li> <tt>-e</tt>&nbsp;: allow everyone to subscribe to events. </li>
+ <li> <tt>-E&nbsp;<em>group</em></tt>&nbsp;: only allow members of group
+<em>group</em> to subscribe to events. This is the default when
+<a href="s6-supervise.html">s6-supervise</a> starts a service for the first
+time, with <em>group</em> being the primary group of the s6-supervise
+process (most likely <tt>root</tt>). </li>
+</ul>
+
+<p>
+ <em>group</em> is normally a group name that will be searched in the group
+database. But if it starts with a colon (<tt>:</tt>), the rest of <em>group</em>
+will be interpreted as a numerical gid, and the group database will not be read.
+</p>
+
+<h2> Exit codes </h2>
+
+<ul>
+ <li> 0: success </li>
+ <li> 1: something went wrong when reading permissions in one of the service directories </li>
+ <li> 100: wrong usage </li>
+ <li> 111: system call failed </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> The default (restrictive) permissions are safe. </li>
+ <li> Unless operation of a service is restricted information, it is also
+safe to make <tt>status:</tt> more permissive. </li>
+ <li> Opening <tt>control:</tt> to a group can be useful for instance in a
+shared administration situation when individual administrators are not given
+full root powers. </li>
+ <li> Making <tt>events:</tt> public bears a small risk of a local DoS attack
+preventing more subscriptions to events, so it is not recommended for
+supervision trees where such subscriptions are critical to operations - such
+as a set of root services managed by
+<a href="//skarnet.org/software/s6-rc/">s6-rc</a>. </li>
+</ul>
+
+</body>
+</html>

@@ -19,6 +19,7 @@ s6-svdt-clear			0755
 s6-svwait			0755
 s6-svlisten1			0755
 s6-svlisten			0755
+s6-svperms			0755
 s6-notifyoncheck		0755
 s6-permafailon			0755
 s6-applyuidgid			0700
