@@ -58,11 +58,11 @@ static int wantscan = 1 ;
 static unsigned int wantkill = 0 ;
 static int cont = 1 ;
 static int waitall = 1 ;
-static unsigned int consoleholder = 0 ;
+static int consoleholder = -1 ;
 
 static void restore_console (void)
 {
-  if (consoleholder)
+  if (consoleholder >= 0)
   {
     fd_move(2, consoleholder) ;
     if (fd_copy(1, 2) < 0) strerr_warnwu1sys("restore stdout") ;
@@ -330,7 +330,7 @@ static void trystart (unsigned int i, char const *name, int islog)
       if (services[i].flaglog)
         if (fd_move(!islog, services[i].p[!islog]) == -1)
           strerr_diefu2sys(111, "set fds for ", name) ;
-      if (consoleholder
+      if (consoleholder >= 0
        && !strcmp(name, SPECIAL_LOGGER_SERVICE)
        && fd_move(2, consoleholder) < 0)  /* autoclears coe */
          strerr_diefu1sys(111, "restore console fd for service " SPECIAL_LOGGER_SERVICE) ;
@@ -491,7 +491,7 @@ static inline int control_init (void)
     struct stat st ;
     if (errno != EEXIST)
       strerr_diefu1sys(111, "mkdir " S6_SVSCAN_CTLDIR) ;
-    if (stat(CTL, &st) < 0)
+    if (stat(S6_SVSCAN_CTLDIR, &st) < 0)
       strerr_diefu1sys(111, "stat " S6_SVSCAN_CTLDIR) ;
     if (!S_ISDIR(st.st_mode))
       strerr_dief1x(100, S6_SVSCAN_CTLDIR " exists and is not a directory") ;
@@ -529,7 +529,7 @@ static inline int control_init (void)
 int main (int argc, char const *const *argv)
 {
   iopause_fd x[2] = { { -1, IOPAUSE_READ, 0 }, { -1, IOPAUSE_READ, 0 } } ;
-  unsigned int notif = 0 ;
+  int notif = -1 ;
   PROG = "s6-svscan" ;
   {
     subgetopt_t l = SUBGETOPT_ZERO ;
@@ -542,8 +542,8 @@ int main (int argc, char const *const *argv)
       {
         case 'c' : if (uint0_scan(l.arg, &max)) break ;
         case 't' : if (uint0_scan(l.arg, &t)) break ;
-        case 'd' : if (!uint0_scan(l.arg, &notif)) dieusage() ; break ;
-        case 'X' : if (!uint0_scan(l.arg, &consoleholder)) dieusage() ; break ;
+        case 'd' : { unsigned int u ; if (!uint0_scan(l.arg, &u)) dieusage() ; notif = u ; break ; }
+        case 'X' : { unsigned int u ; if (!uint0_scan(l.arg, &u)) dieusage() ; consoleholder = u ; break ; }
         default : dieusage() ;
       }
     }
@@ -553,13 +553,19 @@ int main (int argc, char const *const *argv)
     if (max < 2) max = 2 ;
   }
 
-  if (notif < 3) strerr_dief1x(100, "notification fd must be 3 or more") ;
-  if (fcntl(notif, F_GETFD) < 0) strerr_dief1sys(100, "invalid notification fd") ;
-  if (consoleholder < 3) strerr_dief1x(100, "console holder fd must be 3 or more") ;
-  if (fcntl(consoleholder, F_GETFD) < 0) strerr_dief1sys(100, "invalid console holder fd") ;
+  if (notif >= 0)
+  {
+    if (notif < 3) strerr_dief1x(100, "notification fd must be 3 or more") ;
+    if (fcntl(notif, F_GETFD) < 0) strerr_dief1sys(100, "invalid notification fd") ;
+  }
+  if (consoleholder >= 0)
+  {
+    if (consoleholder < 3) strerr_dief1x(100, "console holder fd must be 3 or more") ;
+    if (fcntl(consoleholder, F_GETFD) < 0) strerr_dief1sys(100, "invalid console holder fd") ;
+    if (coe(consoleholder) < 0) strerr_diefu1sys(111, "coe console holder") ;
+  }
 
   if (argc && (chdir(argv[0]) < 0)) strerr_diefu1sys(111, "chdir") ;
-  if (consoleholder && coe(consoleholder) < 0) strerr_diefu1sys(111, "coe console holder") ;
   x[1].fd = control_init() ;
   x[0].fd = selfpipe_init() ;
   if (x[0].fd < 0) strerr_diefu1sys(111, "selfpipe_init") ;
@@ -585,11 +591,11 @@ int main (int argc, char const *const *argv)
 #endif
     if (selfpipe_trapset(&set) < 0) strerr_diefu1sys(111, "trap signals") ;
   }
-  if (notif)
+  if (notif >= 0)
   {
     fd_write(notif, "\n", 1) ;
     fd_close(notif) ;
-    notif = 0 ;
+    notif = -1 ;
   }
 
   {
@@ -635,5 +641,5 @@ int main (int argc, char const *const *argv)
     execv(eargv[0], (char **)eargv) ;
     if (errno != ENOENT) panicnosp("exec finish script " FINISH_PROG) ;
   }
-  _exit(0) ;
+  return 0 ;
 }
