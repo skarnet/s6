@@ -63,14 +63,11 @@ file in the <a href="servicedir.html">service directory</a>. </li>
 Automatically restart it when it dies. </li>
  <li> <tt>-x</tt>&nbsp;: exit. When the service is asked to be down and
 the supervised process dies, s6-supervise will exit too. This command should
-normally never be used on a working system. </li>
- <li> <tt>-X</tt>&nbsp;: close fds and exit. Like <tt>-x</tt>, but
-<a href="s6-supervise.html">s6-supervise</a> will immediately close its
-stdin, stdout and stderr. This is useful when s6-supervise has descriptors
-open to the service it is supervising and the service is waiting for them
-to close before exiting. Note that if this option is used, the last
-execution of the service's <tt>finish</tt> script will be run with
-stdin, stdout and stderr redirected to <tt>/dev/null</tt>. </li>
+normally never be used on a working system. Note that if this command is
+sent and a <tt>./finish</tt> script exists for the service, the last
+<tt>./finish</tt> invocation before
+<a href="s6-supervise.html">s6-supervise</a> exits will run with its stdin
+and stdout redirected to <tt>/dev/null</tt>. </li>
  <li> <tt>-O</tt>&nbsp;: mark the service to run once at most. iow: do not
 restart the supervised process when it dies. If it is down when the command
 is received, do not even start it. </li>
