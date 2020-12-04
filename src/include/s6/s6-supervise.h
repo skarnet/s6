@@ -3,7 +3,9 @@
 #ifndef S6_SUPERVISE_H
 #define S6_SUPERVISE_H
 
+#include <stdint.h>
 #include <sys/types.h>
+
 #include <skalibs/tai.h>
 
 #define S6_SUPERVISE_CTLDIR "supervise"
@@ -18,9 +20,6 @@ extern int s6_svc_ok (char const *) ;
 extern int s6_svc_write (char const *, char const *, size_t) ;
 extern int s6_svc_writectl (char const *, char const *, char const *, size_t) ;
 extern int s6_svc_main (int, char const *const *, char const *, char const *, char const *) ;
-
-extern int s6_svc_lock_take (char const *) ;
-extern void s6_svc_lock_release(int) ;
 
 typedef struct s6_svstatus_s s6_svstatus_t, *s6_svstatus_t_ref ;
 struct s6_svstatus_s
@@ -56,9 +55,9 @@ extern void s6_svstatus_unpack (char const *, s6_svstatus_t *) ;
 extern int s6_svstatus_read (char const *, s6_svstatus_t *) ;
 extern int s6_svstatus_write (char const *, s6_svstatus_t const *) ;
 
-/* These functions leak a fd, that's intended */
-extern int s6_supervise_lock (char const *) ;
-extern int s6_supervise_lock_mode (char const *, unsigned int, unsigned int) ;
+extern int s6_supervise_link (char const *, char const *const *, size_t, char const *, uint32_t, tain_t const *, tain_t *) ;
+#define s6_supervise_link_g(scandir, servicedirs, n, prefix, options, deadline) s6_supervise_link(scandir, servicedirs, n, prefix, options, (deadline), &STAMP)
+extern void s6_supervise_unlink (char const *, char const *, uint32_t) ;
 
 typedef struct s6_dtally_s s6_dtally_t, *s6_dtally_ref ;
 struct s6_dtally_s
