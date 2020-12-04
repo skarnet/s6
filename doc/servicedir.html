@@ -113,6 +113,10 @@ the signal that killed the run script). </li>
   <li> If the finish script exits 125, then <a href="s6-supervise.html">s6-supervise</a>
 interprets this as a permanent failure for the service, and does not restart it,
 as if an <a href="s6-svc.html">s6-svc -O</a> command had been sent. </li>
+  <li> If <a href="s6-supervise.html">s6-supervise</a> has been instructed to exit after
+the service dies, via a <tt>s6-svc -x</tt> command or a SIGHUP, then the next
+invocation of <tt>finish</tt> will (obviously) be the last, and it will run with
+stdin and stdout pointing to <tt>/dev/null</tt>. </li>
  </ul> </li>
  <li style="margin-bottom:1em"> A directory named <tt>supervise</tt>. It is automatically created by
 <a href="s6-supervise.html">s6-supervise</a> if it does not exist. This is where
