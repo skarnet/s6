@@ -16,12 +16,15 @@
 #include <s6/ftrigw.h>
 #include <s6/s6-supervise.h>
 
-static inline void do_unlink (char const *const scandir, char const *names, size_t nameslen, uint32_t killopts)
+static inline void do_unlink (char const *scandir, char const *prefix, size_t prefixlen, size_t maxlen, char const *names, size_t nameslen, uint32_t killopts)
 {
+  char fn[prefixlen + maxlen + 1] ;
+  memcpy(fn, prefix, prefixlen) ;
   while (nameslen)
   {
     size_t len = strlen(names) + 1 ;
-    s6_supervise_unlink(scandir, names, killopts) ;
+    memcpy(fn + prefixlen, names, len) ;
+    s6_supervise_unlink(scandir, fn, killopts) ;
     names += len ; nameslen -= len ;
   }
 }
@@ -78,20 +81,28 @@ int s6_supervise_link (char const *scandir, char const *const *servicedirs, size
     int r ;
     uint16_t ids[ntotal] ;
     char lname[scandirlen + prefixlen + maxlen + 2] ;
-    char fn[maxlen + 1 + sizeof(S6_SUPERVISE_EVENTDIR)] ;
-    char *p ;
+    char fn[maxlen + 5 + sizeof(S6_SUPERVISE_EVENTDIR)] ;
     if (!ftrigr_startf(&a, deadline, stamp)) return -1 ;
     memcpy(lname, scandir, scandirlen) ;
     lname[scandirlen] = '/' ;
     memcpy(lname + scandirlen + 1, prefix, prefixlen) ;
     for (i = 0 ; i < n ; i++) if (!bitarray_peek(locked, i))
     {
+      char *p ;
       size_t len = strlen(servicedirs[i]) ;
       memcpy(fn, servicedirs[i], len) ;
       memcpy(fn + len, S6_SUPERVISE_EVENTDIR, sizeof(S6_SUPERVISE_EVENTDIR)) ;
       if (!ftrigw_fifodir_make(fn, gid, options & 1)) goto err ;
       ids[m] = ftrigr_subscribe(&a, fn, "s", 0, deadline, stamp) ;
       if (!ids[m++]) goto err ;
+      if (bitarray_peek(logged, i))
+      {
+        memcpy(fn + len, "/log/", 5) ;
+        memcpy(fn + len + 5, S6_SUPERVISE_EVENTDIR, sizeof(S6_SUPERVISE_EVENTDIR)) ;
+        if (!ftrigw_fifodir_make(fn, gid, options & 1)) goto err ;
+        ids[m] = ftrigr_subscribe(&a, fn, "s", 0, deadline, stamp) ;
+        if (!ids[m++]) goto err ;
+      }
       fn[len] = 0 ;
       p = basename(fn) ;
       len = strlen(p) ;
@@ -99,7 +110,7 @@ int s6_supervise_link (char const *scandir, char const *const *servicedirs, size
       rpsa.len = 0 ;
       lstart = lnames.len ;
       if (!sarealpath(&rpsa, servicedirs[i]) || !stralloc_0(&rpsa)) goto err ;
-      if (!stralloc_catb(&lnames, lname + scandirlen + 1, prefixlen + len + 1)) goto err ;
+      if (!stralloc_catb(&lnames, p, len + 1)) goto err ;
       if (symlink(rpsa.s, lname) < 0) goto errl ;
     }
     stralloc_free(&rpsa) ;
@@ -117,7 +128,7 @@ int s6_supervise_link (char const *scandir, char const *const *servicedirs, size
     stralloc_free(&rpsa) ;
    errsa:
     ftrigr_end(&a) ;
-    do_unlink(scandir, lnames.s, lnames.len, killopts) ;
+    do_unlink(scandir, prefix, prefixlen, maxlen, lnames.s, lnames.len, killopts) ;
     stralloc_free(&lnames) ;
     return -1 ;
   }

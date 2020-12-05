@@ -90,7 +90,7 @@ src/libs6/s6_fdholder_setdump.o src/libs6/s6_fdholder_setdump.lo: src/libs6/s6_f
 src/libs6/s6_fdholder_start.o src/libs6/s6_fdholder_start.lo: src/libs6/s6_fdholder_start.c src/include/s6/s6-fdholder.h
 src/libs6/s6_fdholder_store.o src/libs6/s6_fdholder_store.lo: src/libs6/s6_fdholder_store.c src/include/s6/s6-fdholder.h
 src/libs6/s6_fdholder_store_async.o src/libs6/s6_fdholder_store_async.lo: src/libs6/s6_fdholder_store_async.c src/include/s6/s6-fdholder.h
-src/libs6/s6_supervise_link.o src/libs6/s6_supervise_link.lo: src/libs6/s6_supervise_link.c src/include/s6/ftrigr.h src/include/s6/s6-supervise.h
+src/libs6/s6_supervise_link.o src/libs6/s6_supervise_link.lo: src/libs6/s6_supervise_link.c src/include/s6/ftrigr.h src/include/s6/ftrigw.h src/include/s6/s6-supervise.h
 src/libs6/s6_supervise_unlink.o src/libs6/s6_supervise_unlink.lo: src/libs6/s6_supervise_unlink.c src/include/s6/s6-supervise.h
 src/libs6/s6_svc_ok.o src/libs6/s6_svc_ok.lo: src/libs6/s6_svc_ok.c src/include/s6/s6-supervise.h
 src/libs6/s6_svc_write.o src/libs6/s6_svc_write.lo: src/libs6/s6_svc_write.c src/include/s6/s6-supervise.h
@@ -244,7 +244,7 @@ s6-svlisten1: src/supervision/s6-svlisten1.o src/supervision/s6_svlisten_signal_
 s6-svok: EXTRA_LIBS := -lskarnet
 s6-svok: src/supervision/s6-svok.o ${LIBS6}
 s6-svperms: EXTRA_LIBS := -lskarnet
-s6-svperms: src/supervision/s6-svperms.o
+s6-svperms: src/supervision/s6-svperms.o ${LIBNSSS}
 s6-svscan: EXTRA_LIBS := -lskarnet ${SYSCLOCK_LIB} ${SPAWN_LIB}
 s6-svscan: src/supervision/s6-svscan.o
 s6-svscanctl: EXTRA_LIBS := -lskarnet
