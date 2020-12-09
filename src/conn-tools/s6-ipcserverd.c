@@ -19,7 +19,7 @@
 #include <skalibs/sig.h>
 #include <skalibs/selfpipe.h>
 #include <skalibs/iopause.h>
-#include <skalibs/webipc.h>
+#include <skalibs/socket.h>
 #include <skalibs/exec.h>
 
 #define USAGE "s6-ipcserverd [ -v verbosity ] [ -1 ] [ -P | -p ] [ -c maxconn ] [ -C localmaxconn ] prog..."

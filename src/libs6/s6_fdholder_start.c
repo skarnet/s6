@@ -1,8 +1,8 @@
 /* ISC license. */
 
 #include <skalibs/djbunix.h>
-#include <skalibs/webipc.h>
-#include <skalibs/unixconnection.h>
+#include <skalibs/socket.h>
+
 #include <s6/s6-fdholder.h>
 
 int s6_fdholder_start (s6_fdholder_t *a, char const *path, tain_t const *deadline, tain_t *stamp)

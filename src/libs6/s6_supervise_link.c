@@ -68,9 +68,9 @@ int s6_supervise_link (char const *scdir, char const *const *servicedirs, size_t
   } 
 
   {
+    stralloc lnames = STRALLOC_ZERO ;
     ftrigr_t a = FTRIGR_ZERO ;
     stralloc rpsa = STRALLOC_ZERO ;
-    stralloc lnames = STRALLOC_ZERO ;
     gid_t gid = options & 2 ? -1 : getegid() ;
     size_t scdirlen = strlen(scdir) ;
     size_t prefixlen = strlen(prefix) ;
@@ -91,13 +91,14 @@ int s6_supervise_link (char const *scdir, char const *const *servicedirs, size_t
       char *p ;
       size_t len = strlen(servicedirs[i]) ;
       memcpy(fn, servicedirs[i], len) ;
-      memcpy(fn + len, S6_SUPERVISE_EVENTDIR, sizeof(S6_SUPERVISE_EVENTDIR)) ;
+      fn[len] = '/' ;
+      memcpy(fn + len + 1, S6_SUPERVISE_EVENTDIR, sizeof(S6_SUPERVISE_EVENTDIR)) ;
       if (!ftrigw_fifodir_make(fn, gid, options & 1)) goto err ;
       ids[m] = ftrigr_subscribe(&a, fn, "s", 0, deadline, stamp) ;
       if (!ids[m++]) goto err ;
       if (bitarray_peek(logged, i))
       {
-        memcpy(fn + len, "/log/", 5) ;
+        memcpy(fn + len + 1, "log/", 4) ;
         memcpy(fn + len + 5, S6_SUPERVISE_EVENTDIR, sizeof(S6_SUPERVISE_EVENTDIR)) ;
         if (!ftrigw_fifodir_make(fn, gid, options & 1)) goto err ;
         ids[m] = ftrigr_subscribe(&a, fn, "s", 0, deadline, stamp) ;

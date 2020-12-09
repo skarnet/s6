@@ -27,11 +27,12 @@
 #include <skalibs/selfpipe.h>
 #include <skalibs/cdb.h>
 #include <skalibs/getpeereid.h>
-#include <skalibs/webipc.h>
+#include <skalibs/socket.h>
 #include <skalibs/genset.h>
 #include <skalibs/avltreen.h>
 #include <skalibs/unixmessage.h>
 #include <skalibs/unixconnection.h>
+
 #include <s6/accessrules.h>
 #include <s6/s6-fdholder.h>
 

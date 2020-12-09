@@ -5,7 +5,7 @@
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/djbunix.h>
-#include <skalibs/webipc.h>
+#include <skalibs/socket.h>
 #include <skalibs/exec.h>
 
 #define USAGE "s6-ipcclient [ -q | -Q | -v ] [ -p bindpath ] [ -l localname ] path prog..."

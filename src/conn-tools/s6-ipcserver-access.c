@@ -11,7 +11,7 @@
 #include <skalibs/sgetopt.h>
 #include <skalibs/cdb.h>
 #include <skalibs/djbunix.h>
-#include <skalibs/webipc.h>
+#include <skalibs/socket.h>
 #include <skalibs/exec.h>
 
 #include <s6/config.h>

@@ -1,14 +1,15 @@
 /* ISC license. */
 
+#include <skalibs/nonposix.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
-#include <skalibs/djbunix.h>
-#include <skalibs/webipc.h>
+#include <skalibs/socket.h>
 #include <skalibs/exec.h>
 
 #define USAGE "s6-ipcserver-socketbinder [ -d | -D ] [ -b backlog ] [ -M | -m ] [ -a perms ] [ -B ] path prog..."
@@ -19,7 +20,7 @@ int main (int argc, char const *const *argv)
   unsigned int backlog = SOMAXCONN ;
   int flagreuse = 1 ;
   int flagdgram = 0 ;
-  int flagblocking = 0 ;
+  unsigned int flags = O_NONBLOCK ;
   unsigned int perms = 0777 ;
   PROG = "s6-ipcserver-socketbinder" ;
   {
@@ -34,7 +35,7 @@ int main (int argc, char const *const *argv)
         case 'd' : flagreuse = 1 ; break ;
         case 'M' : flagdgram = 0 ; break ;
         case 'm' : flagdgram = 1 ; break ;
-        case 'B' : flagblocking = 1 ; break ;
+        case 'B' : flags = 0 ; break ;
         case 'b' : if (!uint0_scan(l.arg, &backlog)) dieusage() ; break ;
         case 'a' : if (!uint0_oscan(l.arg, &perms)) dieusage() ; break ;
         default : dieusage() ;
@@ -44,7 +45,7 @@ int main (int argc, char const *const *argv)
   }
   if (argc < 2) dieusage() ;
   close(0) ;
-  if (flagdgram ? ipc_datagram_internal(flagblocking ? 0 : DJBUNIX_FLAG_NB) : ipc_stream_internal(flagblocking ? 0 : DJBUNIX_FLAG_NB))
+  if (flagdgram ? ipc_datagram_internal(flags) : ipc_stream_internal(flags))
     strerr_diefu1sys(111, "create socket") ;
 
   {
