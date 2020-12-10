@@ -110,7 +110,7 @@ int s6_supervise_link (char const *scdir, char const *const *servicedirs, size_t
       memcpy(lname + scdirlen + 1 + prefixlen, p, len + 1) ;
       rpsa.len = 0 ;
       lstart = lnames.len ;
-      if (!sarealpath(&rpsa, servicedirs[i]) || !stralloc_0(&rpsa)) goto err ;
+      if (sarealpath(&rpsa, servicedirs[i]) < 0 || !stralloc_0(&rpsa)) goto err ;
       if (!stralloc_catb(&lnames, p, len + 1)) goto err ;
       if (symlink(rpsa.s, lname) < 0) goto errl ;
     }
