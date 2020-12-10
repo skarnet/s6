@@ -27,10 +27,14 @@ void s6_supervise_unlink (char const *scdir, char const *name, uint32_t options)
   memcpy(fn, scdir, scdirlen) ;
   fn[scdirlen] = '/' ;
   memcpy(fn + scdirlen + 1, name, namelen) ;
+  if (options & 4)
+  {
+    memcpy(fn + scdirlen + 1 + namelen, "/down", 6) ;
+    unlink_void(fn) ;
+  }
   if (options & 1)
   {
-    fn[scdirlen + 1 + namelen] = '/' ;
-    memcpy(fn + scdirlen + 1 + namelen + 1, S6_SUPERVISE_CTLDIR, sizeof(S6_SUPERVISE_CTLDIR) - 1) ;
+    memcpy(fn + scdirlen + 1 + namelen, "/" S6_SUPERVISE_CTLDIR, sizeof(S6_SUPERVISE_CTLDIR)) ;
     memcpy(fn + scdirlen + 1 + namelen + sizeof(S6_SUPERVISE_CTLDIR), "/control", 9) ;
     fd = open_write(fn) ;
   }
