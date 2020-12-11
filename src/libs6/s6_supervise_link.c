@@ -118,11 +118,18 @@ int s6_supervise_link (char const *scdir, char const *const *servicedirs, size_t
       p = basename(fn) ;
       len = strlen(p) ;
       memcpy(lname + scdirlen + 1 + prefixlen, p, len + 1) ;
-      rpsa.len = 0 ;
       lstart = lnames.len ;
-      if (sarealpath(&rpsa, servicedirs[i]) < 0 || !stralloc_0(&rpsa)) goto err ;
       if (!stralloc_catb(&lnames, p, len + 1)) goto err ;
-      if (symlink(rpsa.s, lname) < 0) goto errl ;
+      if (servicedirs[i][0] == '/')
+      {
+        if (symlink(servicedirs[i], lname) < 0) goto errl ;
+      }
+      else
+      {
+        rpsa.len = 0 ;
+        if (sarealpath(&rpsa, servicedirs[i]) < 0 || !stralloc_0(&rpsa)) goto errl ;
+        if (symlink(rpsa.s, lname) < 0) goto errl ;
+      }
     }
     stralloc_free(&rpsa) ;
     r = s6_svc_writectl(scdir, S6_SVSCAN_CTLDIR, "a", 1) ;
