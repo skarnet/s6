@@ -101,35 +101,38 @@ int s6_supervise_link (char const *scdir, char const *const *servicedirs, size_t
     memcpy(lname, scdir, scdirlen) ;
     lname[scdirlen] = '/' ;
     memcpy(lname + scdirlen + 1, prefix, prefixlen) ;
-    for (i = 0 ; i < n ; i++) if (!bitarray_peek(locked, i))
+    for (i = 0 ; i < n ; i++)
     {
       char *p ;
+      char const *src ;
       size_t len = strlen(servicedirs[i]) ;
+      int h = bitarray_peek(locked, i) ;
       memcpy(fn, servicedirs[i], len) ;
-      ids[m] = registerit(&a, fn, len, gid, options, deadline, stamp) ;
-      if (!ids[m++]) goto err ;
-      if (bitarray_peek(logged, i))
+      if (!h)
       {
-        memcpy(fn + len, "/log", 4) ;
-        ids[m] = registerit(&a, fn, len + 4, gid, options, deadline, stamp) ;
+        ids[m] = registerit(&a, fn, len, gid, options, deadline, stamp) ;
         if (!ids[m++]) goto err ;
+        if (bitarray_peek(logged, i))
+        {
+          memcpy(fn + len, "/log", 4) ;
+          ids[m] = registerit(&a, fn, len + 4, gid, options, deadline, stamp) ;
+          if (!ids[m++]) goto err ;
+        }
       }
       fn[len] = 0 ;
       p = basename(fn) ;
       len = strlen(p) ;
       memcpy(lname + scdirlen + 1 + prefixlen, p, len + 1) ;
       lstart = lnames.len ;
-      if (!stralloc_catb(&lnames, p, len + 1)) goto err ;
-      if (servicedirs[i][0] == '/')
-      {
-        if (symlink(servicedirs[i], lname) < 0) goto errl ;
-      }
+      if (!h && !stralloc_catb(&lnames, p, len + 1)) goto err ;
+      if (servicedirs[i][0] == '/') src = servicedirs[i] ;
       else
       {
         rpsa.len = 0 ;
         if (sarealpath(&rpsa, servicedirs[i]) < 0 || !stralloc_0(&rpsa)) goto errl ;
-        if (symlink(rpsa.s, lname) < 0) goto errl ;
+        src = rpsa.s ;
       }
+      if (symlink(src, lname) < 0 && (!h || errno != EEXIST)) goto errl ;
     }
     stralloc_free(&rpsa) ;
     r = s6_svc_writectl(scdir, S6_SVSCAN_CTLDIR, "a", 1) ;
