@@ -44,7 +44,9 @@ reaper mechanism. </li>
  <li> <tt>-a</tt>&nbsp;: Alarm. s6-svscan will immediately perform a scan
 of <em>scandir</em> to check for services. </li>
  <li> <tt>-b</tt>&nbsp;: abort. s6-svscan will exec into its finishing
-procedure. It will not kill any of the maintained s6-supervise processes. </li>
+procedure. It will not kill any of the maintained s6-supervise processes,
+unless a <tt>t</tt> or <tt>q</tt> option is also present before the <tt>b</tt>
+option in the s6-svscanctl invocation. </li>
  <li> <tt>-h</tt>&nbsp;: Reload configuration. s6-svscan will perform a scan,
 and destroy inactive services. Equivalent to <tt>-an</tt>. </li>
  <li> <tt>-i</tt>&nbsp;: equivalent to <tt>-t</tt> below. </li>
