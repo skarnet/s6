@@ -40,7 +40,7 @@
 #include <execline/config.h>
 #endif
 
-#define USAGE "s6-log [ -d notif ] [ -q | -v ] [ -b ] [ -p ] [ -t ] [ -e ] [ -l linelimit ] logging_script"
+#define USAGE "s6-log [ -d notif ] [ -q | -v ] [ -b ] [ -p ] [ -l linelimit ] logging_script"
 #define dieusage() strerr_dieusage(100, USAGE)
 #define dienomem() strerr_diefu1sys(111, "stralloc_catb")
 
@@ -735,8 +735,6 @@ static inline void script_firstpass (char const *const *argv, unsigned int *sell
         if ((*argv)[1]) goto fail ;
         gf |= 2 ;
         break ;
-      case 'e' :
-        if (verbosity) strerr_warnw1x("directive e is deprecated, use 2 instead") ;
       case '1' :
       case '2' :
         if ((*argv)[1]) goto fail ;
@@ -773,7 +771,7 @@ static inline void script_firstpass (char const *const *argv, unsigned int *sell
   strerr_dief2x(100, "syntax error at directive: ", *argv) ;
 }
 
-static inline void script_secondpass (char const *const *argv, scriptelem_t *script, sel_t *selections, act_t *actions, unsigned int compat_gflags)
+static inline void script_secondpass (char const *const *argv, scriptelem_t *script, sel_t *selections, act_t *actions)
 {
   tain_t retrytto ;
   unsigned int fd2_size = 200 ;
@@ -871,11 +869,9 @@ static inline void script_secondpass (char const *const *argv, scriptelem_t *scr
         actions[act++] = a ; flagacted = 1 ; flags = 0 ;
         break ;
       }
-      case 'e' :
       case '2' :
       {
         act_t a = { .type = ACTTYPE_FD2, .flags = flags, .data = { .fd2_size = fd2_size } } ;
-        if (compat_gflags & 2) a.flags |= 1 ;
         actions[act++] = a ; flagacted = 1 ; flags = 0 ;
         break ;
       }
@@ -889,7 +885,6 @@ static inline void script_secondpass (char const *const *argv, scriptelem_t *scr
       case '/' :
       {
         act_t a = { .type = ACTTYPE_DIR, .flags = flags, .data = { .ld = lidx } } ;
-        if (compat_gflags & 1) a.flags |= 1 ;
         logdir_init(lidx, s, n, tolerance, maxdirsize, &retrytto, processor, *argv, flags) ;
         lidx++ ;
         actions[act++] = a ; flagacted = 1 ; flags = 0 ;
@@ -1171,14 +1166,13 @@ int main (int argc, char const *const *argv)
   unsigned int linelimit = 8192 ;
   unsigned int notif = 0 ;
   unsigned int gflags = 0 ;
-  unsigned int compat_gflags = 0 ;
   int flagblock = 0 ;
   PROG = "s6-log" ;
   {
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      int opt = subgetopt_r(argc, argv, "qvbptel:d:", &l) ;
+      int opt = subgetopt_r(argc, argv, "qvbpl:d:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -1186,8 +1180,6 @@ int main (int argc, char const *const *argv)
         case 'v' : verbosity++ ; break ;
         case 'b' : flagblock = 1 ; break ;
         case 'p' : flagprotect = 1 ; break ;
-        case 't' : gflags |= 1 ; compat_gflags |= 1 ; break ;
-        case 'e' : gflags |= 1 ; compat_gflags |= 2 ; break ;
         case 'l' : if (!uint0_scan(l.arg, &linelimit)) dieusage() ; break ;
         case 'd' :
           if (!uint0_scan(l.arg, &notif)) dieusage() ;
@@ -1201,7 +1193,6 @@ int main (int argc, char const *const *argv)
   }
   if (!argc) dieusage() ;
   if (linelimit && linelimit < LINELIMIT_MIN) linelimit = LINELIMIT_MIN ;
-  if (compat_gflags && verbosity) strerr_warnw1x("options -t and -e are deprecated") ;
   if (!fd_sanitize()) strerr_diefu1sys(111, "ensure stdin/stdout/stderr are open") ;
   if (!tain_now_set_stopwatch_g() && verbosity)
     strerr_warnwu1sys("set monotonic clock and read current time - timestamps may be wrong for a while") ;
@@ -1215,7 +1206,7 @@ int main (int argc, char const *const *argv)
     logdir_t logdirblob[llen] ;
     iopause_fd x[3 + llen] ;
     logdirs = logdirblob ;
-    script_secondpass(argv, script, selections, actions, compat_gflags) ;
+    script_secondpass(argv, script, selections, actions) ;
     x[0].fd = selfpipe_init() ;
     if (x[0].fd < 0) strerr_diefu1sys(111, "selfpipe_init") ;
     if (sig_ignore(SIGPIPE) < 0) strerr_diefu1sys(111, "sig_ignore(SIGPIPE)") ;

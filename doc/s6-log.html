@@ -27,7 +27,7 @@ with full POSIX regular expression support.
 <h2> Interface </h2>
 
 <pre>
-     s6-log [ -d <em>notif</em> ] [ -q | -v ] [ -b ] [ -p ] [ -t ] [ -e ] [ -l <em>linelimit</em> ] <em>logging script</em>
+     s6-log [ -d <em>notif</em> ] [ -q | -v ] [ -b ] [ -p ] [ -l <em>linelimit</em> ] <em>logging script</em>
 </pre>
 
 <p>
@@ -60,12 +60,6 @@ write to a slow file system. </li>
 SIGTERM; only exit on a SIGHUP or when reading EOF on stdin. This is useful
 for a logger that you really do not want to lose even if automated
 administration (e.g. the downing of a supervision tree) would kill it. </li>
- <li> <tt>-t</tt>&nbsp;: timestamp. Prepends every log line that is written to
-a logging directory with a
-<a href="//skarnet.org/software/skalibs/libstddjb/tai.html">TAI64N</a>
-timestamp. <strong>This option is now deprecated.</strong> </li>
- <li> <tt>-e</tt>&nbsp;: timestamp alerts. Prepends every "alert" line with a
-TAI64N timestamp. <strong>This option is now deprecated. </strong> </li>
  <li> <tt>-q | -v</tt>&nbsp;: quiet | verbose. Decreases | increases s6-log's
 verbosity, i.e. which messages are sent to stderr. The default verbosity is 1.
 Currently supported verbosity levels:
@@ -275,10 +269,9 @@ selected lines.
 </p>
 
 <ul>
- <li> <strong>2</strong> or <strong>e</strong>: alert. s6-log will print "s6-log: alert: ",
+ <li> <strong>2</strong>: alert. s6-log will print "s6-log: alert: ",
 possibly prepended with a timestamp, followed by the first
-<em>alertsize</em> bytes of the line, to its standard error.
-<strong>The <tt>e</tt> form is deprecated.</strong> </li>
+<em>alertsize</em> bytes of the line, to its standard error. </li>
  <li> <strong>1</strong>: forward to stdout. s6-log will print the selected
 line to its stdout. If any error occurs, e.g. if stdout was a pipe and the
 reading end closed, this directive will be ignored for the rest of
