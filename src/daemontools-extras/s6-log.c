@@ -46,6 +46,7 @@
 
 #define LINELIMIT_MIN 48
 
+static mode_t mask ;
 static int flagprotect = 0 ;
 static int flagexiting = 0 ;
 static unsigned int verbosity = 1 ;
@@ -367,22 +368,10 @@ static int rotator (logdir_t *ldp)
       char x[dirlen + 9] ;
       memcpy(x, ldp->dir, dirlen) ;
       memcpy(x + dirlen, "/current", 9) ;
-      fd = open_append(x) ;
+      fd = openc_append(x) ;
       if (fd < 0)
       {
         if (verbosity) strerr_warnwu2sys("open_append ", x) ;
-        goto fail ;
-      }
-      if (coe(fd) < 0)
-      {
-        fd_close(fd) ;
-        if (verbosity) strerr_warnwu2sys("coe ", x) ;
-        goto fail ;
-      }
-      if (fd_chmod(fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) < 0)
-      {
-        fd_close(fd) ;
-        if (verbosity) strerr_warnwu3sys("fchmod ", x, " to 0644") ;
         goto fail ;
       }
       fd_close(ldp->fd) ;
@@ -395,9 +384,9 @@ static int rotator (logdir_t *ldp)
       char x[dirlen + 10] ;
       memcpy(x, ldp->dir, dirlen) ;
       memcpy(x + dirlen, "/previous", 10) ;
-      if (chmod(x, S_IRWXU | S_IRGRP | S_IROTH) < 0)
+      if (chmod(x, mask | S_IXUSR) < 0)
       {
-        if (verbosity) strerr_warnwu3sys("chmod ", x, " to 0744") ;
+        if (verbosity) strerr_warnwu2sys("chmod ", x) ;
         goto fail ;
       }
       if (ldp->processor) goto runprocessor ;
@@ -448,10 +437,10 @@ static int rotator (logdir_t *ldp)
         goto fail ;
       }
       tain_now_g() ;
-      if (fd_chmod(fd, S_IRWXU | S_IRGRP | S_IROTH) < 0)
+      if (fd_chmod(fd, mask | S_IXUSR) < 0)
       {
         fd_close(fd) ;
-        if (verbosity) strerr_warnwu3sys("fd_chmod ", x, " to 0744") ;
+        if (verbosity) strerr_warnwu2sys("fd_chmod ", x) ;
         goto fail ;
       }
       fd_close(fd) ;
@@ -629,11 +618,10 @@ static inline void logdir_init (unsigned int index, uint32_t s, uint32_t n, uint
   st.st_size = 0 ;
   memcpy(x + dirlen + 1, "current", 8) ;
  opencurrent:
-  ldp->fd = open_append(x) ;
+  ldp->fd = openc_append(x) ;
   if (ldp->fd < 0) strerr_diefu2sys(111, "open_append ", x) ;
-  if (fd_chmod(ldp->fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) == -1)
+  if (fd_chmod(ldp->fd, mask) == -1)
     strerr_diefu2sys(111, "fd_chmod ", x) ;
-  if (coe(ldp->fd) < 0) strerr_diefu2sys(111, "coe ", x) ;
   ldp->b = st.st_size ;
   tain_copynow(&ldp->deadline) ;
   bufalloc_init(&ldp->out, &logdir_write, index) ;
@@ -655,9 +643,9 @@ static inline int logdir_finalize (logdir_t *ldp)
     }
     case ROTSTATE_ENDFCHMOD :
     {
-      if (fd_chmod(ldp->fd, S_IRWXU | S_IRGRP | S_IROTH) < 0)
+      if (fd_chmod(ldp->fd, mask | S_IXUSR) < 0)
       {
-        if (verbosity) strerr_warnwu3sys("fd_chmod ", ldp->dir, "/current to 0744") ;
+        if (verbosity) strerr_warnwu3sys("fd_chmod ", ldp->dir, "/current") ;
         goto fail ;
       }
       ldp->rstate = ROTSTATE_END ;
@@ -1198,6 +1186,9 @@ int main (int argc, char const *const *argv)
     strerr_warnwu1sys("set monotonic clock and read current time - timestamps may be wrong for a while") ;
   if (ndelay_on(0) < 0) strerr_diefu3sys(111, "set std", "in", " non-blocking") ;
   if (ndelay_on(1) < 0) strerr_diefu3sys(111, "set std", "out", " non-blocking") ;
+  mask = umask(0) ;
+  umask(mask) ;
+  mask = ~mask & 0666 ;
   script_firstpass(argv, &sellen, &actlen, &scriptlen, &gflags) ;
   {
     sel_t selections[sellen] ;
