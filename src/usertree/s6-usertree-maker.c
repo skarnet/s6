@@ -4,6 +4,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/uio.h>
+#include <errno.h>
 
 #include <skalibs/config.h>
 #include <skalibs/uint64.h>
@@ -274,9 +275,8 @@ int main (int argc, char *const *argv)
   mask = umask(0) ;
   umask(mask) ;
   mask = ~mask & 0666 ;
-
-  if (mkdir(argv[2], 0755) < 0) strerr_diefu2sys(111, "mkdir ", argv[2]) ;
   dirlen = strlen(argv[2]) ;
+
   if (rcinfo[0])
   {
     size_t svclen = strlen(rcinfo[0]) ;
@@ -285,6 +285,8 @@ int main (int argc, char *const *argv)
     memcpy(dir, argv[2], dirlen) ;
     dir[dirlen] = '/' ;
     memcpy(dir + dirlen + 1, rcinfo[0], svclen + 1) ;
+    if (mkdir(argv[2], 0755) < 0 && errno != EEXIST)
+      strerr_diefu2sys(111, "mkdir ", argv[2]) ;
     if (mkdir(dir, 0755) < 0) strerr_diefu2sys(111, "mkdir ", dir) ;
     write_service(dir, argv[0], userscandir, rcinfo[1], path, userenvdir, vars, varlen) ;
     memcpy(dir + dirlen + 1, rcinfo[1], loglen + 1) ;
@@ -295,6 +297,7 @@ int main (int argc, char *const *argv)
     char dir[dirlen + 5] ;
     memcpy(dir, argv[2], dirlen) ;
     memcpy(dir + dirlen, "/log", 5) ;
+    if (mkdir(argv[2], 0755) < 0) strerr_diefu2sys(111, "mkdir ", argv[2]) ;
     write_service(argv[2], argv[0], userscandir, 0, path, userenvdir, vars, varlen) ;
     write_logger(dir, loguser, argv[1], stamptype, nfiles, filesize, maxsize, 0, 0) ;
   }

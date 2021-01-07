@@ -39,7 +39,7 @@ for the <a href="//skarnet.org/software/s6-rc/">s6-rc</a> service manager.
        [ -d <em>userscandir</em> ] \
        [ -p <em>path</em> ] \
        [ -E <em>envdir</em> [ -e <em>var</em> -e <em>var</em> ... ] ] \
-       [ -r <em>service</em>/<em>logger</em>/<em>pipeline</em> ] \
+       [ -r <em>service</em>/<em>logger</em>[/<em>pipeline</em>] ] \
        [ -l <em>loguser</em> ] \
        [ -t <em>stamptype</em> ] \
        [ -n <em>nfiles</em> ] \
@@ -208,7 +208,7 @@ then <a href="s6-svscan.html">s6-svscan</a> will be run on
 <tt>/home/ska/service</tt>.
 </p>
 
-<h2> Example </h2>
+<h2> Examples </h2>
 
 <pre>
      s6-usertree-maker -d '/run/user/${UID}/service' -p '${HOME}/bin:/usr/bin:/bin' -E /etc/user-env -e XDG_CONFIG_HOME -l catchlog ska /var/log/usertree/ska usertree-ska
@@ -223,6 +223,24 @@ with <tt>/home/ska/bin:/usr/bin/bin</tt> as its PATH if ska's home directory is
 for variable substitution. The supervision tree has a catch-all logger running
 as user catchlog, and storing its data in the <tt>/var/log/usertree/ska</tt>
 directory.
+</p>
+
+<p>
+ Note that simple quotes are used here to prevent the shell from
+interpreting <tt>${UID}</tt> and <tt>${HOME}</tt>.
+</p>
+
+<pre>
+     s6-usertree-maker -d '/run/user/${UID}/service' -p '${HOME}/bin:/usr/bin:/bin' -E /etc/user-env -e XDG_CONFIG_HOME -l catchlog -r usertree-ska/usertree-ska-log/usertree-ska-pipeline ska /var/log/usertree/ska usertree
+</pre>
+
+<p>
+ Same as above, except it does not create a service directory &mdash; instead, it
+creates a <tt>usertree</tt> directory containing two subdirectories: <tt>usertree-ska</tt>, the
+<a href="//skarnet.org/software/s6-rc/">s6-rc</a> source definition directory
+for the service, and <tt>usertree-ska-log</tt>, the source definition directory
+for its logger, and an implicit <tt>usertree-ska-pipeline</tt> bundle
+containing both the service and the logger.
 </p>
 
 <h2> Notes </h2>
