@@ -1,0 +1,240 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-usertree-maker program</title>
+    <meta name="Description" content="s6: the s6-usertree-maker program" />
+    <meta name="Keywords" content="s6 command s6-usertree-maker user supervision tree s6-svscan" />
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-usertree-maker program </h1>
+
+<p>
+s6-usertree-maker creates a <a href="servicedir.html">service directory</a>
+implementing a service that runs a <a href="s6-svscan.html">s6-svscan</a>
+instance owned by a given user, on a <a href="scandir.html">scan directory</a>
+belonging to that user. It is meant to help admins deploy systems where
+each user has their own supervision subtree, rooted in the main supervision
+tree owned by root.
+</p>
+
+<p>
+ Alternatively, s6-usertree-maker can create source definition directories
+for the <a href="//skarnet.org/software/s6-rc/">s6-rc</a> service manager.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-usertree-maker \
+       [ -d <em>userscandir</em> ] \
+       [ -p <em>path</em> ] \
+       [ -E <em>envdir</em> [ -e <em>var</em> -e <em>var</em> ... ] ] \
+       [ -r <em>service</em>/<em>logger</em>/<em>pipeline</em> ] \
+       [ -l <em>loguser</em> ] \
+       [ -t <em>stamptype</em> ] \
+       [ -n <em>nfiles</em> ] \
+       [ -s <em>filesize</em> ] \
+       [ -S <em>maxsize</em> ] \
+       user logdir dir
+</pre>
+
+<p>
+s6-usertree-maker creates a service directory in <em>dir</em>, that launches
+a supervision tree as user <em>user</em> on scan directory <em>userscandir</em>,
+with a catch-all logger logging the tree's output via
+<a href="s6-log.html">s6-log</a> to the <em>logdir</em> directory.
+</p>
+
+<h2> Exit codes </h2>
+
+<ul>
+ <li> 0: success </li>
+ <li> 100: wrong usage </li>
+ <li> 111: system call failed </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-d</tt>&nbsp;<em>userscandir</em>&nbsp;: the supervision tree will be run
+on the <em>userscandir</em> directory. <em>userscandir</em> is subject to variable
+substitution (see below). Default is <strong><tt>${HOME}/service</tt></strong>. </li> <br />
+
+ <li> <tt>-p</tt>&nbsp;<em>path</em>&nbsp;: the supervision tree will be run with a
+PATH environment variable set to <em>path</em>. <em>path</em> is subject to variable
+substitution. Default is <strong><tt>/usr/bin:/bin</tt></strong>, or whatever has been
+given to the <tt>--with-default-path</tt> option to skalibs' configure script. </li> <br />
+
+ <li> <tt>-E</tt>&nbsp;<em>envdir</em>&nbsp;: the supervision tree will be run with
+the environment variables defined in the directory <em>envdir</em>, which will be
+read via <a href="s6-envdir.html">s6-envdir</a> without options. By default, no
+envdir is defined and the supervision tree will only be run with the basic
+environment variables listed below. </li> <br />
+
+ <li> <tt>-e</tt>&nbsp;<em>var</em>&nbsp;: Perform variable substitution on <em>var</em>.
+This option is repeatable, and only makes sense when the <tt>-E</tt> option is also
+given. For every <em>var</em> listed via a <tt>-e</tt> option, the contents of
+<em>var</em> will be subjected to variable substitution before the supervision tree
+is run. This is only useful if <em>var</em> is defined in <em>envdir</em>, as a
+template, that is then instanced for <em>user</em> when the service is run. By
+default, only the PATH environment variable, customizable via <tt>-p</tt>, is
+subjected to variable substitution. </li> <br />
+
+ <li> <tt>-r</tt>&nbsp;<em>service</em>/<em>logger</em>/<em>pipeline</em>&nbsp;:
+create <a href="//skarnet.org/software/s6-rc">s6-rc</a> source definition directories.
+When this option is given, <em>dir</em> is not created as a service directory, but
+as a directory containing two services: <em>dir</em>/<em>service</em> and
+<em>dir</em>/<em>logger</em>, and <em>dir</em> is suitable as a source argument to
+<a href="//skarnet.org/software/s6-rc/s6-rc-compile.html">s6-rc-compile</a>. The
+<tt>/</tt><em>pipeline</em> part can be omitted, but if it is present, <em>pipeline</em>
+is used as a name for a bundle containing both <em>service</em> and <em>logger</em>.
+When this option is not given, <em>dir</em> is a regular service directory for direct
+inclusion (or linking) in the parent scan directory (and the catch-all logger for
+the user subtree is declared in <em>dir</em><tt>/log</tt>). </li> <br />
+
+ <li> <tt>-l</tt>&nbsp;<em>loguser</em>&nbsp;: run the catch-all logger of the user
+subdirectory as user <em>loguser</em>. Default is <strong><tt>root</tt></strong>. </li> <br />
+
+ <li> <tt>-t</tt>&nbsp;<em>stamptype</em>&nbsp;: how
+logs are timestamped by the catch-all logger. 0 means no
+timestamp, 1 means
+<a href="http://cr.yp.to/libtai/tai64.html">external TAI64N format</a>,
+2 means
+<a href="http://www.iso.org/iso/home/standards/iso8601.htm">ISO 8601 format</a>,
+and 3 means both. Default is <strong><tt>1</tt></strong>. </li> <br />
+
+  <li> <tt>-n</tt>&nbsp;<em>nfiles</em>&nbsp;: maximum number of archive files
+in <em>logdir</em>. Default is <strong><tt>10</tt></strong>. </li> <br />
+
+  <li> <tt>-s</tt>&nbsp;<em>filesize</em>&nbsp;: maximum size of the <tt>current</tt>
+file (and archive files) in <em>logdir</em>. Default is <strong><tt>1000000</tt></strong>. </li> <br />
+
+  <li> <tt>-S</tt>&nbsp;<em>maxsize</em>&nbsp;: maximum total size of the
+archives in the <em>logdir</em>. Default is <strong><tt>0</tt></strong>,
+meaning no limits apart from those enforced by the <tt>-n</tt> and
+<tt>-s</tt> options. </li> <br />
+</ul>
+
+<h2> Operation of the service </h2>
+
+<p>
+ When the service is started, its run script will execute the following
+operations:
+</p>
+
+<ul>
+ <li> Clear all its environment variables, except PATH. This prevents
+any data leak from the parent supervision tree into the user subtree. </li>
+ <li> Fill its environment with data related to <em>user</em>:
+  <ul>
+   <li> USER is set to <em>user</em> </li>
+   <li> HOME is set to <em>user</em>'s home directory </li>
+   <li> UID is set to <em>user</em>'s uid </li>
+   <li> GID is set to <em>user</em>'s primary gid </li>
+   <li> GIDLIST is set to <em>user</em>'s supplementary groups list </li>
+  </ul> </li>
+ <li> If the service has been created with the <tt>-E</tt> option to s6-usertree-maker:
+  <ul>
+   <li> Add all the variables defined in <em>envdir</em> to its environment </li>
+   <li> For every variable <em>var</em> given via a <tt>-e</tt> option, subject
+<em>var</em> to substitution with the USER, HOME, UID, GID and GIDLIST variables
+(see below). </li>
+  </ul> </li>
+ <li> Set the PATH environment variable to <em>path</em>, subjected to
+variable substitution. </li>
+ <li> Execute into <a href="s6-svscan.html">s6-svscan</a>, running in
+<em>userscandir</em> (which is first subjected to variable substitution). </li>
+</ul>
+
+<p>
+ The service is logged: its stderr and stdout are piped to a
+<a href="s6-log.html">s6-log</a> process running as <em>loguser</em> and
+writing to the <em>logdir</em> directory. This logger is the catch-all logger
+for the supervision tree owned by <em>user</em>; it is recommended to make
+<em>loguser</em> distinct from <em>user</em>, and to have <em>logdir</em>
+in a place that is <strong>not</strong> under the control of <em>user</em>.
+If <em>user</em> wants to keep control of their logs, they can declare a
+logger for each of their services.
+</p>
+
+<h2> Variable substitution </h2>
+
+<p>
+ When the service starts, the USER, HOME, UID, GID and GIDLIST
+environment variables are deduced from <em>user</em>'s identity.
+The value of those variables may be used in a few configuration
+knobs:
+</p>
+
+<ul>
+ <li> The value of <em>userscandir</em>: it is likely that the
+scan directory belonging to <em>user</em> resides under <em>user</em>'s
+home directory. Or under <tt>/run/user/${UID}</tt>, or some similar
+scheme. </li>
+ <li> The PATH environment variable, declared in <em>path</em>: it is
+often useful to prepend the default system PATH with a user-specific
+directory that hosts that user's binaries. For instance, you may want
+the PATH to be set as something like <tt>${HOME}/bin:/usr/bin:/bin</tt>. </li>
+ <li> Any variable declared in <em>envdir</em> and given as an argument
+to a <tt>-e</tt> option to s6-usertree-maker. If <em>envdir</em> is a
+template valid for all users, it may contain variables that depends on
+user-specific data: for instance, the XDG_CONFIG_HOME variable may be
+set to <tt>${HOME}/.config</tt>. </li>
+</ul>
+
+<p>
+ When the strings <tt>${USER}</tt>, <tt>${HOME}</tt>, <tt>${UID}</tt>,
+<tt>${GID}</tt>, or <tt>${GIDLIST}</tt> appear in the value for
+<em>userscandir</em>, <em>path</em>, or any of the <em>var</em>
+variables, they are substituted with the corresponding value of the USER,
+HOME, UID, GID, or GIDLIST environment variable instead.
+</p>
+
+<p>
+ For instance, if no <tt>-d</tt> option is provided, the default value
+for <em>userscandir</em> is <tt>${HOME}/service</tt>. If the provided
+<em>user</em> is <tt>ska</tt> and ska's home directory is <tt>/home/ska</tt>,
+then <a href="s6-svscan.html">s6-svscan</a> will be run on
+<tt>/home/ska/service</tt>.
+</p>
+
+<h2> Example </h2>
+
+<pre>
+     s6-usertree-maker -d '/run/user/${UID}/service' -p '${HOME}/bin:/usr/bin:/bin' -E /etc/user-env -e XDG_CONFIG_HOME -l catchlog ska /var/log/usertree/ska usertree-ska
+</pre>
+
+<p>
+ creates a service directory in <tt>usertree-ska</tt> declaring a service that
+starts a supervision tree on <tt>/run/user/1000/service</tt> if ska has uid 1000,
+with <tt>/home/ska/bin:/usr/bin/bin</tt> as its PATH if ska's home directory is
+<tt>/home/ska</tt>, and with all the environment variables declared in
+<tt>/etc/user-env</tt>, among which the XDG_CONFIG_HOME variable is processed
+for variable substitution. The supervision tree has a catch-all logger running
+as user catchlog, and storing its data in the <tt>/var/log/usertree/ska</tt>
+directory.
+</p>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> s6-usertree-maker makes use of the fact that
+<a href="//skarnet.org/software/execline/">execline</a> scripts are much
+easier to generate programmatically and to harden than shell scripts, so it is only
+built if s6 is built with <a href="//skarnet.org/software/execline/">execline</a>
+support - i.e. the <tt>--disable-execline</tt> switch has <em>not</em> been given
+to configure. </li>
+</ul>
+
+</body>
+</html>

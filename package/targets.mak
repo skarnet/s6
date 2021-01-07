@@ -58,3 +58,7 @@ s6-setuidgid
 LIBEXEC_TARGETS := s6lockd-helper
 
 LIB_DEFS := S6=s6
+
+ifneq ($(EXECLINE_LIB),)
+BIN_TARGETS += s6-usertree-maker
+endif

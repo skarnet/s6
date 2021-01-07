@@ -14,6 +14,8 @@ SIGQUIT semantics changed to immediately bail. SIGINT is now
 trapped and forwarded to the service's process group.
  - New binary: s6-svperms, implementing a split permissions
 model. (By default, everything is the same as before.)
+ - New binary: s6-usertree-maker, creating service directories
+for supervision trees managed by users.
 
 
 In 2.9.2.0

@@ -133,6 +133,7 @@ src/supervision/s6-svstat.o src/supervision/s6-svstat.lo: src/supervision/s6-svs
 src/supervision/s6-svwait.o src/supervision/s6-svwait.lo: src/supervision/s6-svwait.c src/supervision/s6-svlisten.h
 src/supervision/s6_svlisten_loop.o src/supervision/s6_svlisten_loop.lo: src/supervision/s6_svlisten_loop.c src/supervision/s6-svlisten.h src/include/s6/ftrigr.h src/include/s6/s6-supervise.h
 src/supervision/s6_svlisten_signal_handler.o src/supervision/s6_svlisten_signal_handler.lo: src/supervision/s6_svlisten_signal_handler.c src/supervision/s6-svlisten.h
+src/usertree/s6-usertree-maker.o src/usertree/s6-usertree-maker.lo: src/usertree/s6-usertree-maker.c src/include/s6/config.h
 
 s6-accessrules-cdb-from-fs: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
 s6-accessrules-cdb-from-fs: src/conn-tools/s6-accessrules-cdb-from-fs.o
@@ -253,3 +254,5 @@ s6-svstat: EXTRA_LIBS := -lskarnet ${SYSCLOCK_LIB}
 s6-svstat: src/supervision/s6-svstat.o ${LIBS6}
 s6-svwait: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
 s6-svwait: src/supervision/s6-svwait.o src/supervision/s6_svlisten_loop.o ${LIBS6}
+s6-usertree-maker: EXTRA_LIBS := -lskarnet
+s6-usertree-maker: src/usertree/s6-usertree-maker.o
