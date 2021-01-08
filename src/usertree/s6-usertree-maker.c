@@ -46,6 +46,7 @@ static inline void write_run (char const *runfile, char const *user, char const 
     S6_EXTBINPREFIX "s6-envuidgid -i -- ") < 0
    || buffer_put(&b, sa.s, sa.len) < 0
    || buffer_puts(&b, "\n"
+    S6_EXTBINPREFIX "s6-applyuidgid -U --\n"
     EXECLINE_EXTBINPREFIX "backtick -in HOME { "
     EXECLINE_EXTBINPREFIX "homeof ") < 0
    || buffer_put(&b, sa.s, sa.len) < 0
@@ -177,25 +178,24 @@ static void write_logger (char const *dir, char const *user, char const *logdir,
 {
   size_t dirlen = strlen(dir) ;
   char fn[dirlen + 17] ;
-  if (mkdir(dir, 0755) < 0) strerr_diefu2sys(111, "mkdir ", dir) ;
   memcpy(fn, dir, dirlen) ;
   memcpy(fn + dirlen, "/notification-fd", 17) ;
-  if (!openwritenclose_unsafe(fn, "3\n", 2)) strerr_diefu2sys(111, "write to ", fn) ;
+  if (!openwritenclose_unsafe(fn, "3\n", 2)) goto err ;
   memcpy(fn + dirlen + 1, "run", 4) ;
   write_logrun(fn, user, logdir, stamptype, nfiles, filesize, maxsize) ;
   if (service)
   {
     struct iovec v[2] = { { .iov_base = (char *)service, .iov_len = strlen(service) }, { .iov_base = "\n", .iov_len = 1 } } ;
     memcpy(fn + dirlen + 1, "type", 5) ;
-    if (!openwritenclose_unsafe(fn, "longrun\n", 8)) strerr_diefu2sys(111, "write to ", fn) ;
+    if (!openwritenclose_unsafe(fn, "longrun\n", 8)) goto err ;
     memcpy(fn + dirlen + 1, "consumer-for", 13) ;
-    if (!openwritevnclose_unsafe(fn, v, 2)) strerr_diefu2sys(111, "write to ", fn) ;
+    if (!openwritevnclose_unsafe(fn, v, 2)) goto err ;
     if (pipelinename)
     {
       v[0].iov_base = (char *)pipelinename ;
       v[0].iov_len = strlen(pipelinename) ;
       memcpy(fn + dirlen + 1, "pipeline-name", 14) ;
-      if (!openwritevnclose_unsafe(fn, v, 2)) strerr_diefu2sys(111, "write to ", fn) ;
+      if (!openwritevnclose_unsafe(fn, v, 2)) goto err ;
     }
   }
   else
@@ -203,6 +203,9 @@ static void write_logger (char const *dir, char const *user, char const *logdir,
     if (chmod(fn, mask | ((mask >> 2) & 0111)) < 0)
       strerr_diefu2sys(111, "chmod ", fn) ;
   }
+  return ;
+ err:
+  strerr_diefu2sys(111, "write to ", fn) ;
 }
 
 int main (int argc, char *const *argv)
@@ -273,7 +276,6 @@ int main (int argc, char *const *argv)
     }
   }
   mask = umask(0) ;
-  umask(mask) ;
   mask = ~mask & 0666 ;
   dirlen = strlen(argv[2]) ;
 
@@ -281,16 +283,19 @@ int main (int argc, char *const *argv)
   {
     size_t svclen = strlen(rcinfo[0]) ;
     size_t loglen = strlen(rcinfo[1]) ;
-    char dir[dirlen + 2 + svclen > loglen ? svclen : loglen] ;
+    char dir[dirlen + 2 + (svclen > loglen ? svclen : loglen)] ;
     memcpy(dir, argv[2], dirlen) ;
     dir[dirlen] = '/' ;
-    memcpy(dir + dirlen + 1, rcinfo[0], svclen + 1) ;
     if (mkdir(argv[2], 0755) < 0 && errno != EEXIST)
       strerr_diefu2sys(111, "mkdir ", argv[2]) ;
+    memcpy(dir + dirlen + 1, rcinfo[0], svclen + 1) ;
     if (mkdir(dir, 0755) < 0) strerr_diefu2sys(111, "mkdir ", dir) ;
-    write_service(dir, argv[0], userscandir, rcinfo[1], path, userenvdir, vars, varlen) ;
     memcpy(dir + dirlen + 1, rcinfo[1], loglen + 1) ;
+    if (mkdir(dir, 0755) < 0) strerr_diefu2sys(111, "mkdir ", dir) ;
+    umask(mask) ;
     write_logger(dir, loguser, argv[1], stamptype, nfiles, filesize, maxsize, rcinfo[0], rcinfo[2]) ;
+    memcpy(dir + dirlen + 1, rcinfo[0], svclen + 1) ;
+    write_service(dir, argv[0], userscandir, rcinfo[1], path, userenvdir, vars, varlen) ;
   }
   else
   {
@@ -298,6 +303,8 @@ int main (int argc, char *const *argv)
     memcpy(dir, argv[2], dirlen) ;
     memcpy(dir + dirlen, "/log", 5) ;
     if (mkdir(argv[2], 0755) < 0) strerr_diefu2sys(111, "mkdir ", argv[2]) ;
+    if (mkdir(dir, 0755) < 0) strerr_diefu2sys(111, "mkdir ", argv[2]) ;
+    umask(mask) ;
     write_service(argv[2], argv[0], userscandir, 0, path, userenvdir, vars, varlen) ;
     write_logger(dir, loguser, argv[1], stamptype, nfiles, filesize, maxsize, 0, 0) ;
   }

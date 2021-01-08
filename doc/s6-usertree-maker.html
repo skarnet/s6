@@ -252,6 +252,18 @@ easier to generate programmatically and to harden than shell scripts, so it is o
 built if s6 is built with <a href="//skarnet.org/software/execline/">execline</a>
 support - i.e. the <tt>--disable-execline</tt> switch has <em>not</em> been given
 to configure. </li>
+ <li> For the admin who wants to automate user tree management, s6-usertree-maker
+is a <em>building block</em> meant to be used in scripts, not a complete turnkey
+solution. For instance, s6-usertree-maker does not create <em>userscandir</em> for
+a user: it assumes that that scandir is already in place. It does not create
+<em>logdir</em> either: <em>logdir</em>, or at least its parent directory, must
+already exist before the logger is run, else <a href="s6-log.html">s6-log</a> will
+fail repeatedly. Make sure that all the data and metadata referenced by the service's
+and the logger's run scripts are actually present and valid before starting the
+service. </li>
+ <li> If s6-usertree-maker encounters failure (and exits 111), it does not clean up
+the directories it created. Make sure to always test s6-usertree-maker's return code
+and clean up after it if needed. </li>
 </ul>
 
 </body>
