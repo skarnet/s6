@@ -189,7 +189,9 @@ single <a href="scandir.html">scan directory</a>, and just run
 the necessary s6-supervise processes, and will also take care of logged services. </li>
  <li> s6-supervise always spawns its child in a new session, as a session leader.
 The goal is to protect the supervision tree from misbehaved services that would
-send signals to their whole process group. </li>
+send signals to their whole process group. Nevertheless, s6-supervise's handling of
+SIGINT ensures that its service is killed if you happen to run it in a terminal and
+send it a ^C. </li>
  <li> You can use <a href="s6-svc.html">s6-svc</a> to send commands to the s6-supervise
 process; mostly to change the service state and send signals to the monitored
 process. </li>
