@@ -148,8 +148,8 @@ This behaviour can also be achieved via the
 <tt>s6-svscanctl -an <em>scandir</em> </tt> command. This is the closest that s6-svscan
 can get to the traditional "reload your configuration" behaviour. </li>
  <li> SIGINT&nbsp;: same as SIGTERM below. </li>
- <li> SIGTERM&nbsp;: Instruct all the <a href="s6-supervise.html">s6-supervise</a> to
-stop their service and exit; wait for the whole supervision tree to die, without
+ <li> SIGTERM&nbsp;: Instruct all the <a href="s6-supervise.html">s6-supervise</a> processes
+to stop their service and exit; wait for the whole supervision tree to die, without
 losing any logs; then exec into <tt>.s6-svscan/finish</tt> or exit 0. This behaviour
 can also be achieved via the <tt>s6-svscanctl -t <em>scandir</em></tt> command. </li>
  <li> SIGQUIT&nbsp;: same as SIGTERM above, except that if a service is logged
