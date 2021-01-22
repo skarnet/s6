@@ -20,7 +20,7 @@
 
 <p>
 s6-usertree-maker creates a <a href="servicedir.html">service directory</a>
-implementing a service that runs a <a href="s6-svscan.html">s6-svscan</a>
+implementing a service that runs an <a href="s6-svscan.html">s6-svscan</a>
 instance owned by a given user, on a <a href="scandir.html">scan directory</a>
 belonging to that user. It is meant to help admins deploy systems where
 each user has their own supervision subtree, rooted in the main supervision
@@ -157,7 +157,7 @@ variable substitution. </li>
 </ul>
 
 <p>
- The service is logged: its stderr and stdout are piped to a
+ The service is logged: its stderr and stdout are piped to an
 <a href="s6-log.html">s6-log</a> process running as <em>loguser</em> and
 writing to the <em>logdir</em> directory. This logger is the catch-all logger
 for the supervision tree owned by <em>user</em>; it is recommended to make

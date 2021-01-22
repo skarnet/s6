@@ -33,7 +33,7 @@ variables and standard descriptors.
 <ul>
  <li> s6-sudoc transmits its standard input, standard output and standard error
 via fd-passing over a Unix socket that must be open on its descriptors 6 and 7.
- It expects a <a href="s6-sudod.html">s6-sudod</a> process to be receiving them
+ It expects an <a href="s6-sudod.html">s6-sudod</a> process to be receiving them
 on the other side. </li>
 <li> It also transmits its command-line arguments <em>args</em>, and also its
 environment by default. Note that s6-sudod will not necessarily accept all the
