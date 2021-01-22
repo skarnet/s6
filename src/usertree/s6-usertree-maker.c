@@ -59,6 +59,21 @@ static inline void write_run (char const *runfile, char const *user, char const 
      || buffer_put(&b, sa.s, sa.len) < 0
      || buffer_put(&b, "\n", 1) < 0) goto err ;
     sa.len = 0 ;
+    if (varlen)
+    {
+      if (buffer_puts(&b, EXECLINE_EXTBINPREFIX "multisubstitute\n{\n") < 0) goto err ;
+      for (size_t i = 0 ; i < varlen ; i++)
+      {
+        if (!string_quote(&sa, vars[i], strlen(vars[i]))) goto errq ;
+        if (buffer_puts(&b, "  importas -D \"\" -- ") < 0
+         || buffer_put(&b, sa.s, sa.len) < 0
+         || buffer_put(&b, " ", 1) < 0
+         || buffer_put(&b, sa.s, sa.len) < 0
+         || buffer_put(&b, "\n", 1) < 0) goto err ;
+        sa.len = 0 ;
+      }
+      if (buffer_put(&b, "}\n", 2) < 0) goto err ;
+    }
   }
   if (buffer_puts(&b, EXECLINE_EXTBINPREFIX "multisubstitute\n{\n"
    "  importas -i USER USER\n"
@@ -68,18 +83,6 @@ static inline void write_run (char const *runfile, char const *user, char const 
    "  importas -i GIDLIST GIDLIST\n}\n") < 0) goto err ;
   if (userenvdir && varlen)
   {
-    if (buffer_puts(&b, EXECLINE_EXTBINPREFIX "multisubstitute\n{\n") < 0) goto err ;
-    for (size_t i = 0 ; i < varlen ; i++)
-    {
-      if (!string_quote(&sa, vars[i], strlen(vars[i]))) goto errq ;
-      if (buffer_puts(&b, "  importas -D \"\" -- ") < 0
-       || buffer_put(&b, sa.s, sa.len) < 0
-       || buffer_put(&b, " ", 1) < 0
-       || buffer_put(&b, sa.s, sa.len) < 0
-       || buffer_put(&b, "\n", 1) < 0) goto err ;
-      sa.len = 0 ;
-    }
-    if (buffer_put(&b, "}\n", 2) < 0) goto err ;
     for (size_t i = 0 ; i < varlen ; i++)
     {
       if (!string_quote(&sa, vars[i], strlen(vars[i]))) goto errq ;
