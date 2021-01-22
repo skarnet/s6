@@ -68,11 +68,13 @@ Currently supported verbosity levels:
    <li> 1: write alerts, warnings and fatal errors </li>
   </ul> </li>
  <li> <tt>-l&nbsp;<em>linelimit</em></tt>&nbsp;: if a log line is longer than
-<em>linelimit</em> bytes, cut it in two by inserting a newline. The newline
-may appear anywhere after <em>linelimit</em> or more bytes. <em>linelimit</em>
-cannot be less than 48. Using this option ensures that an ill-formatted log
-stream will not make s6-log uncontrollably eat memory by trying to read and
-process an extremely long line in one go. The default is 8192 bytes. </li>
+<em>linelimit</em> bytes, split it by inserting a newline after the
+<em>linelimit</em>th byte. After the split, the remainder of the line will
+also be processed, so it will go through the selection process, timestamping,
+etc. <em>linelimit</em> cannot be less than 48, unless it is 0 (which means
+infinite). The default is 8192 bytes. Setting <em>linelimit</em> to 0 ensures
+that lines will never be split; this may cause important memory consumption
+by s6-log if it is fed extremely long lines, so use with caution. </li>
 </ul>
 
 <h2> Logdirs </h2>

@@ -31,7 +31,6 @@
 #include <skalibs/sig.h>
 #include <skalibs/selfpipe.h>
 #include <skalibs/siovec.h>
-#include <skalibs/skamisc.h>
 #include <skalibs/exec.h>
 
 #include <s6/config.h>
@@ -1010,6 +1009,29 @@ static void prepare_to_exit (void)
   flagexiting = 1 ;
 }
 
+static inline int getchunk (buffer *b, stralloc *sa, size_t linelimit)
+{
+  struct iovec v[2] ;
+  size_t pos ;
+  int r ;
+  buffer_rpeek(b, v) ;
+  pos = siovec_bytein(v, 2, "\n", 2) ;
+  if (linelimit && sa->len + pos > linelimit)
+  {
+    r = 2 ;
+    pos = linelimit - sa->len ;
+  }
+  else
+  {
+    r = pos < buffer_len(b) ;
+    pos += r ;
+  }
+  if (!stralloc_readyplus(sa, pos + (r == 2))) return -1 ;
+  buffer_getnofill(b, sa->s + sa->len, pos) ; sa->len += pos ;
+  if (r == 2) sa->s[sa->len++] = 0 ;
+  return r ;
+}
+
 static void normal_stdin (scriptelem_t const *script, unsigned int scriptlen, size_t linelimit, unsigned int gflags)
 {
   ssize_t r = sanitize_read(buffer_fill(buffer_0)) ;
@@ -1018,21 +1040,14 @@ static void normal_stdin (scriptelem_t const *script, unsigned int scriptlen, si
     if ((errno != EPIPE) && verbosity) strerr_warnwu1sys("read from stdin") ;
     prepare_to_exit() ;
   }
-  else if (r)
+  else if (r) for (;;)
   {
-    while (skagetln_nofill(buffer_0, &indata, '\n') > 0)
-    {
-      indata.s[indata.len - 1] = 0 ;
-      script_run(script, scriptlen, indata.s, indata.len - 1, gflags) ;
-      indata.len = 0 ;
-    }
-    if (linelimit && indata.len > linelimit)
-    {
-      if (!stralloc_0(&indata)) dienomem() ;
-      if (verbosity) strerr_warnw2x("input line too long, ", "inserting a newline") ;
-      script_run(script, scriptlen, indata.s, indata.len - 1, gflags) ;
-      indata.len = 0 ;
-    }
+    r = getchunk(buffer_0, &indata, linelimit) ;
+    if (r < 0) dienomem() ;
+    else if (!r) break ;
+    indata.s[indata.len - 1] = 0 ;
+    script_run(script, scriptlen, indata.s, indata.len - 1, gflags) ;
+    indata.len = 0 ;
   }
 }
 
