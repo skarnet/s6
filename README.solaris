@@ -1,4 +1,3 @@
-
  This package assumes the existence of a POSIX shell in /bin/sh.
  On Solaris, /bin/sh is not POSIX. Most versions of Solaris provide
 a POSIX shell in /usr/xpg4/bin/sh.
