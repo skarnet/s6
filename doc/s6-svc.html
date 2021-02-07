@@ -134,7 +134,8 @@ is ready. Exit 1 if it is still not ready after 5 seconds.
 <p>
  Send a SIGTERM to the ftpd server; wait for
 <a href="s6-supervise.html">s6-supervise</a> to restart it, and block
-until it has notified that it is ready to serve again.
+until it has notified that it is ready to serve again. See the NOTES
+section below for a caveat.
 </p>
 
 <pre> s6-svc -a /service/httpd/log </pre>
@@ -154,6 +155,17 @@ and will read and interpret those commands. </li>
 changes and spawn another s6-svc instance (without the <tt>-w</tt> option)
 that will send the commands to the service. Any error message written during
 the waiting period will mention it is being written by s6-svlisten1; this is normal. </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> The <tt>-t</tt> and <tt>-r</tt> options make <a href="s6-supervise.html">s6-supervise</a>
+send a signal to the service if it is up; but if the service is currently down,
+they do nothing, and in particular they do not instruct s6-supervise to bring the
+service up. Consequently, <tt>s6-svc -rwr <em>servicedir</em></tt> may wait forever
+for the service to be up, if it is currently wanted down. To avoid that, make sure
+your service is wanted up by using <tt>s6-svc -ruwr <em>servicedir</em></tt> instead. </li>
 </ul>
 
 </body>
