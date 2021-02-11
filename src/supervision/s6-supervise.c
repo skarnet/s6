@@ -268,6 +268,7 @@ static void trystart (void)
     char const *cargv[2] = { "run", 0 } ;
     PROG = "s6-supervise (child)" ;
     selfpipe_finish() ;
+    sig_restore(SIGPIPE) ;
     if (notifyp[0] >= 0) close(notifyp[0]) ;
     close(p[0]) ;
     if (notifyp[1] >= 0 && fd_move((int)fd, notifyp[1]) < 0)
@@ -391,6 +392,7 @@ static int uplastup_z (void)
     char fmt1[UINT_FMT] ;
     char *cargv[4] = { "finish", fmt0, fmt1, 0 } ;
     selfpipe_finish() ;
+    sig_restore(SIGPIPE) ;
     fmt0[uint_fmt(fmt0, WIFSIGNALED(status.wstat) ? 256 : WEXITSTATUS(status.wstat))] = 0 ;
     fmt1[uint_fmt(fmt1, WTERMSIG(status.wstat))] = 0 ;
     setsid() ;

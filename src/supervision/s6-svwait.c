@@ -1,11 +1,15 @@
 /* ISC license. */
 
 #include <stdint.h>
+#include <signal.h>
+
 #include <skalibs/sgetopt.h>
 #include <skalibs/types.h>
 #include <skalibs/bitarray.h>
+#include <skalibs/sig.h>
 #include <skalibs/tai.h>
 #include <skalibs/strerr2.h>
+
 #include "s6-svlisten.h"
 
 #define USAGE "s6-svwait [ -U | -u | -d | -D ] [ -a | -o ] [ -t timeout ] servicedir..."
@@ -50,6 +54,7 @@ int main (int argc, char const *const *argv)
     uint16_t ids[argc] ;
     unsigned char upstate[bitarray_div8(argc)] ;
     unsigned char readystate[bitarray_div8(argc)] ;
+    if (sig_ignore(SIGPIPE) < 0) strerr_diefu1sys(111, "ignore SIGPIPE") ;
     s6_svlisten_init(argc, argv, &foo, ids, upstate, readystate, &deadline) ;
     e = s6_svlisten_loop(&foo, wantup, wantready, or, &deadline, -1, 0) ;
     if (e < 0) strerr_dief1x(102, "supervisor died") ;

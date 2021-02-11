@@ -1,11 +1,15 @@
 /* ISC license. */
 
 #include <stdint.h>
+#include <signal.h>
+
 #include <skalibs/sgetopt.h>
 #include <skalibs/types.h>
+#include <skalibs/sig.h>
 #include <skalibs/tai.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/djbunix.h>
+
 #include "s6-svlisten.h"
 
 #define USAGE "s6-svlisten1 [ -U | -u | -d | -D | -r | -R ] [ -t timeout ] servicedir prog..."
@@ -49,8 +53,10 @@ int main (int argc, char const *const *argv, char const *const *envp)
   tain_add_g(&deadline, &tto) ;
   spfd = s6_svlisten_selfpipe_init() ;
   s6_svlisten_init(1, argv, &foo, &id, &upstate, &readystate, &deadline) ;
+  sig_restore(SIGPIPE) ;
   pid = child_spawn0(argv[1], argv + 1, envp) ;
   if (!pid) strerr_diefu2sys(111, "spawn ", argv[1]) ;
+  if (sig_ignore(SIGPIPE) < 0) strerr_diefu1sys(111, "ignore SIGPIPE") ;
   if (wantrestart) s6_svlisten_loop(&foo, 0, 1, 1, &deadline, spfd, &s6_svlisten_signal_handler) ;
   e = s6_svlisten_loop(&foo, wantup, wantready, 1, &deadline, spfd, &s6_svlisten_signal_handler) ;
   if (e < 0) strerr_dief1x(102, "supervisor died") ;

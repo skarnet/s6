@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <signal.h>
 #include <unistd.h>
+
 #include <skalibs/sgetopt.h>
 #include <skalibs/types.h>
 #include <skalibs/allreadwrite.h>
@@ -13,6 +14,7 @@
 #include <skalibs/djbunix.h>
 #include <skalibs/sig.h>
 #include <skalibs/selfpipe.h>
+
 #include <s6/ftrigr.h>
 
 #define USAGE "s6-ftrig-listen1 [ -t timeout ] fifodir regexp prog..."
@@ -57,7 +59,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
 
   tain_now_set_stopwatch_g() ;
   tain_add_g(&deadline, &tto) ;
-
+  if (sig_ignore(SIGPIPE) < 0) strerr_diefu1sys(111, "sig_ignore") ;
   if (!ftrigr_startf_g(&a, &deadline)) strerr_diefu1sys(111, "ftrigr_startf") ;
   id = ftrigr_subscribe_g(&a, argv[0], argv[1], 0, &deadline) ;
   if (!id) strerr_diefu4sys(111, "subscribe to ", argv[0], " with regexp ", argv[1]) ;
@@ -65,11 +67,12 @@ int main (int argc, char const *const *argv, char const *const *envp)
   x[0].fd = selfpipe_init() ;
   if (x[0].fd < 0) strerr_diefu1sys(111, "selfpipe_init") ;
   if (selfpipe_trap(SIGCHLD) < 0) strerr_diefu1sys(111, "selfpipe_trap") ;
-  if (sig_ignore(SIGPIPE) < 0) strerr_diefu1sys(111, "sig_ignore") ;
   x[1].fd = ftrigr_fd(&a) ;
 
+  sig_restore(SIGPIPE) ;
   pid = child_spawn0(argv[2], argv+2, envp) ;
   if (!pid) strerr_diefu2sys(111, "spawn ", argv[2]) ;
+  if (sig_ignore(SIGPIPE) < 0) strerr_diefu1sys(111, "sig_ignore") ;
 
   for (;;)
   {

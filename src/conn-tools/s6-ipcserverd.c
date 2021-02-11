@@ -286,6 +286,7 @@ static void new_connection (int s, char const *remotepath, char const *const *ar
   else if (!pid)
   {
     selfpipe_finish() ;
+    sig_restore(SIGPIPE) ;
     run_child(s, uid, gid, num+1, remotepath, argv) ;
   }
 
