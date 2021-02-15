@@ -96,7 +96,7 @@ linking against the static libc with --enable-static-libc.
  (If you are using a GNU/Linux system, be aware that the GNU libc
 behaves badly with static linking and produces huge executables,
 which is why it is not the default. Other libcs are better suited
-to static linking, for instance musl: http://musl-libc.org/)
+to static linking, for instance musl: https://musl-libc.org/)
 
  s6 includes software running at a very low level, including a
 program that may run as process 1: to avoid run-time dependencies,
