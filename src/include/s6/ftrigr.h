@@ -18,7 +18,7 @@
 
 #define FTRIGR_IPCPATH SKALIBS_SPROOT "/run/service/ftrigrd/s"
 
-#define FTRIGRD_PROG S6_BINPREFIX "s6-ftrigrd"
+#define FTRIGRD_PROG S6_EXTBINPREFIX "s6-ftrigrd"
 #define FTRIGR_BANNER1 "ftrigr v1.0 (b)\n"
 #define FTRIGR_BANNER1_LEN (sizeof FTRIGR_BANNER1 - 1)
 #define FTRIGR_BANNER2 "ftrigr v1.0 (a)\n"
