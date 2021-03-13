@@ -39,7 +39,7 @@
 #include <execline/config.h>
 #endif
 
-#define USAGE "s6-log [ -d notif ] [ -q | -v ] [ -b ] [ -p ] [ -l linelimit ] logging_script"
+#define USAGE "s6-log [ -d notif ] [ -q | -v ] [ -b ] [ -p ] [ -l linelimit ] [ -- ] logging_script"
 #define dieusage() strerr_dieusage(100, USAGE)
 #define dienomem() strerr_diefu1sys(111, "stralloc_catb")
 
