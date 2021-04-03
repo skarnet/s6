@@ -42,9 +42,25 @@ int main (int argc, char const *const *argv)
 
   if (nb < 2)
   {
-    int r ;
-    int fd = open_create(argv[0]) ;
-    if (fd < 0) strerr_diefu2sys(111, "open_create ", argv[0]) ;
+    int r, fd ;
+    if (ex)
+    {
+      fd = open_create(argv[0]) ;
+      if (fd < 0) strerr_diefu3sys(111, "open ", argv[0], " for writing") ;
+    }
+    else
+    {
+      fd = open_read(argv[0]) ;
+      if (fd < 0)
+      {
+        if (errno != ENOENT) strerr_diefu3sys(111, "open ", argv[0], " for reading") ;
+        fd = open_create(argv[0]) ;
+        if (fd < 0) strerr_diefu2sys(111, "create ", argv[0]) ;
+        close(fd) ;
+        fd = open_read(argv[0]) ;
+        if (fd < 0) strerr_diefu3sys(111, "open ", argv[0], " for reading") ;
+      }
+    }
     r = fd_lock(fd, ex, nb) ;
     if (!r) errno = EBUSY ;
     if (r < 1) strerr_diefu2sys(1, "lock ", argv[0]) ;
