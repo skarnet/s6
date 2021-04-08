@@ -341,7 +341,6 @@ tryflag CFLAGS -fomit-frame-pointer
 tryflag CFLAGS_AUTO -fno-exceptions
 tryflag CFLAGS_AUTO -fno-unwind-tables
 tryflag CFLAGS_AUTO -fno-asynchronous-unwind-tables
-tryflag CFLAGS_AUTO -Wa,--noexecstack
 tryflag CPPFLAGS_AUTO -Werror=implicit-function-declaration
 tryflag CPPFLAGS_AUTO -Werror=implicit-int
 tryflag CPPFLAGS_AUTO -Werror=pointer-sign
@@ -351,6 +350,7 @@ tryflag CFLAGS_AUTO -fdata-sections
 
 tryldflag LDFLAGS_AUTO -Wl,--sort-section=alignment
 tryldflag LDFLAGS_AUTO -Wl,--sort-common
+tryldflag LDFLAGS_AUTO -Wl,-z,noexecstack
 
 CPPFLAGS_AUTO="${CPPFLAGS_AUTO}${addincpath}"
 
