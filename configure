@@ -350,7 +350,6 @@ tryflag CFLAGS_AUTO -fdata-sections
 
 tryldflag LDFLAGS_AUTO -Wl,--sort-section=alignment
 tryldflag LDFLAGS_AUTO -Wl,--sort-common
-tryldflag LDFLAGS_AUTO -Wl,-z,noexecstack
 
 CPPFLAGS_AUTO="${CPPFLAGS_AUTO}${addincpath}"
 

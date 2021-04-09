@@ -75,10 +75,10 @@ tgz: distclean
 
 strip: $(ALL_LIBS) $(ALL_BINS)
 ifneq ($(strip $(STATIC_LIBS)),)
-	exec $(STRIP) -x -R .note -R .comment -R .note.GNU-stack $(STATIC_LIBS)
+	exec $(STRIP) -x -R .note -R .comment $(STATIC_LIBS)
 endif
 ifneq ($(strip $(ALL_BINS)$(SHARED_LIBS)),)
-	exec $(STRIP) -R .note -R .comment -R .note.GNU-stack $(ALL_BINS) $(SHARED_LIBS)
+	exec $(STRIP) -R .note -R .comment $(ALL_BINS) $(SHARED_LIBS)
 endif
 
 install: install-dynlib install-libexec install-bin install-lib install-include
