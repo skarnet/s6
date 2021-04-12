@@ -224,6 +224,7 @@ int main (int argc, char *const *argv)
   uint64_t maxsize = 0 ;
   size_t dirlen ;
   size_t varlen = 0 ;
+  mode_t m ;
   char const *vars[VARS_MAX] ;
   PROG = "s6-usertree-maker" ;
   {
@@ -278,8 +279,8 @@ int main (int argc, char *const *argv)
       if (strchr(rcinfo[2], '/')) strerr_dief2x(100, "slashes", " are forbidden in s6-rc names") ;
     }
   }
-  mask = umask(0) ;
-  mask = ~mask & 0666 ;
+  m = umask(0) ;
+  mask = ~m & 0666 ;
   dirlen = strlen(argv[2]) ;
 
   if (rcinfo[0])
@@ -295,7 +296,7 @@ int main (int argc, char *const *argv)
     if (mkdir(dir, 0755) < 0) strerr_diefu2sys(111, "mkdir ", dir) ;
     memcpy(dir + dirlen + 1, rcinfo[1], loglen + 1) ;
     if (mkdir(dir, 0755) < 0) strerr_diefu2sys(111, "mkdir ", dir) ;
-    umask(mask) ;
+    umask(m) ;
     write_logger(dir, loguser, argv[1], stamptype, nfiles, filesize, maxsize, rcinfo[0], rcinfo[2]) ;
     memcpy(dir + dirlen + 1, rcinfo[0], svclen + 1) ;
     write_service(dir, argv[0], userscandir, rcinfo[1], path, userenvdir, vars, varlen) ;
@@ -307,7 +308,7 @@ int main (int argc, char *const *argv)
     memcpy(dir + dirlen, "/log", 5) ;
     if (mkdir(argv[2], 0755) < 0) strerr_diefu2sys(111, "mkdir ", argv[2]) ;
     if (mkdir(dir, 0755) < 0) strerr_diefu2sys(111, "mkdir ", argv[2]) ;
-    umask(mask) ;
+    umask(m) ;
     write_service(argv[2], argv[0], userscandir, 0, path, userenvdir, vars, varlen) ;
     write_logger(dir, loguser, argv[1], stamptype, nfiles, filesize, maxsize, 0, 0) ;
   }
