@@ -83,11 +83,12 @@ with s6</a> </li>
  <li> A POSIX-compliant system with a standard C development environment </li>
  <li> GNU make, version 3.81 or later </li>
  <li> <a href="//skarnet.org/software/skalibs/">skalibs</a> version
-2.10.0.2 or later. It's a build-time requirement. It's also a run-time
+2.10.0.3 or later. It's a build-time requirement. It's also a run-time
 requirement if you link against the shared version of the skalibs
 library. </li>
- <li> Optional: <a href="//skarnet.org/software/execline/">execline</a> version
-2.7.0.1 or later. When s6 is built with execline support (which is the default),
+ <li> (Optional, but really recommended for full functionality):
+<a href="//skarnet.org/software/execline/">execline</a> version
+2.8.0.1 or later. When s6 is built with execline support (which is the default),
 execline is a build-time requirement, and also a run-time requirement for
 certain binaries that spawn scripts interpreted with
 <a href="//skarnet.org/software/execline/execlineb.html">execlineb</a>. </li>
@@ -101,7 +102,7 @@ certain binaries that spawn scripts interpreted with
  <li> If you're using <a href="https://www.musl-libc.org/">musl</a> and
 want nsswitch-like functionality:
 <a href="//skarnet.org/software/nsss/">nsss</a> version
-0.1.0.0 or later (build-time and boot-time) </li>
+0.1.0.1 or later (build-time and boot-time) </li>
 </ul>
 
 <h3> Licensing </h3>
@@ -114,7 +115,7 @@ want nsswitch-like functionality:
 <h3> Download </h3>
 
 <ul>
- <li> The current released version of s6 is <a href="s6-2.10.0.2.tar.gz">2.10.0.2</a>. </li>
+ <li> The current released version of s6 is <a href="s6-2.10.0.3.tar.gz">2.10.0.3</a>. </li>
  <li> Alternatively, you can checkout a copy of the
 <a href="//git.skarnet.org/cgi-bin/cgit.cgi/s6/">s6
 git repository</a>:
@@ -373,6 +374,10 @@ different way than the previous items on this list. </li>
 
 <h3> Other init systems </h3>
 
+<p>
+ (This list hasn't been updated in a long while. I'm keeping it for reference.)
+</p>
+
 <ul>
  <li> Felix von Leitner's <a href="https://www.fefe.de/minit/">minit</a> is an
 init system for Linux, with process supervision capabilities. </li>
@@ -385,8 +390,8 @@ suckless projects, is a neat exercise in minimalism. </li>
  <li> <a href="https://nongnu.org/sysvinit/">sysvinit</a> is the
 traditional init system for Linux. </li>
  <li> <a href="https://upstart.ubuntu.com/">Upstart</a> is a well-known init system
-for Linux, with complete service management, that comes with the Ubuntu
-distribution. It includes a coffee machine and the kitchen sink.</li>
+for Linux, with complete service management, that came with earlier versions of the Ubuntu
+distribution. It is now deprecated.</li>
  <li> <a href="//skarnet.org/software/systemd.html">systemd</a> is a problem in its own category. </li>
  <li> The various BSD flavors have their own style of
 <a href="https://www.freebsd.org/doc/handbook/boot-init.html">init</a>. </li>
