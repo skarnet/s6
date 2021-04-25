@@ -12,21 +12,21 @@
 
 #include "s6-svlisten.h"
 
-#define USAGE "s6-svwait [ -U | -u | -d | -D ] [ -a | -o ] [ -t timeout ] servicedir..."
+#define USAGE "s6-svwait [ -U | -u | -d | -D | -r | -R ] [ -a | -o ] [ -t timeout ] servicedir..."
 #define dieusage() strerr_dieusage(100, USAGE)
 
 int main (int argc, char const *const *argv)
 {
-  tain_t deadline, tto ;
+  tain_t deadline ;
   int or = 0 ;
   int wantup = 1, wantready = 0 ;
   PROG = "s6-svwait" ;
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
     unsigned int t = 0 ;
+    subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      int opt = subgetopt_r(argc, argv, "UudDaot:", &l) ;
+      int opt = subgetopt_r(argc, argv, "UudDrRaot:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -34,6 +34,8 @@ int main (int argc, char const *const *argv)
         case 'u' : wantup = 1 ; wantready = 0 ; break ;
         case 'd' : wantup = 0 ; wantready = 0 ; break ;
         case 'D' : wantup = 0 ; wantready = 1 ; break ;
+        case 'r' : wantup = 2 ; wantready = 0 ; break ;
+        case 'R' : wantup = 2 ; wantready = 1 ; break ;
         case 'a' : or = 0 ; break ;
         case 'o' : or = 1 ; break ;
         case 't' : if (!uint0_scan(l.arg, &t)) dieusage() ; break ;
@@ -41,12 +43,11 @@ int main (int argc, char const *const *argv)
       }
     }
     argc -= l.ind ; argv += l.ind ;
-    if (t) tain_from_millisecs(&tto, t) ; else tto = tain_infinite_relative ;
+    if (t) tain_from_millisecs(&deadline, t) ; else deadline = tain_infinite_relative ;
   }
   if (!argc) dieusage() ;
-
   tain_now_set_stopwatch_g() ;
-  tain_add_g(&deadline, &tto) ;
+  tain_add_g(&deadline, &deadline) ;
 
   {
     s6_svlisten_t foo = S6_SVLISTEN_ZERO ;
@@ -56,6 +57,13 @@ int main (int argc, char const *const *argv)
     unsigned char readystate[bitarray_div8(argc)] ;
     if (sig_ignore(SIGPIPE) < 0) strerr_diefu1sys(111, "ignore SIGPIPE") ;
     s6_svlisten_init(argc, argv, &foo, ids, upstate, readystate, &deadline) ;
+    if (wantup == 2)
+    {
+      wantup = 1 ;
+      e = s6_svlisten_loop(&foo, 0, 0, 0, &deadline, -1, 0) ;
+      if (e < 0) strerr_dief1x(102, "supervisor died") ;
+      else if (e > 0) strerr_dief1x(e, "some services reported permanent failure") ; 
+    }
     e = s6_svlisten_loop(&foo, wantup, wantready, or, &deadline, -1, 0) ;
     if (e < 0) strerr_dief1x(102, "supervisor died") ;
     else if (e > 0) strerr_dief1x(e, "some services reported permanent failure") ; 
