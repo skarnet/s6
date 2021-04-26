@@ -29,7 +29,7 @@ s6-svwait only waits for notifications; it never polls.
 <h2> Interface </h2>
 
 <pre>
-     s6-svwait [ -U | -u | -D | -d ] [ -a | -o ] [ -t <em>timeout</em> ] <em>servicedir...</em>
+     s6-svwait [ -U | -u | -D | -d | -r | -R ] [ -a | -o ] [ -t <em>timeout</em> ] <em>servicedir...</em>
 </pre>
 
 <p>
@@ -70,6 +70,15 @@ services are down and the cleanup scripts in
 <tt><em>servicedir</em>/finish</tt>
 for every <em>servicedir</em>
 have finished executing (or have timed out and been killed). </li>
+ <li> <tt>-r</tt>&nbsp;: restart. s6-svwait will wait until the services
+are down, then until they are up. If the <tt>-o</tt> option is given, it
+waits until <em>all</em> services are down and <em>one</em> service is up;
+otherwise it waits until <em>all</em> the services have restarted. </li>
+ <li> <tt>-R</tt>&nbsp;: restart and ready.. s6-svwait will wait until the services
+are down, then until they are up and ready. If the <tt>-o</tt> option is given, it
+waits until <em>all</em> services are down and <em>one</em> service is up and
+ready; otherwise it waits until <em>all</em> the services have restarted and
+are ready. </li>
  <li> <tt>-o</tt>&nbsp;: or. s6-svwait will wait until <em>one</em> of the
 given services comes up or down. </li>
  <li> <tt>-a</tt>&nbsp;: and. s6-svwait will wait until <em>all</em> of the
