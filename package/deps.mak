@@ -24,7 +24,7 @@ src/daemontools-extras/s6-envdir.o src/daemontools-extras/s6-envdir.lo: src/daem
 src/daemontools-extras/s6-envuidgid.o src/daemontools-extras/s6-envuidgid.lo: src/daemontools-extras/s6-envuidgid.c
 src/daemontools-extras/s6-fghack.o src/daemontools-extras/s6-fghack.lo: src/daemontools-extras/s6-fghack.c
 src/daemontools-extras/s6-log.o src/daemontools-extras/s6-log.lo: src/daemontools-extras/s6-log.c src/include/s6/config.h
-src/daemontools-extras/s6-setlock.o src/daemontools-extras/s6-setlock.lo: src/daemontools-extras/s6-setlock.c src/include/s6/config.h
+src/daemontools-extras/s6-setlock.o src/daemontools-extras/s6-setlock.lo: src/daemontools-extras/s6-setlock.c src/include/s6/config.h src/include-local/s6lockd.h
 src/daemontools-extras/s6-setsid.o src/daemontools-extras/s6-setsid.lo: src/daemontools-extras/s6-setsid.c
 src/daemontools-extras/s6-setuidgid.o src/daemontools-extras/s6-setuidgid.lo: src/daemontools-extras/s6-setuidgid.c src/include/s6/config.h
 src/daemontools-extras/s6-softlimit.o src/daemontools-extras/s6-softlimit.lo: src/daemontools-extras/s6-softlimit.c
@@ -109,8 +109,9 @@ src/libs6/s6lock_update.o src/libs6/s6lock_update.lo: src/libs6/s6lock_update.c 
 src/libs6/s6lock_wait_and.o src/libs6/s6lock_wait_and.lo: src/libs6/s6lock_wait_and.c src/include/s6/s6lock.h
 src/libs6/s6lock_wait_or.o src/libs6/s6lock_wait_or.lo: src/libs6/s6lock_wait_or.c src/include/s6/s6lock.h
 src/libs6/s6lock_zero.o src/libs6/s6lock_zero.lo: src/libs6/s6lock_zero.c src/include/s6/s6lock.h
-src/libs6/s6lockd-helper.o src/libs6/s6lockd-helper.lo: src/libs6/s6lockd-helper.c
+src/libs6/s6lockd-helper.o src/libs6/s6lockd-helper.lo: src/libs6/s6lockd-helper.c src/include-local/s6lockd.h
 src/libs6/s6lockd.o src/libs6/s6lockd.lo: src/libs6/s6lockd.c src/include/s6/s6lock.h
+src/libs6/s6lockd_openandlock.o src/libs6/s6lockd_openandlock.lo: src/libs6/s6lockd_openandlock.c src/include-local/s6lockd.h
 src/pipe-tools/s6-cleanfifodir.o src/pipe-tools/s6-cleanfifodir.lo: src/pipe-tools/s6-cleanfifodir.c src/include/s6/ftrigw.h
 src/pipe-tools/s6-ftrig-listen.o src/pipe-tools/s6-ftrig-listen.lo: src/pipe-tools/s6-ftrig-listen.c src/include/s6/compat.h src/include/s6/ftrigr.h
 src/pipe-tools/s6-ftrig-listen1.o src/pipe-tools/s6-ftrig-listen1.lo: src/pipe-tools/s6-ftrig-listen1.c src/include/s6/ftrigr.h
@@ -170,7 +171,7 @@ s6-fghack: src/daemontools-extras/s6-fghack.o
 s6-log: EXTRA_LIBS := -lskarnet ${SYSCLOCK_LIB}
 s6-log: src/daemontools-extras/s6-log.o
 s6-setlock: EXTRA_LIBS := -lskarnet ${SYSCLOCK_LIB} ${SPAWN_LIB}
-s6-setlock: src/daemontools-extras/s6-setlock.o
+s6-setlock: src/daemontools-extras/s6-setlock.o libs6lockd.a.xyzzy
 s6-setsid: EXTRA_LIBS := -lskarnet
 s6-setsid: src/daemontools-extras/s6-setsid.o
 s6-setuidgid: EXTRA_LIBS := -lskarnet
@@ -208,12 +209,17 @@ libs6.a.xyzzy: src/libs6/ftrigr1_zero.lo src/libs6/ftrigr_check.lo src/libs6/ftr
 endif
 libs6.so.xyzzy: EXTRA_LIBS := -lskarnet
 libs6.so.xyzzy: src/libs6/ftrigr1_zero.lo src/libs6/ftrigr_check.lo src/libs6/ftrigr_checksa.lo src/libs6/ftrigr_ack.lo src/libs6/ftrigr_end.lo src/libs6/ftrigr_start.lo src/libs6/ftrigr_startf.lo src/libs6/ftrigr_subscribe.lo src/libs6/ftrigr_unsubscribe.lo src/libs6/ftrigr_update.lo src/libs6/ftrigr_updateb.lo src/libs6/ftrigr_wait_and.lo src/libs6/ftrigr_wait_or.lo src/libs6/ftrigr_zero.lo src/libs6/ftrigw_clean.lo src/libs6/ftrigw_fifodir_make.lo src/libs6/ftrigw_notify.lo src/libs6/ftrigw_notifyb.lo src/libs6/ftrigw_notifyb_nosig.lo src/libs6/s6_accessrules_backend_cdb.lo src/libs6/s6_accessrules_backend_fs.lo src/libs6/s6_accessrules_keycheck_ip4.lo src/libs6/s6_accessrules_keycheck_ip6.lo src/libs6/s6_accessrules_keycheck_reversedns.lo src/libs6/s6_accessrules_keycheck_uidgid.lo src/libs6/s6_accessrules_params_free.lo src/libs6/s6_accessrules_uidgid_cdb.lo src/libs6/s6_accessrules_uidgid_fs.lo src/libs6/s6_compat_el_semicolon.lo src/libs6/s6_dtally_pack.lo src/libs6/s6_dtally_unpack.lo src/libs6/s6_dtally_read.lo src/libs6/s6_dtally_write.lo src/libs6/s6_svc_ok.lo src/libs6/s6_svc_write.lo src/libs6/s6_svc_writectl.lo src/libs6/s6_svstatus_pack.lo src/libs6/s6_svstatus_read.lo src/libs6/s6_svstatus_unpack.lo src/libs6/s6_svstatus_write.lo src/libs6/s6lock_acquire.lo src/libs6/s6lock_check.lo src/libs6/s6lock_end.lo src/libs6/s6lock_release.lo src/libs6/s6lock_start.lo src/libs6/s6lock_startf.lo src/libs6/s6lock_update.lo src/libs6/s6lock_wait_and.lo src/libs6/s6lock_wait_or.lo src/libs6/s6lock_zero.lo src/libs6/s6_fdholder_delete.lo src/libs6/s6_fdholder_delete_async.lo src/libs6/s6_fdholder_end.lo src/libs6/s6_fdholder_getdump.lo src/libs6/s6_fdholder_list.lo src/libs6/s6_fdholder_list_async.lo src/libs6/s6_fdholder_list_cb.lo src/libs6/s6_fdholder_retrieve.lo src/libs6/s6_fdholder_retrieve_async.lo src/libs6/s6_fdholder_retrieve_cb.lo src/libs6/s6_fdholder_setdump.lo src/libs6/s6_fdholder_start.lo src/libs6/s6_fdholder_store.lo src/libs6/s6_fdholder_store_async.lo src/libs6/s6_supervise_link.lo src/libs6/s6_supervise_unlink.lo
+ifeq ($(strip $(STATIC_LIBS_ARE_PIC)),)
+libs6lockd.a.xyzzy: src/libs6/s6lockd_openandlock.o
+else
+libs6lockd.a.xyzzy: src/libs6/s6lockd_openandlock.lo
+endif
 s6-ftrigrd: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
 s6-ftrigrd: src/libs6/s6-ftrigrd.o src/libs6/ftrig1_free.o src/libs6/ftrig1_make.o
 s6lockd: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
 s6lockd: src/libs6/s6lockd.o
 s6lockd-helper: EXTRA_LIBS := -lskarnet
-s6lockd-helper: src/libs6/s6lockd-helper.o
+s6lockd-helper: src/libs6/s6lockd-helper.o libs6lockd.a.xyzzy
 s6-cleanfifodir: EXTRA_LIBS := -lskarnet
 s6-cleanfifodir: src/pipe-tools/s6-cleanfifodir.o ${LIBS6}
 s6-ftrig-listen: EXTRA_LIBS := ${EXECLINE_LIB} -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
@@ -256,3 +262,4 @@ s6-svwait: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
 s6-svwait: src/supervision/s6-svwait.o src/supervision/s6_svlisten_loop.o ${LIBS6}
 s6-usertree-maker: EXTRA_LIBS := -lskarnet
 s6-usertree-maker: src/usertree/s6-usertree-maker.o
+INTERNAL_LIBS := libs6lockd.a.xyzzy

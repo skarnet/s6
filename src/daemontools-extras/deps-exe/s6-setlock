@@ -1,3 +1,4 @@
+libs6lockd.a.xyzzy
 -lskarnet
 ${SYSCLOCK_LIB}
 ${SPAWN_LIB}

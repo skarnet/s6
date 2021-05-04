@@ -14,6 +14,7 @@
 #include <skalibs/exec.h>
 
 #include <s6/config.h>
+#include "s6lockd.h"
 
 #define USAGE "s6-setlock [ -r | -w ] [ -n | -N | -t timeout ] lockfile prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
@@ -40,31 +41,7 @@ int main (int argc, char const *const *argv)
   argc -= subgetopt_here.ind ; argv += subgetopt_here.ind ;
   if (argc < 2) dieusage() ;
 
-  if (nb < 2)
-  {
-    int r, fd ;
-    if (ex)
-    {
-      fd = open_create(argv[0]) ;
-      if (fd < 0) strerr_diefu3sys(111, "open ", argv[0], " for writing") ;
-    }
-    else
-    {
-      fd = open_read(argv[0]) ;
-      if (fd < 0)
-      {
-        if (errno != ENOENT) strerr_diefu3sys(111, "open ", argv[0], " for reading") ;
-        fd = open_create(argv[0]) ;
-        if (fd < 0) strerr_diefu2sys(111, "create ", argv[0]) ;
-        close(fd) ;
-        fd = open_read(argv[0]) ;
-        if (fd < 0) strerr_diefu3sys(111, "open ", argv[0], " for reading") ;
-      }
-    }
-    r = fd_lock(fd, ex, nb) ;
-    if (!r) errno = EBUSY ;
-    if (r < 1) strerr_diefu2sys(1, "lock ", argv[0]) ;
-  }
+  if (nb < 2) s6lockd_openandlock(argv[0], ex, nb) ;
   else
   {
     char const *cargv[4] = { "s6lockd-helper", ex ? "w" : "r", argv[0], 0 } ;
