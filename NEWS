@@ -1,5 +1,12 @@
 Changelog for s6.
 
+In 2.10.1.0
+-----------
+
+ - Bugfixes.
+ - s6-svwait now supports -r and -R options to wait for restarts.
+
+
 In 2.10.0.3
 -----------
 
