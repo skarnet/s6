@@ -226,8 +226,14 @@ static inline int logdir_trim (logdir_t *ldp)
     dir_close(dir) ;
     return -1 ;
   }
+  if (!n)
+  {
+    dir_close(dir) ;
+    return 0 ;
+  }
+
   rewinddir(dir) ;
-  if (n)
+
   {
     uint64_t totalsize = 0 ;
     size_t dirlen = strlen(ldp->dir) ;
