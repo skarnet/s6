@@ -44,7 +44,7 @@ int ftrigw_notifyb_nosig (char const *path, char const *s, size_t len)
         if ((r < 0) || (size_t)r < len)
         {
           if (errno == EPIPE) unlink_void(tmp) ;
-           /* what to do if EGAIN ? full fifo -> fix the reader !
+           /* what to do if EAGAIN ? full fifo -> fix the reader !
               There's a race condition in extreme cases though ;
               but it's still better to be nonblocking - the writer
               shouldn't get in trouble because of a bad reader. */
