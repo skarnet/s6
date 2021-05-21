@@ -235,7 +235,7 @@ static void run_child (int s, uid_t uid, gid_t gid, unsigned int num, char const
   unsigned int n = 0 ;
   char fmt[65 + UID_FMT + GID_FMT + UINT_FMT + rplen] ;
   PROG = "s6-ipcserver (child)" ;
-  if ((fd_move(0, s) < 0) || (fd_copy(1, 0) < 0))
+  if ((fd_move(1, s) < 0) || (fd_copy(0, 1) < 0))
     strerr_diefu1sys(111, "move fds") ;
   memcpy(fmt+n, "PROTO=IPC\0IPCREMOTEEUID", 23) ; n += 23 ;
   if (flaglookup)
