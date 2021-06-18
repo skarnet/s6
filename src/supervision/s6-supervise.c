@@ -30,12 +30,9 @@
 #define USAGE "s6-supervise dir"
 #define CTL S6_SUPERVISE_CTLDIR "/control"
 #define LCK S6_SUPERVISE_CTLDIR "/lock"
+#define SLCK S6_SUPERVISE_CTLDIR "/service-lock"
 
-#ifdef PATH_MAX
-# define S6_PATH_MAX PATH_MAX
-#else
-# define S6_PATH_MAX 4096
-#endif
+#define S6_PATH_MAX 512
 
 typedef enum trans_e trans_t, *trans_t_ref ;
 enum trans_e
@@ -238,51 +235,108 @@ static void trystart (void)
 {
   int p[2] ;
   int notifyp[2] = { -1, -1 } ;
-  unsigned int fd ;
+  int lfd = -1 ;
+  int locked = 1 ;
+  unsigned int notif, lk ;
   pid_t pid ;
+  if (read_uint("lock-fd", &lk))
+  {
+    if (lk > INT_MAX) strerr_warnw2x("invalid ", "lock-fd") ;
+    else
+    {
+      struct stat st ;
+      lfd = open_write(SLCK) ;
+      if (lfd == -1)
+      {
+        settimeout(60) ;
+        strerr_warnwu4sys("open ", SLCK, " for writing", " (waiting 60 seconds)") ;
+        return ;
+      }
+      if (fstat(lfd, &st) == -1)
+      {
+        settimeout(60) ;
+        strerr_warnwu3sys("stat ", SLCK, " (waiting 60 seconds)") ;
+        goto errl ;
+      }
+      if (st.st_size)
+      {
+        ftruncate(lfd, 0) ;
+        strerr_warnw1x("a previous instance of the service wrote to the lock file!") ;
+      }
+      locked = fd_lock(lfd, 1, 1) ;
+      if (locked == -1)
+      {
+        settimeout(60) ;
+        strerr_warnwu3sys("lock ", SLCK, " (waiting 60 seconds)") ;
+        goto errl ;
+      }
+      if (!locked)
+        strerr_warnw1x("another instance of the service is already running, child will block") ;
+    }
+  }
+  if (read_uint("notification-fd", &notif))
+  {
+    if (notif > INT_MAX) strerr_warnw2x("invalid ", "notification-fd") ;
+    else if (lfd >= 0 && notif == lk)
+    {
+      settimeout_infinite() ;
+      strerr_warnwu1x("start service: notification-fd and lock-fd are the same") ;
+      goto errl ;
+    }
+    else if (pipe(notifyp) < 0)
+    {
+      settimeout(60) ;
+      strerr_warnwu2sys("pipe", " (waiting 60 seconds)") ;
+      goto errl ;
+    }
+  }
   if (pipecoe(p) < 0)
   {
     settimeout(60) ;
-    strerr_warnwu1sys("pipe (waiting 60 seconds)") ;
-    return ;
-  }
-  if (read_uint("notification-fd", &fd) && pipe(notifyp) < 0)
-  {
-    settimeout(60) ;
-    strerr_warnwu1sys("pipe (waiting 60 seconds)") ;
-    fd_close(p[1]) ; fd_close(p[0]) ;
-    return ;
+    strerr_warnwu2sys("pipe", " (waiting 60 seconds)") ;
+    goto errn ;
   }
   pid = fork() ;
   if (pid < 0)
   {
     settimeout(60) ;
-    strerr_warnwu1sys("fork (waiting 60 seconds)") ;
-    if (notifyp[1] >= 0) fd_close(notifyp[1]) ;
-    if (notifyp[0] >= 0) fd_close(notifyp[0]) ;
-    fd_close(p[1]) ; fd_close(p[0]) ;
-    return ;
+    strerr_warnwu2sys("fork", " (waiting 60 seconds)") ;
+    goto errp ;
   }
   else if (!pid)
   {
     char const *cargv[2] = { "run", 0 } ;
-    PROG = "s6-supervise (child)" ;
+    ((char *)PROG)[strlen(PROG)] = ' ' ;
     selfpipe_finish() ;
     sig_restore(SIGPIPE) ;
     if (notifyp[0] >= 0) close(notifyp[0]) ;
     close(p[0]) ;
-    if (notifyp[1] >= 0 && fd_move((int)fd, notifyp[1]) < 0)
+    if (notifyp[1] >= 0 && fd_move(notif, notifyp[1]) < 0)
     {
       failcoe(p[1]) ;
       strerr_diefu1sys(127, "move notification descriptor") ;
+    }
+    if (lfd >= 0)
+    {
+      if (fd_move(lk, lfd) < 0)
+      {
+        failcoe(p[1]) ;
+        strerr_diefu1sys(127, "move lock descriptor") ;
+      }
+      if (!locked && fd_lock(lk, 1, 0) == -1)
+      {
+        failcoe(p[1]) ;
+        strerr_diefu2sys(127, "lock ", SLCK) ;
+      }
     }
     setsid() ;
     execv("./run", (char *const *)cargv) ;
     failcoe(p[1]) ;
     strerr_dieexec(127, "run") ;
   }
-  if (notifyp[1] >= 0) fd_close(notifyp[1]) ;
   fd_close(p[1]) ;
+  if (notifyp[1] >= 0) fd_close(notifyp[1]) ;
+  if (lfd >= 0) fd_close(lfd) ;
   {
     char c ;
     switch (fd_read(p[0], &c, 1))
@@ -312,6 +366,19 @@ static void trystart (void)
   tain_addsec_g(&dontrespawnbefore, 1) ;
   announce() ;
   ftrigw_notifyb_nosig(S6_SUPERVISE_EVENTDIR, "u", 1) ;
+  return ;
+
+ errp:
+  fd_close(p[1]) ;
+  fd_close(p[0]) ;
+ errn:
+  if (notifyp[1] >= 0)
+  {
+    fd_close(notifyp[1]) ;
+    fd_close(notifyp[0]) ;
+  }
+ errl:
+  if (lfd >= 0) fd_close(lfd) ;
 }
 
 static void downtimeout (void)
@@ -541,11 +608,11 @@ static action_t_ref const actions[5][24] =
 
 static inline void handle_notifyfd (void)
 {
-  char buf[4096] ;
+  char buf[512] ;
   ssize_t r = 1 ;
   while (r > 0)
   {
-    r = sanitize_read(fd_read(notifyfd, buf, 4096)) ;
+    r = sanitize_read(fd_read(notifyfd, buf, 512)) ;
     if (r > 0 && memchr(buf, '\n', r))
     {
       tain_wallclock_read(&status.readystamp) ;
@@ -704,10 +771,11 @@ int main (int argc, char const *const *argv)
   {
     size_t proglen = strlen(PROG) ;
     size_t namelen = strlen(argv[1]) ;
-    char progname[proglen + namelen + 2] ;
+    char progname[proglen + namelen + 10] ;
     memcpy(progname, PROG, proglen) ;
     progname[proglen] = ' ' ;
     memcpy(progname + proglen + 1, argv[1], namelen + 1) ;
+    memcpy(progname + proglen + 2 + namelen, "(child)", 8) ;
     PROG = progname ;
     if (!fd_sanitize()) strerr_diefu1sys(111, "sanitize stdin and stdout") ;
     x[1].fd = control_init() ;

@@ -94,6 +94,7 @@ them afterwards. </li>
 daemon. That process must not "background itself": being run by a supervision
 tree already makes it a "background" task. </li>
  </ul> </li>
+
  <li style="margin-bottom:1em"> An optional executable file named <tt>finish</tt>. Like <tt>run</tt>,
 it can be any executable file. This <em>finish script</em>, if present,
 is executed everytime the <tt>run</tt> script dies. Generally, its main
@@ -118,14 +119,17 @@ the service dies, via a <tt>s6-svc -x</tt> command or a SIGHUP, then the next
 invocation of <tt>finish</tt> will (obviously) be the last, and it will run with
 stdin and stdout pointing to <tt>/dev/null</tt>. </li>
  </ul> </li>
+
  <li style="margin-bottom:1em"> A directory named <tt>supervise</tt>. It is automatically created by
 <a href="s6-supervise.html">s6-supervise</a> if it does not exist. This is where
 <a href="s6-supervise.html">s6-supervise</a> stores its information. The directory
 must be writable. </li>
+
  <li style="margin-bottom:1em"> An optional, empty, regular file named <tt>down</tt>. If such a file exists,
 the default state of the service is considered down, not up: s6-supervise will not
 automatically start it until it receives a <tt>s6-svc -u</tt> command. If no
 <tt>down</tt> file exists, the default state of the service is up. </li>
+
  <li style="margin-bottom:1em"> An optional regular file named <tt>notification-fd</tt>. If such a file
 exists, it means that the service supports
 <a href="notifywhenup.html">readiness notification</a>. The file must only
@@ -140,6 +144,20 @@ notification from the service and broadcast readiness, i.e. any
 <a href="s6-svlisten1.html">s6-svlisten1 -U</a> or
 <a href="s6-svlisten.html">s6-svlisten -U</a> processes will be
 triggered. </li>
+
+ <li style="margin-bottom:1em"> An optional regular file named <tt>lock-fd</tt>. If such a file
+exists, it must contain an unsigned integer, representing a file descriptor that
+will be open in the service. The service <em>should not write to that descriptor</em>
+and <em>should not close it</em>. In other words, it should totally ignore it. That
+file descriptor holds a lock, that will naturally be released when the service dies.
+The point of this feature is to prevent s6-supervise from accidentally spawning several
+copies of the service in case something goes wrong: for instance, the service
+backgrounds itself (which it shouldn't do when running under a supervision suite), or
+s6-supervise is killed, restarted by s6-svscan, and attempts to start another copy of
+the service while the first copy is still alive. If s6-supervise detects that the lock
+is held when it tries to start the service, it will print a warning message and delay
+the starting attempt for 60 seconds. </li>
+
  <li style="margin-bottom:1em"> An optional regular file named <tt>timeout-kill</tt>. If such a file
 exists, it must only contain an unsigned integer <em>t</em>. If <em>t</em>
 is nonzero, then on receipt of an <a href="s6-svc.html">s6-svc -d</a> command,
@@ -150,12 +168,14 @@ milliseconds, then it is sent a SIGKILL. If <tt>timeout-kill</tt> does not
 exist, or contains 0 or an invalid value, then the service is never
 forcibly killed (unless, of course, an <a href="s6-svc.html">s6-svc -k</a>
 command is sent). </li>
+
  <li style="margin-bottom:1em"> An optional regular file named <tt>timeout-finish</tt>. If such a file
 exists, it must only contain an unsigned integer, which is the number of
 milliseconds after which the <tt>./finish</tt> script, if it exists, will
 be killed with a SIGKILL. The default is 5000: finish scripts are killed
 if they're still alive after 5 seconds. A value of 0 allows finish scripts
 to run forever. </li>
+
  <li style="margin-bottom:1em"> An optional regular file named <tt>max-death-tally</tt>. If such a file
 exists, it must only contain an unsigned integer, which is the maximum number of
 service death events that s6-supervise will keep track of. If the service dies
@@ -163,16 +183,19 @@ more than this number of times, the oldest events will be forgotten. Tracking
 death events is useful, for instance, when throttling service restarts. The
 value cannot be greater than 4096. If the file does not exist, a default of 100
 is used. </li>
+
  <li style="margin-bottom:1em"> An optional regular file named <tt>down-signal</tt>. If such a file
 exists, it must only contain the name or number of a signal, followed by a
 newline. This signal will be used to kill the supervised process when a
 <a href="s6-svc.html">s6-svc -d</a> or <a href="s6-svc.html">s6-svc -r</a>
 command is used. If the file does not exist, SIGTERM will be used by default. </li>
+
  <li style="margin-bottom:1em"> A <a href="fifodir.html">fifodir</a> named <tt>event</tt>. It is automatically
 created by <a href="s6-supervise.html">s6-supervise</a> if it does not exist.
 <em>foo</em><tt>/event</tt>
 is the rendez-vous point for listeners, where <a href="s6-supervise.html">s6-supervise</a>
 will send notifications when the service goes up or down. </li>
+
  <li style="margin-bottom:1em"> An optional service directory named <tt>log</tt>. If it exists and <em>foo</em>
 is in a <a href="scandir.html">scandir</a>, and <a href="s6-svscan.html">s6-svscan</a>
 runs on that scandir, then <em>two</em> services are monitored: <em>foo</em> and
