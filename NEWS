@@ -1,8 +1,9 @@
 Changelog for s6.
 
-In 2.10.1.0
+In 2.11.0.0
 -----------
 
+ - Adaptation to skalibs-2.11.0.0.
  - Bugfixes.
  - s6-svwait now supports -r and -R options to wait for restarts.
  - New service directory file: lock-fd, to take a lock before

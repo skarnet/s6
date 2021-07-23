@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <unistd.h>
+
 #include <skalibs/bytestr.h>
 #include <skalibs/types.h>
 #include <skalibs/cdb.h>
@@ -51,11 +52,15 @@ static void mkdirp (char *s)
 static void touchtrunc (char const *file)
 {
   int fd = open_trunc(file) ;
-  if (fd < 0) strerr_diefu2sys(111, "open_trunc ", file) ;
+  if (fd < 0)
+  {
+    cleanup() ;
+    strerr_diefu2sys(111, "open_trunc ", file) ;
+  }
   fd_close(fd) ;
 }
 
-static int doenv (char const *dir, size_t dirlen, char *env, size_t envlen)
+static int doenv (char const *dir, size_t dirlen, char const *env, uint32_t envlen)
 {
   mode_t m = umask(0) ;
   size_t i = 0 ;
@@ -78,12 +83,12 @@ static int doenv (char const *dir, size_t dirlen, char *env, size_t envlen)
       tmp[dirlen + p + 1] = 0 ;
       if (p < n)
       {
-         env[i+n] = '\n' ;
-         if (!openwritenclose_unsafe(tmp, env + i + p + 1, n - p))
-         {
-           cleanup() ;
-           strerr_diefu2sys(111, "openwritenclose_unsafe ", tmp) ;
-         }
+        struct iovec v[2] = { { .iov_base = (char *)env + i + p + 1, .iov_len = n - p - 1 }, { .iov_base = "\n", .iov_len = 1 } } ;
+        if (!openwritevnclose_unsafe(tmp, v, 2))
+        {
+          cleanup() ;
+          strerr_diefu2sys(111, "openwritenclose_unsafe ", tmp) ;
+        }
       }
       else touchtrunc(tmp) ;
     }
@@ -92,48 +97,41 @@ static int doenv (char const *dir, size_t dirlen, char *env, size_t envlen)
   return 1 ;
 }
 
-static int doit (struct cdb *c)
+static int doit (char const *key, uint32_t klen, char const *data, uint32_t dlen)
 {
-  unsigned int klen = cdb_keylen(c) ;
-  unsigned int dlen = cdb_datalen(c) ;
+  uint16_t envlen, execlen ;
+  char name[basedirlen + klen + 8] ;
+  if (!dlen || (dlen > 8201)) return 0 ;
+  memcpy(name, basedir, basedirlen) ;
+  name[basedirlen] = '/' ;
+  memcpy(name + basedirlen + 1, key, klen) ;
+  name[basedirlen + klen + 1 + klen] = 0 ;
+  mkdirp(name) ;
+  name[basedirlen + klen + 1] = '/' ;
+  if (data[0] == 'A')
   {
-    uint16_t envlen, execlen ;
-    char name[basedirlen + klen + 8] ;
-    char data[dlen] ;
-    memcpy(name, basedir, basedirlen) ;
-    name[basedirlen] = '/' ;
-    if (!dlen || (dlen > 8201)) return (errno = EINVAL, 0) ;
-    if ((cdb_read(c, name+basedirlen+1, klen, cdb_keypos(c)) < 0)
-     || (cdb_read(c, data, dlen, cdb_datapos(c)) < 0))
-    {
-      cleanup() ;
-      strerr_diefu1sys(111, "cdb_read") ;
-    }
-    name[basedirlen + klen + 1] = 0 ;
-    mkdirp(name) ;
-    name[basedirlen + klen + 1] = '/' ;
-    if (data[0] == 'A')
-    {
-      memcpy(name + basedirlen + klen + 2, "allow", 6) ;
-      touchtrunc(name) ;
-    }
-    else if (data[0] == 'D')
-    {
-      memcpy(name + basedirlen + klen + 2, "deny", 5) ;
-      touchtrunc(name) ;
-    }
-    if (dlen < 3) return 1 ;
-    uint16_unpack_big(data + 1, &envlen) ;
-    if ((envlen > 4096U) || (3U + envlen > dlen)) return (errno = EINVAL, 0) ;
-    uint16_unpack_big(data + 3 + envlen, &execlen) ;
-    if ((execlen > 4096U) || (5U + envlen + execlen != dlen)) return (errno = EINVAL, 0) ;
-    if (envlen)
-    {
-      memcpy(name + basedirlen + klen + 2, "env", 4) ;
-      if (!doenv(name, basedirlen + klen + 5, data + 3, envlen)) return (errno = EINVAL, 0) ;
-    }
+    memcpy(name + basedirlen + klen + 2, "allow", 6) ;
+    touchtrunc(name) ;
+  }
+  else if (data[0] == 'D')
+  {
+    memcpy(name + basedirlen + klen + 2, "deny", 5) ;
+    touchtrunc(name) ;
+  }
+  if (dlen < 3) return 1 ;
+  uint16_unpack_big(data + 1, &envlen) ;
+  if ((envlen > 4096U) || (3U + envlen > dlen)) return 0 ;
+  uint16_unpack_big(data + 3 + envlen, &execlen) ;
+  if ((execlen > 4096U) || (5U + envlen + execlen != dlen)) return 0 ;
+  if (envlen)
+  {
+    memcpy(name + basedirlen + klen + 2, "env", 4) ;
+    if (!doenv(name, basedirlen + klen + 5, data + 3, envlen)) return 0 ;
+  }
+  if (execlen)
+  {
     memcpy(name + basedirlen + klen + 2, "exec", 5) ;
-    if (execlen && !openwritenclose_unsafe(name, data + 5 + envlen, execlen))
+    if (!openwritenclose_unsafe(name, data + 5 + envlen, execlen))
     {
       cleanup() ;
       strerr_diefu2sys(111, "openwritenclose_unsafe ", name) ;
@@ -144,11 +142,11 @@ static int doit (struct cdb *c)
 
 int main (int argc, char const *const *argv)
 {
-  struct cdb c = CDB_ZERO ;
-  uint32_t kpos ;
+  cdb c = CDB_ZERO ;
+  uint32_t pos = CDB_TRAVERSE_INIT() ;
   PROG = "s6-accessrules-fs-from-cdb" ;
   if (argc < 3) strerr_dieusage(100, USAGE) ;
-  if (cdb_mapfile(&c, argv[2]) < 0) strerr_diefu1sys(111, "cdb_mapfile") ;
+  if (!cdb_init(&c, argv[2])) strerr_diefu1sys(111, "cdb_init") ;
   basedir = argv[1] ;
   basedirlen = strlen(argv[1]) ;
   {
@@ -157,20 +155,20 @@ int main (int argc, char const *const *argv)
       strerr_diefu2sys(111, "mkdir ", basedir) ;
     umask(m) ;
   }
-  cdb_traverse_init(&c, &kpos) ;
   for (;;)
   {
-    int r = cdb_nextkey(&c, &kpos) ;
+    cdb_data key, data ;
+    int r = cdb_traverse_next(&c, &key, &data, &pos) ;
     if (r < 0)
     {
       cleanup() ;
-      strerr_diefu1sys(111, "cdb_nextkey") ;
+      strerr_diefu1x(111, "cdb_traverse_next: invalid cdb") ;
     }
     else if (!r) break ;
-    else if (!doit(&c))
+    else if (!doit(key.s, key.len, data.s, data.len))
     {
       cleanup() ;
-      strerr_diefu1sys(111, "handle key") ;
+      strerr_diefu3x(111, "handle cdb record: ", argv[2], " does not contain valid accessrules data") ;
     }
   }
   return 0 ;

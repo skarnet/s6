@@ -75,14 +75,11 @@ static inline void log_deny (pid_t pid, uid_t uid, gid_t gid)
 
 static s6_accessrules_result_t check_cdb (uid_t uid, gid_t gid, char const *file, s6_accessrules_params_t *params)
 {
-  struct cdb c = CDB_ZERO ;
-  int fd = open_readb(file) ;
+  cdb c = CDB_ZERO ;
   s6_accessrules_result_t r ;
-  if (fd < 0) return -1 ;
-  if (cdb_init(&c, fd) < 0) strerr_diefu2sys(111, "cdb_init ", file) ;
+  if (!cdb_init(&c, file)) strerr_diefu2sys(111, "cdb_init ", file) ;
   r = s6_accessrules_uidgid_cdb(uid, gid, &c, params) ;
   cdb_free(&c) ;
-  fd_close(fd) ;
   return r ;
 }
 

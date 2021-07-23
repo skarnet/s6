@@ -5,9 +5,10 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
+
 #include <skalibs/posixplz.h>
 #include <skalibs/types.h>
-#include <skalibs/cdb_make.h>
+#include <skalibs/cdbmake.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/env.h>
@@ -31,7 +32,7 @@ static void dienomem (void)
   strerr_diefu1sys(111, "stralloc_catb") ;
 }
 
-static void doit (struct cdb_make *c, stralloc *sa, size_t start)
+static void doit (cdbmaker *c, stralloc *sa, size_t start)
 {
   size_t tmpbase = tmp.len ;
   unsigned int k = sa->len ;
@@ -54,10 +55,10 @@ static void doit (struct cdb_make *c, stralloc *sa, size_t start)
         strerr_diefu2sys(111, "access ", sa->s) ;
       }
       else return ;
-    else if (cdb_make_add(c, sa->s + start, k - start, "D", 1) < 0)
+    else if (!cdbmake_add(c, sa->s + start, k - start, "D", 1))
     {
       cleanup() ;
-      strerr_diefu1sys(111, "cdb_make_add") ;
+      strerr_diefu1sys(111, "cdbmake_add") ;
     }
   }
   else
@@ -93,10 +94,10 @@ static void doit (struct cdb_make *c, stralloc *sa, size_t start)
     if (r > 0) execlen = r ;
     if (execlen == 4096) strerr_warnw2x("possibly truncated file ", sa->s) ;
     uint16_pack_big(tmp.s + tmpbase + 3 + envlen, execlen) ;
-    if (cdb_make_add(c, sa->s + start, k - start, tmp.s + tmpbase, 5 + envlen + execlen) < 0)
+    if (!cdbmake_add(c, sa->s + start, k - start, tmp.s + tmpbase, 5 + envlen + execlen))
     {
       cleanup() ;
-      strerr_diefu1sys(111, "cdb_make_add") ;
+      strerr_diefu1sys(111, "cdbmake_add") ;
     }
   }
 }
@@ -104,7 +105,7 @@ static void doit (struct cdb_make *c, stralloc *sa, size_t start)
 int main (int argc, char const *const *argv)
 {
   stralloc sa = STRALLOC_ZERO ;
-  struct cdb_make c = CDB_MAKE_ZERO ;
+  cdbmaker c = CDBMAKER_ZERO ;
   DIR *dir ;
   size_t start ;
   int fd ;
@@ -116,10 +117,10 @@ int main (int argc, char const *const *argv)
   stralloc_catb(&tmp, SUFFIX, sizeof(SUFFIX)) ;
   fd = mkstemp(tmp.s) ;
   if (fd < 0) strerr_diefu2sys(111, "mkstemp ", tmp.s) ;
-  if (cdb_make_start(&c, fd) < 0)
+  if (!cdbmake_start(&c, fd))
   {
     cleanup() ;
-    strerr_diefu1sys(111, "cdb_make_start") ;
+    strerr_diefu1sys(111, "cdbmake_start") ;
   }
   dir = opendir(argv[2]) ;
   if (!dir)
@@ -173,7 +174,7 @@ int main (int argc, char const *const *argv)
     strerr_diefu2sys(111, "readdir ", argv[2]) ;
   }
   dir_close(dir) ;
-  if (cdb_make_finish(&c) < 0)
+  if (!cdbmake_finish(&c))
   {
     cleanup() ;
     strerr_diefu1sys(111, "cdb_make_finish") ;

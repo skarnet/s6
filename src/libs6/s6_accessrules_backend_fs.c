@@ -8,9 +8,9 @@
 #include <skalibs/djbunix.h>
 #include <s6/accessrules.h>
 
-s6_accessrules_result_t s6_accessrules_backend_fs (char const *key, size_t keylen, void *data, s6_accessrules_params_t *params)
+s6_accessrules_result_t s6_accessrules_backend_fs (char const *key, size_t keylen, void const *data, s6_accessrules_params_t *params)
 {
-  char *dir = data ;
+  char const *dir = data ;
   size_t dirlen = strlen(dir) ;
   size_t envbase = params->env.len ;
   int wasnull = !params->env.s ;

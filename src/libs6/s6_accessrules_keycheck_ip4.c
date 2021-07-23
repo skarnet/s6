@@ -5,7 +5,7 @@
 #include <skalibs/fmtscan.h>
 #include <s6/accessrules.h>
 
-s6_accessrules_result_t s6_accessrules_keycheck_ip4 (void const *key, void *data, s6_accessrules_params_t *params, s6_accessrules_backend_func_t_ref check1)
+s6_accessrules_result_t s6_accessrules_keycheck_ip4 (void const *key, void const *data, s6_accessrules_params_t *params, s6_accessrules_backend_func_t_ref check1)
 {
   char fmt[IP4_FMT + UINT_FMT + 6] = "ip4/" ;
   uint32_t ip ;
