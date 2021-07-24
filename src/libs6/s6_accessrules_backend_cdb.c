@@ -7,6 +7,7 @@
 #include <skalibs/uint16.h>
 #include <skalibs/cdb.h>
 #include <skalibs/stralloc.h>
+
 #include <s6/accessrules.h>
 
 s6_accessrules_result_t s6_accessrules_backend_cdb (char const *key, size_t keylen, void const *arg, s6_accessrules_params_t *params)
@@ -15,8 +16,8 @@ s6_accessrules_result_t s6_accessrules_backend_cdb (char const *key, size_t keyl
   int wasnull = !params->env.s ;
   uint16_t envlen, execlen ;
   cdb const *c = arg ;
-  cdb_reader reader = CDB_READER_ZERO ;
-  int r = cdb_find(c, &reader, &data, key, keylen) ;
+  cdb_find_state cfs = CDB_FIND_STATE_ZERO ;
+  int r = cdb_find(c, &data, key, keylen, &cfs) ;
   if (r < 0) return S6_ACCESSRULES_ERROR ;
   else if (!r) return S6_ACCESSRULES_NOTFOUND ;
   if (!data.len || data.len > 8197) return (errno = EINVAL, S6_ACCESSRULES_ERROR) ;
