@@ -2,12 +2,13 @@
 
 #include <errno.h>
 
-#include <skalibs/posixishard.h>
 #include <skalibs/unixmessage.h>
 
 #include <s6/s6-fdholder.h>
 
-int s6_fdholder_retrieve_cb (unixmessage_t const *m, void *p)
+#include <skalibs/posixishard.h>
+
+int s6_fdholder_retrieve_cb (unixmessage const *m, void *p)
 {
   s6_fdholder_retrieve_result_t *res = p ;
   if (m->len != 1) goto err ;

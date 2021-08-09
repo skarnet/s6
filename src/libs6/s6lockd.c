@@ -30,7 +30,7 @@ struct s6lockio_s
 {
   unsigned int xindex ;
   unsigned int pid ;
-  tain_t limit ;
+  tain limit ;
   int p[2] ;
   uint16_t id ; /* given by client */
 } ;
@@ -179,7 +179,7 @@ static int parse_protocol (struct iovec const *v, void *context)
 
 int main (int argc, char const *const *argv)
 {
-  tain_t deadline ;
+  tain deadline ;
   int sfd ;
   PROG = "s6lockd" ;
   
@@ -187,7 +187,7 @@ int main (int argc, char const *const *argv)
   if (chdir(argv[1]) < 0) strerr_diefu2sys(111, "chdir to ", argv[1]) ;
   if (ndelay_on(0) < 0) strerr_diefu2sys(111, "ndelay_on ", "0") ;
   if (ndelay_on(1) < 0) strerr_diefu2sys(111, "ndelay_on ", "1") ;
-  if (sig_ignore(SIGPIPE) < 0) strerr_diefu1sys(111, "ignore SIGPIPE") ;
+  if (!sig_altignore(SIGPIPE)) strerr_diefu1sys(111, "ignore SIGPIPE") ;
 
   sfd = selfpipe_init() ;
   if (sfd < 0) strerr_diefu1sys(111, "selfpipe_init") ;
@@ -200,7 +200,7 @@ int main (int argc, char const *const *argv)
     sigaddset(&set, SIGHUP) ;
     sigaddset(&set, SIGABRT) ;
     sigaddset(&set, SIGINT) ;
-    if (selfpipe_trapset(&set) < 0)
+    if (!selfpipe_trapset(&set))
       strerr_diefu1sys(111, "trap signals") ;
   }
 

@@ -17,7 +17,7 @@ int main (int argc, char const *const *argv)
   int islocal = 1 ;
   PROG = "s6-tai64nlocal" ;
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
       int opt = subgetopt_r(argc, argv, "g", &l) ;
@@ -42,11 +42,11 @@ int main (int argc, char const *const *argv)
     else if (!r) break ;
     if (satmp.len > TIMESTAMP)
     {
-      tain_t a ;
+      tain a ;
       p = timestamp_scan(satmp.s, &a) ;
       if (p)
       {
-        localtmn_t local ;
+        localtmn local ;
         if (localtmn_from_tain(&local, &a, islocal))
         {
           char fmt[LOCALTMN_FMT+1] ;

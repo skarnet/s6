@@ -18,7 +18,7 @@ int main (int argc, char const *const *argv)
   int num = 0 ;
   PROG = "s6-svdt" ;
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
       int opt = subgetopt_r(argc, argv, "Ssn:", &l) ;

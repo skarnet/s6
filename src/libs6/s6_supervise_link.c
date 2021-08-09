@@ -29,7 +29,7 @@ static inline void do_unlink (char const *scdir, char const *prefix, size_t pref
   }
 }
 
-static uint16_t registerit (ftrigr_t *a, char *fn, size_t len, gid_t gid, uint32_t options, tain_t const *deadline, tain_t *stamp)
+static uint16_t registerit (ftrigr_t *a, char *fn, size_t len, gid_t gid, uint32_t options, tain const *deadline, tain *stamp)
 {
   if (options & 4)
   {
@@ -44,7 +44,7 @@ static uint16_t registerit (ftrigr_t *a, char *fn, size_t len, gid_t gid, uint32
   return ftrigr_subscribe(a, fn, "s", 0, deadline, stamp) ;
 }
 
-int s6_supervise_link (char const *scdir, char const *const *servicedirs, size_t n, char const *prefix, uint32_t options, tain_t const *deadline, tain_t *stamp)
+int s6_supervise_link (char const *scdir, char const *const *servicedirs, size_t n, char const *prefix, uint32_t options, tain const *deadline, tain *stamp)
 {
   size_t maxlen = 0 ;
   size_t ntotal = n ;

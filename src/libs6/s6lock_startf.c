@@ -5,7 +5,7 @@
 #include <skalibs/textclient.h>
 #include <s6/s6lock.h>
 
-int s6lock_startf (s6lock_t *a, char const *lockdir, tain_t const *deadline, tain_t *stamp)
+int s6lock_startf (s6lock_t *a, char const *lockdir, tain const *deadline, tain *stamp)
 {
   char const *cargv[3] = { S6LOCKD_PROG, lockdir, 0 } ;
   if (!lockdir) return (errno = EINVAL, 0) ;

@@ -6,7 +6,7 @@
 #include <skalibs/types.h>
 #include <s6/accessrules.h>
 
-s6_accessrules_result_t s6_accessrules_keycheck_uidgid (void const *key, void const *data, s6_accessrules_params_t *params, s6_accessrules_backend_func_t_ref check1)
+s6_accessrules_result_t s6_accessrules_keycheck_uidgid (void const *key, void const *data, s6_accessrules_params_t *params, s6_accessrules_backend_func_ref check1)
 {
   uidgid_t const *uidgid = key ;
   char fmt[4 + UINT64_FMT] = "uid/" ;

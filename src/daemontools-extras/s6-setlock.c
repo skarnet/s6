@@ -26,7 +26,7 @@ int main (int argc, char const *const *argv)
   PROG = "s6-setlock" ;
   for (;;)
   {
-    int opt = subgetopt(argc, argv, "nNrwt:") ;
+    int opt = lgetopt(argc, argv, "nNrwt:") ;
     if (opt == -1) break ;
     switch (opt)
     {
@@ -47,7 +47,7 @@ int main (int argc, char const *const *argv)
     char const *cargv[4] = { "s6lockd-helper", ex ? "w" : "r", argv[0], 0 } ;
     char const *nullenv = { 0 } ;
     iopause_fd x = { .events = IOPAUSE_READ } ;
-    tain_t deadline ;
+    tain deadline ;
     int p[2] = { 0, 1 } ;
     pid_t pid ;
     char c ;

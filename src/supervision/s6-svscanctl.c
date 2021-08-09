@@ -15,7 +15,7 @@ int main (int argc, char const *const *argv)
   unsigned int datalen = 0 ;
   PROG = "s6-svscanctl" ;
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
       int opt = subgetopt_r(argc, argv, "phratszbnNiq0678", &l) ;

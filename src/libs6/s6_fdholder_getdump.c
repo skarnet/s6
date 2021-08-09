@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <errno.h>
 
-#include <skalibs/posixishard.h>
 #include <skalibs/uint32.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/tai.h>
@@ -14,9 +13,11 @@
 
 #include <s6/s6-fdholder.h>
 
-int s6_fdholder_getdump (s6_fdholder_t *a, genalloc *g, tain_t const *deadline, tain_t *stamp)
+#include <skalibs/posixishard.h>
+
+int s6_fdholder_getdump (s6_fdholder_t *a, genalloc *g, tain const *deadline, tain *stamp)
 {
-  unixmessage_t m  = { .s = "?", .len = 1, .fds = 0, .nfds = 0 } ;
+  unixmessage m  = { .s = "?", .len = 1, .fds = 0, .nfds = 0 } ;
   uint32_t ntot, n ;
   size_t oldlen = genalloc_len(s6_fdholder_fd_t, g) ;
   unsigned int i = 0 ;

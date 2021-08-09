@@ -27,7 +27,7 @@ static void doit (int res, char const *arg)
 
 int main (int argc, char const *const *argv)
 {
-  subgetopt_t l = SUBGETOPT_ZERO ;
+  subgetopt l = SUBGETOPT_ZERO ;
   PROG = "s6-softlimit" ;
   for (;;)
   {

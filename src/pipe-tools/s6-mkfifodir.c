@@ -10,7 +10,7 @@
 
 int main (int argc, char const *const *argv)
 {
-  subgetopt_t l = SUBGETOPT_ZERO ;
+  subgetopt l = SUBGETOPT_ZERO ;
   gid_t gid = -1 ;
   int force = 0 ;
   PROG = "s6-mkfifodir" ;

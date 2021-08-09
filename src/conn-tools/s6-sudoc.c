@@ -29,12 +29,12 @@ int main (int argc, char const *const *argv, char const *const *envp)
 {
   char buf6[64] ;
   buffer b6 = BUFFER_INIT(&buffer_read, 6, buf6, 64) ;
-  unixmessage_sender_t b7 = UNIXMESSAGE_SENDER_INIT(7) ;
-  subgetopt_t l = SUBGETOPT_ZERO ;
+  unixmessage_sender b7 = UNIXMESSAGE_SENDER_INIT(7) ;
+  subgetopt l = SUBGETOPT_ZERO ;
   unsigned int t = 0, T = 0 ;
   int doenv = 1 ;
   
-  tain_t deadline = TAIN_INFINITE_RELATIVE ;
+  tain deadline = TAIN_INFINITE_RELATIVE ;
   PROG = "s6-sudoc" ;
   for (;;)
   {
@@ -76,7 +76,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
       { .iov_base = pack, .iov_len = 16 },
       { .iov_base = 0, .iov_len = 0 },
       { .iov_base = 0, .iov_len = 0 } } ;
-    unixmessage_v_t mv = { .v = v, .vlen = 4, .fds = fds, .nfds = 3 } ;
+    unixmessagev mv = { .v = v, .vlen = 4, .fds = fds, .nfds = 3 } ;
     stralloc sa = STRALLOC_ZERO ;
     size_t envlen = doenv ? env_len(envp) : 0 ;
     uint32_pack_big(pack, (uint32_t)argc) ;

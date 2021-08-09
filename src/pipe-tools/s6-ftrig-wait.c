@@ -13,7 +13,7 @@
 
 int main (int argc, char const *const *argv)
 {
-  tain_t deadline, tto ;
+  tain deadline, tto ;
   ftrigr_t a = FTRIGR_ZERO ;
   uint16_t id ;
   char pack[2] = " \n" ;
@@ -22,7 +22,7 @@ int main (int argc, char const *const *argv)
     unsigned int t = 0 ;
     for (;;)
     {
-      int opt = subgetopt(argc, argv, "t:") ;
+      int opt = lgetopt(argc, argv, "t:") ;
       if (opt == -1) break ;
       switch (opt)
       {

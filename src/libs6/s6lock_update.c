@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <errno.h>
 
-#include <skalibs/posixishard.h>
 #include <skalibs/error.h>
 #include <skalibs/uint16.h>
 #include <skalibs/genalloc.h>
@@ -12,6 +11,8 @@
 #include <skalibs/textclient.h>
 
 #include <s6/s6lock.h>
+
+#include <skalibs/posixishard.h>
 
 static int msghandler (struct iovec const *v, void *context)
 {

@@ -125,7 +125,7 @@ int main (int argc, char const *const *argv)
   int doenv = 1 ;
   PROG = "s6-ipcserver-access" ;
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
       int opt = subgetopt_r(argc, argv, "v:Eel:i:x:", &l) ;

@@ -12,7 +12,7 @@
 #include <skalibs/textclient.h>
 #include <s6/ftrigr.h>
 
-uint16_t ftrigr_subscribe (ftrigr_t *a, char const *path, char const *re, uint32_t options, tain_t const *deadline, tain_t *stamp)
+uint16_t ftrigr_subscribe (ftrigr_t *a, char const *path, char const *re, uint32_t options, tain const *deadline, tain *stamp)
 {
   size_t pathlen = strlen(path) ;
   size_t relen = strlen(re) ;

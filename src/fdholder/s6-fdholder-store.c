@@ -12,12 +12,12 @@
 int main (int argc, char const *const *argv)
 {
   s6_fdholder_t a = S6_FDHOLDER_ZERO ;
-  tain_t deadline, limit ;
+  tain deadline, limit ;
   unsigned int fd = 0 ;
   PROG = "s6-fdholder-store" ;
   {
     unsigned int t = 0, T = 0 ;
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
       int opt = subgetopt_r(argc, argv, "d:t:T:", &l) ;

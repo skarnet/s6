@@ -11,7 +11,7 @@
 #include <skalibs/textclient.h>
 #include <s6/s6lock.h>
 
-int s6lock_acquire (s6lock_t *a, uint16_t *u, char const *path, uint32_t options, tain_t const *limit, tain_t const *deadline, tain_t *stamp)
+int s6lock_acquire (s6lock_t *a, uint16_t *u, char const *path, uint32_t options, tain const *limit, tain const *deadline, tain *stamp)
 {
   size_t pathlen = strlen(path) ;
   char tmp[23] = "--<" ;

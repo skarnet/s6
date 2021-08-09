@@ -61,17 +61,17 @@ static int handle_signals (pid_t pid, int *wstat)
 int main (int argc, char const *const *argv, char const *const *envp)
 {
   iopause_fd x[2] = { { .events = IOPAUSE_READ }, { .fd = 0, .events = 0, .revents = 0 } } ;
-  unixmessage_t m ;
+  unixmessage m ;
   unsigned int nullfds = 0 ;
   pid_t pid ;
   int wstat ;
   size_t envc = env_len(envp) ;
   uint32_t cargc, cenvc, carglen, cenvlen ;
-  tain_t deadline = TAIN_INFINITE_RELATIVE ;
+  tain deadline = TAIN_INFINITE_RELATIVE ;
   PROG = "s6-sudod" ;
 
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     unsigned int t = 0 ;
     for (;;)
     {
@@ -176,7 +176,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
 
     x[0].fd = selfpipe_init() ;
     if (x[0].fd < 0) strerr_diefu1sys(111, "selfpipe_init") ;
-    if (selfpipe_trap(SIGCHLD) < 0) strerr_diefu1sys(111, "trap SIGCHLD") ;
+    if (!selfpipe_trap(SIGCHLD)) strerr_diefu1sys(111, "trap SIGCHLD") ;
     if (pipecoe(p) < 0) strerr_diefu1sys(111, "pipe") ;
     pid = fork() ;
     if (pid < 0) strerr_diefu1sys(111, "fork") ;

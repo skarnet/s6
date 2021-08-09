@@ -86,7 +86,7 @@ int main (int argc, char const *const *argv)
   }
   total = st.st_size / S6_DTALLY_PACK ;
   {
-    tain_t mintime ;
+    tain mintime ;
     unsigned int matches = 0 ;
     s6_dtally_t tab[total] ;
     ssize_t r = s6_dtally_read(".", tab, total) ;
@@ -98,7 +98,7 @@ int main (int argc, char const *const *argv)
     if (r < n) goto cont ;
     tain_uint(&mintime, seconds) ;
     {
-      tain_t now ;
+      tain now ;
       tain_wallclock_read(&now) ;
       tain_sub(&mintime, &now, &mintime) ;
     }

@@ -2,12 +2,13 @@
 
 #include <errno.h>
 
-#include <skalibs/posixishard.h>
 #include <skalibs/iopause.h>
 
 #include <s6/ftrigr.h>
 
-int ftrigr_wait_or (ftrigr_t *a, uint16_t const *idlist, unsigned int n, tain_t const *deadline, tain_t *stamp, char *c)
+#include <skalibs/posixishard.h>
+
+int ftrigr_wait_or (ftrigr_t *a, uint16_t const *idlist, unsigned int n, tain const *deadline, tain *stamp, char *c)
 {
   iopause_fd x = { -1, IOPAUSE_READ | IOPAUSE_EXCEPT, 0 } ;
   x.fd = ftrigr_fd(a) ;

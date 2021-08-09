@@ -5,7 +5,6 @@
 #include <string.h>
 #include <errno.h>
 
-#include <skalibs/posixishard.h>
 #include <skalibs/uint32.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/bytestr.h>
@@ -15,7 +14,9 @@
 
 #include <s6/s6-fdholder.h>
 
-int s6_fdholder_setdump (s6_fdholder_t *a, s6_fdholder_fd_t const *list, unsigned int ntot, tain_t const *deadline, tain_t *stamp)
+#include <skalibs/posixishard.h>
+
+int s6_fdholder_setdump (s6_fdholder_t *a, s6_fdholder_fd_t const *list, unsigned int ntot, tain const *deadline, tain *stamp)
 {
   uint32_t trips ;
   if (!ntot) return 1 ;
@@ -27,7 +28,7 @@ int s6_fdholder_setdump (s6_fdholder_t *a, s6_fdholder_fd_t const *list, unsigne
   }
   {
     char pack[5] = "!" ;
-    unixmessage_t m = { .s = pack, .len = 5, .fds = 0, .nfds = 0 } ;
+    unixmessage m = { .s = pack, .len = 5, .fds = 0, .nfds = 0 } ;
     uint32_pack_big(pack+1, ntot) ;
     if (!unixmessage_put(&a->connection.out, &m)) return 0 ;
     if (!unixmessage_sender_timed_flush(&a->connection.out, deadline, stamp)) return 0 ;
@@ -45,7 +46,7 @@ int s6_fdholder_setdump (s6_fdholder_t *a, s6_fdholder_fd_t const *list, unsigne
       unsigned int j = 0 ;
       struct iovec v[1 + (n<<1)] ;
       int fds[n] ;
-      unixmessage_v_t m = { .v = v, .vlen = 1 + (n<<1), .fds = fds, .nfds = n } ;
+      unixmessagev m = { .v = v, .vlen = 1 + (n<<1), .fds = fds, .nfds = n } ;
       char pack[n * (TAIN_PACK+1)] ;
       v[0].iov_base = "." ; v[0].iov_len = 1 ;
       for (; j < n ; j++, list++, ntot--)
@@ -63,7 +64,7 @@ int s6_fdholder_setdump (s6_fdholder_t *a, s6_fdholder_fd_t const *list, unsigne
     }
     if (!unixmessage_sender_timed_flush(&a->connection.out, deadline, stamp)) return 0 ;
     {
-      unixmessage_t m ;
+      unixmessage m ;
       if (sanitize_read(unixmessage_timed_receive(&a->connection.in, &m, deadline, stamp)) < 0) return 0 ;
       if (m.len != 1 || m.nfds)
       {

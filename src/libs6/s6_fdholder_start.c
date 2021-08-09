@@ -5,7 +5,7 @@
 
 #include <s6/s6-fdholder.h>
 
-int s6_fdholder_start (s6_fdholder_t *a, char const *path, tain_t const *deadline, tain_t *stamp)
+int s6_fdholder_start (s6_fdholder_t *a, char const *path, tain const *deadline, tain *stamp)
 {
   int fd = ipc_stream_nb() ;
   if (fd < 0) return 0 ;

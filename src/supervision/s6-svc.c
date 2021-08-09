@@ -25,7 +25,7 @@ int main (int argc, char const *const *argv)
   char updown[3] = "-\0" ;
   PROG = "s6-svc" ;
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
       int opt = subgetopt_r(argc, argv, "abqhkti12pcyroduxOT:w:", &l) ;

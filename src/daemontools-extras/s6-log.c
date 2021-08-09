@@ -55,8 +55,8 @@ static stralloc indata = STRALLOC_ZERO ;
 
  /* Data types */
 
-typedef int qcmpfunc_t (void const *, void const *) ;
-typedef qcmpfunc_t *qcmpfunc_t_ref ;
+typedef int qcmp_func (void const *, void const *) ;
+typedef qcmp_func *qcmp_func_ref ;
 
 typedef enum rotstate_e rotstate_t, *rotstate_t_ref ;
 enum rotstate_e
@@ -139,16 +139,16 @@ struct scriptelem_s
   unsigned int actlen ;
 } ;
 
-typedef void inputprocfunc_t (scriptelem_t const *, unsigned int, size_t, unsigned int) ;
-typedef inputprocfunc_t *inputprocfunc_t_ref ;
+typedef void inputproc_func (scriptelem_t const *, unsigned int, size_t, unsigned int) ;
+typedef inputproc_func *inputproc_func_ref ;
 
 typedef struct logdir_s logdir_t, *logdir_t_ref ;
 struct logdir_s
 {
   bufalloc out ;
   unsigned int xindex ;
-  tain_t retrytto ;
-  tain_t deadline ;
+  tain retrytto ;
+  tain deadline ;
   uint64_t maxdirsize ;
   uint32_t b ;
   uint32_t n ;
@@ -200,7 +200,7 @@ static int filedesc_cmp (struct filedesc_s const *a, struct filedesc_s const *b)
 
 static int name_is_relevant (char const *name)
 {
-  tain_t dummy ;
+  tain dummy ;
   if (strlen(name) != 27) return 0 ;
   if (!timestamp_scan(name, &dummy)) return 0 ;
   if (name[25] != '.') return 0 ;
@@ -270,7 +270,7 @@ static inline int logdir_trim (logdir_t *ldp)
     dir_close(dir) ;
     if ((i <= ldp->n) && (!ldp->maxdirsize || (totalsize <= ldp->maxdirsize)))
       return 0 ;
-    qsort(archive, i, sizeof(struct filedesc_s), (qcmpfunc_t_ref)&filedesc_cmp) ;
+    qsort(archive, i, sizeof(struct filedesc_s), (qcmp_func_ref)&filedesc_cmp) ;
     n = 0 ;
     while ((i > ldp->n + n) || (ldp->maxdirsize && (totalsize > ldp->maxdirsize)))
     {
@@ -335,7 +335,6 @@ static inline void exec_processor (logdir_t *ldp)
   if (fd < 0) strerr_diefu3sys(111, "open_trunc ", ldp->dir, "/newstate") ;
   if (fd_move(5, fd) < 0) strerr_diefu3sys(111, "fd_move ", ldp->dir, "/newstate") ;
   selfpipe_finish() ;
-  sig_restore(SIGPIPE) ;
   xexec(cargv) ;
 }
 
@@ -555,7 +554,7 @@ static inline void rotate_or_flush (logdir_t *ldp)
   bufalloc_flush(&ldp->out) ;
 }
 
-static inline void logdir_init (unsigned int index, uint32_t s, uint32_t n, uint32_t tolerance, uint64_t maxdirsize, tain_t const *retrytto, char const *processor, char const *name, unsigned int flags)
+static inline void logdir_init (unsigned int index, uint32_t s, uint32_t n, uint32_t tolerance, uint64_t maxdirsize, tain const *retrytto, char const *processor, char const *name, unsigned int flags)
 {
   logdir_t *ldp = logdirs + index ;
   struct stat st ;
@@ -670,7 +669,7 @@ static inline void finalize (void)
   for (;;)
   {
     unsigned int i = 0 ;
-    tain_t deadline ;
+    tain deadline ;
     tain_addsec_g(&deadline, 2) ;
     for (; i < llen ; i++)
       if (logdirs[i].rstate != ROTSTATE_END)
@@ -766,7 +765,7 @@ static inline void script_firstpass (char const *const *argv, unsigned int *sell
 
 static inline void script_secondpass (char const *const *argv, scriptelem_t *script, sel_t *selections, act_t *actions)
 {
-  tain_t retrytto ;
+  tain retrytto ;
   unsigned int fd2_size = 200 ;
   unsigned int status_size = 1001 ;
   uint32_t s = 99999 ;
@@ -907,7 +906,7 @@ static void script_run (scriptelem_t const *script, unsigned int scriptlen, char
   char tstamp[TIMESTAMP+1] ;
   if (gflags & 3)
   {
-    tain_t now ;
+    tain now ;
     tain_wallclock_read(&now) ;
     if (gflags & 1)
     {
@@ -916,7 +915,7 @@ static void script_run (scriptelem_t const *script, unsigned int scriptlen, char
     }
     if (gflags & 2)
     {
-      localtmn_t l ;
+      localtmn l ;
       localtmn_from_tain(&l, &now, 1) ;
       hlen = localtmn_fmt(hstamp, &l) ;
       hstamp[hlen++] = ' ' ;
@@ -1096,7 +1095,7 @@ static void last_stdin (scriptelem_t const *script, unsigned int scriptlen, size
   }
 }
 
-static inputprocfunc_t_ref handle_stdin = &normal_stdin ;
+static inputproc_func_ref handle_stdin = &normal_stdin ;
 
 
  /* Signals */
@@ -1178,7 +1177,7 @@ int main (int argc, char const *const *argv)
   int flagblock = 0 ;
   PROG = "s6-log" ;
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
       int opt = subgetopt_r(argc, argv, "qvbpl:d:", &l) ;
@@ -1221,7 +1220,7 @@ int main (int argc, char const *const *argv)
     script_secondpass(argv, script, selections, actions) ;
     x[0].fd = selfpipe_init() ;
     if (x[0].fd < 0) strerr_diefu1sys(111, "selfpipe_init") ;
-    if (sig_ignore(SIGPIPE) < 0) strerr_diefu1sys(111, "sig_ignore(SIGPIPE)") ;
+    if (!sig_altignore(SIGPIPE)) strerr_diefu1sys(111, "sig_ignore(SIGPIPE)") ;
     {
       sigset_t set ;
       sigemptyset(&set) ;
@@ -1229,7 +1228,7 @@ int main (int argc, char const *const *argv)
       sigaddset(&set, SIGHUP) ;
       sigaddset(&set, SIGALRM) ;
       sigaddset(&set, SIGCHLD) ;
-      if (selfpipe_trapset(&set) < 0)
+      if (!selfpipe_trapset(&set))
         strerr_diefu1sys(111, "selfpipe_trapset") ;
     }
     x[0].events = IOPAUSE_READ ;
@@ -1241,7 +1240,7 @@ int main (int argc, char const *const *argv)
 
     for (;;)
     {
-      tain_t deadline ;
+      tain deadline ;
       int r = 0 ;
       unsigned int xindex0, xindex1 ;
       unsigned int i = 0, j = 1 ;

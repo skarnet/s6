@@ -30,7 +30,7 @@ int main (int argc, char const *const *argv)
   unsigned int socketperms = 0777 ;
   PROG = "s6-ipcserver" ;
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
       int opt = subgetopt_r(argc, argv, "qQvDd1UPpc:C:b:a:u:g:G:", &l) ;

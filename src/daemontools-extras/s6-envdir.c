@@ -13,7 +13,7 @@
 int main (int argc, char const *const *argv)
 {
   stralloc modifs = STRALLOC_ZERO ;
-  subgetopt_t l = SUBGETOPT_ZERO ;
+  subgetopt l = SUBGETOPT_ZERO ;
   int insist = 1 ;
   unsigned int options = 0 ;
   char nullis = '\n' ;

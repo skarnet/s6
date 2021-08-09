@@ -91,13 +91,13 @@ int main (int argc, char const *const *argv, char const *const *envp)
   int df = 0 ;
   int autodetect = 1 ;
   int p[2] ;
-  tain_t globaldeadline, sleeptto, localtto, waittto ;
+  tain globaldeadline, sleeptto, localtto, waittto ;
   unsigned int tries = 7 ;
   uint16_t id ;
   PROG = "s6-notifyoncheck" ;
 
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     unsigned int initialsleep = 10, globaltimeout = 0, localtimeout = 0, waitingtime = 1000 ;
     for (;;)
     {
@@ -211,8 +211,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
 
   while (tries == UINT_MAX || tries--)
   {
-    tain_t deadline = globaldeadline ;
-    tain_t localdeadline ;
+    tain deadline = globaldeadline ;
+    tain localdeadline ;
     pid_t pid ;
 
     tain_add_g(&localdeadline, &sleeptto) ;

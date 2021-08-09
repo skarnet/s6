@@ -5,13 +5,14 @@
 #include <stdint.h>
 #include <errno.h>
 
-#include <skalibs/posixishard.h>
 #include <skalibs/gccattributes.h>
 #include <skalibs/uint16.h>
 #include <skalibs/genalloc.h>
 #include <skalibs/gensetdyn.h>
 #include <skalibs/textclient.h>
 #include <s6/ftrigr.h>
+
+#include <skalibs/posixishard.h>
 
 static inline int appears (uint16_t, uint16_t const *, size_t) gccattr_pure ;
 

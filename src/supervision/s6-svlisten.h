@@ -7,8 +7,8 @@
 #include <skalibs/tai.h>
 #include <s6/ftrigr.h>
 
-typedef void action_func_t (void) ;
-typedef action_func_t *action_func_t_ref ;
+typedef void action_func (void) ;
+typedef action_func *action_func_ref ;
 
 typedef struct s6_svlisten_s s6_svlisten_t, *s6_svlisten_t_ref ;
 struct s6_svlisten_s
@@ -23,7 +23,7 @@ struct s6_svlisten_s
 
 extern void s6_svlisten_signal_handler (void) ;
 extern int s6_svlisten_selfpipe_init (void) ;
-extern void s6_svlisten_init (int, char const *const *, s6_svlisten_t *, uint16_t *, unsigned char *, unsigned char *, tain_t const *) ;
-extern int s6_svlisten_loop (s6_svlisten_t *, int, int, int, tain_t const *, int, action_func_t_ref) ;
+extern void s6_svlisten_init (int, char const *const *, s6_svlisten_t *, uint16_t *, unsigned char *, unsigned char *, tain const *) ;
+extern int s6_svlisten_loop (s6_svlisten_t *, int, int, int, tain const *, int, action_func_ref) ;
 
 #endif

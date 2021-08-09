@@ -55,8 +55,8 @@ enum state_e
 typedef void action_t (void) ;
 typedef action_t *action_t_ref ;
 
-static tain_t deadline ;
-static tain_t dontrespawnbefore = TAIN_EPOCH ;
+static tain deadline ;
+static tain dontrespawnbefore = TAIN_EPOCH ;
 static s6_svstatus_t status = S6_SVSTATUS_ZERO ;
 static state_t state = DOWN ;
 static int flagdying = 0 ;
@@ -308,7 +308,6 @@ static void trystart (void)
     char const *cargv[2] = { "run", 0 } ;
     ((char *)PROG)[strlen(PROG)] = ' ' ;
     selfpipe_finish() ;
-    sig_restore(SIGPIPE) ;
     if (notifyp[0] >= 0) close(notifyp[0]) ;
     close(p[0]) ;
     if (notifyp[1] >= 0 && fd_move(notif, notifyp[1]) < 0)
@@ -459,7 +458,6 @@ static int uplastup_z (void)
     char fmt1[UINT_FMT] ;
     char *cargv[4] = { "finish", fmt0, fmt1, 0 } ;
     selfpipe_finish() ;
-    sig_restore(SIGPIPE) ;
     fmt0[uint_fmt(fmt0, WIFSIGNALED(status.wstat) ? 256 : WEXITSTATUS(status.wstat))] = 0 ;
     fmt1[uint_fmt(fmt1, WTERMSIG(status.wstat))] = 0 ;
     setsid() ;
@@ -470,7 +468,7 @@ static int uplastup_z (void)
   announce() ;
   ftrigw_notifyb_nosig(S6_SUPERVISE_EVENTDIR, "d", 1) ;
   {
-    tain_t tto ;
+    tain tto ;
     unsigned int timeout ;
     if (!read_uint("timeout-finish", &timeout)) timeout = 5000 ;
     if (timeout && tain_from_millisecs(&tto, timeout))
@@ -513,7 +511,7 @@ static void up_o (void)
 
 static void up_d (void)
 {
-  tain_t tto ;
+  tain tto ;
   unsigned int timeout ;
   status.flagwantup = 0 ;
   killr() ;
@@ -781,7 +779,7 @@ int main (int argc, char const *const *argv)
     x[1].fd = control_init() ;
     x[0].fd = selfpipe_init() ;
     if (x[0].fd == -1) strerr_diefu1sys(111, "init selfpipe") ;
-    if (sig_ignore(SIGPIPE) < 0) strerr_diefu1sys(111, "ignore SIGPIPE") ;
+    if (!sig_altignore(SIGPIPE)) strerr_diefu1sys(111, "ignore SIGPIPE") ;
     {
       sigset_t set ;
       sigemptyset(&set) ;
@@ -790,7 +788,7 @@ int main (int argc, char const *const *argv)
       sigaddset(&set, SIGHUP) ;
       sigaddset(&set, SIGQUIT) ;
       sigaddset(&set, SIGINT) ;
-      if (selfpipe_trapset(&set) < 0) strerr_diefu1sys(111, "trap signals") ;
+      if (!selfpipe_trapset(&set)) strerr_diefu1sys(111, "trap signals") ;
     }
     
     if (!ftrigw_clean(S6_SUPERVISE_EVENTDIR))

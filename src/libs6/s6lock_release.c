@@ -7,7 +7,7 @@
 #include <skalibs/textclient.h>
 #include <s6/s6lock.h>
 
-int s6lock_release (s6lock_t *a, uint16_t i, tain_t const *deadline, tain_t *stamp)
+int s6lock_release (s6lock_t *a, uint16_t i, tain const *deadline, tain *stamp)
 {
   char *p = GENSETDYN_P(char, &a->data, i) ;
   char pack[3] = "-->" ;

@@ -6,9 +6,9 @@
 #include <skalibs/unixmessage.h>
 #include <s6/s6-fdholder.h>
 
-int s6_fdholder_retrieve_maybe_delete (s6_fdholder_t *a, char const *id, int dodelete, tain_t const *deadline, tain_t *stamp)
+int s6_fdholder_retrieve_maybe_delete (s6_fdholder_t *a, char const *id, int dodelete, tain const *deadline, tain *stamp)
 {
-  unixmessage_t m ;
+  unixmessage m ;
   s6_fdholder_retrieve_result_t res ;
   if (!s6_fdholder_retrieve_maybe_delete_async(a, id, dodelete)) return -1 ;
   if (!unixmessage_sender_timed_flush(&a->connection.out, deadline, stamp)) return -1 ;

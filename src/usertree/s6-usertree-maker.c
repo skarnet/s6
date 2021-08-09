@@ -228,7 +228,7 @@ int main (int argc, char *const *argv)
   char const *vars[VARS_MAX] ;
   PROG = "s6-usertree-maker" ;
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
       int opt = subgetopt_r(argc, (char const *const *)argv, "d:p:E:e:r:l:t:n:s:S:", &l) ;

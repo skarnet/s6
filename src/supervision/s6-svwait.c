@@ -17,13 +17,13 @@
 
 int main (int argc, char const *const *argv)
 {
-  tain_t deadline ;
+  tain deadline ;
   int or = 0 ;
   int wantup = 1, wantready = 0 ;
   PROG = "s6-svwait" ;
   {
     unsigned int t = 0 ;
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
       int opt = subgetopt_r(argc, argv, "UudDrRaot:", &l) ;
@@ -55,7 +55,7 @@ int main (int argc, char const *const *argv)
     uint16_t ids[argc] ;
     unsigned char upstate[bitarray_div8(argc)] ;
     unsigned char readystate[bitarray_div8(argc)] ;
-    if (sig_ignore(SIGPIPE) < 0) strerr_diefu1sys(111, "ignore SIGPIPE") ;
+    if (!sig_ignore(SIGPIPE)) strerr_diefu1sys(111, "ignore SIGPIPE") ;
     s6_svlisten_init(argc, argv, &foo, ids, upstate, readystate, &deadline) ;
     if (wantup == 2)
     {

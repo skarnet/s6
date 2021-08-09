@@ -15,13 +15,13 @@
 int main (int argc, char const *const *argv)
 {
   s6_fdholder_t a = S6_FDHOLDER_ZERO ;
-  tain_t deadline ;
+  tain deadline ;
   int fd ;
   int dodelete = 0 ;
   PROG = "s6-fdholder-retrieve" ;
   {
     unsigned int t = 0 ;
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
       int opt = subgetopt_r(argc, argv, "Dt:", &l) ;

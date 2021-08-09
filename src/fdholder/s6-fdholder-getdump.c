@@ -20,11 +20,11 @@ int main (int argc, char const *const *argv, char const *const *envp)
 {
   s6_fdholder_t a = S6_FDHOLDER_ZERO ;
   genalloc dump = GENALLOC_ZERO ;
-  tain_t deadline, halfinfinite ;
+  tain deadline, halfinfinite ;
   PROG = "s6-fdholder-getdump" ;
   {
     unsigned int t = 0 ;
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
       int opt = subgetopt_r(argc, argv, "t:", &l) ;

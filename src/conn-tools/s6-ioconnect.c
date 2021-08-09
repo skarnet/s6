@@ -73,11 +73,11 @@ static void handle_signals (void)
 
 int main (int argc, char const *const *argv)
 {
-  tain_t tto ;
+  tain tto ;
   unsigned int i, j ;
   PROG = "s6-ioconnect" ;
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     unsigned int t = 0 ;
     for (;;)
     {
@@ -105,16 +105,16 @@ int main (int argc, char const *const *argv)
       if (ndelay_on(a[i][j].fd) == -1) strerr_diefu1sys(111, "ndelay_on") ;
     if (!iobuffer_init(&b[i], a[i][0].fd, a[i][1].fd)) strerr_diefu1sys(111, "iobuffer_init") ;
   }
-  if (sig_ignore(SIGPIPE) == -1) strerr_diefu1sys(111, "sig_ignore") ;
+  if (!sig_ignore(SIGPIPE)) strerr_diefu1sys(111, "sig_ignore") ;
   tain_now_set_stopwatch_g() ;
   x[0].fd = selfpipe_init() ;
   if (x[0].fd < 0) strerr_diefu1sys(111, "selfpipe_init") ;
-  if (selfpipe_trap(SIGTERM) < 0)
+  if (!selfpipe_trap(SIGTERM))
     strerr_diefu1sys(111, "trap SIGTERM") ;
 
   for (;;)
   {
-    tain_t deadline ;
+    tain deadline ;
     unsigned int xlen = 1 ;
     int r ;
 

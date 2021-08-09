@@ -5,6 +5,6 @@
 
 int s6_fdholder_list_async (s6_fdholder_t *a)
 {
-  unixmessage_t m = { .s = "L", .len = 1, .fds = 0, .nfds = 0 } ;
+  unixmessage m = { .s = "L", .len = 1, .fds = 0, .nfds = 0 } ;
   return unixmessage_put(&a->connection.out, &m) ;
 }

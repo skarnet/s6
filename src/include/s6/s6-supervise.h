@@ -24,8 +24,8 @@ extern int s6_svc_main (int, char const *const *, char const *, char const *, ch
 typedef struct s6_svstatus_s s6_svstatus_t, *s6_svstatus_t_ref ;
 struct s6_svstatus_s
 {
-  tain_t stamp ;
-  tain_t readystamp ;
+  tain stamp ;
+  tain readystamp ;
   pid_t pid ;
   int wstat ;
   unsigned int flagpaused : 1 ;
@@ -55,14 +55,14 @@ extern void s6_svstatus_unpack (char const *, s6_svstatus_t *) ;
 extern int s6_svstatus_read (char const *, s6_svstatus_t *) ;
 extern int s6_svstatus_write (char const *, s6_svstatus_t const *) ;
 
-extern int s6_supervise_link (char const *, char const *const *, size_t, char const *, uint32_t, tain_t const *, tain_t *) ;
+extern int s6_supervise_link (char const *, char const *const *, size_t, char const *, uint32_t, tain const *, tain *) ;
 #define s6_supervise_link_g(scdir, servicedirs, n, prefix, options, deadline) s6_supervise_link(scdir, servicedirs, n, prefix, options, (deadline), &STAMP)
 extern void s6_supervise_unlink (char const *, char const *, uint32_t) ;
 
 typedef struct s6_dtally_s s6_dtally_t, *s6_dtally_ref ;
 struct s6_dtally_s
 {
-  tain_t stamp ;
+  tain stamp ;
   unsigned char exitcode ;
   unsigned char sig ;
 } ;

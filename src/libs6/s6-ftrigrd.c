@@ -8,7 +8,6 @@
 #include <regex.h>
 
 #include <skalibs/posixplz.h>
-#include <skalibs/posixishard.h>
 #include <skalibs/types.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/error.h>
@@ -24,6 +23,8 @@
 
 #include "ftrig1.h"
 #include <s6/ftrigr.h>
+
+#include <skalibs/posixishard.h>
 
 #define FTRIGRD_MAXREADS 32
 #define FTRIGRD_BUFSIZE 17
@@ -197,10 +198,10 @@ int main (void)
 
   if (ndelay_on(0) < 0) strerr_diefu2sys(111, "ndelay_on ", "0") ;
   if (ndelay_on(1) < 0) strerr_diefu2sys(111, "ndelay_on ", "1") ;
-  if (sig_ignore(SIGPIPE) < 0) strerr_diefu1sys(111, "ignore SIGPIPE") ;
+  if (!sig_ignore(SIGPIPE)) strerr_diefu1sys(111, "ignore SIGPIPE") ;
 
   {
-    tain_t deadline ;
+    tain deadline ;
     tain_now_set_stopwatch_g() ;
     tain_addsec_g(&deadline, 2) ;
     if (!textclient_server_01x_init_g(FTRIGR_BANNER1, FTRIGR_BANNER1_LEN, FTRIGR_BANNER2, FTRIGR_BANNER2_LEN, &deadline))

@@ -34,7 +34,7 @@ static void handle_signals (void)
 int main (int argc, char const **argv, char const *const *envp)
 {
   iopause_fd x[2] = { { -1, IOPAUSE_READ, 0 }, { -1, IOPAUSE_READ, 0 } } ;
-  tain_t deadline, tto ;
+  tain deadline, tto ;
   ftrigr_t a = FTRIGR_ZERO ;
   int argc1 ;
   unsigned int i = 0 ;
@@ -44,7 +44,7 @@ int main (int argc, char const **argv, char const *const *envp)
     unsigned int t = 0 ;
     for (;;)
     {
-      int opt = subgetopt(argc, argv, "aot:") ;
+      int opt = lgetopt(argc, argv, "aot:") ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -65,8 +65,8 @@ int main (int argc, char const **argv, char const *const *envp)
   tain_add_g(&deadline, &tto) ;
   x[0].fd = selfpipe_init() ;
   if (x[0].fd < 0) strerr_diefu1sys(111, "selfpipe_init") ;
-  if (selfpipe_trap(SIGCHLD) < 0) strerr_diefu1sys(111, "selfpipe_trap") ;
-  if (sig_ignore(SIGPIPE) < 0) strerr_diefu1sys(111, "ignore SIGPIPE") ;
+  if (!selfpipe_trap(SIGCHLD)) strerr_diefu1sys(111, "selfpipe_trap") ;
+  if (!sig_altignore(SIGPIPE)) strerr_diefu1sys(111, "ignore SIGPIPE") ;
 
   if (!ftrigr_startf_g(&a, &deadline)) strerr_diefu1sys(111, "ftrigr_startf") ;
   x[1].fd = ftrigr_fd(&a) ;
@@ -81,10 +81,8 @@ int main (int argc, char const **argv, char const *const *envp)
       if (!ids[i]) strerr_diefu4sys(111, "subscribe to ", argv[i<<1], " with regexp ", argv[(i<<1)+1]) ;
     }
 
-    sig_restore(SIGPIPE) ;
     pid = child_spawn0(argv[argc1 + 1], argv + argc1 + 1, envp) ;
     if (!pid) strerr_diefu2sys(111, "spawn ", argv[argc1 + 1]) ;
-    if (sig_ignore(SIGPIPE) < 0) strerr_diefu1sys(111, "ignore SIGPIPE") ;
 
     for (;;)
     {

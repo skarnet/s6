@@ -78,7 +78,7 @@ int main (int argc, char *const *argv)
   gid_t tab[NGROUPS_MAX] ;
   PROG = "s6-envuidgid" ;
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
       int opt = subgetopt_r(argc, (char const *const *)argv, "ugBniD:", &l) ;

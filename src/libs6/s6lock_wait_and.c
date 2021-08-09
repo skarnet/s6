@@ -4,7 +4,7 @@
 #include <skalibs/iopause.h>
 #include <s6/s6lock.h>
 
-int s6lock_wait_and (s6lock_t *a, uint16_t const *idlist, unsigned int n, tain_t const *deadline, tain_t *stamp)
+int s6lock_wait_and (s6lock_t *a, uint16_t const *idlist, unsigned int n, tain const *deadline, tain *stamp)
 {
   iopause_fd x = { .fd = -1, .events = IOPAUSE_READ, .revents = 0 } ;
   x.fd = s6lock_fd(a) ;

@@ -23,14 +23,14 @@
 
 static int normallyup ;
 
-typedef void prfunc_t (buffer *, s6_svstatus_t const *) ;
-typedef prfunc_t * prfunc_t_ref ;
+typedef void pr_func (buffer *, s6_svstatus_t const *) ;
+typedef pr_func * pr_func_ref ;
 
 typedef struct funcmap_s funcmap_t ;
 struct funcmap_s
 {
   char const *s ;
-  prfunc_t_ref f ;
+  pr_func_ref f ;
 } ;
 
 static void pr_up (buffer *b, s6_svstatus_t const *st)
@@ -63,7 +63,7 @@ static void pr_pid (buffer *b, s6_svstatus_t const *st)
   else buffer_putsnoflush(b, "-1") ;
 }
 
-static void pr_tain (buffer *b, tain_t const *a)
+static void pr_tain (buffer *b, tain const *a)
 {
   char fmt[TIMESTAMP] ;
   buffer_putnoflush(b, fmt, timestamp_fmt(fmt, a)) ;
@@ -79,9 +79,9 @@ static void pr_readystamp (buffer *b, s6_svstatus_t const *st)
   pr_tain(b, &st->readystamp) ;
 }
 
-static void pr_seconds (buffer *b, tain_t const *a)
+static void pr_seconds (buffer *b, tain const *a)
 {
-  tain_t d ;
+  tain d ;
   char fmt[UINT64_FMT] ;
   tain_sub(&d, &STAMP, a) ;
   buffer_putnoflush(b, fmt, uint64_fmt(fmt, tai_sec(tain_secp(&d)))) ;
@@ -150,7 +150,7 @@ static funcmap_t const fmtable[] =
 } ;
 
 
-static unsigned int parse_options (char const *arg, prfunc_t_ref *fields, unsigned int n)
+static unsigned int parse_options (char const *arg, pr_func_ref *fields, unsigned int n)
 {
   while (*arg)
   {
@@ -236,12 +236,12 @@ int main (int argc, char const *const *argv)
 {
   s6_svstatus_t status ;
   int flagnum = 0 ;
-  prfunc_t_ref fields[MAXFIELDS] ;
+  pr_func_ref fields[MAXFIELDS] ;
   unsigned int n = 0 ;
   PROG = "s6-svstat" ;
 
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
       int opt = subgetopt_r(argc, argv, "no:uwNrpest", &l) ;

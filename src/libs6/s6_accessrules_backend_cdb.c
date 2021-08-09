@@ -16,8 +16,7 @@ s6_accessrules_result_t s6_accessrules_backend_cdb (char const *key, size_t keyl
   int wasnull = !params->env.s ;
   uint16_t envlen, execlen ;
   cdb const *c = arg ;
-  cdb_find_state cfs = CDB_FIND_STATE_ZERO ;
-  int r = cdb_find(c, &data, key, keylen, &cfs) ;
+  int r = cdb_find(c, &data, key, keylen) ;
   if (r < 0) return S6_ACCESSRULES_ERROR ;
   else if (!r) return S6_ACCESSRULES_NOTFOUND ;
   if (!data.len || data.len > 8197) return (errno = EINVAL, S6_ACCESSRULES_ERROR) ;

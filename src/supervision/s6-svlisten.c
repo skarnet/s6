@@ -1,12 +1,10 @@
 /* ISC license. */
 
 #include <stdint.h>
-#include <signal.h>
 
 #include <skalibs/sgetopt.h>
 #include <skalibs/types.h>
 #include <skalibs/bitarray.h>
-#include <skalibs/sig.h>
 #include <skalibs/tai.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/djbunix.h>
@@ -19,14 +17,14 @@
 
 int main (int argc, char const **argv, char const *const *envp)
 {
-  tain_t deadline, tto ;
+  tain deadline, tto ;
   int spfd ;
   int argc1 ;
   int or = 0 ;
   int wantup = 1, wantready = 0, wantrestart = 0 ;
   PROG = "s6-svlisten" ;
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     unsigned int t = 0 ;
     for (;;)
     {
@@ -71,10 +69,8 @@ int main (int argc, char const **argv, char const *const *envp)
     unsigned char upstate[bitarray_div8(argc1)] ;
     unsigned char readystate[bitarray_div8(argc1)] ;
     s6_svlisten_init(argc1, argv, &foo, ids, upstate, readystate, &deadline) ;
-    sig_restore(SIGPIPE) ;
     pid = child_spawn0(argv[argc1 + 1], argv + argc1 + 1, envp) ;
     if (!pid) strerr_diefu2sys(111, "spawn ", argv[argc1 + 1]) ;
-    if (sig_ignore(SIGPIPE) < 0) strerr_diefu1sys(111, "ignore SIGPIPE") ;
     if (wantrestart) s6_svlisten_loop(&foo, 0, 1, or, &deadline, spfd, &s6_svlisten_signal_handler) ;
     e = s6_svlisten_loop(&foo, wantup, wantready, or, &deadline, spfd, &s6_svlisten_signal_handler) ;
     if (e < 0) strerr_dief1x(102, "supervisor died") ;

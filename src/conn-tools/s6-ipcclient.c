@@ -17,7 +17,7 @@ int main (int argc, char const *const *argv)
   unsigned int verbosity = 1 ;
   PROG = "s6-ipcclient" ;
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
       int opt = subgetopt_r(argc, argv, "qQvp:l:", &l) ;

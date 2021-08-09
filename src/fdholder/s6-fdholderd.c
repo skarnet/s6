@@ -12,7 +12,6 @@
 #include <regex.h>
 
 #include <skalibs/posixplz.h>
-#include <skalibs/posixishard.h>
 #include <skalibs/types.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/sgetopt.h>
@@ -36,14 +35,16 @@
 #include <s6/accessrules.h>
 #include <s6/s6-fdholder.h>
 
+#include <skalibs/posixishard.h>
+
 #define USAGE "s6-fdholderd [ -v verbosity ] [ -1 ] [ -c maxconn ] [ -n maxfds ] [ -t timeout ] [ -T lameducktimeout ] [ -i rulesdir | -x rulesfile ]"
 #define dieusage() strerr_dieusage(100, USAGE) ;
 
 static unsigned int verbosity = 1 ;
 static int cont = 1 ;
-static tain_t answertto = TAIN_INFINITE_RELATIVE ;
-static tain_t lameduckdeadline = TAIN_INFINITE_RELATIVE ;
-static tain_t const nano1 = { .sec = TAI_ZERO, .nano = 1 } ;
+static tain answertto = TAIN_INFINITE_RELATIVE ;
+static tain lameduckdeadline = TAIN_INFINITE_RELATIVE ;
+static tain const nano1 = { .sec = TAI_ZERO, .nano = 1 } ;
 
 static unsigned int rulestype = 0 ;
 static char const *rules = 0 ;
@@ -107,8 +108,8 @@ static void *fds_deadline_dtok (uint32_t d, void *x)
 
 static int fds_deadline_cmp (void const *a, void const *b, void *x)
 {
-  tain_t const *aa = (tain_t const *)a ;
-  tain_t const *bb = (tain_t const *)b ;
+  tain const *aa = (tain const *)a ;
+  tain const *bb = (tain const *)b ;
   (void)x ;
   return tain_less(aa, bb) ? -1 : tain_less(bb, aa) ;
 }
@@ -134,12 +135,12 @@ struct client_s
 {
   uint32_t next ;
   uint32_t xindex ;
-  tain_t deadline ;
+  tain deadline ;
   regex_t rre ;
   regex_t wre ;
   unsigned int dumping ;
   unsigned int flags ;
-  unixconnection_t connection ;
+  unixconnection connection ;
 } ;
 
 static genset *clients ;
@@ -171,14 +172,14 @@ static void removeclient (uint32_t *i, uint32_t j)
 
 static void client_setdeadline (client_t *c)
 {
-  tain_t blah ;
+  tain blah ;
   tain_half(&blah, &tain_infinite_relative) ;
   tain_add_g(&blah, &blah) ;
   if (tain_less(&blah, &c->deadline))
     tain_add_g(&c->deadline, &answertto) ;
 }
 
-static inline int client_prepare_iopause (uint32_t i, tain_t *deadline, iopause_fd *x, uint32_t *j)
+static inline int client_prepare_iopause (uint32_t i, tain *deadline, iopause_fd *x, uint32_t *j)
 {
   client_t *c = CLIENT(i) ;
   if (tain_less(&c->deadline, deadline)) *deadline = c->deadline ;
@@ -223,13 +224,13 @@ static inline int client_flush (uint32_t i, iopause_fd const *x)
 
 static int answer (client_t *c, char e)
 {
-  unixmessage_t m = { .s = &e, .len = 1, .fds = 0, .nfds = 0 } ;
+  unixmessage m = { .s = &e, .len = 1, .fds = 0, .nfds = 0 } ;
   if (!unixmessage_put(&c->connection.out, &m)) return 0 ;
   client_setdeadline(c) ;
   return 1 ;
 }
 
-static int do_store (uint32_t cc, unixmessage_t const *m)
+static int do_store (uint32_t cc, unixmessage const *m)
 {
   uint32_t pp, idlen ;
   client_t *c = CLIENT(cc) ;
@@ -268,7 +269,7 @@ static int do_store (uint32_t cc, unixmessage_t const *m)
   return 1 ;
 }
 
-static int do_delete (uint32_t cc, unixmessage_t const *m)
+static int do_delete (uint32_t cc, unixmessage const *m)
 {
   uint32_t pp, idlen ;
   client_t *c = CLIENT(cc) ;
@@ -282,10 +283,10 @@ static int do_delete (uint32_t cc, unixmessage_t const *m)
   return 1 ;
 }
 
-static int do_retrieve (uint32_t cc, unixmessage_t const *m)
+static int do_retrieve (uint32_t cc, unixmessage const *m)
 {
   int fd ;
-  unixmessage_t ans = { .s = "", .len = 1, .fds = &fd, .nfds = 1 } ;
+  unixmessage ans = { .s = "", .len = 1, .fds = &fd, .nfds = 1 } ;
   uint32_t pp, idlen ;
   client_t *c = CLIENT(cc) ;
   if (c->dumping || m->len < 4 || m->nfds) return (errno = EPROTO, 0) ;
@@ -309,11 +310,11 @@ static int fill_siovec_with_ids_iter (char *thing, void *data)
   return 1 ;
 }
 
-static int do_list (uint32_t cc, unixmessage_t const *m)
+static int do_list (uint32_t cc, unixmessage const *m)
 {
   client_t *c = CLIENT(cc) ;
   struct iovec v[1+numfds] ;
-  unixmessage_v_t ans = { .v = v, .vlen = 1+numfds, .fds = 0, .nfds = 0 } ;
+  unixmessagev ans = { .v = v, .vlen = 1+numfds, .fds = 0, .nfds = 0 } ;
   struct iovec *vp = v + 1 ;
   char pack[5] = "" ;
   if (c->dumping || m->len || m->nfds) return (errno = EPROTO, 0) ;
@@ -349,7 +350,7 @@ static int getdump_iter (char *thing, void *stuff)
   return 1 ;
 }
 
-static int do_getdump (uint32_t cc, unixmessage_t const *m)
+static int do_getdump (uint32_t cc, unixmessage const *m)
 {
   uint32_t n = numfds ? 1 + ((numfds-1) / UNIXMESSAGE_MAXFDS) : 0 ;
   client_t *c = CLIENT(cc) ;
@@ -357,7 +358,7 @@ static int do_getdump (uint32_t cc, unixmessage_t const *m)
   if (!(c->flags & 1)) return answer(c, EPERM) ;
   {
     char pack[9] = "" ;
-    unixmessage_t ans = { .s = pack, .len = 9, .fds = 0, .nfds = 0 } ;
+    unixmessage ans = { .s = pack, .len = 9, .fds = 0, .nfds = 0 } ;
     uint32_pack_big(pack+1, n) ;
     uint32_pack_big(pack+5, numfds) ;
     if (!unixmessage_put(&c->connection.out, &ans)) return answer(c, errno) ;
@@ -365,7 +366,7 @@ static int do_getdump (uint32_t cc, unixmessage_t const *m)
   if (n)
   {
     uint32_t i = 0 ;
-    unixmessage_v_t ans[n] ;
+    unixmessagev ans[n] ;
     struct iovec v[numfds << 1] ;
     int fds[numfds] ;
     char limits[(TAIN_PACK+1) * numfds] ;
@@ -404,11 +405,11 @@ static int do_getdump (uint32_t cc, unixmessage_t const *m)
   return 1 ;
 }
 
-static int do_setdump (uint32_t cc, unixmessage_t const *m)
+static int do_setdump (uint32_t cc, unixmessage const *m)
 {
   char pack[5] = "" ;
   uint32_t n ;
-  unixmessage_t ans = { .s = pack, .len = 5, .fds = 0, .nfds = 0 } ;
+  unixmessage ans = { .s = pack, .len = 5, .fds = 0, .nfds = 0 } ;
   client_t *c = CLIENT(cc) ;
   if (c->dumping || m->len != 4 || m->nfds) return (errno = EPROTO, 0) ;
   if (!(c->flags & 2)) return answer(c, EPERM) ;
@@ -421,7 +422,7 @@ static int do_setdump (uint32_t cc, unixmessage_t const *m)
   return 1 ;
 }
 
-static int do_setdump_data (uint32_t cc, unixmessage_t const *m)
+static int do_setdump_data (uint32_t cc, unixmessage const *m)
 {
   client_t *c = CLIENT(cc) ;
   if (!m->nfds || m->nfds > c->dumping || m->len < m->nfds * (TAIN_PACK + 3))
@@ -468,19 +469,19 @@ static int do_setdump_data (uint32_t cc, unixmessage_t const *m)
   return answer(c, c->dumping ? EAGAIN : 0) ;
 }
 
-static int do_error (uint32_t cc, unixmessage_t const *m)
+static int do_error (uint32_t cc, unixmessage const *m)
 {
   (void)cc ;
   (void)m ;
   return (errno = EPROTO, 0) ;
 }
 
-typedef int parsefunc_t (uint32_t, unixmessage_t const *) ;
-typedef parsefunc_t *parsefunc_t_ref ;
+typedef int parse_func (uint32_t, unixmessage const *) ;
+typedef parse_func *parse_func_ref ;
 
-static inline int parse_protocol (unixmessage_t const *m, void *p)
+static inline int parse_protocol (unixmessage const *m, void *p)
 {
-  static parsefunc_t_ref const f[8] =
+  static parse_func_ref const f[8] =
   {
     &do_store,
     &do_delete,
@@ -491,7 +492,7 @@ static inline int parse_protocol (unixmessage_t const *m, void *p)
     &do_setdump_data,
     &do_error
   } ;
-  unixmessage_t mcopy = { .s = m->s + 1, .len = m->len - 1, .fds = m->fds, .nfds = m->nfds } ;
+  unixmessage mcopy = { .s = m->s + 1, .len = m->len - 1, .fds = m->fds, .nfds = m->nfds } ;
   if (!m->len)
   {
     unixmessage_drop(m) ;
@@ -651,7 +652,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   PROG = "s6-fdholderd" ;
 
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     unsigned int t = 0, T = 0 ;
     for (;;)
     {
@@ -702,13 +703,13 @@ int main (int argc, char const *const *argv, char const *const *envp)
   else close(1) ;
   spfd = selfpipe_init() ;
   if (spfd < 0) strerr_diefu1sys(111, "selfpipe_init") ;
-  if (sig_ignore(SIGPIPE) < 0) strerr_diefu1sys(111, "ignore SIGPIPE") ;
+  if (!sig_ignore(SIGPIPE)) strerr_diefu1sys(111, "ignore SIGPIPE") ;
   {
     sigset_t set ;
     sigemptyset(&set) ;
     sigaddset(&set, SIGTERM) ;
     sigaddset(&set, SIGHUP) ;
-    if (selfpipe_trapset(&set) < 0) strerr_diefu1sys(111, "trap signals") ;
+    if (!selfpipe_trapset(&set)) strerr_diefu1sys(111, "trap signals") ;
   }
 
   if (rulestype == 2)
@@ -758,7 +759,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
 
     for (;;)
     {
-      tain_t deadline ;
+      tain deadline ;
       uint32_t j = 2 ;
       uint32_t i ;
       int r = 1 ;

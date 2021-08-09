@@ -17,7 +17,7 @@ int main (int argc, char const *const *argv)
   unsigned int ctty = 0, what = 0, insist = 1 ;
   PROG = "s6-setsid" ;
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
       int opt = subgetopt_r(argc, argv, "sbfgiIqd:", &l) ;
@@ -50,14 +50,13 @@ int main (int argc, char const *const *argv)
 
     if (what >= 2)
     {
-      if (what == 3) sig_ignore(SIGTTOU) ;
+      if (what == 3) sig_altignore(SIGTTOU) ;
       if (tcsetpgrp(ctty, getpid()) < 0) switch (insist)
       {
         case 2 : strerr_diefu1sys(111, "tcsetpgrp") ;
         case 1 : strerr_warnwu1sys("tcsetpgrp") ; break ;
         default : break ;
       }
-      if (what == 3) sig_restore(SIGTTOU) ;
     }
   }
   else if (setsid() < 0) switch (insist)

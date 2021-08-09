@@ -42,7 +42,7 @@ struct svinfo_s
 {
   dev_t dev ;
   ino_t ino ;
-  tain_t restartafter[2] ;
+  tain restartafter[2] ;
   pid_t pid[2] ;
   int p[2] ;
   unsigned int flagactive : 1 ;
@@ -52,7 +52,7 @@ struct svinfo_s
 static struct svinfo_s *services ;
 static unsigned int max = 500 ;
 static unsigned int n = 0 ;
-static tain_t deadline, defaulttimeout ;
+static tain deadline, defaulttimeout ;
 static int wantreap = 1 ;
 static int wantscan = 1 ;
 static unsigned int wantkill = 0 ;
@@ -239,7 +239,7 @@ static void handle_control (int fd)
 
 static void reap (void)
 {
-  tain_t nextscan ;
+  tain nextscan ;
   if (!wantreap) return ;
   wantreap = 0 ;
   tain_addsec_g(&nextscan, 1) ;
@@ -342,7 +342,7 @@ static void trystart (unsigned int i, char const *name, int islog)
 
 static void retrydirlater (void)
 {
-  tain_t a ;
+  tain a ;
   tain_addsec_g(&a, DIR_RETRY_TIMEOUT) ;
   if (tain_less(&a, &deadline)) deadline = a ;
 }
@@ -532,7 +532,7 @@ int main (int argc, char const *const *argv)
   int notif = -1 ;
   PROG = "s6-svscan" ;
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     unsigned int t = 0 ;
     for (;;)
     {
@@ -570,7 +570,7 @@ int main (int argc, char const *const *argv)
   x[0].fd = selfpipe_init() ;
   if (x[0].fd < 0) strerr_diefu1sys(111, "selfpipe_init") ;
 
-  if (sig_ignore(SIGPIPE) < 0) strerr_diefu1sys(111, "ignore SIGPIPE") ;
+  if (!sig_altignore(SIGPIPE)) strerr_diefu1sys(111, "ignore SIGPIPE") ;
   {
     sigset_t set ;
     sigemptyset(&set) ;
@@ -589,7 +589,7 @@ int main (int argc, char const *const *argv)
 #ifdef SIGWINCH
     sigaddset(&set, SIGWINCH) ;
 #endif
-    if (selfpipe_trapset(&set) < 0) strerr_diefu1sys(111, "trap signals") ;
+    if (!selfpipe_trapset(&set)) strerr_diefu1sys(111, "trap signals") ;
   }
   if (notif >= 0)
   {

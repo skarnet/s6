@@ -7,7 +7,7 @@
 #include <skalibs/textclient.h>
 #include <s6/ftrigr.h>
 
-int ftrigr_unsubscribe (ftrigr_t *a, uint16_t i, tain_t const *deadline, tain_t *stamp)
+int ftrigr_unsubscribe (ftrigr_t *a, uint16_t i, tain const *deadline, tain *stamp)
 {
   ftrigr1_t *p ;
   char pack[3] = "--U" ;

@@ -35,20 +35,20 @@ enum s6_accessrules_result_e
   S6_ACCESSRULES_NOTFOUND = 2
 } ;
 
-typedef s6_accessrules_result_t s6_accessrules_backend_func_t (char const *, size_t, void const *, s6_accessrules_params_t *) ;
-typedef s6_accessrules_backend_func_t *s6_accessrules_backend_func_t_ref ;
+typedef s6_accessrules_result_t s6_accessrules_backend_func (char const *, size_t, void const *, s6_accessrules_params_t *) ;
+typedef s6_accessrules_backend_func *s6_accessrules_backend_func_ref ;
 
-extern s6_accessrules_backend_func_t s6_accessrules_backend_fs ;
-extern s6_accessrules_backend_func_t s6_accessrules_backend_cdb ;
+extern s6_accessrules_backend_func s6_accessrules_backend_fs ;
+extern s6_accessrules_backend_func s6_accessrules_backend_cdb ;
 
-typedef s6_accessrules_result_t s6_accessrules_keycheck_func_t (void const *, void const *, s6_accessrules_params_t *, s6_accessrules_backend_func_t_ref) ;
-typedef s6_accessrules_keycheck_func_t *s6_accessrules_keycheck_func_t_ref ;
+typedef s6_accessrules_result_t s6_accessrules_keycheck_func (void const *, void const *, s6_accessrules_params_t *, s6_accessrules_backend_func_ref) ;
+typedef s6_accessrules_keycheck_func *s6_accessrules_keycheck_func_ref ;
 
-extern s6_accessrules_keycheck_func_t s6_accessrules_keycheck_uidgid ;
-extern s6_accessrules_keycheck_func_t s6_accessrules_keycheck_ip4 ;
-extern s6_accessrules_keycheck_func_t s6_accessrules_keycheck_ip6 ;
-extern s6_accessrules_keycheck_func_t s6_accessrules_keycheck_reversedns ;
-#define s6_accessrules_keycheck_ip46(key, data, params, f) (ip46_is6((ip46_t const *)(key)) ? s6_accessrules_keycheck_ip6(((ip46_t const *)(key))->ip, data, params, f) : s6_accessrules_keycheck_ip4(((ip46_t const *)(key))->ip, data, params, f))
+extern s6_accessrules_keycheck_func s6_accessrules_keycheck_uidgid ;
+extern s6_accessrules_keycheck_func s6_accessrules_keycheck_ip4 ;
+extern s6_accessrules_keycheck_func s6_accessrules_keycheck_ip6 ;
+extern s6_accessrules_keycheck_func s6_accessrules_keycheck_reversedns ;
+#define s6_accessrules_keycheck_ip46(key, data, params, f) (ip46_is6((ip46 const *)(key)) ? s6_accessrules_keycheck_ip6(((ip46 const *)(key))->ip, data, params, f) : s6_accessrules_keycheck_ip4(((ip46 const *)(key))->ip, data, params, f))
 
 extern s6_accessrules_result_t s6_accessrules_uidgid_cdb (uid_t, gid_t, cdb const *, s6_accessrules_params_t *) ;
 extern s6_accessrules_result_t s6_accessrules_uidgid_fs (uid_t, gid_t, char const *, s6_accessrules_params_t *) ;

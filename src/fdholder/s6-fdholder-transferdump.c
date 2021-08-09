@@ -14,11 +14,11 @@ int main (int argc, char const *const *argv)
 {
   s6_fdholder_t a = S6_FDHOLDER_ZERO ;
   genalloc dump = GENALLOC_ZERO ; /* array of s6_fdholder_fd_t */
-  tain_t deadline, totto ;
+  tain deadline, totto ;
   PROG = "s6-fdholder-transferdump" ;
   {
     unsigned int timeoutfrom = 0, timeoutto = 0 ;
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
       int opt = subgetopt_r(argc, argv, "t:", &l) ;

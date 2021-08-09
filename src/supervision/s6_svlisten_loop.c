@@ -11,7 +11,7 @@
 #include <s6/s6-supervise.h>
 #include "s6-svlisten.h"
 
-void s6_svlisten_init (int argc, char const *const *argv, s6_svlisten_t *foo, uint16_t *ids, unsigned char *upstate, unsigned char *readystate, tain_t const *deadline)
+void s6_svlisten_init (int argc, char const *const *argv, s6_svlisten_t *foo, uint16_t *ids, unsigned char *upstate, unsigned char *readystate, tain const *deadline)
 {
   unsigned int i = 0 ;
   foo->n = (unsigned int)argc ;
@@ -45,7 +45,7 @@ static inline int got (s6_svlisten_t const *foo, int wantup, int wantready, int 
   return (bitarray_first(t, foo->n, or) < foo->n) == or ;
 }
 
-int s6_svlisten_loop (s6_svlisten_t *foo, int wantup, int wantready, int or, tain_t const *deadline, int spfd, action_func_t_ref handler)
+int s6_svlisten_loop (s6_svlisten_t *foo, int wantup, int wantready, int or, tain const *deadline, int spfd, action_func_ref handler)
 {
   iopause_fd x[2] = { { .fd = ftrigr_fd(&foo->a), .events = IOPAUSE_READ }, { .fd = spfd, .events = IOPAUSE_READ, .revents = 0 } } ;
   unsigned int e = 0 ;
