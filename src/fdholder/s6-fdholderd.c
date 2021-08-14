@@ -25,7 +25,6 @@
 #include <skalibs/iopause.h>
 #include <skalibs/selfpipe.h>
 #include <skalibs/cdb.h>
-#include <skalibs/getpeereid.h>
 #include <skalibs/socket.h>
 #include <skalibs/genset.h>
 #include <skalibs/avltreen.h>
