@@ -139,5 +139,13 @@ a logger service for the <tt>s6-socklog</tt> instance.
 <tt>syslogd</tt> service that implements this pattern.
 </p>
 
+<h2> Notes </h2>
+
+<ul>
+ <li> <tt>s6-socklog</tt> cannot be used under <a href="s6-ipcserver.html">s6-ipcserver</a>
+or another super-server. It does not implement the <tt>socklog ucspi</tt> functionality,
+which is provided by the <a href="ucspilogd.html">ucspilogd</a> program instead. </li>
+</ul>
+
 </body>
 </html>
