@@ -1,9 +1,9 @@
-#!/command/execlineb -P
+#!/bin/execlineb -P
 
-/command/exec -c
-/command/s6-setsid -qb
-/command/redirfd -r 0 /dev/null
-/command/redirfd -wnb 1 /service/s6-svscan-log/fifo
-/command/fdmove -c 2 1
-/command/exec -a s6-svscan
-/command/s6-svscan -t0 /service
+/bin/exec -c
+/bin/s6-setsid -qb
+/bin/redirfd -r 0 /dev/null
+/bin/redirfd -wnb 1 /service/s6-svscan-log/fifo
+/bin/fdmove -c 2 1
+/bin/exec -a s6-svscan
+/bin/s6-svscan -t0 /service

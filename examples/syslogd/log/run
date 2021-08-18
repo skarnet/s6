@@ -1,4 +1,4 @@
-#!/command/execlineb -P
+#!/bun/execlineb -P
 s6-setuidgid syslog
 s6-envdir -f env
 importas -Cs LOGSCRIPT LOGSCRIPT

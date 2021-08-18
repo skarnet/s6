@@ -1,0 +1,4 @@
+#!/bin/execlineb -P
+fdmove -c 2 1
+s6-envuidgid nobody
+s6-socklog -d3 -U -t3000

@@ -1,23 +1,17 @@
 /* ISC license. */
 
-#undef INTERNAL_MARK
-#ifndef SYSLOG_NAMES
-#define SYSLOG_NAMES
-#endif
-
-#include <skalibs/nonposix.h>
 #include <sys/types.h>
 #include <errno.h>
 #include <stdlib.h>
-#include <syslog.h>
-#include <skalibs/types.h>
+
 #include <skalibs/sgetopt.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/buffer.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/stralloc.h>
-#include <skalibs/env.h>
 #include <skalibs/skamisc.h>
+
+#include "lolsyslog.h"
 
 #define USAGE "ucspilogd [ -D default ] [ var... ]"
 #define dieusage() strerr_dieusage(100, USAGE)
@@ -27,110 +21,7 @@ static inline void die (void)
   strerr_diefu1sys(111, "write to stdout") ;
 }
 
-
- /*
-   Hack: INTERNAL_MARK is defined by all systems that
-   use the CODE stuff, and not by others (Solaris).
-*/
-
-#ifndef INTERNAL_MARK
-
-typedef struct CODE_s CODE, *CODE_ref ;
-struct CODE_s
-{
-  char *c_name ;
-  unsigned int c_val ;
-} ;
-
-static CODE const prioritynames[] =
-{
-  { "emerg", LOG_EMERG },
-  { "alert", LOG_ALERT },
-  { "crit", LOG_CRIT },
-  { "err", LOG_ERR },
-  { "warning", LOG_WARNING },
-  { "notice", LOG_NOTICE },
-  { "info", LOG_INFO },
-  { "debug", LOG_DEBUG },
-  { 0, -1 }
-} ;
-
-static CODE const facilitynames[] =
-{
-  { "kern", LOG_KERN },
-  { "user", LOG_USER },
-  { "mail", LOG_MAIL },
-  { "news", LOG_NEWS },
-  { "uucp", LOG_UUCP },
-  { "daemon", LOG_DAEMON },
-  { "auth", LOG_AUTH },
-  { "cron", LOG_CRON },
-  { "lpr", LOG_LPR },
-#ifdef LOG_SYSLOG
-  { "syslog", LOG_SYSLOG },
-#endif
-#ifdef LOG_AUDIT
-  { "audit", LOG_AUDIT },
-#endif
-  { "local0", LOG_LOCAL0 },
-  { "local1", LOG_LOCAL1 },
-  { "local2", LOG_LOCAL2 },
-  { "local3", LOG_LOCAL3 },
-  { "local4", LOG_LOCAL4 },
-  { "local5", LOG_LOCAL5 },
-  { "local6", LOG_LOCAL6 },
-  { "local7", LOG_LOCAL7 },
-  { 0, -1 }
-} ;
-
-#define LOG_PRI(p) ((p) & LOG_PRIMASK)
-#define LOG_FAC(p) (((p) & LOG_FACMASK) / (LOG_PRIMASK + 1))
-
-#endif
-
-
-static size_t syslog_names (char const *line)
-{
-  size_t i ;
-  unsigned int fpr ;
-  int fp ;
-  CODE const *p = facilitynames ;
-
-  if (line[0] != '<') return 0 ;
-  i = uint_scan(line+1, &fpr) ;
-  if (!i || (line[i+1] != '>')) return 0 ;
-  i += 2 ;
-  
-  fp = LOG_FAC(fpr) << 3 ;
-  for (; p->c_name ; p++) if (p->c_val == fp) break ;
-  if (p->c_name)
-  {
-    if ((buffer_puts(buffer_1, p->c_name) < 0)
-     || (buffer_put(buffer_1, ".", 1) < 1)) die() ;
-  }
-  else
-  {
-    if (buffer_put(buffer_1, "unknown.", 8) < 8) die() ;
-    i = 0 ;
-  }
-
-  fp = LOG_PRI(fpr) ;
-  for (p = prioritynames ; p->c_name ; p++) if (p->c_val == fp) break ;
-  if (p->c_name)
-  {
-    if ((buffer_puts(buffer_1, p->c_name) < 0)
-     || (buffer_put(buffer_1, ": ", 2) < 2)) die() ;
-  }
-  else
-  {
-    if (buffer_put(buffer_1, "unknown: ", 9) < 9) die() ;
-    i = 0 ;
-  }
-  return i ;
-}
-
-
-int main (int argc, char const *const *argv, char const *const *envp)
+int main (int argc, char const *const *argv)
 {
   char const *d = "<undefined>" ;
   PROG = "ucspilogd" ;
@@ -150,38 +41,43 @@ int main (int argc, char const *const *argv, char const *const *envp)
   }
 
   {
-    char const *envs[argc] ;
     unsigned int i = 0 ;
+    stralloc sa = STRALLOC_ZERO ;
+    char buf[LOLSYSLOG_STRING] ;
+    char const *envs[argc] ;
     for (; i < (unsigned int)argc ; i++)
     {
-      envs[i] = env_get2(envp, argv[i]) ;
+      envs[i] = getenv(argv[i]) ;
       if (!envs[i]) envs[i] = d ;
     }
     for (;;)
     {
       size_t pos = 0 ;
-      satmp.len = 0 ;
+      size_t j ;
+      sa.len = 0 ;
       {
-        int r = skagetlnsep(buffer_0f1, &satmp, "\n", 2) ;
+        int r = skagetlnsep(buffer_0f1, &sa, "\n", 2) ;
         if (r < 0)
         {
-          if (errno != EPIPE || !stralloc_0(&satmp))
+          if (errno != EPIPE || !stralloc_0(&sa))
             strerr_diefu1sys(111, "read from stdin") ;
         }
         if (!r) break ;
       }
-      if (!satmp.len) continue ;
-      satmp.s[satmp.len-1] = '\n' ;
-      if ((satmp.s[0] == '@') && (satmp.len > 26) && (byte_chr(satmp.s, 26, ' ') == 25))
+      if (!sa.len) continue ;
+      sa.s[sa.len-1] = 0 ;
+      if ((sa.s[0] == '@') && (sa.len > 26) && (byte_chr(sa.s, 26, ' ') == 25))
       {
-        if (buffer_put(buffer_1, satmp.s, 26) < 26) die() ;
+        if (buffer_put(buffer_1, sa.s, 26) < 26) die() ;
         pos += 26 ;
       }
       for (i = 0 ; i < (unsigned int)argc ; i++)
         if ((buffer_puts(buffer_1, envs[i]) < 0)
          || (buffer_put(buffer_1, ": ", 2) < 2)) die() ;
-      pos += syslog_names(satmp.s + pos) ;
-      if (buffer_put(buffer_1, satmp.s + pos, satmp.len - pos) < (ssize_t)(satmp.len - pos)) die() ;
+      j = lolsyslog_string(buf, sa.s + pos) ; pos += j ;
+      if (j && buffer_puts(buffer_1, buf) < 0) die() ;
+      sa.s[sa.len-1] = '\n' ;
+      if (buffer_put(buffer_1, sa.s + pos, sa.len - pos) < 0) die() ;
     }
   }
   return 0 ;

@@ -1,0 +1,139 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-socklog program</title>
+    <meta name="Description" content="s6: the s6-socklog program" />
+    <meta name="Keywords" content="s6 syslog syslogd log logging daemon root utilities socket unix inet udp datagram protocol" />
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-socklog</tt> program </h1>
+
+<p>
+<tt>s6-socklog</tt> is a minimal syslog daemon. It reads datagrams
+from the <tt>/dev/log</tt> Unix domain socket, or from a Unix domain
+or Internet domain socket of the user's choice, converts the encoded
+syslog facility and priority names to their human-readable equivalents,
+and prints the logs to its stdout.
+</p>
+
+<p>
+<tt>s6-socklog</tt> is a reimplementation of the
+<a href="http://smarden.org/socklog/socklog.8.html">socklog</a> program
+with a few more features.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-socklog [ -d <em>notif</em> ] [ -r ] [ -U | -u <em>uid</em> -g <em>gid</em> -G <em>gidlist</em> ] [ -l <em>linelen</em> ] [ -t <em>lameducktimeout</em> ] [ -x <em>unixsocket</em> | -i <em>ipport</em> ]
+</pre>
+
+<ul>
+ <li> <tt>s6-socklog</tt> binds to <tt>/dev/log</tt>. </li>
+ <li> It drops its root privileges. </li>
+ <li> For every datagram it reads, it turns its content into a log line:
+  <ul>
+   <li> Messages are truncated to 1024 characters </li>
+   <li> Trailing nulls or newlines are removed </li>
+   <li> Embedded nulls or newlines are converted to <tt>~</tt> characters (tildas) </li>
+   <li> A <tt>&lt;syslogcode&gt;</tt> at the beginning of the line is converted to <tt>facility.priority: </tt> </li>
+  </ul>
+and prints the log line to its stdout, terminated by a newline. </li>
+ <li> It exits 0 on a SIGTERM. </li>
+</ul>
+
+<h2> Exit codes </h2>
+
+<ul>
+ <li> 0: SIGTERM received, clean exit </li>
+ <li> 99: SIGTERM received but the buffer could not be flushed in time, some logs may be lost </li>
+ <li> 100: wrong usage </li>
+ <li> 111: system call failed </li>
+</ul>
+
+<h2> Signals </h2>
+
+<p>
+ <tt>s6-socklog</tt> reacts to the following signals:
+</p>
+
+<ul>
+ <li> SIGTERM: exit as soon as possible </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-r</tt>&nbsp;: raw logging. <tt>&lt;syslogcode&gt;</tt> codes
+will not be converted to facility/priority names. </li>
+ <li> <tt>-d</tt>&nbsp;<em>notif</em>&nbsp;: when ready
+(actually bound to its socket),
+write a newline to file descriptor <em>notif</em> then close it.
+This allows <tt>s6-socklog</tt> to use the <a href="notifywhenup.html">s6
+mechanism to notify readiness</a>. <em>notif</em> cannot be lesser than 3.
+If this option is not given, no readiness notification is sent. </li>
+ <li> <tt>-u&nbsp;<em>uid</em></tt>&nbsp;: set the process' user ID to <em>uid</em> </li>
+ <li> <tt>-g&nbsp;<em>gid</em></tt>&nbsp;: set the process' group ID to <em>gid</em> </li>
+ <li> <tt>-G&nbsp;<em>gidlist</em></tt>&nbsp;: set the process' supplementary group list
+to <em>gidlist</em>, which must be given as a comma-separated list of numeric GIDs,
+without spaces. </li>
+ <li> <tt>-U</tt>&nbsp;: set the process' user ID, group ID and supplementary group list
+to the values of the UID, GID and GIDLIST environment variables. If a <tt>-u</tt>,
+<tt>-g</tt> or <tt>-G</tt> option is given after <tt>-U</tt>, the command line
+value overrides the environment variable. </li>
+ <li> <tt>-l</tt>&nbsp;<em>linelen</em>&nbsp;: Set the maximum datagram size to
+<em>linelen</em>. Default is 1024. It cannot be set to less than 80 or more than
+1048576. If a datagram is bigger than <em>linelen</em>, it will be truncated to
+<em>linelen</em> characters, and the logged line will end with a <tt>...</tt> ellipsis
+to show the truncation. </li>
+ <li> <tt>-t</tt>&nbsp;<em>lameducktimeout</em>&nbsp;: on receipt of a SIGTERM, give
+<tt>s6-socklog</tt> a grace period of <em>lameducktimeout</em> milliseconds to
+flush any log lines that are still in its buffer. Default is 0, which means
+infinite: the program will only exit when its buffer is empty, and may wait
+forever. If <em>lameducktimeout</em> is nonzero and the timeout expires, the
+program will exit 99. </li>
+ <li> <tt>-x</tt>&nbsp;<em>unixsocket</em>&nbsp;: bind to a Unix domain socket
+at <em>unixsocket</em>. Default is <tt>/dev/log</tt>. </li>
+ <li> <tt>-i</tt>&nbsp;<em>ipport</em>&nbsp;: bind to a UDP socket. <em>ipport</em>
+is a combination of <em>ip</em>, which must be an IPv4 or IPv6 address, and
+<em>port</em>, which must be an integer. <em>port</em> may be omitted, in which
+case it defaults to 514. If <em>port</em> is given, <em>ip</em> and <em>port</em>
+must be separated by a <tt>_</tt> character (an underscore). If <em>ip</em> is
+IPv4, a <tt>:</tt> (colon) can be used instead of an underscore. </li>
+</ul>
+
+<h2> Typical use </h2>
+
+<p>
+ <tt>s6-socklog</tt> can be paired with <a href="s6-log.html">s6-log</a> to
+implement <em>syslogd</em> functionality. <tt>s6-socklog</tt> acts as the
+<em>frontend</em>: it reads the log lines and processes them, then pipes them
+to an <a href="s6-log.html">s6-log</a> instance that acts as the <em>backend</em>,
+i.e. sorts the log lines depending on regular expressions that typically involve
+the facility and priority names, then stores them into the filesystem.
+</p>
+
+<p>
+ The pipe between <tt>s6-socklog</tt> and <a href="s6-log.html">s6-log</a> is
+typically a <em>logging pipe</em> automatically provided by
+<a href="s6-svscan.html">s6-svscan</a> when the <tt>s6-log</tt> instance is declared as
+a logger service for the <tt>s6-socklog</tt> instance.
+</p>
+
+<p>
+ The <tt>examples/</tt> subdirectory of the s6 package contains a turnkey
+<tt>syslogd</tt> service that implements this pattern.
+</p>
+
+</body>
+</html>

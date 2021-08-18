@@ -1,4 +1,4 @@
-#!/command/execlineb -P
+#!/bin/execlineb -P
 fdmove -c 2 1
 redirfd -r 0 /proc/kmsg
 exec -c

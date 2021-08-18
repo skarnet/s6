@@ -19,6 +19,7 @@ src/conn-tools/s6-ipcserverd.o src/conn-tools/s6-ipcserverd.lo: src/conn-tools/s
 src/conn-tools/s6-sudo.o src/conn-tools/s6-sudo.lo: src/conn-tools/s6-sudo.c src/include/s6/config.h
 src/conn-tools/s6-sudoc.o src/conn-tools/s6-sudoc.lo: src/conn-tools/s6-sudoc.c src/conn-tools/s6-sudo.h
 src/conn-tools/s6-sudod.o src/conn-tools/s6-sudod.lo: src/conn-tools/s6-sudod.c src/conn-tools/s6-sudo.h
+src/daemontools-extras/lolsyslog.o src/daemontools-extras/lolsyslog.lo: src/daemontools-extras/lolsyslog.c src/daemontools-extras/lolsyslog.h
 src/daemontools-extras/s6-applyuidgid.o src/daemontools-extras/s6-applyuidgid.lo: src/daemontools-extras/s6-applyuidgid.c
 src/daemontools-extras/s6-envdir.o src/daemontools-extras/s6-envdir.lo: src/daemontools-extras/s6-envdir.c
 src/daemontools-extras/s6-envuidgid.o src/daemontools-extras/s6-envuidgid.lo: src/daemontools-extras/s6-envuidgid.c
@@ -27,10 +28,11 @@ src/daemontools-extras/s6-log.o src/daemontools-extras/s6-log.lo: src/daemontool
 src/daemontools-extras/s6-setlock.o src/daemontools-extras/s6-setlock.lo: src/daemontools-extras/s6-setlock.c src/include/s6/config.h src/include-local/s6lockd.h
 src/daemontools-extras/s6-setsid.o src/daemontools-extras/s6-setsid.lo: src/daemontools-extras/s6-setsid.c
 src/daemontools-extras/s6-setuidgid.o src/daemontools-extras/s6-setuidgid.lo: src/daemontools-extras/s6-setuidgid.c src/include/s6/config.h
+src/daemontools-extras/s6-socklog.o src/daemontools-extras/s6-socklog.lo: src/daemontools-extras/s6-socklog.c src/daemontools-extras/lolsyslog.h
 src/daemontools-extras/s6-softlimit.o src/daemontools-extras/s6-softlimit.lo: src/daemontools-extras/s6-softlimit.c
 src/daemontools-extras/s6-tai64n.o src/daemontools-extras/s6-tai64n.lo: src/daemontools-extras/s6-tai64n.c
 src/daemontools-extras/s6-tai64nlocal.o src/daemontools-extras/s6-tai64nlocal.lo: src/daemontools-extras/s6-tai64nlocal.c
-src/daemontools-extras/ucspilogd.o src/daemontools-extras/ucspilogd.lo: src/daemontools-extras/ucspilogd.c
+src/daemontools-extras/ucspilogd.o src/daemontools-extras/ucspilogd.lo: src/daemontools-extras/ucspilogd.c src/daemontools-extras/lolsyslog.h
 src/fdholder/s6-fdholder-daemon.o src/fdholder/s6-fdholder-daemon.lo: src/fdholder/s6-fdholder-daemon.c src/include/s6/config.h
 src/fdholder/s6-fdholder-delete.o src/fdholder/s6-fdholder-delete.lo: src/fdholder/s6-fdholder-delete.c src/include/s6/s6-fdholder.h
 src/fdholder/s6-fdholder-getdump.o src/fdholder/s6-fdholder-getdump.lo: src/fdholder/s6-fdholder-getdump.c src/include/s6/s6-fdholder.h
@@ -176,6 +178,8 @@ s6-setsid: EXTRA_LIBS := -lskarnet
 s6-setsid: src/daemontools-extras/s6-setsid.o
 s6-setuidgid: EXTRA_LIBS := -lskarnet
 s6-setuidgid: src/daemontools-extras/s6-setuidgid.o
+s6-socklog: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
+s6-socklog: src/daemontools-extras/s6-socklog.o src/daemontools-extras/lolsyslog.o
 s6-softlimit: EXTRA_LIBS := -lskarnet
 s6-softlimit: src/daemontools-extras/s6-softlimit.o
 s6-tai64n: EXTRA_LIBS := -lskarnet ${SYSCLOCK_LIB}
@@ -183,7 +187,7 @@ s6-tai64n: src/daemontools-extras/s6-tai64n.o
 s6-tai64nlocal: EXTRA_LIBS := -lskarnet
 s6-tai64nlocal: src/daemontools-extras/s6-tai64nlocal.o
 ucspilogd: EXTRA_LIBS := -lskarnet
-ucspilogd: src/daemontools-extras/ucspilogd.o
+ucspilogd: src/daemontools-extras/ucspilogd.o src/daemontools-extras/lolsyslog.o
 s6-fdholder-daemon: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
 s6-fdholder-daemon: src/fdholder/s6-fdholder-daemon.o ${LIBS6}
 s6-fdholder-delete: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}

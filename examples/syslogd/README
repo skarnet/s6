@@ -1,0 +1,4 @@
+This is an example of a service directory for process supervision by s6.
+
+This syslogd emulation works on any Unix where syslog() is
+implemented via a connection on the /dev/log Unix-domain socket.
