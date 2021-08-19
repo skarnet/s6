@@ -37,7 +37,10 @@ static inline void handle_signals (void)
   {
     case -1 : strerr_diefu1sys(111, "selfpipe_read()") ;
     case 0 : return ;
-    case SIGTERM : cont = 0 ; break ;
+    case SIGTERM :
+      cont = 0 ;
+      tain_add_g(&lameducktto, &lameducktto) ;
+      break ;
     default : break ;
   }
 }
@@ -104,7 +107,6 @@ int main (int argc, char const *const *argv)
     if (linelen < 80) linelen = 80 ;
     if (linelen > 1048576) linelen = 1048576 ;
     if (t) tain_from_millisecs(&lameducktto, t) ;
-    else lameducktto = tain_infinite_relative ;
     if (notif)
     {
       if (notif < 3) strerr_dief1x(100, "notification fd must be 3 or more") ;
@@ -161,12 +163,10 @@ int main (int argc, char const *const *argv)
     char line[linelen + 1] ;
     while (cont || buffer_len(&b1))
     {
-      tain deadline = TAIN_INFINITE ;
       ssize_t r ;
-      if (!cont) tain_add_g(&deadline, &lameducktto) ;
       x[1].events = buffer_len(&b1) ? IOPAUSE_WRITE : 0 ;
       x[2].events = cont && buffer_available(&b1) >= linelen + 80 ? IOPAUSE_READ : 0 ;
-      r = iopause_g(x, 3, &deadline) ;
+      r = iopause_g(x, 3, cont ? &tain_infinite : &lameducktto) ;
       if (r == -1) strerr_diefu1sys(111, "iopause") ;
       if (!r) return 99 ;
       if (x[0].revents & IOPAUSE_READ) handle_signals() ;
