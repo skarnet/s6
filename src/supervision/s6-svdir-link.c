@@ -91,7 +91,8 @@ int main (int argc, char const *const *argv)
   if (argc < 3) dieusage() ;
 
   if (!argv[0][0]) strerr_dief1x(100, "invalid scandir") ;
-  if (!argv[1][0]) strerr_dief1x(100, "invalid name") ;
+  if (!argv[1][0] || argv[1][0] == '.' || argv[1][0] == '/')
+    strerr_dief1x(100, "invalid name") ;
   if (!argv[2][0]) strerr_dief1x(100, "invalid servicedir") ;
   checkscandir(argv[0]) ;
 

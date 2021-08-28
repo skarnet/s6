@@ -54,7 +54,7 @@ int s6_supervise_link_names (char const *scdir, char const *const *servicedirs, 
     int h ;
     char subdir[len + 5] ;
     if (nlen > maxnlen) maxnlen = nlen ;
-    if (len > maxlen) maxlen = nlen ;
+    if (len > maxlen) maxlen = len ;
     h = s6_svc_ok(servicedirs[i]) ;
     if (h < 0) return -1 ;
     if (h) bitarray_set(locked, i) ;

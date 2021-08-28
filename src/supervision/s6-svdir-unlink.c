@@ -31,6 +31,8 @@ int main (int argc, char const *const *argv)
   }
   if (argc < 2) dieusage() ;
 
+  if (!argv[1][0] || argv[1][0] == '.' || argv[1][0] == '/')
+    strerr_dief1x(100, "invalid service name") ;
   s6_supervise_unlink(argv[0], argv[1], options) ;
   return 0 ;
 }
