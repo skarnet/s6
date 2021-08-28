@@ -83,11 +83,11 @@ This allows <tt>s6-socklog</tt> to use the <a href="notifywhenup.html">s6
 mechanism to notify readiness</a>. <em>notif</em> cannot be lesser than 3.
 If this option is not given, no readiness notification is sent. </li>
  <li> <tt>-u&nbsp;<em>uid</em></tt>&nbsp;: drop user id to <em>uid</em> </li>
- <li> <tt>-g&nbsp;<em>gid</em></tt>&nbsp;: drop group ID to <em>gid</em> </li>
+ <li> <tt>-g&nbsp;<em>gid</em></tt>&nbsp;: drop group id to <em>gid</em> </li>
  <li> <tt>-G&nbsp;<em>gidlist</em></tt>&nbsp;: set supplementary group list
-to <em>gidlist</em>, which must be given as a comma-separated list of numeric GIDs,
+to <em>gidlist</em>, which must be given as a comma-separated list of numeric gids,
 without spaces. </li>
- <li> <tt>-U</tt>&nbsp;: set user ID, group ID and supplementary group list
+ <li> <tt>-U</tt>&nbsp;: set user id, group id and supplementary group list
 to the values of the UID, GID and GIDLIST environment variables. If a <tt>-u</tt>,
 <tt>-g</tt> or <tt>-G</tt> option is given after <tt>-U</tt>, the command line
 value overrides the environment variable. </li>

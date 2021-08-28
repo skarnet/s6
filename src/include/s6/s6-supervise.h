@@ -57,6 +57,8 @@ extern int s6_svstatus_write (char const *, s6_svstatus_t const *) ;
 
 extern int s6_supervise_link (char const *, char const *const *, size_t, char const *, uint32_t, tain const *, tain *) ;
 #define s6_supervise_link_g(scdir, servicedirs, n, prefix, options, deadline) s6_supervise_link(scdir, servicedirs, n, prefix, options, (deadline), &STAMP)
+extern int s6_supervise_link_names (char const *, char const *const *, char const *const *, size_t, uint32_t, tain const *, tain *) ;
+#define s6_supervise_link_names_g(scdir, servicedirs, names, n, options, deadline) s6_supervise_link_names(scdir, servicedirs, names, n, options, (deadline), &STAMP)
 extern void s6_supervise_unlink (char const *, char const *, uint32_t) ;
 
 typedef struct s6_dtally_s s6_dtally_t, *s6_dtally_ref ;

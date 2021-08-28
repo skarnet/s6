@@ -11,6 +11,8 @@ s6-mkfifodir \
 s6-svscan \
 s6-supervise \
 s6-svc \
+s6-svdir-link \
+s6-svdir-unlink \
 s6-svscanctl \
 s6-svok \
 s6-svstat \

@@ -28,12 +28,15 @@
 /s6-svdt
 /s6-svdt-clear
 /s6-permafailon
+/s6-svdir-link
+/s6-svdir-unlink
 /s6-envdir
 /s6-envuidgid
 /s6-fghack
 /s6-log
 /s6-setlock
 /s6-setsid
+/s6-socklog
 /s6-softlimit
 /s6-tai64n
 /s6-tai64nlocal
