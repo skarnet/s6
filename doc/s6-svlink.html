@@ -93,7 +93,7 @@ limit. </li>
 
 <ul>
  <li> Using <tt>s6-svlink</tt> to start services is a suboptimal pattern: it
-requires precise manipulations involving use of <a href="s6-ftrigrd.html">s6-ftrigrd</a>
+requires precise manipulations involving use of <a href="libs6/s6-ftrigrd.html">s6-ftrigrd</a>
 in order to avoid race conditions, so it is relatively expensive. The simpler,
 more efficient pattern is to have all the supervisors already started at boot
 time, so the existence of the supervisor can be relied on, and starting the

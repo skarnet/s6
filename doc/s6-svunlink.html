@@ -78,9 +78,9 @@ services. The simpler, more efficient pattern is to simply perform
 <a href="s6-svc.html">s6-svc -dwD <em>scandir</em><tt>/</tt><em>name</em></a>,
 which only commands, and waits for, the death of the service, without
 impacting the supervisor. Nevertheless, for symmetry with
-<a href="s6-svlinki.html">s6-svlink</a>, this program is provided. </li>
+<a href="s6-svlink.html">s6-svlink</a>, this program is provided. </li>
  <li> <tt>s6-svunlink</tt> is a destructor; as is, it returns 0 even in
-situations that are nominally a failure. For instance, it returns 0 even
+situations that are nominal failures. For instance, it returns 0 even
 if its timeout expires; the rationale is that there is no sensible action
 for the user to do if this error is reported. <tt>s6-svunlink</tt> only
 reports errors when they uncover a deeper problem in the system. </li>
