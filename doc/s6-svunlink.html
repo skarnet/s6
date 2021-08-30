@@ -21,13 +21,13 @@
 <p>
  <tt>s6-svunlink</tt> unlinks a <a href="servicedir.html">service
 directory</a> from a <a href="scandir.html">scan directory</a>, then
-notify the <a href="s6-svscan.html">s6-svscan</a> that a service has
+notifies <a href="s6-svscan.html">s6-svscan</a> that a service has
 been unregistered. It waits until the <a href="s6-supervise.html">s6-supervise</a>
-supervisor process has disappeared, then exits.
+supervisor process managing the service has disappeared, then exits.
 </p>
 
 <p>
- The point of <tt>s6-svunlink</tt> is to help integrate existing
+ The point of <tt>s6-svunlink</tt> is to help integrate
 service directories into an existing service manager sequence and
 eliminating race conditions.
 </p>
