@@ -3,7 +3,7 @@
 #include <errno.h>
 #include <skalibs/error.h>
 #include <skalibs/gensetdyn.h>
-#include <s6/s6lock.h>
+#include <s6/lock.h>
 
 int s6lock_check (s6lock_t *a, uint16_t id)
 {

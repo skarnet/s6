@@ -11,7 +11,7 @@
 #include <skalibs/tai.h>
 #include <skalibs/exec.h>
 
-#include <s6/s6-supervise.h>
+#include <s6/supervise.h>
 
 #define USAGE "s6-permafailon seconds deathcount statuslist prog..."
 #define dieusage() strerr_dieusage(100, USAGE)

@@ -2,7 +2,7 @@
 
 #include <errno.h>
 #include <skalibs/iopause.h>
-#include <s6/s6lock.h>
+#include <s6/lock.h>
 
 int s6lock_wait_and (s6lock_t *a, uint16_t const *idlist, unsigned int n, tain const *deadline, tain *stamp)
 {

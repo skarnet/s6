@@ -28,8 +28,8 @@
 /s6-svdt
 /s6-svdt-clear
 /s6-permafailon
-/s6-svdir-link
-/s6-svdir-unlink
+/s6-svlink
+/s6-svunlink
 /s6-envdir
 /s6-envuidgid
 /s6-fghack

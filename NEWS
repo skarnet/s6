@@ -8,6 +8,8 @@ In 2.11.0.0
  - s6-svwait now supports -r and -R options to wait for restarts.
  - New service directory file: lock-fd, to take a lock before
 starting a service, protecting against concurrent instances.
+ - s6/lock.h, s6/supervise.h, s6/fdholder.h: simpler header names
+ - New binaries: s6-svlink, s6-svunlink
 
 
 In 2.10.0.3

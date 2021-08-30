@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 
+#include <skalibs/posixplz.h>
 #include <skalibs/bitarray.h>
 #include <skalibs/tai.h>
 #include <skalibs/stralloc.h>
@@ -13,7 +14,7 @@
 
 #include <s6/ftrigr.h>
 #include <s6/ftrigw.h>
-#include <s6/s6-supervise.h>
+#include <s6/supervise.h>
 
 static inline void do_unlink (char const *scdir, char const *const *names, size_t n, uint32_t killopts)
 {
@@ -35,6 +36,13 @@ static uint16_t registerit (ftrigr_t *a, char *fn, size_t len, gid_t gid, uint32
   if (!ftrigw_fifodir_make(fn, gid, options & 1)) return 0 ;
   return ftrigr_subscribe(a, fn, "s", 0, deadline, stamp) ;
 }
+
+/*
+  options: bit 0: force event/ mode
+           bit 1: make event/ public
+           bit 2: don't start the service
+           bit 3: remove down files after starting supervisors
+*/
 
 int s6_supervise_link_names (char const *scdir, char const *const *servicedirs, char const *const *names, size_t n, uint32_t options, tain const *deadline, tain *stamp)
 {
@@ -86,7 +94,7 @@ int s6_supervise_link_names (char const *scdir, char const *const *servicedirs, 
     uint32_t killopts = 0 ;
     int r ;
     uint16_t ids[ntotal] ;
-    char lname[scdirlen + maxnlen + 2] ;
+    char lname[scdirlen + maxnlen + 7] ;
     char fn[maxlen + 5 + (sizeof(S6_SUPERVISE_EVENTDIR) > 5 ? sizeof(S6_SUPERVISE_EVENTDIR) : 5)] ;
     if (!ftrigr_startf(&a, deadline, stamp)) return -1 ;
     memcpy(lname, scdir, scdirlen) ;
@@ -124,6 +132,16 @@ int s6_supervise_link_names (char const *scdir, char const *const *servicedirs, 
     killopts = 3 ;
     if (ftrigr_wait_and(&a, ids, m, deadline, stamp) < 0) goto errsa ;
     ftrigr_end(&a) ;
+    if (options & 8)
+    {
+      for (size_t i = 0 ; i < n ; i++)
+      {
+        size_t nlen = strlen(names[i]) ;
+        memcpy(lname + scdirlen + 1, names[i], nlen) ;
+        memcpy(lname + scdirlen + 1 + nlen, "/down", 6) ;
+        unlink_void(lname) ;
+      }
+    }
     return m ;
 
    err:

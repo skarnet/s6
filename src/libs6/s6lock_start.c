@@ -1,7 +1,7 @@
 /* ISC license. */
 
 #include <skalibs/textclient.h>
-#include <s6/s6lock.h>
+#include <s6/lock.h>
 
 int s6lock_start (s6lock_t *a, char const *path, tain const *deadline, tain *stamp)
 {

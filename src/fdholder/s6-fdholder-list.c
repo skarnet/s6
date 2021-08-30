@@ -8,7 +8,7 @@
 #include <skalibs/tai.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/skamisc.h>
-#include <s6/s6-fdholder.h>
+#include <s6/fdholder.h>
 
 #define USAGE "s6-fdholder-list [ -t timeout ] socket"
 #define dieusage() strerr_dieusage(100, USAGE)

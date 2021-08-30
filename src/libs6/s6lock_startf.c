@@ -3,7 +3,7 @@
 #include <errno.h>
 #include <skalibs/posixplz.h>
 #include <skalibs/textclient.h>
-#include <s6/s6lock.h>
+#include <s6/lock.h>
 
 int s6lock_startf (s6lock_t *a, char const *lockdir, tain const *deadline, tain *stamp)
 {

@@ -12,7 +12,7 @@
 #include <skalibs/buffer.h>
 #include <skalibs/strerr2.h>
 
-#include <s6/s6-supervise.h>
+#include <s6/supervise.h>
 
 #define USAGE "s6-svperms [ -v ] [ -u | -g group | -G group | -o | -O group ] [ -e | -E group ] servicedir..."
 #define dieusage() strerr_dieusage(100, USAGE)

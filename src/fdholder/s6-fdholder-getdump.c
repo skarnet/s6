@@ -11,7 +11,7 @@
 #include <skalibs/genalloc.h>
 #include <skalibs/exec.h>
 
-#include <s6/s6-fdholder.h>
+#include <s6/fdholder.h>
 
 #define USAGE "s6-fdholder-getdump [ -t timeout ] socket prog..."
 #define dieusage() strerr_dieusage(100, USAGE)

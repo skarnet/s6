@@ -4,7 +4,7 @@
 #include <skalibs/uint16.h>
 #include <skalibs/uint64.h>
 #include <skalibs/tai.h>
-#include <s6/s6-supervise.h>
+#include <s6/supervise.h>
 
 void s6_svstatus_unpack (char const *pack, s6_svstatus_t *sv)
 {
@@ -18,8 +18,6 @@ void s6_svstatus_unpack (char const *pack, s6_svstatus_t *sv)
   sv->wstat = wstat ;
   sv->flagpaused = pack[34] & 1 ;
   sv->flagfinishing = !!(pack[34] & 2) ;
-  sv->flagwant = !!(pack[34] & 4) ;
-  sv->flagwantup = !!(pack[34] & 8) ;
-  sv->flagready = !!(pack[34] & 16) ;
-  sv->flagthrottled = !!(pack[34] & 32) ;
+  sv->flagwantup = !!(pack[34] & 4) ;
+  sv->flagready = !!(pack[34] & 8) ;
 }

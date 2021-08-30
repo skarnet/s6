@@ -9,7 +9,7 @@
 #include <skalibs/allreadwrite.h>
 #include <skalibs/djbunix.h>
 
-#include <s6/s6-supervise.h>
+#include <s6/supervise.h>
 
 void s6_supervise_unlink (char const *scdir, char const *name, uint32_t options)
 {

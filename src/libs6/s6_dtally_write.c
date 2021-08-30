@@ -2,7 +2,7 @@
 
 #include <string.h>
 #include <skalibs/djbunix.h>
-#include <s6/s6-supervise.h>
+#include <s6/supervise.h>
 
 int s6_dtally_write (char const *sv, s6_dtally_t const *tab, size_t n)
 {

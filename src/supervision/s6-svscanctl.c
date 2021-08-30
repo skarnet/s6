@@ -2,7 +2,7 @@
 
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
-#include <s6/s6-supervise.h>
+#include <s6/supervise.h>
 
 #define USAGE "s6-svscanctl [ -zabhitqnN ] svscandir"
 #define dieusage() strerr_dieusage(100, USAGE)

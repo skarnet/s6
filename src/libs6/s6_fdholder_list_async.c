@@ -1,7 +1,7 @@
 /* ISC license. */
 
 #include <skalibs/unixmessage.h>
-#include <s6/s6-fdholder.h>
+#include <s6/fdholder.h>
 
 int s6_fdholder_list_async (s6_fdholder_t *a)
 {

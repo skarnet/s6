@@ -30,10 +30,8 @@ struct s6_svstatus_s
   int wstat ;
   unsigned int flagpaused : 1 ;
   unsigned int flagfinishing : 1 ;
-  unsigned int flagwant : 1 ; /* unused */
   unsigned int flagwantup : 1 ;
   unsigned int flagready : 1 ;
-  unsigned int flagthrottled : 1 ;
 } ;
 
 #define S6_SVSTATUS_ZERO \
@@ -44,10 +42,8 @@ struct s6_svstatus_s
   .wstat = 0, \
   .flagpaused = 0, \
   .flagfinishing = 0, \
-  .flagwant = 1, \
   .flagwantup = 1, \
   .flagready = 1, \
-  .flagthrottled = 0 \
 }
 
 extern void s6_svstatus_pack (char *, s6_svstatus_t const *) ;
@@ -60,6 +56,8 @@ extern int s6_supervise_link (char const *, char const *const *, size_t, char co
 extern int s6_supervise_link_names (char const *, char const *const *, char const *const *, size_t, uint32_t, tain const *, tain *) ;
 #define s6_supervise_link_names_g(scdir, servicedirs, names, n, options, deadline) s6_supervise_link_names(scdir, servicedirs, names, n, options, (deadline), &STAMP)
 extern void s6_supervise_unlink (char const *, char const *, uint32_t) ;
+extern int s6_supervise_unlink_names (char const *, char const *const *, size_t, uint32_t, tain const *, tain *) ;
+#define s6_supervise_unlink_names_g(scdir, names, n, options, deadline) s6_supervise_unlink_names(scdir, names, n, options, (deadline), &STAMP)
 
 typedef struct s6_dtally_s s6_dtally_t, *s6_dtally_ref ;
 struct s6_dtally_s

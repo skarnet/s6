@@ -4,7 +4,7 @@
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/tai.h>
-#include <s6/s6-fdholder.h>
+#include <s6/fdholder.h>
 
 #define USAGE "s6-fdholder-delete [ -t timeout ] socket id"
 #define dieusage() strerr_dieusage(100, USAGE)

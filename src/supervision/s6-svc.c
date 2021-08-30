@@ -10,7 +10,7 @@
 #include <skalibs/exec.h>
 
 #include <s6/config.h>
-#include <s6/s6-supervise.h>
+#include <s6/supervise.h>
 
 #define USAGE "s6-svc [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T timeout ] [ -abqhkti12pcyroduxOX ] servicedir"
 #define dieusage() strerr_dieusage(100, USAGE)

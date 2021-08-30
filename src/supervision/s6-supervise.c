@@ -25,7 +25,7 @@
 #include <skalibs/skamisc.h>
 
 #include <s6/ftrigw.h>
-#include <s6/s6-supervise.h>
+#include <s6/supervise.h>
 
 #define USAGE "s6-supervise dir"
 #define CTL S6_SUPERVISE_CTLDIR "/control"
@@ -416,7 +416,6 @@ static int uplastup_z (void)
   status.wstat = (int)status.pid ;
   status.flagpaused = 0 ;
   status.flagready = 0 ;
-  status.flagthrottled = 0 ;
   flagdying = 0 ;
   tain_wallclock_read(&status.stamp) ;
   if (notifyfd >= 0)

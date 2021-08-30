@@ -1,0 +1,90 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-svunlink program</title>
+    <meta name="Description" content="s6: the s6-svunlink program" />
+    <meta name="Keywords" content="s6 command s6-svunlink supervision service stop unlink scandir servicedir" />
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-svunlink program </h1>
+
+<p>
+ <tt>s6-svunlink</tt> unlinks a <a href="servicedir.html">service
+directory from a <a href="scandir.html">scan directory</a>, then
+notify the <a href="s6-svscan.html">s6-svscan</a> that a service has
+been unregistered. It waits until the <a href="s6-supervise.html">s6-supervise</a>
+supervisor process has disappeared, then exits.
+</p>
+
+<p>
+ The point of <tt>s6-svunlink</tt> is to help integrate existing
+service directories into an existing service manager sequence and
+eliminating race conditions.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-svunlink [ -X ] [ -t <em>timeout</em> ] <em>scandir</em> <em>name</em>
+</pre>
+
+<ul>
+ <li> <tt>s6-svunlink</tt> expects a running <a href="s6-svscan.html">s6-svscan</a>
+process on <em>scandir</em> and a fully functional supervised service on
+<a href="servicedir.html">service directory</a> in <em>scandir</em><tt>/</tt><em>name</em>,
+which must be a symbolic link to a real directory located somewhere else. </li>
+ <li> It deletes the <em>scandir</em><tt>/</tt><em>name</em> symlink. </li>
+ <li> It sends a command to <a href="s6-svscan.html">s6-svscan</a> to signal it
+that a service has disappeared. </li>
+ <li> It waits for the <a href="s6-supervise.html">s6-supervise</a> process
+managing the service directory to exit. </li>
+ <li> It exits 0. </li>
+</ul>
+
+<h2> Exit codes </h2>
+
+<ul>
+ <li> 0: success </li>
+ <li> 100: wrong usage </li>
+ <li> 111: system call failed </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-X</tt>&nbsp;: don't wait. <tt>s6-svunlink</tt> will exit right
+away, without waiting for the supervisor to exit first. </li>
+ <li> <tt>-t&nbsp;<em>timeout</em></tt>&nbsp;: if the supervisor has not exited
+after <em>timeout</em> milliseconds, <tt>s6-svlink</tt> will still exit.
+The default is 0, meaning no time limit.. </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> Using <tt>s6-svlink</tt> to stop services is a suboptimal pattern:
+starting and stopping supervisors is a heavier operation than just stopping
+services. The simpler, more efficient pattern is to simply perform
+<a href="s6-svc.html">s6-svc -dwD <em>scandir</em><tt>/</tt><em>name</em>,
+which only commands, and waits for, the death of the service, without
+impacting the supervisor. Nevertheless, for symmetry with
+<a href="s6-svlink">s6-svlink</a>, this program is provided. </li>
+ <li> <tt>s6-svunlink</tt> is a destructor; as is, it returns 0 even in
+situations that are nominally a failure. For instance, it returns 0 even
+if its timeout expires; the rationale is that there is no sensible action
+for the user to do if this error is reported. <tt>s6-svunlink</tt> only
+reports errors when they uncover a deeper problem in the system. </li>
+</ul>
+
+</body>
+</html>

@@ -5,7 +5,7 @@
 #include <skalibs/uint16.h>
 #include <skalibs/gensetdyn.h>
 #include <skalibs/textclient.h>
-#include <s6/s6lock.h>
+#include <s6/lock.h>
 
 int s6lock_release (s6lock_t *a, uint16_t i, tain const *deadline, tain *stamp)
 {

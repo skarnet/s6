@@ -5,7 +5,7 @@
 #include <skalibs/stralloc.h>
 #include <skalibs/djbunix.h>
 
-#include <s6/s6-supervise.h>
+#include <s6/supervise.h>
 
 int s6_supervise_link (char const *scdir, char const *const *servicedirs, size_t n, char const *prefix, uint32_t options, tain const *deadline, tain *stamp)
 {

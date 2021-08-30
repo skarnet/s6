@@ -4,7 +4,7 @@
 
 #include <skalibs/iopause.h>
 
-#include <s6/s6lock.h>
+#include <s6/lock.h>
 
 #include <skalibs/posixishard.h>
 

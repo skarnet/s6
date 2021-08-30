@@ -1,7 +1,7 @@
 /* ISC license. */
 
 #include <skalibs/strerr2.h>
-#include <s6/s6-supervise.h>
+#include <s6/supervise.h>
 
 #define USAGE "s6-svok servicedir"
 

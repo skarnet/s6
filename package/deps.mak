@@ -4,8 +4,8 @@
 
 src/include/s6/compat.h: src/include/s6/config.h
 src/include/s6/ftrigr.h: src/include/s6/config.h
-src/include/s6/s6.h: src/include/s6/accessrules.h src/include/s6/compat.h src/include/s6/ftrigr.h src/include/s6/ftrigw.h src/include/s6/s6-supervise.h src/include/s6/s6lock.h
-src/include/s6/s6lock.h: src/include/s6/config.h
+src/include/s6/lock.h: src/include/s6/config.h
+src/include/s6/s6.h: src/include/s6/accessrules.h src/include/s6/compat.h src/include/s6/ftrigr.h src/include/s6/ftrigw.h src/include/s6/lock.h src/include/s6/supervise.h
 src/supervision/s6-svlisten.h: src/include/s6/ftrigr.h
 src/conn-tools/s6-accessrules-cdb-from-fs.o src/conn-tools/s6-accessrules-cdb-from-fs.lo: src/conn-tools/s6-accessrules-cdb-from-fs.c
 src/conn-tools/s6-accessrules-fs-from-cdb.o src/conn-tools/s6-accessrules-fs-from-cdb.lo: src/conn-tools/s6-accessrules-fs-from-cdb.c
@@ -34,14 +34,14 @@ src/daemontools-extras/s6-tai64n.o src/daemontools-extras/s6-tai64n.lo: src/daem
 src/daemontools-extras/s6-tai64nlocal.o src/daemontools-extras/s6-tai64nlocal.lo: src/daemontools-extras/s6-tai64nlocal.c
 src/daemontools-extras/ucspilogd.o src/daemontools-extras/ucspilogd.lo: src/daemontools-extras/ucspilogd.c src/daemontools-extras/lolsyslog.h
 src/fdholder/s6-fdholder-daemon.o src/fdholder/s6-fdholder-daemon.lo: src/fdholder/s6-fdholder-daemon.c src/include/s6/config.h
-src/fdholder/s6-fdholder-delete.o src/fdholder/s6-fdholder-delete.lo: src/fdholder/s6-fdholder-delete.c src/include/s6/s6-fdholder.h
-src/fdholder/s6-fdholder-getdump.o src/fdholder/s6-fdholder-getdump.lo: src/fdholder/s6-fdholder-getdump.c src/include/s6/s6-fdholder.h
-src/fdholder/s6-fdholder-list.o src/fdholder/s6-fdholder-list.lo: src/fdholder/s6-fdholder-list.c src/include/s6/s6-fdholder.h
-src/fdholder/s6-fdholder-retrieve.o src/fdholder/s6-fdholder-retrieve.lo: src/fdholder/s6-fdholder-retrieve.c src/include/s6/s6-fdholder.h
-src/fdholder/s6-fdholder-setdump.o src/fdholder/s6-fdholder-setdump.lo: src/fdholder/s6-fdholder-setdump.c src/include/s6/s6-fdholder.h
-src/fdholder/s6-fdholder-store.o src/fdholder/s6-fdholder-store.lo: src/fdholder/s6-fdholder-store.c src/include/s6/s6-fdholder.h
-src/fdholder/s6-fdholder-transferdump.o src/fdholder/s6-fdholder-transferdump.lo: src/fdholder/s6-fdholder-transferdump.c src/include/s6/s6-fdholder.h
-src/fdholder/s6-fdholderd.o src/fdholder/s6-fdholderd.lo: src/fdholder/s6-fdholderd.c src/include/s6/accessrules.h src/include/s6/s6-fdholder.h
+src/fdholder/s6-fdholder-delete.o src/fdholder/s6-fdholder-delete.lo: src/fdholder/s6-fdholder-delete.c src/include/s6/fdholder.h
+src/fdholder/s6-fdholder-getdump.o src/fdholder/s6-fdholder-getdump.lo: src/fdholder/s6-fdholder-getdump.c src/include/s6/fdholder.h
+src/fdholder/s6-fdholder-list.o src/fdholder/s6-fdholder-list.lo: src/fdholder/s6-fdholder-list.c src/include/s6/fdholder.h
+src/fdholder/s6-fdholder-retrieve.o src/fdholder/s6-fdholder-retrieve.lo: src/fdholder/s6-fdholder-retrieve.c src/include/s6/fdholder.h
+src/fdholder/s6-fdholder-setdump.o src/fdholder/s6-fdholder-setdump.lo: src/fdholder/s6-fdholder-setdump.c src/include/s6/fdholder.h
+src/fdholder/s6-fdholder-store.o src/fdholder/s6-fdholder-store.lo: src/fdholder/s6-fdholder-store.c src/include/s6/fdholder.h
+src/fdholder/s6-fdholder-transferdump.o src/fdholder/s6-fdholder-transferdump.lo: src/fdholder/s6-fdholder-transferdump.c src/include/s6/fdholder.h
+src/fdholder/s6-fdholderd.o src/fdholder/s6-fdholderd.lo: src/fdholder/s6-fdholderd.c src/include/s6/accessrules.h src/include/s6/fdholder.h
 src/libs6/ftrig1_free.o src/libs6/ftrig1_free.lo: src/libs6/ftrig1_free.c src/libs6/ftrig1.h
 src/libs6/ftrig1_make.o src/libs6/ftrig1_make.lo: src/libs6/ftrig1_make.c src/libs6/ftrig1.h
 src/libs6/ftrigr1_zero.o src/libs6/ftrigr1_zero.lo: src/libs6/ftrigr1_zero.c src/include/s6/ftrigr.h
@@ -74,46 +74,47 @@ src/libs6/s6_accessrules_params_free.o src/libs6/s6_accessrules_params_free.lo: 
 src/libs6/s6_accessrules_uidgid_cdb.o src/libs6/s6_accessrules_uidgid_cdb.lo: src/libs6/s6_accessrules_uidgid_cdb.c src/include/s6/accessrules.h
 src/libs6/s6_accessrules_uidgid_fs.o src/libs6/s6_accessrules_uidgid_fs.lo: src/libs6/s6_accessrules_uidgid_fs.c src/include/s6/accessrules.h
 src/libs6/s6_compat_el_semicolon.o src/libs6/s6_compat_el_semicolon.lo: src/libs6/s6_compat_el_semicolon.c src/include/s6/config.h
-src/libs6/s6_dtally_pack.o src/libs6/s6_dtally_pack.lo: src/libs6/s6_dtally_pack.c src/include/s6/s6-supervise.h
-src/libs6/s6_dtally_read.o src/libs6/s6_dtally_read.lo: src/libs6/s6_dtally_read.c src/include/s6/s6-supervise.h
-src/libs6/s6_dtally_unpack.o src/libs6/s6_dtally_unpack.lo: src/libs6/s6_dtally_unpack.c src/include/s6/s6-supervise.h
-src/libs6/s6_dtally_write.o src/libs6/s6_dtally_write.lo: src/libs6/s6_dtally_write.c src/include/s6/s6-supervise.h
-src/libs6/s6_fdholder_delete.o src/libs6/s6_fdholder_delete.lo: src/libs6/s6_fdholder_delete.c src/include/s6/s6-fdholder.h
-src/libs6/s6_fdholder_delete_async.o src/libs6/s6_fdholder_delete_async.lo: src/libs6/s6_fdholder_delete_async.c src/include/s6/s6-fdholder.h
-src/libs6/s6_fdholder_end.o src/libs6/s6_fdholder_end.lo: src/libs6/s6_fdholder_end.c src/include/s6/s6-fdholder.h
-src/libs6/s6_fdholder_getdump.o src/libs6/s6_fdholder_getdump.lo: src/libs6/s6_fdholder_getdump.c src/include/s6/s6-fdholder.h
-src/libs6/s6_fdholder_list.o src/libs6/s6_fdholder_list.lo: src/libs6/s6_fdholder_list.c src/include/s6/s6-fdholder.h
-src/libs6/s6_fdholder_list_async.o src/libs6/s6_fdholder_list_async.lo: src/libs6/s6_fdholder_list_async.c src/include/s6/s6-fdholder.h
-src/libs6/s6_fdholder_list_cb.o src/libs6/s6_fdholder_list_cb.lo: src/libs6/s6_fdholder_list_cb.c src/include/s6/s6-fdholder.h
-src/libs6/s6_fdholder_retrieve.o src/libs6/s6_fdholder_retrieve.lo: src/libs6/s6_fdholder_retrieve.c src/include/s6/s6-fdholder.h
-src/libs6/s6_fdholder_retrieve_async.o src/libs6/s6_fdholder_retrieve_async.lo: src/libs6/s6_fdholder_retrieve_async.c src/include/s6/s6-fdholder.h
-src/libs6/s6_fdholder_retrieve_cb.o src/libs6/s6_fdholder_retrieve_cb.lo: src/libs6/s6_fdholder_retrieve_cb.c src/include/s6/s6-fdholder.h
-src/libs6/s6_fdholder_setdump.o src/libs6/s6_fdholder_setdump.lo: src/libs6/s6_fdholder_setdump.c src/include/s6/s6-fdholder.h
-src/libs6/s6_fdholder_start.o src/libs6/s6_fdholder_start.lo: src/libs6/s6_fdholder_start.c src/include/s6/s6-fdholder.h
-src/libs6/s6_fdholder_store.o src/libs6/s6_fdholder_store.lo: src/libs6/s6_fdholder_store.c src/include/s6/s6-fdholder.h
-src/libs6/s6_fdholder_store_async.o src/libs6/s6_fdholder_store_async.lo: src/libs6/s6_fdholder_store_async.c src/include/s6/s6-fdholder.h
-src/libs6/s6_supervise_link.o src/libs6/s6_supervise_link.lo: src/libs6/s6_supervise_link.c src/include/s6/s6-supervise.h
-src/libs6/s6_supervise_link_names.o src/libs6/s6_supervise_link_names.lo: src/libs6/s6_supervise_link_names.c src/include/s6/ftrigr.h src/include/s6/ftrigw.h src/include/s6/s6-supervise.h
-src/libs6/s6_supervise_unlink.o src/libs6/s6_supervise_unlink.lo: src/libs6/s6_supervise_unlink.c src/include/s6/s6-supervise.h
-src/libs6/s6_svc_ok.o src/libs6/s6_svc_ok.lo: src/libs6/s6_svc_ok.c src/include/s6/s6-supervise.h
-src/libs6/s6_svc_write.o src/libs6/s6_svc_write.lo: src/libs6/s6_svc_write.c src/include/s6/s6-supervise.h
-src/libs6/s6_svc_writectl.o src/libs6/s6_svc_writectl.lo: src/libs6/s6_svc_writectl.c src/include/s6/s6-supervise.h
-src/libs6/s6_svstatus_pack.o src/libs6/s6_svstatus_pack.lo: src/libs6/s6_svstatus_pack.c src/include/s6/s6-supervise.h
-src/libs6/s6_svstatus_read.o src/libs6/s6_svstatus_read.lo: src/libs6/s6_svstatus_read.c src/include/s6/s6-supervise.h
-src/libs6/s6_svstatus_unpack.o src/libs6/s6_svstatus_unpack.lo: src/libs6/s6_svstatus_unpack.c src/include/s6/s6-supervise.h
-src/libs6/s6_svstatus_write.o src/libs6/s6_svstatus_write.lo: src/libs6/s6_svstatus_write.c src/include/s6/s6-supervise.h
-src/libs6/s6lock_acquire.o src/libs6/s6lock_acquire.lo: src/libs6/s6lock_acquire.c src/include/s6/s6lock.h
-src/libs6/s6lock_check.o src/libs6/s6lock_check.lo: src/libs6/s6lock_check.c src/include/s6/s6lock.h
-src/libs6/s6lock_end.o src/libs6/s6lock_end.lo: src/libs6/s6lock_end.c src/include/s6/s6lock.h
-src/libs6/s6lock_release.o src/libs6/s6lock_release.lo: src/libs6/s6lock_release.c src/include/s6/s6lock.h
-src/libs6/s6lock_start.o src/libs6/s6lock_start.lo: src/libs6/s6lock_start.c src/include/s6/s6lock.h
-src/libs6/s6lock_startf.o src/libs6/s6lock_startf.lo: src/libs6/s6lock_startf.c src/include/s6/s6lock.h
-src/libs6/s6lock_update.o src/libs6/s6lock_update.lo: src/libs6/s6lock_update.c src/include/s6/s6lock.h
-src/libs6/s6lock_wait_and.o src/libs6/s6lock_wait_and.lo: src/libs6/s6lock_wait_and.c src/include/s6/s6lock.h
-src/libs6/s6lock_wait_or.o src/libs6/s6lock_wait_or.lo: src/libs6/s6lock_wait_or.c src/include/s6/s6lock.h
-src/libs6/s6lock_zero.o src/libs6/s6lock_zero.lo: src/libs6/s6lock_zero.c src/include/s6/s6lock.h
+src/libs6/s6_dtally_pack.o src/libs6/s6_dtally_pack.lo: src/libs6/s6_dtally_pack.c src/include/s6/supervise.h
+src/libs6/s6_dtally_read.o src/libs6/s6_dtally_read.lo: src/libs6/s6_dtally_read.c src/include/s6/supervise.h
+src/libs6/s6_dtally_unpack.o src/libs6/s6_dtally_unpack.lo: src/libs6/s6_dtally_unpack.c src/include/s6/supervise.h
+src/libs6/s6_dtally_write.o src/libs6/s6_dtally_write.lo: src/libs6/s6_dtally_write.c src/include/s6/supervise.h
+src/libs6/s6_fdholder_delete.o src/libs6/s6_fdholder_delete.lo: src/libs6/s6_fdholder_delete.c src/include/s6/fdholder.h
+src/libs6/s6_fdholder_delete_async.o src/libs6/s6_fdholder_delete_async.lo: src/libs6/s6_fdholder_delete_async.c src/include/s6/fdholder.h
+src/libs6/s6_fdholder_end.o src/libs6/s6_fdholder_end.lo: src/libs6/s6_fdholder_end.c src/include/s6/fdholder.h
+src/libs6/s6_fdholder_getdump.o src/libs6/s6_fdholder_getdump.lo: src/libs6/s6_fdholder_getdump.c src/include/s6/fdholder.h
+src/libs6/s6_fdholder_list.o src/libs6/s6_fdholder_list.lo: src/libs6/s6_fdholder_list.c src/include/s6/fdholder.h
+src/libs6/s6_fdholder_list_async.o src/libs6/s6_fdholder_list_async.lo: src/libs6/s6_fdholder_list_async.c src/include/s6/fdholder.h
+src/libs6/s6_fdholder_list_cb.o src/libs6/s6_fdholder_list_cb.lo: src/libs6/s6_fdholder_list_cb.c src/include/s6/fdholder.h
+src/libs6/s6_fdholder_retrieve.o src/libs6/s6_fdholder_retrieve.lo: src/libs6/s6_fdholder_retrieve.c src/include/s6/fdholder.h
+src/libs6/s6_fdholder_retrieve_async.o src/libs6/s6_fdholder_retrieve_async.lo: src/libs6/s6_fdholder_retrieve_async.c src/include/s6/fdholder.h
+src/libs6/s6_fdholder_retrieve_cb.o src/libs6/s6_fdholder_retrieve_cb.lo: src/libs6/s6_fdholder_retrieve_cb.c src/include/s6/fdholder.h
+src/libs6/s6_fdholder_setdump.o src/libs6/s6_fdholder_setdump.lo: src/libs6/s6_fdholder_setdump.c src/include/s6/fdholder.h
+src/libs6/s6_fdholder_start.o src/libs6/s6_fdholder_start.lo: src/libs6/s6_fdholder_start.c src/include/s6/fdholder.h
+src/libs6/s6_fdholder_store.o src/libs6/s6_fdholder_store.lo: src/libs6/s6_fdholder_store.c src/include/s6/fdholder.h
+src/libs6/s6_fdholder_store_async.o src/libs6/s6_fdholder_store_async.lo: src/libs6/s6_fdholder_store_async.c src/include/s6/fdholder.h
+src/libs6/s6_supervise_link.o src/libs6/s6_supervise_link.lo: src/libs6/s6_supervise_link.c src/include/s6/supervise.h
+src/libs6/s6_supervise_link_names.o src/libs6/s6_supervise_link_names.lo: src/libs6/s6_supervise_link_names.c src/include/s6/ftrigr.h src/include/s6/ftrigw.h src/include/s6/supervise.h
+src/libs6/s6_supervise_unlink.o src/libs6/s6_supervise_unlink.lo: src/libs6/s6_supervise_unlink.c src/include/s6/supervise.h
+src/libs6/s6_supervise_unlink_names.o src/libs6/s6_supervise_unlink_names.lo: src/libs6/s6_supervise_unlink_names.c src/include/s6/ftrigr.h src/include/s6/supervise.h
+src/libs6/s6_svc_ok.o src/libs6/s6_svc_ok.lo: src/libs6/s6_svc_ok.c src/include/s6/supervise.h
+src/libs6/s6_svc_write.o src/libs6/s6_svc_write.lo: src/libs6/s6_svc_write.c src/include/s6/supervise.h
+src/libs6/s6_svc_writectl.o src/libs6/s6_svc_writectl.lo: src/libs6/s6_svc_writectl.c src/include/s6/supervise.h
+src/libs6/s6_svstatus_pack.o src/libs6/s6_svstatus_pack.lo: src/libs6/s6_svstatus_pack.c src/include/s6/supervise.h
+src/libs6/s6_svstatus_read.o src/libs6/s6_svstatus_read.lo: src/libs6/s6_svstatus_read.c src/include/s6/supervise.h
+src/libs6/s6_svstatus_unpack.o src/libs6/s6_svstatus_unpack.lo: src/libs6/s6_svstatus_unpack.c src/include/s6/supervise.h
+src/libs6/s6_svstatus_write.o src/libs6/s6_svstatus_write.lo: src/libs6/s6_svstatus_write.c src/include/s6/supervise.h
+src/libs6/s6lock_acquire.o src/libs6/s6lock_acquire.lo: src/libs6/s6lock_acquire.c src/include/s6/lock.h
+src/libs6/s6lock_check.o src/libs6/s6lock_check.lo: src/libs6/s6lock_check.c src/include/s6/lock.h
+src/libs6/s6lock_end.o src/libs6/s6lock_end.lo: src/libs6/s6lock_end.c src/include/s6/lock.h
+src/libs6/s6lock_release.o src/libs6/s6lock_release.lo: src/libs6/s6lock_release.c src/include/s6/lock.h
+src/libs6/s6lock_start.o src/libs6/s6lock_start.lo: src/libs6/s6lock_start.c src/include/s6/lock.h
+src/libs6/s6lock_startf.o src/libs6/s6lock_startf.lo: src/libs6/s6lock_startf.c src/include/s6/lock.h
+src/libs6/s6lock_update.o src/libs6/s6lock_update.lo: src/libs6/s6lock_update.c src/include/s6/lock.h
+src/libs6/s6lock_wait_and.o src/libs6/s6lock_wait_and.lo: src/libs6/s6lock_wait_and.c src/include/s6/lock.h
+src/libs6/s6lock_wait_or.o src/libs6/s6lock_wait_or.lo: src/libs6/s6lock_wait_or.c src/include/s6/lock.h
+src/libs6/s6lock_zero.o src/libs6/s6lock_zero.lo: src/libs6/s6lock_zero.c src/include/s6/lock.h
 src/libs6/s6lockd-helper.o src/libs6/s6lockd-helper.lo: src/libs6/s6lockd-helper.c src/include-local/s6lockd.h
-src/libs6/s6lockd.o src/libs6/s6lockd.lo: src/libs6/s6lockd.c src/include/s6/s6lock.h
+src/libs6/s6lockd.o src/libs6/s6lockd.lo: src/libs6/s6lockd.c src/include/s6/lock.h
 src/libs6/s6lockd_openandlock.o src/libs6/s6lockd_openandlock.lo: src/libs6/s6lockd_openandlock.c src/include-local/s6lockd.h
 src/pipe-tools/s6-cleanfifodir.o src/pipe-tools/s6-cleanfifodir.lo: src/pipe-tools/s6-cleanfifodir.c src/include/s6/ftrigw.h
 src/pipe-tools/s6-ftrig-listen.o src/pipe-tools/s6-ftrig-listen.lo: src/pipe-tools/s6-ftrig-listen.c src/include/s6/compat.h src/include/s6/ftrigr.h
@@ -122,22 +123,22 @@ src/pipe-tools/s6-ftrig-notify.o src/pipe-tools/s6-ftrig-notify.lo: src/pipe-too
 src/pipe-tools/s6-ftrig-wait.o src/pipe-tools/s6-ftrig-wait.lo: src/pipe-tools/s6-ftrig-wait.c src/include/s6/ftrigr.h
 src/pipe-tools/s6-mkfifodir.o src/pipe-tools/s6-mkfifodir.lo: src/pipe-tools/s6-mkfifodir.c src/include/s6/ftrigw.h
 src/supervision/s6-notifyoncheck.o src/supervision/s6-notifyoncheck.lo: src/supervision/s6-notifyoncheck.c src/include/s6/s6.h
-src/supervision/s6-permafailon.o src/supervision/s6-permafailon.lo: src/supervision/s6-permafailon.c src/include/s6/s6-supervise.h
-src/supervision/s6-supervise.o src/supervision/s6-supervise.lo: src/supervision/s6-supervise.c src/include/s6/ftrigw.h src/include/s6/s6-supervise.h
-src/supervision/s6-svc.o src/supervision/s6-svc.lo: src/supervision/s6-svc.c src/include/s6/config.h src/include/s6/s6-supervise.h
-src/supervision/s6-svdir-link.o src/supervision/s6-svdir-link.lo: src/supervision/s6-svdir-link.c src/include/s6/s6-supervise.h
-src/supervision/s6-svdir-unlink.o src/supervision/s6-svdir-unlink.lo: src/supervision/s6-svdir-unlink.c src/include/s6/s6-supervise.h
-src/supervision/s6-svdt-clear.o src/supervision/s6-svdt-clear.lo: src/supervision/s6-svdt-clear.c src/include/s6/s6-supervise.h
-src/supervision/s6-svdt.o src/supervision/s6-svdt.lo: src/supervision/s6-svdt.c src/include/s6/s6-supervise.h
+src/supervision/s6-permafailon.o src/supervision/s6-permafailon.lo: src/supervision/s6-permafailon.c src/include/s6/supervise.h
+src/supervision/s6-supervise.o src/supervision/s6-supervise.lo: src/supervision/s6-supervise.c src/include/s6/ftrigw.h src/include/s6/supervise.h
+src/supervision/s6-svc.o src/supervision/s6-svc.lo: src/supervision/s6-svc.c src/include/s6/config.h src/include/s6/supervise.h
+src/supervision/s6-svdt-clear.o src/supervision/s6-svdt-clear.lo: src/supervision/s6-svdt-clear.c src/include/s6/supervise.h
+src/supervision/s6-svdt.o src/supervision/s6-svdt.lo: src/supervision/s6-svdt.c src/include/s6/supervise.h
+src/supervision/s6-svlink.o src/supervision/s6-svlink.lo: src/supervision/s6-svlink.c src/include/s6/supervise.h
 src/supervision/s6-svlisten.o src/supervision/s6-svlisten.lo: src/supervision/s6-svlisten.c src/supervision/s6-svlisten.h src/include/s6/compat.h
 src/supervision/s6-svlisten1.o src/supervision/s6-svlisten1.lo: src/supervision/s6-svlisten1.c src/supervision/s6-svlisten.h
-src/supervision/s6-svok.o src/supervision/s6-svok.lo: src/supervision/s6-svok.c src/include/s6/s6-supervise.h
-src/supervision/s6-svperms.o src/supervision/s6-svperms.lo: src/supervision/s6-svperms.c src/include/s6/s6-supervise.h
-src/supervision/s6-svscan.o src/supervision/s6-svscan.lo: src/supervision/s6-svscan.c src/include/s6/config.h src/include/s6/s6-supervise.h
-src/supervision/s6-svscanctl.o src/supervision/s6-svscanctl.lo: src/supervision/s6-svscanctl.c src/include/s6/s6-supervise.h
-src/supervision/s6-svstat.o src/supervision/s6-svstat.lo: src/supervision/s6-svstat.c src/include/s6/s6-supervise.h
+src/supervision/s6-svok.o src/supervision/s6-svok.lo: src/supervision/s6-svok.c src/include/s6/supervise.h
+src/supervision/s6-svperms.o src/supervision/s6-svperms.lo: src/supervision/s6-svperms.c src/include/s6/supervise.h
+src/supervision/s6-svscan.o src/supervision/s6-svscan.lo: src/supervision/s6-svscan.c src/include/s6/config.h src/include/s6/supervise.h
+src/supervision/s6-svscanctl.o src/supervision/s6-svscanctl.lo: src/supervision/s6-svscanctl.c src/include/s6/supervise.h
+src/supervision/s6-svstat.o src/supervision/s6-svstat.lo: src/supervision/s6-svstat.c src/include/s6/supervise.h
+src/supervision/s6-svunlink.o src/supervision/s6-svunlink.lo: src/supervision/s6-svunlink.c src/include/s6/supervise.h
 src/supervision/s6-svwait.o src/supervision/s6-svwait.lo: src/supervision/s6-svwait.c src/supervision/s6-svlisten.h
-src/supervision/s6_svlisten_loop.o src/supervision/s6_svlisten_loop.lo: src/supervision/s6_svlisten_loop.c src/supervision/s6-svlisten.h src/include/s6/ftrigr.h src/include/s6/s6-supervise.h
+src/supervision/s6_svlisten_loop.o src/supervision/s6_svlisten_loop.lo: src/supervision/s6_svlisten_loop.c src/supervision/s6-svlisten.h src/include/s6/ftrigr.h src/include/s6/supervise.h
 src/supervision/s6_svlisten_signal_handler.o src/supervision/s6_svlisten_signal_handler.lo: src/supervision/s6_svlisten_signal_handler.c src/supervision/s6-svlisten.h
 src/usertree/s6-usertree-maker.o src/usertree/s6-usertree-maker.lo: src/usertree/s6-usertree-maker.c src/include/s6/config.h
 
@@ -210,12 +211,12 @@ s6-fdholder-transferdump: src/fdholder/s6-fdholder-transferdump.o ${LIBS6}
 s6-fdholderd: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
 s6-fdholderd: src/fdholder/s6-fdholderd.o ${LIBS6}
 ifeq ($(strip $(STATIC_LIBS_ARE_PIC)),)
-libs6.a.xyzzy: src/libs6/ftrigr1_zero.o src/libs6/ftrigr_check.o src/libs6/ftrigr_checksa.o src/libs6/ftrigr_ack.o src/libs6/ftrigr_end.o src/libs6/ftrigr_start.o src/libs6/ftrigr_startf.o src/libs6/ftrigr_subscribe.o src/libs6/ftrigr_unsubscribe.o src/libs6/ftrigr_update.o src/libs6/ftrigr_updateb.o src/libs6/ftrigr_wait_and.o src/libs6/ftrigr_wait_or.o src/libs6/ftrigr_zero.o src/libs6/ftrigw_clean.o src/libs6/ftrigw_fifodir_make.o src/libs6/ftrigw_notify.o src/libs6/ftrigw_notifyb.o src/libs6/ftrigw_notifyb_nosig.o src/libs6/s6_accessrules_backend_cdb.o src/libs6/s6_accessrules_backend_fs.o src/libs6/s6_accessrules_keycheck_ip4.o src/libs6/s6_accessrules_keycheck_ip6.o src/libs6/s6_accessrules_keycheck_reversedns.o src/libs6/s6_accessrules_keycheck_uidgid.o src/libs6/s6_accessrules_params_free.o src/libs6/s6_accessrules_uidgid_cdb.o src/libs6/s6_accessrules_uidgid_fs.o src/libs6/s6_compat_el_semicolon.o src/libs6/s6_dtally_pack.o src/libs6/s6_dtally_unpack.o src/libs6/s6_dtally_read.o src/libs6/s6_dtally_write.o src/libs6/s6_svc_ok.o src/libs6/s6_svc_write.o src/libs6/s6_svc_writectl.o src/libs6/s6_svstatus_pack.o src/libs6/s6_svstatus_read.o src/libs6/s6_svstatus_unpack.o src/libs6/s6_svstatus_write.o src/libs6/s6lock_acquire.o src/libs6/s6lock_check.o src/libs6/s6lock_end.o src/libs6/s6lock_release.o src/libs6/s6lock_start.o src/libs6/s6lock_startf.o src/libs6/s6lock_update.o src/libs6/s6lock_wait_and.o src/libs6/s6lock_wait_or.o src/libs6/s6lock_zero.o src/libs6/s6_fdholder_delete.o src/libs6/s6_fdholder_delete_async.o src/libs6/s6_fdholder_end.o src/libs6/s6_fdholder_getdump.o src/libs6/s6_fdholder_list.o src/libs6/s6_fdholder_list_async.o src/libs6/s6_fdholder_list_cb.o src/libs6/s6_fdholder_retrieve.o src/libs6/s6_fdholder_retrieve_async.o src/libs6/s6_fdholder_retrieve_cb.o src/libs6/s6_fdholder_setdump.o src/libs6/s6_fdholder_start.o src/libs6/s6_fdholder_store.o src/libs6/s6_fdholder_store_async.o src/libs6/s6_supervise_link.o src/libs6/s6_supervise_link_names.o src/libs6/s6_supervise_unlink.o
+libs6.a.xyzzy: src/libs6/ftrigr1_zero.o src/libs6/ftrigr_check.o src/libs6/ftrigr_checksa.o src/libs6/ftrigr_ack.o src/libs6/ftrigr_end.o src/libs6/ftrigr_start.o src/libs6/ftrigr_startf.o src/libs6/ftrigr_subscribe.o src/libs6/ftrigr_unsubscribe.o src/libs6/ftrigr_update.o src/libs6/ftrigr_updateb.o src/libs6/ftrigr_wait_and.o src/libs6/ftrigr_wait_or.o src/libs6/ftrigr_zero.o src/libs6/ftrigw_clean.o src/libs6/ftrigw_fifodir_make.o src/libs6/ftrigw_notify.o src/libs6/ftrigw_notifyb.o src/libs6/ftrigw_notifyb_nosig.o src/libs6/s6_accessrules_backend_cdb.o src/libs6/s6_accessrules_backend_fs.o src/libs6/s6_accessrules_keycheck_ip4.o src/libs6/s6_accessrules_keycheck_ip6.o src/libs6/s6_accessrules_keycheck_reversedns.o src/libs6/s6_accessrules_keycheck_uidgid.o src/libs6/s6_accessrules_params_free.o src/libs6/s6_accessrules_uidgid_cdb.o src/libs6/s6_accessrules_uidgid_fs.o src/libs6/s6_compat_el_semicolon.o src/libs6/s6_dtally_pack.o src/libs6/s6_dtally_unpack.o src/libs6/s6_dtally_read.o src/libs6/s6_dtally_write.o src/libs6/s6_svc_ok.o src/libs6/s6_svc_write.o src/libs6/s6_svc_writectl.o src/libs6/s6_svstatus_pack.o src/libs6/s6_svstatus_read.o src/libs6/s6_svstatus_unpack.o src/libs6/s6_svstatus_write.o src/libs6/s6lock_acquire.o src/libs6/s6lock_check.o src/libs6/s6lock_end.o src/libs6/s6lock_release.o src/libs6/s6lock_start.o src/libs6/s6lock_startf.o src/libs6/s6lock_update.o src/libs6/s6lock_wait_and.o src/libs6/s6lock_wait_or.o src/libs6/s6lock_zero.o src/libs6/s6_fdholder_delete.o src/libs6/s6_fdholder_delete_async.o src/libs6/s6_fdholder_end.o src/libs6/s6_fdholder_getdump.o src/libs6/s6_fdholder_list.o src/libs6/s6_fdholder_list_async.o src/libs6/s6_fdholder_list_cb.o src/libs6/s6_fdholder_retrieve.o src/libs6/s6_fdholder_retrieve_async.o src/libs6/s6_fdholder_retrieve_cb.o src/libs6/s6_fdholder_setdump.o src/libs6/s6_fdholder_start.o src/libs6/s6_fdholder_store.o src/libs6/s6_fdholder_store_async.o src/libs6/s6_supervise_link.o src/libs6/s6_supervise_link_names.o src/libs6/s6_supervise_unlink.o src/libs6/s6_supervise_unlink_names.o
 else
-libs6.a.xyzzy: src/libs6/ftrigr1_zero.lo src/libs6/ftrigr_check.lo src/libs6/ftrigr_checksa.lo src/libs6/ftrigr_ack.lo src/libs6/ftrigr_end.lo src/libs6/ftrigr_start.lo src/libs6/ftrigr_startf.lo src/libs6/ftrigr_subscribe.lo src/libs6/ftrigr_unsubscribe.lo src/libs6/ftrigr_update.lo src/libs6/ftrigr_updateb.lo src/libs6/ftrigr_wait_and.lo src/libs6/ftrigr_wait_or.lo src/libs6/ftrigr_zero.lo src/libs6/ftrigw_clean.lo src/libs6/ftrigw_fifodir_make.lo src/libs6/ftrigw_notify.lo src/libs6/ftrigw_notifyb.lo src/libs6/ftrigw_notifyb_nosig.lo src/libs6/s6_accessrules_backend_cdb.lo src/libs6/s6_accessrules_backend_fs.lo src/libs6/s6_accessrules_keycheck_ip4.lo src/libs6/s6_accessrules_keycheck_ip6.lo src/libs6/s6_accessrules_keycheck_reversedns.lo src/libs6/s6_accessrules_keycheck_uidgid.lo src/libs6/s6_accessrules_params_free.lo src/libs6/s6_accessrules_uidgid_cdb.lo src/libs6/s6_accessrules_uidgid_fs.lo src/libs6/s6_compat_el_semicolon.lo src/libs6/s6_dtally_pack.lo src/libs6/s6_dtally_unpack.lo src/libs6/s6_dtally_read.lo src/libs6/s6_dtally_write.lo src/libs6/s6_svc_ok.lo src/libs6/s6_svc_write.lo src/libs6/s6_svc_writectl.lo src/libs6/s6_svstatus_pack.lo src/libs6/s6_svstatus_read.lo src/libs6/s6_svstatus_unpack.lo src/libs6/s6_svstatus_write.lo src/libs6/s6lock_acquire.lo src/libs6/s6lock_check.lo src/libs6/s6lock_end.lo src/libs6/s6lock_release.lo src/libs6/s6lock_start.lo src/libs6/s6lock_startf.lo src/libs6/s6lock_update.lo src/libs6/s6lock_wait_and.lo src/libs6/s6lock_wait_or.lo src/libs6/s6lock_zero.lo src/libs6/s6_fdholder_delete.lo src/libs6/s6_fdholder_delete_async.lo src/libs6/s6_fdholder_end.lo src/libs6/s6_fdholder_getdump.lo src/libs6/s6_fdholder_list.lo src/libs6/s6_fdholder_list_async.lo src/libs6/s6_fdholder_list_cb.lo src/libs6/s6_fdholder_retrieve.lo src/libs6/s6_fdholder_retrieve_async.lo src/libs6/s6_fdholder_retrieve_cb.lo src/libs6/s6_fdholder_setdump.lo src/libs6/s6_fdholder_start.lo src/libs6/s6_fdholder_store.lo src/libs6/s6_fdholder_store_async.lo src/libs6/s6_supervise_link.lo src/libs6/s6_supervise_link_names.lo src/libs6/s6_supervise_unlink.lo
+libs6.a.xyzzy: src/libs6/ftrigr1_zero.lo src/libs6/ftrigr_check.lo src/libs6/ftrigr_checksa.lo src/libs6/ftrigr_ack.lo src/libs6/ftrigr_end.lo src/libs6/ftrigr_start.lo src/libs6/ftrigr_startf.lo src/libs6/ftrigr_subscribe.lo src/libs6/ftrigr_unsubscribe.lo src/libs6/ftrigr_update.lo src/libs6/ftrigr_updateb.lo src/libs6/ftrigr_wait_and.lo src/libs6/ftrigr_wait_or.lo src/libs6/ftrigr_zero.lo src/libs6/ftrigw_clean.lo src/libs6/ftrigw_fifodir_make.lo src/libs6/ftrigw_notify.lo src/libs6/ftrigw_notifyb.lo src/libs6/ftrigw_notifyb_nosig.lo src/libs6/s6_accessrules_backend_cdb.lo src/libs6/s6_accessrules_backend_fs.lo src/libs6/s6_accessrules_keycheck_ip4.lo src/libs6/s6_accessrules_keycheck_ip6.lo src/libs6/s6_accessrules_keycheck_reversedns.lo src/libs6/s6_accessrules_keycheck_uidgid.lo src/libs6/s6_accessrules_params_free.lo src/libs6/s6_accessrules_uidgid_cdb.lo src/libs6/s6_accessrules_uidgid_fs.lo src/libs6/s6_compat_el_semicolon.lo src/libs6/s6_dtally_pack.lo src/libs6/s6_dtally_unpack.lo src/libs6/s6_dtally_read.lo src/libs6/s6_dtally_write.lo src/libs6/s6_svc_ok.lo src/libs6/s6_svc_write.lo src/libs6/s6_svc_writectl.lo src/libs6/s6_svstatus_pack.lo src/libs6/s6_svstatus_read.lo src/libs6/s6_svstatus_unpack.lo src/libs6/s6_svstatus_write.lo src/libs6/s6lock_acquire.lo src/libs6/s6lock_check.lo src/libs6/s6lock_end.lo src/libs6/s6lock_release.lo src/libs6/s6lock_start.lo src/libs6/s6lock_startf.lo src/libs6/s6lock_update.lo src/libs6/s6lock_wait_and.lo src/libs6/s6lock_wait_or.lo src/libs6/s6lock_zero.lo src/libs6/s6_fdholder_delete.lo src/libs6/s6_fdholder_delete_async.lo src/libs6/s6_fdholder_end.lo src/libs6/s6_fdholder_getdump.lo src/libs6/s6_fdholder_list.lo src/libs6/s6_fdholder_list_async.lo src/libs6/s6_fdholder_list_cb.lo src/libs6/s6_fdholder_retrieve.lo src/libs6/s6_fdholder_retrieve_async.lo src/libs6/s6_fdholder_retrieve_cb.lo src/libs6/s6_fdholder_setdump.lo src/libs6/s6_fdholder_start.lo src/libs6/s6_fdholder_store.lo src/libs6/s6_fdholder_store_async.lo src/libs6/s6_supervise_link.lo src/libs6/s6_supervise_link_names.lo src/libs6/s6_supervise_unlink.lo src/libs6/s6_supervise_unlink_names.lo
 endif
 libs6.so.xyzzy: EXTRA_LIBS := -lskarnet
-libs6.so.xyzzy: src/libs6/ftrigr1_zero.lo src/libs6/ftrigr_check.lo src/libs6/ftrigr_checksa.lo src/libs6/ftrigr_ack.lo src/libs6/ftrigr_end.lo src/libs6/ftrigr_start.lo src/libs6/ftrigr_startf.lo src/libs6/ftrigr_subscribe.lo src/libs6/ftrigr_unsubscribe.lo src/libs6/ftrigr_update.lo src/libs6/ftrigr_updateb.lo src/libs6/ftrigr_wait_and.lo src/libs6/ftrigr_wait_or.lo src/libs6/ftrigr_zero.lo src/libs6/ftrigw_clean.lo src/libs6/ftrigw_fifodir_make.lo src/libs6/ftrigw_notify.lo src/libs6/ftrigw_notifyb.lo src/libs6/ftrigw_notifyb_nosig.lo src/libs6/s6_accessrules_backend_cdb.lo src/libs6/s6_accessrules_backend_fs.lo src/libs6/s6_accessrules_keycheck_ip4.lo src/libs6/s6_accessrules_keycheck_ip6.lo src/libs6/s6_accessrules_keycheck_reversedns.lo src/libs6/s6_accessrules_keycheck_uidgid.lo src/libs6/s6_accessrules_params_free.lo src/libs6/s6_accessrules_uidgid_cdb.lo src/libs6/s6_accessrules_uidgid_fs.lo src/libs6/s6_compat_el_semicolon.lo src/libs6/s6_dtally_pack.lo src/libs6/s6_dtally_unpack.lo src/libs6/s6_dtally_read.lo src/libs6/s6_dtally_write.lo src/libs6/s6_svc_ok.lo src/libs6/s6_svc_write.lo src/libs6/s6_svc_writectl.lo src/libs6/s6_svstatus_pack.lo src/libs6/s6_svstatus_read.lo src/libs6/s6_svstatus_unpack.lo src/libs6/s6_svstatus_write.lo src/libs6/s6lock_acquire.lo src/libs6/s6lock_check.lo src/libs6/s6lock_end.lo src/libs6/s6lock_release.lo src/libs6/s6lock_start.lo src/libs6/s6lock_startf.lo src/libs6/s6lock_update.lo src/libs6/s6lock_wait_and.lo src/libs6/s6lock_wait_or.lo src/libs6/s6lock_zero.lo src/libs6/s6_fdholder_delete.lo src/libs6/s6_fdholder_delete_async.lo src/libs6/s6_fdholder_end.lo src/libs6/s6_fdholder_getdump.lo src/libs6/s6_fdholder_list.lo src/libs6/s6_fdholder_list_async.lo src/libs6/s6_fdholder_list_cb.lo src/libs6/s6_fdholder_retrieve.lo src/libs6/s6_fdholder_retrieve_async.lo src/libs6/s6_fdholder_retrieve_cb.lo src/libs6/s6_fdholder_setdump.lo src/libs6/s6_fdholder_start.lo src/libs6/s6_fdholder_store.lo src/libs6/s6_fdholder_store_async.lo src/libs6/s6_supervise_link.lo src/libs6/s6_supervise_link_names.lo src/libs6/s6_supervise_unlink.lo
+libs6.so.xyzzy: src/libs6/ftrigr1_zero.lo src/libs6/ftrigr_check.lo src/libs6/ftrigr_checksa.lo src/libs6/ftrigr_ack.lo src/libs6/ftrigr_end.lo src/libs6/ftrigr_start.lo src/libs6/ftrigr_startf.lo src/libs6/ftrigr_subscribe.lo src/libs6/ftrigr_unsubscribe.lo src/libs6/ftrigr_update.lo src/libs6/ftrigr_updateb.lo src/libs6/ftrigr_wait_and.lo src/libs6/ftrigr_wait_or.lo src/libs6/ftrigr_zero.lo src/libs6/ftrigw_clean.lo src/libs6/ftrigw_fifodir_make.lo src/libs6/ftrigw_notify.lo src/libs6/ftrigw_notifyb.lo src/libs6/ftrigw_notifyb_nosig.lo src/libs6/s6_accessrules_backend_cdb.lo src/libs6/s6_accessrules_backend_fs.lo src/libs6/s6_accessrules_keycheck_ip4.lo src/libs6/s6_accessrules_keycheck_ip6.lo src/libs6/s6_accessrules_keycheck_reversedns.lo src/libs6/s6_accessrules_keycheck_uidgid.lo src/libs6/s6_accessrules_params_free.lo src/libs6/s6_accessrules_uidgid_cdb.lo src/libs6/s6_accessrules_uidgid_fs.lo src/libs6/s6_compat_el_semicolon.lo src/libs6/s6_dtally_pack.lo src/libs6/s6_dtally_unpack.lo src/libs6/s6_dtally_read.lo src/libs6/s6_dtally_write.lo src/libs6/s6_svc_ok.lo src/libs6/s6_svc_write.lo src/libs6/s6_svc_writectl.lo src/libs6/s6_svstatus_pack.lo src/libs6/s6_svstatus_read.lo src/libs6/s6_svstatus_unpack.lo src/libs6/s6_svstatus_write.lo src/libs6/s6lock_acquire.lo src/libs6/s6lock_check.lo src/libs6/s6lock_end.lo src/libs6/s6lock_release.lo src/libs6/s6lock_start.lo src/libs6/s6lock_startf.lo src/libs6/s6lock_update.lo src/libs6/s6lock_wait_and.lo src/libs6/s6lock_wait_or.lo src/libs6/s6lock_zero.lo src/libs6/s6_fdholder_delete.lo src/libs6/s6_fdholder_delete_async.lo src/libs6/s6_fdholder_end.lo src/libs6/s6_fdholder_getdump.lo src/libs6/s6_fdholder_list.lo src/libs6/s6_fdholder_list_async.lo src/libs6/s6_fdholder_list_cb.lo src/libs6/s6_fdholder_retrieve.lo src/libs6/s6_fdholder_retrieve_async.lo src/libs6/s6_fdholder_retrieve_cb.lo src/libs6/s6_fdholder_setdump.lo src/libs6/s6_fdholder_start.lo src/libs6/s6_fdholder_store.lo src/libs6/s6_fdholder_store_async.lo src/libs6/s6_supervise_link.lo src/libs6/s6_supervise_link_names.lo src/libs6/s6_supervise_unlink.lo src/libs6/s6_supervise_unlink_names.lo
 ifeq ($(strip $(STATIC_LIBS_ARE_PIC)),)
 libs6lockd.a.xyzzy: src/libs6/s6lockd_openandlock.o
 else
@@ -247,14 +248,12 @@ s6-supervise: EXTRA_LIBS := -lskarnet ${SYSCLOCK_LIB}
 s6-supervise: src/supervision/s6-supervise.o libs6.a.xyzzy
 s6-svc: EXTRA_LIBS := -lskarnet
 s6-svc: src/supervision/s6-svc.o ${LIBS6}
-s6-svdir-link: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
-s6-svdir-link: src/supervision/s6-svdir-link.o ${LIBS6}
-s6-svdir-unlink: EXTRA_LIBS := -lskarnet
-s6-svdir-unlink: src/supervision/s6-svdir-unlink.o ${LIBS6}
 s6-svdt: EXTRA_LIBS := -lskarnet
 s6-svdt: src/supervision/s6-svdt.o ${LIBS6}
 s6-svdt-clear: EXTRA_LIBS := -lskarnet
 s6-svdt-clear: src/supervision/s6-svdt-clear.o ${LIBS6}
+s6-svlink: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
+s6-svlink: src/supervision/s6-svlink.o ${LIBS6}
 s6-svlisten: EXTRA_LIBS := ${EXECLINE_LIB} -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
 s6-svlisten: src/supervision/s6-svlisten.o src/supervision/s6_svlisten_signal_handler.o src/supervision/s6_svlisten_loop.o ${LIBS6}
 s6-svlisten1: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
@@ -269,6 +268,8 @@ s6-svscanctl: EXTRA_LIBS := -lskarnet
 s6-svscanctl: src/supervision/s6-svscanctl.o ${LIBS6}
 s6-svstat: EXTRA_LIBS := -lskarnet ${SYSCLOCK_LIB}
 s6-svstat: src/supervision/s6-svstat.o ${LIBS6}
+s6-svunlink: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
+s6-svunlink: src/supervision/s6-svunlink.o ${LIBS6}
 s6-svwait: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
 s6-svwait: src/supervision/s6-svwait.o src/supervision/s6_svlisten_loop.o ${LIBS6}
 s6-usertree-maker: EXTRA_LIBS := -lskarnet

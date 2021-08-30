@@ -11,8 +11,6 @@ s6-mkfifodir \
 s6-svscan \
 s6-supervise \
 s6-svc \
-s6-svdir-link \
-s6-svdir-unlink \
 s6-svscanctl \
 s6-svok \
 s6-svstat \
@@ -23,6 +21,8 @@ s6-svwait \
 s6-svlisten1 \
 s6-svlisten \
 s6-svperms \
+s6-svlink \
+s6-svunlink \
 s6-notifyoncheck \
 s6-envdir \
 s6-envuidgid \

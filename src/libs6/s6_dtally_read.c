@@ -7,7 +7,7 @@
 #include <skalibs/allreadwrite.h>
 #include <skalibs/tai.h>
 #include <skalibs/djbunix.h>
-#include <s6/s6-supervise.h>
+#include <s6/supervise.h>
 
 static int truncit (char const *s)
 {

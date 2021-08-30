@@ -65,4 +65,5 @@ s6_fdholder_store_async.o
 s6_supervise_link.o
 s6_supervise_link_names.o
 s6_supervise_unlink.o
+s6_supervise_unlink_names.o
 -lskarnet

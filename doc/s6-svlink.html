@@ -1,0 +1,111 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-svlink program</title>
+    <meta name="Description" content="s6: the s6-svlink program" />
+    <meta name="Keywords" content="s6 command s6-svlink supervision service start scandir servicedir" />
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-svlink program </h1>
+
+<p>
+ <tt>s6-svlink</tt> creates, in a <a href="scandir.html">scan
+directory</a>, a symlink to a <a href="servicedir.html">service
+directory</a>, and notifies <a href="s6-svscan.html">s6-svscan</a>
+that a new service has been registered. It waits until a
+<a href="s6-supervise.html">s6-supervise</a> supervisor process has
+been spawned to manage the new service, then exits.
+</p>
+
+<p>
+ The point of <tt>s6-svlink</tt> is to help integrate existing
+service directories into an existing service manager sequence and
+eliminating race conditions.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-svlink [ -d | -D ] [ -P ] [ -f ] [ -t <em>timeout</em> ] <em>scandir</em> <em>servicedir</em> [ <em>name</em> ]
+</pre>
+
+<ul>
+ <li> <tt>s6-svlink</tt> expects a running <a href="s6-svscan.html">s6-svscan</a>
+process on <em>scandir</em> and a fully functional, but unsupervised,
+<a href="servicedir.html">service directory</a> in <em>servicedir</em>. </li>
+ <li> It symlinks <em>servicedir</em> into <em>scandir</em>. The symbolic link
+is named <em>name</em>; if no <em>name</em> argument has been given, the name given
+to the symbolic link is the basename of <em>servicedir</em>. </li>
+ <li> It sends a command to <a href="s6-svscan.html">s6-svscan</a> to signal it
+that a new service is available. </li>
+ <li> It waits for a <a href="s6-supervise.html">s6-supervise</a> process to be
+spawned on <em>servicedir</em>. </li>
+ <li> It exits 0. </li>
+</ul>
+
+<h2> Exit codes </h2>
+
+<ul>
+ <li> 0: success </li>
+ <li> 99: timeout while waiting for the supervisor to start </li>
+ <li> 100: wrong usage </li>
+ <li> 111: system call failed </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-d</tt>&nbsp;: down. The supervisor will be started, but the service
+itself will remain down. Any <em>servicedir</em><tt>/down</tt> file will be
+deleted. By default, if neither the <tt>-d</tt> nor <tt>-D</tt> options have
+been given, the supervisor auto-starts the service as soon as it runs. </li>
+ <li> <tt>-D</tt>&nbsp;: down, and stay down. The supervisor will be started,
+but the service itself will remain down. A <em>servicedir</em><tt>/down</tt> file
+will be created. By default, if neither the <tt>-d</tt> nor <tt>-D</tt> options have
+been given, the supervisor auto-starts the service as soon as it runs. </li>
+ <li> <tt>-P</tt>&nbsp;: public. If <em>servicedir</em><tt>/event</tt> does not
+exist, it will be created as public, i.e. anyone will be able to subscribe to
+this <a href="fifodir.html">fifodir</a>. By default, it will be created as private,
+i.e. only processes running with the same gid as the <a href="s6-svscan.html">s6-svscan</a>
+process will be able to susbscribe to it. </li>
+ <li> <tt>-f</tt>&nbsp;: force permissions. The presence or absence of the <tt>-P</tt>
+option (i.e. the public or private state of <em>servicedir</em><tt>/event</tt>) will be
+enforced even if <em>servicedir</em><tt>/event</tt> already exists. By default,
+<tt>s6-svlink</tt> exits with an error message if <em>servicedir</em><tt>/event</tt>
+exists and its public/private state mismatches what is requested. </li>
+ <li> <tt>-t&nbsp;<em>timeout</em></tt>&nbsp;: if the supervisor has not started
+after <em>timeout</em> milliseconds, <tt>s6-svlink</tt> will print a message
+to stderr and exit 99. By default, <em>timeout</em> is 0, which means no time
+limit. </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> Using <tt>s6-svlink</tt> to start services is a suboptimal pattern: it
+requires precise manipulations involving use of <a href="s6-ftrigrd.html">s6-ftrigrd</a>
+in order to avoid race conditions, so it is relatively expensive. The simpler,
+more efficient pattern is to have all the supervisors already started at boot
+time, so the existence of the supervisor can be relied on, and starting the
+service becomes a trival and instant operation - this is, for instance, how
+the <a href="//skarnet.org/software/s6-rc/">s6-rc</a> service manager behaves.
+However, it can be difficult to implement this pattern with other services
+managers such as OpenRC; in those cases, <tt>s6-svlink</tt>, which starts the
+supervisors one at a time, can be used instead. </li>
+ <li> If <em>servicedir</em> is logged, i.e. <em>servicedir</em><tt>/log</tt>
+is also a valid service directory, then <tt>s6-svlink</tt> will wait until
+supervisors have been spawned for both the service and its logger. </li>
+</ul>
+
+</body>
+</html>

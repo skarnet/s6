@@ -1,13 +1,15 @@
 /* ISC license. */
 
-#ifndef S6LOCK_H
-#define S6LOCK_H
+#ifndef S6_LOCK_H
+#define S6_LOCK_H
 
 #include <stdint.h>
+
 #include <skalibs/tai.h>
 #include <skalibs/genalloc.h>
 #include <skalibs/gensetdyn.h>
 #include <skalibs/textclient.h>
+
 #include <s6/config.h>
 
 

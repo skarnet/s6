@@ -8,7 +8,7 @@
 #include <skalibs/stralloc.h>
 #include <skalibs/djbunix.h>
 #include <s6/ftrigr.h>
-#include <s6/s6-supervise.h>
+#include <s6/supervise.h>
 #include "s6-svlisten.h"
 
 void s6_svlisten_init (int argc, char const *const *argv, s6_svlisten_t *foo, uint16_t *ids, unsigned char *upstate, unsigned char *readystate, tain const *deadline)

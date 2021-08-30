@@ -3,7 +3,7 @@
 #include <skalibs/djbunix.h>
 #include <skalibs/socket.h>
 
-#include <s6/s6-fdholder.h>
+#include <s6/fdholder.h>
 
 int s6_fdholder_start (s6_fdholder_t *a, char const *path, tain const *deadline, tain *stamp)
 {

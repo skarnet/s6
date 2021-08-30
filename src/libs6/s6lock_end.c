@@ -4,7 +4,7 @@
 #include <skalibs/genalloc.h>
 #include <skalibs/gensetdyn.h>
 #include <skalibs/textclient.h>
-#include <s6/s6lock.h>
+#include <s6/lock.h>
 
 void s6lock_end (s6lock_t *a)
 {

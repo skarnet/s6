@@ -1,7 +1,7 @@
 /* ISC license. */
 
 #include <skalibs/tai.h>
-#include <s6/s6-supervise.h>
+#include <s6/supervise.h>
 
 void s6_dtally_pack (char *pack, s6_dtally_t const *d)
 {

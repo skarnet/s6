@@ -5,7 +5,7 @@
 #include <skalibs/sgetopt.h>
 #include <skalibs/tai.h>
 #include <skalibs/genalloc.h>
-#include <s6/s6-fdholder.h>
+#include <s6/fdholder.h>
 
 #define USAGE "s6-fdholder-transferdump [ -t timeoutfrom:timeoutto ] socketfrom socketto"
 #define dieusage() strerr_dieusage(100, USAGE)

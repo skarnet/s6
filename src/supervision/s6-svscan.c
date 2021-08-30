@@ -22,7 +22,7 @@
 #include <skalibs/exec.h>
 
 #include <s6/config.h>
-#include <s6/s6-supervise.h>
+#include <s6/supervise.h>
 
 #define USAGE "s6-svscan [ -c maxservices ] [ -t timeout ] [ -d notif ] [ -X consoleholder ] [ dir ]"
 #define dieusage() strerr_dieusage(100, USAGE)

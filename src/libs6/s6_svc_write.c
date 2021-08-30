@@ -3,7 +3,7 @@
 #include <errno.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/djbunix.h>
-#include <s6/s6-supervise.h>
+#include <s6/supervise.h>
 
 int s6_svc_write (char const *fifo, char const *data, size_t datalen)
 {

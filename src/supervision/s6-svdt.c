@@ -6,7 +6,7 @@
 #include <skalibs/strerr2.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/sig.h>
-#include <s6/s6-supervise.h>
+#include <s6/supervise.h>
 
 #define USAGE "s6-svdt [ -S | -s ] [ -n maxentries ] servicedir"
 #define dieusage() strerr_dieusage(100, USAGE)

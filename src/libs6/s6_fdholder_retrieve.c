@@ -4,7 +4,7 @@
 #include <skalibs/allreadwrite.h>
 #include <skalibs/tai.h>
 #include <skalibs/unixmessage.h>
-#include <s6/s6-fdholder.h>
+#include <s6/fdholder.h>
 
 int s6_fdholder_retrieve_maybe_delete (s6_fdholder_t *a, char const *id, int dodelete, tain const *deadline, tain *stamp)
 {

@@ -13,7 +13,7 @@
 #include <skalibs/sig.h>
 #include <skalibs/tai.h>
 #include <skalibs/djbunix.h>
-#include <s6/s6-supervise.h>
+#include <s6/supervise.h>
 
 #define USAGE "s6-svstat [ -uwNrpest | -o up,wantedup,normallyup,ready,paused,pid,exitcode,signal,signum,updownsince,readysince,updownfor,readyfor ] [ -n ] servicedir"
 #define dieusage() strerr_dieusage(100, USAGE)
@@ -35,7 +35,7 @@ struct funcmap_s
 
 static void pr_up (buffer *b, s6_svstatus_t const *st)
 {
-  buffer_putsnoflush(b, st->pid && !st->flagfinishing ? st->flagthrottled ? "throttled" : "true" : "false") ;
+  buffer_putsnoflush(b, st->pid && !st->flagfinishing ? "true" : "false") ;
 }
 
 static void pr_wantedup (buffer *b, s6_svstatus_t const *st)
@@ -210,8 +210,6 @@ static void legacy (s6_svstatus_t *st, int flagnum)
   buffer_putnoflush(buffer_1small, fmt, uint64_fmt(fmt, status.stamp.sec.x)) ;
   buffer_putnoflush(buffer_1small, " seconds", 8) ;
 
-  if (isup && status.flagthrottled)
-    buffer_putnoflush(buffer_1small, ", throttled", 11) ;
   if (isup && !normallyup)
     buffer_putnoflush(buffer_1small, ", normally down", 15) ;
   if (!isup && normallyup)

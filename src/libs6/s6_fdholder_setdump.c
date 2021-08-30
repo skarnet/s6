@@ -12,7 +12,7 @@
 #include <skalibs/tai.h>
 #include <skalibs/unixmessage.h>
 
-#include <s6/s6-fdholder.h>
+#include <s6/fdholder.h>
 
 #include <skalibs/posixishard.h>
 

@@ -7,7 +7,7 @@
 #include <skalibs/djbunix.h>
 #include <skalibs/exec.h>
 
-#include <s6/s6-fdholder.h>
+#include <s6/fdholder.h>
 
 #define USAGE "s6-fdholder-retrieve [ -D ] [ -t timeout ] socket id prog..."
 #define dieusage() strerr_dieusage(100, USAGE)

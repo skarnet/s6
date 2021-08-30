@@ -9,7 +9,7 @@
 #include <skalibs/tai.h>
 #include <skalibs/gensetdyn.h>
 #include <skalibs/textclient.h>
-#include <s6/s6lock.h>
+#include <s6/lock.h>
 
 int s6lock_acquire (s6lock_t *a, uint16_t *u, char const *path, uint32_t options, tain const *limit, tain const *deadline, tain *stamp)
 {

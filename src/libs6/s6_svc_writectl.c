@@ -7,7 +7,7 @@
 #include <string.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/unix-transactional.h>
-#include <s6/s6-supervise.h>
+#include <s6/supervise.h>
 
 int s6_svc_writectl (char const *service, char const *subdir, char const *s, size_t len)
 {

@@ -10,7 +10,7 @@
 #include <skalibs/gensetdyn.h>
 #include <skalibs/textclient.h>
 
-#include <s6/s6lock.h>
+#include <s6/lock.h>
 
 #include <skalibs/posixishard.h>
 

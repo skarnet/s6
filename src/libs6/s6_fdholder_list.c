@@ -5,7 +5,7 @@
 #include <skalibs/error.h>
 #include <skalibs/tai.h>
 #include <skalibs/unixmessage.h>
-#include <s6/s6-fdholder.h>
+#include <s6/fdholder.h>
 
 int s6_fdholder_list (s6_fdholder_t *a, stralloc *sa, tain const *deadline, tain *stamp)
 {

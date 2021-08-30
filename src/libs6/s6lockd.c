@@ -20,7 +20,7 @@
 #include <skalibs/textmessage.h>
 #include <skalibs/textclient.h>
 
-#include <s6/s6lock.h>
+#include <s6/lock.h>
 
 #define USAGE "s6lockd lockdir"
 #define X() strerr_dief1x(101, "internal inconsistency, please submit a bug-report.")

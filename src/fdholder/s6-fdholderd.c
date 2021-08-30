@@ -32,7 +32,7 @@
 #include <skalibs/unixconnection.h>
 
 #include <s6/accessrules.h>
-#include <s6/s6-fdholder.h>
+#include <s6/fdholder.h>
 
 #include <skalibs/posixishard.h>
 
