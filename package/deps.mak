@@ -138,7 +138,7 @@ src/supervision/s6-svscanctl.o src/supervision/s6-svscanctl.lo: src/supervision/
 src/supervision/s6-svstat.o src/supervision/s6-svstat.lo: src/supervision/s6-svstat.c src/include/s6/supervise.h
 src/supervision/s6-svunlink.o src/supervision/s6-svunlink.lo: src/supervision/s6-svunlink.c src/include/s6/supervise.h
 src/supervision/s6-svwait.o src/supervision/s6-svwait.lo: src/supervision/s6-svwait.c src/supervision/s6-svlisten.h
-src/supervision/s6_svlisten_loop.o src/supervision/s6_svlisten_loop.lo: src/supervision/s6_svlisten_loop.c src/supervision/s6-svlisten.h src/include/s6/ftrigr.h src/include/s6/supervise.h
+src/supervision/s6_svlisten_loop.o src/supervision/s6_svlisten_loop.lo: src/supervision/s6_svlisten_loop.c src/supervision/s6-svlisten.h src/include/s6/ftrigr.h src/include/s6/ftrigw.h src/include/s6/supervise.h
 src/supervision/s6_svlisten_signal_handler.o src/supervision/s6_svlisten_signal_handler.lo: src/supervision/s6_svlisten_signal_handler.c src/supervision/s6-svlisten.h
 src/usertree/s6-usertree-maker.o src/usertree/s6-usertree-maker.lo: src/usertree/s6-usertree-maker.c src/include/s6/config.h
 

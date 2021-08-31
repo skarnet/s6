@@ -1,18 +1,23 @@
 /* ISC license. */
 
 #include <string.h>
+#include <unistd.h>
+
 #include <skalibs/bytestr.h>
 #include <skalibs/bitarray.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/iopause.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/djbunix.h>
+
+#include <s6/ftrigw.h>
 #include <s6/ftrigr.h>
 #include <s6/supervise.h>
 #include "s6-svlisten.h"
 
 void s6_svlisten_init (int argc, char const *const *argv, s6_svlisten_t *foo, uint16_t *ids, unsigned char *upstate, unsigned char *readystate, tain const *deadline)
 {
+  gid_t gid = getegid() ;
   unsigned int i = 0 ;
   foo->n = (unsigned int)argc ;
   foo->ids = ids ;
@@ -27,6 +32,7 @@ void s6_svlisten_init (int argc, char const *const *argv, s6_svlisten_t *foo, ui
     memcpy(s, argv[i], len) ;
     s[len] = '/' ;
     memcpy(s + len + 1, S6_SUPERVISE_EVENTDIR, sizeof(S6_SUPERVISE_EVENTDIR)) ;
+    ftrigw_fifodir_make(s, gid, 0) ;
     foo->ids[i] = ftrigr_subscribe_g(&foo->a, s, "[DuUdOx]", FTRIGR_REPEAT, deadline) ;
     if (!foo->ids[i]) strerr_diefu2sys(111, "subscribe to events for ", argv[i]) ;
     if (!s6_svstatus_read(argv[i], &status)) strerr_diefu1sys(111, "s6_svstatus_read") ;
