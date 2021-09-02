@@ -11,8 +11,8 @@ s6-mkfifodir			0755
 s6-svscan			0755
 s6-supervise			0755
 s6-svc				0755
-s6-svdir-link			0755
-s6-svdir-unlink			0755
+s6-svlink			0755
+s6-svunlink			0755
 s6-svscanctl			0755
 s6-svok				0755
 s6-svstat			0755
