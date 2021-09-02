@@ -31,7 +31,7 @@ struct s6lock_s
 {
   textclient connection ;
   genalloc list ; /* array of uint16_t */
-  gensetdyn data ; /* set of char */
+  gensetdyn data ; /* set of unsigned char */
 } ;
 #define S6LOCK_ZERO { .connection = TEXTCLIENT_ZERO, .list = GENALLOC_ZERO, .data = GENSETDYN_INIT(int, 2, 0, 1) }
 extern s6lock_t const s6lock_zero ;

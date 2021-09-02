@@ -34,7 +34,7 @@ int s6_fdholder_setdump (s6_fdholder_t *a, s6_fdholder_fd_t const *list, unsigne
     if (!unixmessage_sender_timed_flush(&a->connection.out, deadline, stamp)) return 0 ;
     if (sanitize_read(unixmessage_timed_receive(&a->connection.in, &m, deadline, stamp)) < 0) return 0 ;
     if (!m.len || m.nfds) { unixmessage_drop(&m) ; return (errno = EPROTO, 0) ; }
-    if (m.s[0]) return (errno = m.s[0], 0) ;
+    if (m.s[0]) return (errno = (unsigned char)m.s[0], 0) ;
     if (m.len != 5) return (errno = EPROTO, 0) ;
     uint32_unpack_big(m.s + 1, &trips) ;
     if (trips != 1 + (ntot-1) / UNIXMESSAGE_MAXFDS) return (errno = EPROTO, 0) ;
@@ -71,10 +71,10 @@ int s6_fdholder_setdump (s6_fdholder_t *a, s6_fdholder_fd_t const *list, unsigne
         unixmessage_drop(&m) ;
         return (errno = EPROTO, 0) ;
       }
-      if (!error_isagain(m.s[0]) && i < trips-1)
-        return errno = m.s[0] ? m.s[0] : EPROTO, 0 ;
+      if (!error_isagain((unsigned char)m.s[0]) && i < trips-1)
+        return errno = m.s[0] ? (unsigned char)m.s[0] : EPROTO, 0 ;
       if (i == trips - 1 && m.s[0])
-        return errno = error_isagain(m.s[0]) ? EPROTO : m.s[0], 0 ;
+        return errno = error_isagain((unsigned char)m.s[0]) ? EPROTO : (unsigned char)m.s[0], 0 ;
     }
   }
   return 1 ;

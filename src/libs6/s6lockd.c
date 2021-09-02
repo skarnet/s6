@@ -56,7 +56,7 @@ static void cleanup (void)
   genalloc_setlen(s6lockio_t, &a, 0) ;
 }
  
-static void trig (uint16_t id, char e)
+static void trig (uint16_t id, unsigned char e)
 {
   char pack[3] ;
   uint16_pack_big(pack, id) ;
@@ -68,9 +68,9 @@ static void trig (uint16_t id, char e)
   }
 }
 
-static void answer (char c)
+static void answer (unsigned char c)
 {
-  if (!textmessage_put(textmessage_sender_1, &c, 1))
+  if (!textmessage_put(textmessage_sender_1, (char *)&c, 1))
   {
     cleanup() ;
     strerr_diefu1sys(111, "textmessage_put") ;

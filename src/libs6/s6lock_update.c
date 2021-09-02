@@ -18,11 +18,11 @@ static int msghandler (struct iovec const *v, void *context)
 {
   s6lock_t *a = (s6lock_t *)context ;
   char const *s = v->iov_base ;
-  char *p ;
+  unsigned char *p ;
   uint16_t id ;
   if (v->iov_len != 3) return (errno = EPROTO, 0) ;
   uint16_unpack_big(s, &id) ;
-  p = GENSETDYN_P(char, &a->data, id) ;
+  p = GENSETDYN_P(unsigned char, &a->data, id) ;
   if (*p == EBUSY) *p = s[2] ;
   else if (error_isagain(*p)) *p = s[2] ? s[2] : EBUSY ;
   else return (errno = EPROTO, 0) ;

@@ -26,7 +26,7 @@ int s6_fdholder_getdump (s6_fdholder_t *a, genalloc *g, tain const *deadline, ta
   if (!unixmessage_sender_timed_flush(&a->connection.out, deadline, stamp)) return 0 ;
   if (sanitize_read(unixmessage_timed_receive(&a->connection.in, &m, deadline, stamp)) < 0) return 0 ;
   if (!m.len || m.nfds) return (errno = EPROTO, 0) ;
-  if (m.s[0]) return (errno = m.s[0], 0) ;
+  if (m.s[0]) return (errno = (unsigned char)m.s[0], 0) ;
   if (m.len != 9) return (errno = EPROTO, 0) ;
   uint32_unpack_big(m.s + 1, &n) ;
   uint32_unpack_big(m.s + 5, &ntot) ;

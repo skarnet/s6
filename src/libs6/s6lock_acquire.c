@@ -35,7 +35,7 @@ int s6lock_acquire (s6lock_t *a, uint16_t *u, char const *path, uint32_t options
     errno = e ;
     return 0 ;
   }
-  *GENSETDYN_P(char, &a->data, i) = EAGAIN ;
+  *GENSETDYN_P(unsigned char, &a->data, i) = EAGAIN ;
   *u = i ;
   return 1 ;
 }

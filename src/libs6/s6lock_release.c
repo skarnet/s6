@@ -9,7 +9,7 @@
 
 int s6lock_release (s6lock_t *a, uint16_t i, tain const *deadline, tain *stamp)
 {
-  char *p = GENSETDYN_P(char, &a->data, i) ;
+  unsigned char *p = GENSETDYN_P(unsigned char, &a->data, i) ;
   char pack[3] = "-->" ;
   if ((*p != EBUSY) && !error_isagain(*p))
   {

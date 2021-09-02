@@ -7,7 +7,7 @@
 
 int s6lock_check (s6lock_t *a, uint16_t id)
 {
-  char *p = GENSETDYN_P(char, &a->data, id) ;
+  unsigned char *p = GENSETDYN_P(unsigned char, &a->data, id) ;
   switch (*p)
   {
     case EBUSY : return 1 ;

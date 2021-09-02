@@ -21,5 +21,5 @@ int s6_fdholder_delete (s6_fdholder_t *a, char const *id, tain const *deadline, 
     unixmessage_drop(&m) ;
     return (errno = EPROTO, 0) ;
   }
-  return m.s[0] ? (errno = m.s[0], 0) : 1 ;
+  return m.s[0] ? (errno = (unsigned char)m.s[0], 0) : 1 ;
 }
