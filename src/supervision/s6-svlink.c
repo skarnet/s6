@@ -107,6 +107,7 @@ int main (int argc, char const *const *argv)
   if (!name[0] || name[0] == '.' || name[0] == '/')
     strerr_dief1x(100, "invalid name") ;
   checkscandir(argv[0]) ;
+  checkservicedir(argv[1]) ;
 
   tain_now_set_stopwatch_g() ;
   tain_add_g(&tto, &tto) ;
