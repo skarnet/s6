@@ -84,6 +84,11 @@ situations that are nominal failures. For instance, it returns 0 even
 if its timeout expires; the rationale is that there is no sensible action
 for the user to do if this error is reported. <tt>s6-svunlink</tt> only
 reports errors when they uncover a deeper problem in the system. </li>
+ <li> <tt>s6-svunlink</tt> sends a <a href="s6-svscanctl.html">s6-svscanctl -an</a>
+command to <em>scandir</em>, which means that the system's view of services
+will be refreshed and inactive services will be killed and unsupervised.
+Depending on what links exist in <em>scandir</em>, new
+services may appear, and other services than <em>name</em> may disappear. </li>
 </ul>
 
 </body>

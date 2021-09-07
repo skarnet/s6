@@ -42,7 +42,7 @@ static inline void checkservicedir (char const *s)
   size_t len = strlen(s) ;
   char fn[len + 9] ;
   memcpy(fn, s, len) ;
-  memcpy(fn + len, "/run", 4) ;
+  memcpy(fn + len, "/run", 5) ;
   if (stat(fn, &st) == -1) strerr_diefu2sys(111, "stat ", fn) ;
   if (!(st.st_mode & S_IXUSR)) strerr_dief2x(100, fn, " is not executable") ;
   r = s6_svc_ok(s) ;

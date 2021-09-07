@@ -105,6 +105,10 @@ supervisors one at a time, can be used instead. </li>
  <li> If <em>servicedir</em> is logged, i.e. <em>servicedir</em><tt>/log</tt>
 is also a valid service directory, then <tt>s6-svlink</tt> will wait until
 supervisors have been spawned for both the service and its logger. </li>
+ <li> <tt>s6-svlink</tt> sends a <a href="s6-svscanctl.html">s6-svscanctl -a</a>
+command to <em>scandir</em>, which means that the system's view of services
+will be refreshed. Depending on what links exist in <em>scandir</em>, other
+services than <em>servicedir</em> may also appear. </li>
  <li> The symmetrical program to <tt>s6-svlink</tt> is named
 <a href="s6-svunlink.html">s6-svunlink</a>. </li>
 </ul>
