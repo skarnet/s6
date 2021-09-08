@@ -10,14 +10,14 @@
 
 #include <s6/supervise.h>
 
-#define USAGE "s6-svdir-unlink [ -X ] [ -t timeout ] scandir servicename"
+#define USAGE "s6-svunlink [ -X ] [ -t timeout ] scandir servicename"
 #define dieusage() strerr_dieusage(100, USAGE)
 
 int main (int argc, char const *const *argv)
 {
   tain tto = TAIN_INFINITE_RELATIVE ;
   uint32_t options = 1 ;
-  PROG = "s6-svdir-link" ;
+  PROG = "s6-svunlink" ;
   {
     unsigned int t = 0 ;
     subgetopt l = SUBGETOPT_ZERO ;
