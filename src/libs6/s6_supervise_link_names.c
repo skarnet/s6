@@ -128,6 +128,7 @@ int s6_supervise_link_names (char const *scdir, char const *const *servicedirs, 
     }
     stralloc_free(&rpsa) ;
     r = s6_svc_writectl(scdir, S6_SVSCAN_CTLDIR, "a", 1) ;
+    if (!r) errno = ENXIO ;
     if (r <= 0) goto errsa ;
     killopts = 3 ;
     if (ftrigr_wait_and(&a, ids, m, deadline, stamp) < 0) goto errsa ;
