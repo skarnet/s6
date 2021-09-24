@@ -37,8 +37,10 @@ static void closeit (unsigned int i, unsigned int j)
 {
   if (a[i][j].flagsocket)
   {
+    char fmt[UINT_FMT] ;
+    fmt[uint_fmt(fmt, a[i][j].fd)] = 0 ;
     if ((shutdown(a[i][j].fd, j) < 0) && (errno != ENOTSOCK) && (errno != ENOTCONN))
-      strerr_warnwu4sys("shutdown ", i ? "incoming" : "outgoing", " socket for ", j ? "writing" : "reading") ;
+      strerr_warnwu4sys("shutdown fd ", fmt, " for ", j ? "writing" : "reading") ;
   }
   fd_close(a[i][j].fd) ;
   a[i][j].flagopen = 0 ;
@@ -158,8 +160,10 @@ int main (int argc, char const *const *argv)
       {
         if (!iobuffer_isempty(&b[i]))
         {
+          char fmt[UINT_FMT] ;
+          fmt[uint_fmt(fmt, a[i][1].fd)] = 0 ;
           iobuffer_flush(&b[i]) ; /* sets errno */
-          strerr_warnwu3sys("write ", i ? "incoming" : "outgoing", " data") ;
+          strerr_warnwu2sys("write to fd ", fmt) ;
         }
         closeit(i, 0) ; finishit(i) ;
       }
@@ -171,7 +175,12 @@ int main (int argc, char const *const *argv)
       {
         if (sanitize_read(iobuffer_fill(&b[i])) < 0)
         {
-          if (errno != EPIPE) strerr_warnwu3sys("read ", i ? "incoming" : "outgoing", " data") ;
+          if (errno != EPIPE)
+          {
+            char fmt[UINT_FMT] ;
+            fmt[uint_fmt(fmt, a[i][0].fd)] = 0 ;
+            strerr_warnwu2sys("read from fd ", fmt) ;
+          }
           x[a[i][0].xindex].revents |= IOPAUSE_EXCEPT ;
         }
       }
