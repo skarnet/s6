@@ -29,7 +29,7 @@ struct ioblah_s
   unsigned int flagopen : 1 ;
 } ;
 
-static ioblah_t a[2][2] = { { { 0, 4, 0, 1 }, { 7, 4, 0, 1 } }, { { 6, 4, 0, 1 }, { 1, 4, 0, 1 } } } ;
+static ioblah_t a[2][2] = { { { 0, 5, 0, 1 }, { 7, 5, 0, 1 } }, { { 6, 5, 0, 1 }, { 1, 5, 0, 1 } } } ;
 static iobuffer b[2] ;
 static iopause_fd x[5] = { { -1, IOPAUSE_READ, 0 } } ;
 
@@ -123,22 +123,22 @@ int main (int argc, char const *const *argv)
     tain_add_g(&deadline, iobuffer_isempty(&b[0]) && iobuffer_isempty(&b[1]) ? &tto : &tain_infinite_relative) ;
     for (i = 0 ; i < 2 ; i++)
     {
-      a[i][0].xindex = 5 ;
       if (a[i][0].flagopen && iobuffer_isreadable(&b[i]))
       {
         x[xlen].fd = a[i][0].fd ;
         x[xlen].events = IOPAUSE_READ ;
         a[i][0].xindex = xlen++ ;
       }
-      a[i][1].xindex = 5 ;
+      else a[i][0].xindex = 5 ;
       if (a[i][1].flagopen)
       {
         x[xlen].fd = a[i][1].fd ;
         x[xlen].events = IOPAUSE_EXCEPT | (iobuffer_isempty(&b[i]) ? 0 : IOPAUSE_WRITE) ;
         a[i][1].xindex = xlen++ ;
       }
+      else a[i][1].xindex = 5 ;
     }
-    if (xlen <= 1) break ;
+    if (xlen == 1 || (xlen == 2 && (x[1].fd == a[0][0].fd || x[1].fd == a[1][0].fd))) break ;
 
     r = iopause_g(x, xlen, &deadline) ;
     if (r < 0) strerr_diefu1sys(111, "iopause") ;
@@ -148,14 +148,7 @@ int main (int argc, char const *const *argv)
 
     for (i = 0 ; i < 2 ; i++) if (a[i][1].xindex < 5)
     {
-      if (x[a[i][1].xindex].revents & IOPAUSE_WRITE)
-      {
-        if (!iobuffer_flush(&b[i]))
-        {
-          if (!error_isagain(errno)) x[a[i][1].xindex].revents |= IOPAUSE_EXCEPT ;
-        }
-        else if (!a[i][0].flagopen) finishit(i) ;
-      }
+      int dead = 0 ;
       if (x[a[i][1].xindex].revents & IOPAUSE_EXCEPT)
       {
         if (!iobuffer_isempty(&b[i]))
@@ -165,13 +158,26 @@ int main (int argc, char const *const *argv)
           iobuffer_flush(&b[i]) ; /* sets errno */
           strerr_warnwu2sys("write to fd ", fmt) ;
         }
-        closeit(i, 0) ; finishit(i) ;
+        dead = 1 ;
+      }
+      else if (x[a[i][1].xindex].revents & IOPAUSE_WRITE)
+      {
+        if (!iobuffer_flush(&b[i]))
+        {
+          if (!error_isagain(errno)) dead = 1 ;
+        }
+        else if (!a[i][0].flagopen) dead = 1 ;
+      }
+      if (dead)
+      {
+        if (!a[i][0].flagopen) closeit(i, 0) ;
+        finishit(i) ;
       }
     }
 
     for (i = 0 ; i < 2 ; i++) if (a[i][0].xindex < 5)
     {
-      if (x[a[i][0].xindex].revents & IOPAUSE_READ)
+      if (x[a[i][0].xindex].revents & (IOPAUSE_READ | IOPAUSE_EXCEPT))
       {
         if (sanitize_read(iobuffer_fill(&b[i])) < 0)
         {
@@ -181,13 +187,9 @@ int main (int argc, char const *const *argv)
             fmt[uint_fmt(fmt, a[i][0].fd)] = 0 ;
             strerr_warnwu2sys("read from fd ", fmt) ;
           }
-          x[a[i][0].xindex].revents |= IOPAUSE_EXCEPT ;
+          closeit(i, 0) ;
+          if (iobuffer_isempty(&b[i])) finishit(i) ;
         }
-      }
-      if (x[a[i][0].xindex].revents & IOPAUSE_EXCEPT)
-      {
-        closeit(i, 0) ;
-        if (iobuffer_isempty(&b[i])) finishit(i) ;
       }
     }
   }

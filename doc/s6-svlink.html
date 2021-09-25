@@ -48,7 +48,7 @@ is named <em>name</em>; if no <em>name</em> argument has been given, the name gi
 to the symbolic link is the basename of <em>servicedir</em>. </li>
  <li> It sends a command to <a href="s6-svscan.html">s6-svscan</a> to signal it
 that a new service is available. </li>
- <li> It waits for a <a href="s6-supervise.html">s6-supervise</a> process to be
+ <li> It waits for an <a href="s6-supervise.html">s6-supervise</a> process to be
 spawned on <em>servicedir</em>. </li>
  <li> It exits 0. </li>
 </ul>
@@ -105,7 +105,7 @@ supervisors one at a time, can be used instead. </li>
  <li> If <em>servicedir</em> is logged, i.e. <em>servicedir</em><tt>/log</tt>
 is also a valid service directory, then <tt>s6-svlink</tt> will wait until
 supervisors have been spawned for both the service and its logger. </li>
- <li> <tt>s6-svlink</tt> sends a <a href="s6-svscanctl.html">s6-svscanctl -a</a>
+ <li> <tt>s6-svlink</tt> sends an <a href="s6-svscanctl.html">s6-svscanctl -a</a>
 command to <em>scandir</em>, which means that the system's view of services
 will be refreshed. Depending on what links exist in <em>scandir</em>, other
 services than <em>servicedir</em> may also appear. </li>

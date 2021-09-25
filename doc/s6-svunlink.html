@@ -65,14 +65,14 @@ managing the service directory to exit. </li>
  <li> <tt>-X</tt>&nbsp;: don't wait. <tt>s6-svunlink</tt> will exit right
 away, without waiting for the supervisor to exit first. </li>
  <li> <tt>-t&nbsp;<em>timeout</em></tt>&nbsp;: if the supervisor has not exited
-after <em>timeout</em> milliseconds, <tt>s6-svlink</tt> will still exit.
-The default is 0, meaning no time limit.. </li>
+after <em>timeout</em> milliseconds, <tt>s6-svunlink</tt> will still exit.
+The default is 0, meaning no time limit. </li>
 </ul>
 
 <h2> Notes </h2>
 
 <ul>
- <li> Using <tt>s6-svlink</tt> to stop services is a suboptimal pattern:
+ <li> Using <tt>s6-svunlink</tt> to stop services is a suboptimal pattern:
 starting and stopping supervisors is a heavier operation than just stopping
 services. The simpler, more efficient pattern is to simply perform
 <a href="s6-svc.html">s6-svc -dwD <em>scandir</em><tt>/</tt><em>name</em></a>,
@@ -84,7 +84,7 @@ situations that are nominal failures. For instance, it returns 0 even
 if its timeout expires; the rationale is that there is no sensible action
 for the user to do if this error is reported. <tt>s6-svunlink</tt> only
 reports errors when they uncover a deeper problem in the system. </li>
- <li> <tt>s6-svunlink</tt> sends a <a href="s6-svscanctl.html">s6-svscanctl -an</a>
+ <li> <tt>s6-svunlink</tt> sends an <a href="s6-svscanctl.html">s6-svscanctl -an</a>
 command to <em>scandir</em>, which means that the system's view of services
 will be refreshed and inactive services will be killed and unsupervised.
 Depending on what links exist in <em>scandir</em>, new

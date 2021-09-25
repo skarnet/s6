@@ -45,7 +45,7 @@ with a few more features.
   <ul>
    <li> Messages are truncated to 1024 characters </li>
    <li> Trailing nulls or newlines are removed </li>
-   <li> Embedded nulls or newlines are converted to <tt>~</tt> characters (tildas) </li>
+   <li> Embedded nulls or newlines are converted to <tt>~</tt> characters (tildes) </li>
    <li> A <tt>&lt;syslogcode&gt;</tt> at the beginning of the line is converted to <tt>facility.priority: </tt> </li>
   </ul> </li>
  <li> It prints the log line to its stdout, terminated by a newline. </li>
@@ -80,7 +80,7 @@ will not be converted to facility/priority names. </li>
 (actually bound to its socket),
 write a newline to file descriptor <em>notif</em> then close it.
 This allows <tt>s6-socklog</tt> to use the <a href="notifywhenup.html">s6
-mechanism to notify readiness</a>. <em>notif</em> cannot be lesser than 3.
+mechanism to notify readiness</a>. <em>notif</em> cannot be less than 3.
 If this option is not given, no readiness notification is sent. </li>
  <li> <tt>-u&nbsp;<em>uid</em></tt>&nbsp;: drop user id to <em>uid</em> </li>
  <li> <tt>-g&nbsp;<em>gid</em></tt>&nbsp;: drop group id to <em>gid</em> </li>
@@ -92,7 +92,7 @@ to the values of the UID, GID and GIDLIST environment variables. If a <tt>-u</tt
 <tt>-g</tt> or <tt>-G</tt> option is given after <tt>-U</tt>, the command line
 value overrides the environment variable. </li>
  <li> <tt>-l</tt>&nbsp;<em>linelen</em>&nbsp;: Set the maximum datagram size to
-<em>linelen</em>. Default is 1024. It cannot be set to less than 80 or more than
+<em>linelen</em>. Default is 1024. It cannot be set to less than 76 or more than
 1048576. If a datagram is bigger than <em>linelen</em>, it will be truncated to
 <em>linelen</em> characters, and the logged line will end with a <tt>...</tt> ellipsis
 to show the truncation. </li>

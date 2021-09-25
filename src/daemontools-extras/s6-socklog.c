@@ -104,7 +104,7 @@ int main (int argc, char const *const *argv)
     }
     argc -= l.ind ; argv += l.ind ;
 
-    if (linelen < 80) linelen = 80 ;
+    if (linelen < 76) linelen = 76 ;
     if (linelen > 1048576) linelen = 1048576 ;
     if (t) tain_from_millisecs(&lameducktto, t) ;
     if (notif)
