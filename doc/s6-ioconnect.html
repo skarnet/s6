@@ -75,10 +75,6 @@ duplex connection between the client and the server, for instance
 for testing purposes. <tt>s6-ioconnect</tt> is to s6-tcpclient as
 <tt>cat</tt> is to s6-tcpserver: a program that will just echo
 what it gets. </li>
- <li> On modern Linux systems, s6-ioconnect will perform zero-copy
-data transmission, via the
-<a href="https://man7.org/linux/man-pages/man2/splice.2.html">splice</a>
-system call. </li>
  <li> The s6-ioconnect utility was once part of the
 <a href="//skarnet.org/software/s6-networking/">s6-networking</a>
 suite, which is why the
