@@ -10,6 +10,7 @@ In 2.11.0.0
 starting a service, protecting against concurrent instances.
  - s6/lock.h, s6/supervise.h, s6/fdholder.h: simpler header names
  - New binaries: s6-svlink, s6-svunlink
+ - s6-ioconnect bugfix; does not support zero-copy anymore.
 
 
 In 2.10.0.3
