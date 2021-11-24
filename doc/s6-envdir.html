@@ -34,7 +34,7 @@ that does not begin with a dot and does not contain the '=' character: </li>
  <li> If <em>f</em> is empty, remove a variable named <em>f</em> from the environment, if any. </li>
  <li> Else add a variable named <em>f</em> to the environment (or replace <em>f</em> if it
 already exists) with the first line of the contents of file <em>f</em> as value.
-Spaces and tabs at the end of this line are removed;
+Spaces and tabs at the end of this line are removed, as well as any trailing newline;
 null characters in this line are changed to newlines in the environment variable.</li>
 </ul>
 
