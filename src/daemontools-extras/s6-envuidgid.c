@@ -12,7 +12,7 @@
 #include <skalibs/djbunix.h>
 #include <skalibs/exec.h>
 
-#define USAGE "s6-envuidgid [ -i | -D defaultuid:defaultgid ] [ -u | -g | -B ] [ -n ] account prog..."
+#define USAGE "s6-envuidgid [ -i | -D defaultuid:defaultgid:defaultgidlist ] [ -u | -g | -B ] [ -n ] account prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 
 static inline size_t scan_defaults (char const *s, uid_t *uid, gid_t *gid, size_t *n, gid_t *tab)
