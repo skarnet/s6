@@ -114,7 +114,8 @@ int main (int argc, char const *const *argv)
     }
 
     close(0) ;
-    if (fcntl(1, F_GETFD) < 0) strerr_dief1sys(100, "invalid stdout") ;
+    if (fcntl(1, F_GETFD) < 0) strerr_dief2sys(100, "invalid std", "out") ;
+    if (fcntl(2, F_GETFD) < 0) strerr_dief2sys(100, "invalid std", "err") ;
     if (usock)
     {
       x[2].fd = ipc_datagram_nbcoe() ;
