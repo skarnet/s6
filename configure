@@ -249,7 +249,7 @@ if $slashpackage ; then
   if $manualsysdeps ; then
     :
   else
-    sysdeps=${sproot}/package/prog/skalibs/sysdeps
+    sysdeps=${DESTDIR}${sproot}/package/prog/skalibs/sysdeps
   fi
   extbinprefix=${exthome}/command
   dynlibdir=${home}/library.so
