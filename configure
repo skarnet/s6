@@ -200,7 +200,7 @@ for arg ; do
     --host=*|--target=*) target=${arg#*=} ;;
     --build=*) build=${arg#*=} ;;
     -* ) echo "$0: unknown option $arg" ;;
-    *=*) ;;
+    *=*) eval "$arg" ;;
     *) target=$arg ;;
   esac
 done
@@ -264,11 +264,11 @@ if $slashpackage ; then
       cond=true
     fi
     if $cond ; then
-      addincpath="$addincpath -I${sproot}${dep}/include"
-      vpaths="$vpaths ${sproot}${dep}/library"
-      addlibspath="$addlibspath -L${sproot}${dep}/library"
-      vpathd="$vpathd ${sproot}${dep}/library.so"
-      addlibdpath="$addlibdpath -L${sproot}${dep}/library.so"
+      addincpath="$addincpath -I${DESTDIR}${sproot}${dep}/include"
+      vpaths="$vpaths ${DESTDIR}${sproot}${dep}/library"
+      addlibspath="$addlibspath -L${DESTDIR}${sproot}${dep}/library"
+      vpathd="$vpathd ${DESTDIR}${sproot}${dep}/library.so"
+      addlibdpath="$addlibdpath -L${DESTDIR}${sproot}${dep}/library.so"
     fi
   done < package/deps-build
 fi
