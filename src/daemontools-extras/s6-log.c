@@ -1115,14 +1115,15 @@ static inline void processor_died (logdir_t *ldp, int wstat)
   }
 }
 
-static inline void handle_signals (void)
+static inline int handle_signals (void)
 {
+  int e = 0 ;
   for (;;)
   {
     switch (selfpipe_read())
     {
       case -1 : strerr_diefu1sys(111, "selfpipe_read") ;
-      case 0 : return ;
+      case 0 : return e ;
       case SIGALRM :
       {
         unsigned int i = 0 ;
@@ -1138,7 +1139,7 @@ static inline void handle_signals (void)
         if (flagprotect) break ;
       case SIGHUP :
         handle_stdin = &last_stdin ;
-        if (!indata.len) prepare_to_exit() ;
+        if (!indata.len) { prepare_to_exit() ; e = 1 ; }
         break ;
       case SIGCHLD :
       {
@@ -1277,8 +1278,7 @@ int main (int argc, char const *const *argv)
       if (r < 0) strerr_diefu1sys(111, "iopause") ;
       else if (!r) continue ;
 
-      if (x[0].revents & IOPAUSE_READ) handle_signals() ;
-      else if (x[0].revents & IOPAUSE_EXCEPT) strerr_dief1sys(111, "trouble with selfpipe") ;
+      if (x[0].revents & (IOPAUSE_READ | IOPAUSE_EXCEPT) && handle_signals()) continue ;
 
       if (xindex1 && x[xindex1].revents)
       {
