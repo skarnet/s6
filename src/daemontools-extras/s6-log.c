@@ -1058,23 +1058,15 @@ static void normal_stdin (scriptelem_t const *script, unsigned int scriptlen, si
 
 static void last_stdin (scriptelem_t const *script, unsigned int scriptlen, size_t linelimit, unsigned int gflags)
 {
-  int cont = 1 ;
-  while (cont)
+  for (;;)
   {
     char c ;
     switch (sanitize_read(fd_read(0, &c, 1)))
     {
-      case 0 :
-        cont = 0 ;
-        break ;
+      case 0 : return ;
       case -1 :
         if ((errno != EPIPE) && verbosity) strerr_warnwu1sys("read from stdin") ;
-        if (!indata.len)
-        {
-          prepare_to_exit() ;
-          cont = 0 ;
-          break ;
-        }
+        if (!indata.len) goto eof ;
  addfinalnewline:
         c = '\n' ;
       case 1 :
@@ -1082,8 +1074,7 @@ static void last_stdin (scriptelem_t const *script, unsigned int scriptlen, size
         if (c == '\n')
         {
           script_run(script, scriptlen, indata.s, indata.len - 1, gflags) ;
-          prepare_to_exit() ;
-          cont = 0 ;
+          goto eof ;
         }
         else if (linelimit && indata.len > linelimit)
         {
@@ -1093,6 +1084,8 @@ static void last_stdin (scriptelem_t const *script, unsigned int scriptlen, size
         break ;
     }
   }
+ eof:
+  prepare_to_exit() ;
 }
 
 static inputproc_func_ref handle_stdin = &normal_stdin ;
