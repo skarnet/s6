@@ -24,14 +24,14 @@ s6-svlisten			0755
 s6-svperms			0755
 s6-notifyoncheck		0755
 s6-permafailon			0755
-s6-applyuidgid			0700
+s6-applyuidgid			0755
 s6-envdir			0755
 s6-envuidgid			0755
 s6-fghack			0755
 s6-log				0755
 s6-setlock			0755
 s6-setsid			0755
-s6-setuidgid			0700
+s6-setuidgid			0755
 s6-softlimit			0755
 s6-socklog			0755
 s6-tai64n			0755
