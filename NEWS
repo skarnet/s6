@@ -1,5 +1,13 @@
 Changelog for s6.
 
+In 2.11.1.0
+-----------
+
+ - Bugfixes.
+ - s6-applyuidgid and s6-setuidgid can now be used by non-root users.
+ - New s6-envdir option.
+
+
 In 2.11.0.1
 -----------
 
