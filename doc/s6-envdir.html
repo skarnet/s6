@@ -25,7 +25,7 @@ s6-envdir changes its environment, then executes into another program.
 <h2> Interface </h2>
 
 <pre>
-     s6-envdir [ -I | -i ] [ -n ] [ -f ] [ -c <em>nullis</em> ] <em>dir</em> <em>prog...</em>
+     s6-envdir [ -I | -i ] [ -n ] [ -f ] [ -L ] [ -c <em>nullis</em> ] <em>dir</em> <em>prog...</em>
 </pre>
 
 <ul>
@@ -35,7 +35,7 @@ that does not begin with a dot and does not contain the '=' character: </li>
  <li> Else add a variable named <em>f</em> to the environment (or replace <em>f</em> if it
 already exists) with the first line of the contents of file <em>f</em> as value.
 Spaces and tabs at the end of this line are removed, as well as any trailing newline;
-null characters in this line are changed to newlines in the environment variable.</li>
+null characters in this line are changed to newlines in the environment variable. </li>
 </ul>
 
 <h2> Options </h2>
@@ -52,6 +52,11 @@ option is not given). Null characters are still translated. </li>
 file ends with a newline, keep that last newline in the value. If the <tt>-f</tt>
 option is not given, keep the trailing blanks at the end of the first line (but
 not the ending newline). </li>
+ <li> <tt>-L</tt>&nbsp;: do not clamp. With this option, s6-envdir will process
+the whole first line of each file (if the <tt>-f</tt> option hasn't been given)
+or read each file entirely (if the <tt>-f</tt> option has been given), even if
+it means adding huge variables to the environment. Without this option, s6-envdir
+only reads the first 4096 bytes of each file. </li>
  <li> <tt>-c</tt>&nbsp;<em>nullis</em>&nbsp;: replace null characters with the
 first character of <em>nullis</em> instead of a newline. </li>
 </ul>
