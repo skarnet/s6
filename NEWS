@@ -5,7 +5,7 @@ In 2.11.1.0
 
  - Bugfixes.
  - s6-applyuidgid and s6-setuidgid can now be used by non-root users.
- - New s6-envdir option.
+ - New s6-envdir option: -L, for unlimited size environment variables.
 
 
 In 2.11.0.1
