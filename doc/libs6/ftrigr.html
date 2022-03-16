@@ -193,8 +193,8 @@ unsigned int n = 1 ;
 char trigger ;
 list[0] = id ;
 
-// r = ftrigr_wait_and(&amp;a, list, n, &amp;deadline) ;
-r = ftrigr_wait_or(&amp;a, list, n, &amp;deadline, &amp;trigger) ;
+// r = ftrigr_wait_and(&amp;a, list, n, &amp;deadline, &amp;stamp) ;
+r = ftrigr_wait_or(&amp;a, list, n, &amp;deadline, &amp;stamp, &amp;trigger) ;
 </pre>
 
 <p>
