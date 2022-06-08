@@ -36,7 +36,7 @@ static inline int read_uint (char const *file, unsigned int *fd)
 {
   char buf[UINT_FMT + 1] ;
   ssize_t r = openreadnclose_nb(file, buf, UINT_FMT) ;
-  if (r < 0) return -1 ;
+  if (r == -1) return -1 ;
   buf[byte_chr(buf, r, '\n')] = 0 ;
   return !!uint0_scan(buf, fd) ;
 }

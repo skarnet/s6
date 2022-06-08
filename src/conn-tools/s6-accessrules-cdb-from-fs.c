@@ -86,7 +86,7 @@ static void doit (cdbmaker *c, stralloc *sa, size_t start)
     sa->len = k+1 ;
     stralloc_catb(sa, "exec", 5) ;
     r = openreadnclose(sa->s, tmp.s + tmpbase + 5 + envlen, 4096) ;
-    if ((r < 0) && (errno != ENOENT))
+    if ((r == -1) && (errno != ENOENT))
     {
       cleanup() ;
       strerr_diefu2sys(111, "openreadnclose ", sa->s) ;

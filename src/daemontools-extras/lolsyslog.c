@@ -82,8 +82,9 @@ size_t lolsyslog_string (char *out, char const *in)
   out = stpcpy(out, p->c_name ? p->c_name : "unknown") ;
   *out++ = '.' ;
 
+  p = prioritynames ;
   fp = LOG_PRI(fpr) ;
-  for (p = prioritynames ; p->c_name ; p++) if (p->c_val == fp) break ;
+  for (; p->c_name ; p++) if (p->c_val == fp) break ;
   out = stpcpy(out, p->c_name ? p->c_name : "unknown") ;
   *out++ = ':' ; *out++ = ' ' ; *out++ = 0 ;
   return i+2 ;

@@ -41,7 +41,7 @@ s6_accessrules_result_t s6_accessrules_backend_fs (char const *key, size_t keyle
     memcpy(tmp + dirlen + keylen + 2, "exec", 5) ;
     {
       ssize_t r = openreadnclose(tmp, params->exec.s + params->exec.len, 4096) ;
-      if ((r < 0) && (errno != EACCES) && (errno != ENOENT))
+      if ((r == -1) && (errno != EACCES) && (errno != ENOENT))
       {
         if (wasnull) stralloc_free(&params->env) ;
         else params->env.len = envbase ;

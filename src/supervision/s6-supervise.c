@@ -82,7 +82,7 @@ static inline void announce (void)
 static int read_file (char const *file, char *buf, size_t n)
 {
   ssize_t r = openreadnclose_nb(file, buf, n) ;
-  if (r < 0)
+  if (r == -1)
   {
     if (errno != ENOENT) strerr_warnwu2sys("open ", file) ;
     return 0 ;
