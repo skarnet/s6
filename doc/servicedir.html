@@ -155,8 +155,8 @@ copies of the service in case something goes wrong: for instance, the service
 backgrounds itself (which it shouldn't do when running under a supervision suite), or
 s6-supervise is killed, restarted by s6-svscan, and attempts to start another copy of
 the service while the first copy is still alive. If s6-supervise detects that the lock
-is held when it tries to start the service, it will print a warning message and delay
-the starting attempt for 60 seconds. </li>
+is held when it tries to start the service, it will print a warning message; the new
+service instance will block until the lock is released, then proceed as usual. </li>
 
  <li style="margin-bottom:1em"> An optional regular file named <tt>timeout-kill</tt>. If such a file
 exists, it must only contain an unsigned integer <em>t</em>. If <em>t</em>
