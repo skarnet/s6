@@ -38,7 +38,13 @@ bit of understanding of what is going on.
 </a>
 
 <p>
- The life of a Unix machine has four stages:
+<small> Okay, it's actually four, but the fourth stage is an implementation
+detail that users don't care about, so we'll stick with three. </small>
+</p>
+
+<p>
+ The life of a Unix machine has three stages.
+ <small>Yes, three.</small>
 </p>
 
 <ol>
@@ -67,6 +73,11 @@ is not empty, then the supervision tree is restarted. </li>
 filesystems are unmounted, and the system call that reboots the machine or
 powers it off is called. </li>
 </ol>
+
+<p>
+<small> Unless you're implementing a shutdown procedure over a supervision
+tree, you can absolutely consider that the hardware shutdown is part of stage 3. </small>
+</p>
 
 <p>
  As you can see, process 1's duties are <em>radically different</em> from
