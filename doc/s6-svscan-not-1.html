@@ -120,7 +120,7 @@ WantedBy=multi-user.target
 
 [Service]
 Type=simple
-ExecStart=/command/s6-svscan -St0 /service
+ExecStart=/command/s6-svscan /service
 ExecStop=/command/s6-svscanctl -t /service
 ExecReload=/command/s6-svscanctl -an /service
 Restart=always
@@ -151,7 +151,7 @@ file with <tt>kill -s HUP 1</tt>.
 <pre> sv /command/s6-svscanboot "" on </pre>
 
 <a name="launchd">
-<h2> MacOS X launchd </h2>
+<h2> MacOS launchd </h2>
 </a>
 
 <p>
