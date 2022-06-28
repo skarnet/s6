@@ -47,6 +47,7 @@ struct svinfo_s
   int p[2] ;
   unsigned int flagactive : 1 ;
   unsigned int flaglog : 1 ;
+  unsigned int flagspecial : 1 ;
 } ;
 
 static struct svinfo_s *services ;
@@ -98,7 +99,7 @@ static void killthem (void)
   {
     if (!(wantkill & 1) && services[i].flagactive) continue ;
     if (services[i].pid[0])
-      kill(services[i].pid[0], (wantkill & 2) ? SIGTERM : SIGHUP) ;
+      kill(services[i].pid[0], (wantkill & (2 << services[i].flagspecial)) ? SIGTERM : SIGHUP) ;
     if (services[i].flaglog && services[i].pid[1])
       kill(services[i].pid[1], (wantkill & 4) ? SIGTERM : SIGHUP) ;
   }
@@ -330,10 +331,9 @@ static void trystart (unsigned int i, char const *name, int islog)
       if (services[i].flaglog)
         if (fd_move(!islog, services[i].p[!islog]) == -1)
           strerr_diefu2sys(111, "set fds for ", name) ;
-      if (consoleholder >= 0
-       && !strcmp(name, SPECIAL_LOGGER_SERVICE)
+      if (consoleholder >= 0 && services[i].flagspecial
        && fd_move(2, consoleholder) < 0)  /* autoclears coe */
-         strerr_diefu1sys(111, "restore console fd for service " SPECIAL_LOGGER_SERVICE) ;
+         strerr_diefu2sys(111, "restore console fd for service ", name) ;
       xexec_a(S6_BINPREFIX "s6-supervise", cargv) ;
     }
   }
@@ -380,29 +380,38 @@ static inline void check (char const *name)
     }
     else
     {
-      struct stat su ;
-      char tmp[namelen + 5] ;
-      memcpy(tmp, name, namelen) ;
-      memcpy(tmp + namelen, "/log", 5) ;
-      if (stat(tmp, &su) < 0)
-        if (errno == ENOENT) services[i].flaglog = 0 ;
-        else
-        {
-          strerr_warnwu2sys("stat ", tmp) ;
-          retrydirlater() ;
-          return ;
-        }
-      else if (!S_ISDIR(su.st_mode))
+      if (!strcmp(name, SPECIAL_LOGGER_SERVICE))
+      {
+        services[i].flagspecial = 1 ;
         services[i].flaglog = 0 ;
+      }
       else
       {
-        if (pipecoe(services[i].p) < 0)
+        struct stat su ;
+        char tmp[namelen + 5] ;
+        services[i].flagspecial = 0 ;
+        memcpy(tmp, name, namelen) ;
+        memcpy(tmp + namelen, "/log", 5) ;
+        if (stat(tmp, &su) < 0)
+          if (errno == ENOENT) services[i].flaglog = 0 ;
+          else
+          {
+            strerr_warnwu2sys("stat ", tmp) ;
+            retrydirlater() ;
+            return ;
+          }
+        else if (!S_ISDIR(su.st_mode))
+          services[i].flaglog = 0 ;
+        else
         {
-          strerr_warnwu1sys("pipecoe") ;
-          retrydirlater() ;
-          return ;
+          if (pipecoe(services[i].p) < 0)
+          {
+            strerr_warnwu1sys("pipecoe") ;
+            retrydirlater() ;
+            return ;
+          }
+          services[i].flaglog = 1 ;
         }
-        services[i].flaglog = 1 ;
       }
       services[i].ino = st.st_ino ;
       services[i].dev = st.st_dev ;
