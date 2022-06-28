@@ -594,7 +594,7 @@ static action_t_ref const actions[5][24] =
     &up_o, &up_d, &nop, &closethem, &up_o },
   { &finishtimeout, &lastfinish_z, &nop, &closethem, &bail, &sigint,
     &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop,
-    &nop, &nop, &nop, &nop, &nop }
+    &nop, &nop, &nop, &closethem, &nop }
 } ;
 
 
