@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+
 #include <skalibs/allreadwrite.h>
 #include <skalibs/tai.h>
 #include <skalibs/djbunix.h>
@@ -19,6 +20,7 @@ static int truncit (char const *s)
 
 ssize_t s6_dtally_read (char const *sv, s6_dtally_t *tab, size_t max)
 {
+  int e = errno ;
   size_t len = strlen(sv) ;
   size_t n ;
   int fd ;
@@ -39,10 +41,12 @@ ssize_t s6_dtally_read (char const *sv, s6_dtally_t *tab, size_t max)
   {
     char tmp[n ? S6_DTALLY_PACK * n : 1] ;
     if (lseek(fd, -(off_t)(n * S6_DTALLY_PACK), SEEK_END) < 0) goto err ;
+    errno = EPIPE ;
     if (allread(fd, tmp, n * S6_DTALLY_PACK) < n * S6_DTALLY_PACK) goto err ;
     fd_close(fd) ;
     for (size_t i = 0 ; i < n ; i++) s6_dtally_unpack(tmp + i * S6_DTALLY_PACK, tab + i) ;
   }
+  errno = e ;
   return n ;
 
  err:
