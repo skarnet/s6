@@ -1,9 +1,5 @@
  This logger service logs everything the syslogd service receives
-into subdirectories of /var/log/syslogd/ logdir.
+into subdirectories of /var/log/syslogd logdir.
 
- The script provided in env/LOGSCRIPT emulates the default
-syslogd behaviour on a majority of Linux distributions.
-
- Note that spaces cannot be used as is in the LOGSCRIPT file,
-because they are delimiters for the splitting of $LOGSCRIPT
-in the run script. So \s is used instead.
+ It emulates the default syslogd behaviour on a majority of Linux
+distributions.

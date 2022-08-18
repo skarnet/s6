@@ -1,6 +1,0 @@
-- +^\\serror\\. t /var/log/syslogd/error
-- +^\\sauthpriv\\. t /var/log/syslogd/auth
-- +^\\suser\\. t /var/log/syslogd/user
-- +^\\smessages\\. t /var/log/syslogd/messages
-- +^\\sdaemon\\. t /var/log/syslogd/daemon
-f t /var/log/syslogd/misc
