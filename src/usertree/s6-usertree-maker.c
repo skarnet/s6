@@ -20,6 +20,7 @@
 #include <execline/config.h>
 
 #include <s6/config.h>
+#include <s6/auto.h>
 
 #define USAGE "s6-usertree-maker [ -d userscandir ] [ -p path ] [ -E envdir [ -e var ... ] ] [ -r service/logger[/pipeline] ] [ -l loguser ] [ -t stamptype ] [ -n nfiles ] [ -s filesize ] [ -S maxsize ] user logdir dir"
 #define dieusage() strerr_dieusage(100, USAGE)
@@ -112,47 +113,6 @@ static inline void write_run (char const *runfile, char const *user, char const 
   strerr_diefu1sys(111, "quote string") ;
 }
 
-static inline void write_logrun (char const *runfile, char const *loguser, char const *logdir, unsigned int stamptype, unsigned int nfiles, uint64_t filesize, uint64_t maxsize)
-{
-  buffer b ;
-  char buf[1024] ;
-  char fmt[UINT64_FMT] ;
-  int fd = open_trunc(runfile) ;
-  if (fd < 0) strerr_diefu3sys(111, "open ", runfile, " for writing") ;
-  buffer_init(&b, &buffer_write, fd, buf, 1024) ;
-  if (buffer_puts(&b, "#!" EXECLINE_SHEBANGPREFIX "execlineb -P\n") < 0) goto err ;
-  if (loguser)
-  {
-    if (buffer_puts(&b, S6_EXTBINPREFIX "s6-setuidgid ") < 0) goto err ;
-    if (!string_quote(&sa, loguser, strlen(loguser))) strerr_diefu1sys(111, "quote string") ;
-    if (buffer_put(&b, sa.s, sa.len) < 0 || buffer_put(&b, "\n", 1) < 0) goto err ;
-    sa.len = 0 ;
-  }
-  if (buffer_puts(&b, S6_EXTBINPREFIX "s6-log -bd3 -- ") < 0) goto err ;
-  if (stamptype & 1 && buffer_put(&b, "t ", 2) < 0) goto err ;
-  if (stamptype & 2 && buffer_put(&b, "T ", 2) < 0) goto err ;
-  if (buffer_put(&b, "n", 1) < 0
-   || buffer_put(&b, fmt, uint_fmt(fmt, nfiles)) < 0
-   || buffer_put(&b, " s", 2) < 0
-   || buffer_put(&b, fmt, uint64_fmt(fmt, filesize)) < 0
-   || buffer_put(&b, " ", 1) < 0) goto err ;
-  if (maxsize)
-  {
-    if (buffer_put(&b, "S", 1) < 0
-     || buffer_put(&b, fmt, uint64_fmt(fmt, maxsize)) < 0
-     || buffer_put(&b, " ", 1) < 0) goto err ;
-  }
-  if (!string_quote(&sa, logdir, strlen(logdir))) strerr_diefu1sys(111, "quote string") ;
-  if (buffer_put(&b, sa.s, sa.len) < 0 || buffer_put(&b, "\n", 1) < 0) goto err ;
-  sa.len = 0 ;
-
-  if (!buffer_flush(&b)) goto err ;
-  fd_close(fd) ;
-  return ;
- err:
-  strerr_diefu2sys(111, "write to ", runfile) ;
-}
-
 static void write_service (char const *dir, char const *user, char const *sc, char const *logger, char const *path, char const *userenvdir, char const *const *vars, size_t varlen)
 {
   size_t dirlen = strlen(dir) ;
@@ -185,7 +145,7 @@ static void write_logger (char const *dir, char const *user, char const *logdir,
   memcpy(fn + dirlen, "/notification-fd", 17) ;
   if (!openwritenclose_unsafe(fn, "3\n", 2)) goto err ;
   memcpy(fn + dirlen + 1, "run", 4) ;
-  write_logrun(fn, user, logdir, stamptype, nfiles, filesize, maxsize) ;
+  if (!s6_auto_write_logrun(fn, user, logdir, stamptype, nfiles, filesize, maxsize, &sa)) goto err ;
   if (service)
   {
     struct iovec v[2] = { { .iov_base = (char *)service, .iov_len = strlen(service) }, { .iov_base = "\n", .iov_len = 1 } } ;

@@ -72,7 +72,7 @@ for dir in $(ls -1 src | grep -v ^include) ; do
     echo else
     echo "lib${file}.a.xyzzy:$(echo "$deps" | sed 's/\.o/.lo/g')"
     echo endif
-    if grep -F "LIB_DEFS :=" package/targets.mak | grep -qF "$file" ; then
+    if grep -E "^LIB_DEFS [+:]=" package/targets.mak | grep -qF "$file" ; then
       echo "lib${file}.so.xyzzy: EXTRA_LIBS :=$libs"
       echo "lib${file}.so.xyzzy:$(echo "$deps" | sed 's/\.o/.lo/g')"
     else
