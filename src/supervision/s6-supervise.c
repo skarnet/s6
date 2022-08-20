@@ -62,6 +62,7 @@ static state_t state = DOWN ;
 static int flagdying = 0 ;
 static int cont = 1 ;
 static int notifyfd = -1 ;
+static char const *servicename = 0 ;
 
 static inline void settimeout (int secs)
 {
@@ -305,7 +306,7 @@ static void trystart (void)
   }
   else if (!pid)
   {
-    char const *cargv[2] = { "run", 0 } ;
+    char const *cargv[3] = { "run", servicename, 0 } ;
     ((char *)PROG)[strlen(PROG)] = ' ' ;
     selfpipe_finish() ;
     if (notifyp[0] >= 0) close(notifyp[0]) ;
@@ -455,7 +456,7 @@ static int uplastup_z (void)
   {
     char fmt0[UINT_FMT] ;
     char fmt1[UINT_FMT] ;
-    char *cargv[4] = { "finish", fmt0, fmt1, 0 } ;
+    char *cargv[5] = { "finish", fmt0, fmt1, servicename, 0 } ;
     selfpipe_finish() ;
     fmt0[uint_fmt(fmt0, WIFSIGNALED(status.wstat) ? 256 : WEXITSTATUS(status.wstat))] = 0 ;
     fmt1[uint_fmt(fmt1, WTERMSIG(status.wstat))] = 0 ;
@@ -765,6 +766,7 @@ int main (int argc, char const *const *argv)
   PROG = "s6-supervise" ;
   if (argc < 2) strerr_dieusage(100, USAGE) ;
   if (chdir(argv[1]) < 0) strerr_diefu2sys(111, "chdir to ", argv[1]) ;
+  servicename = argv[1] ;
   {
     size_t proglen = strlen(PROG) ;
     size_t namelen = strlen(argv[1]) ;
