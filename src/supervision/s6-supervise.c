@@ -456,7 +456,7 @@ static int uplastup_z (void)
   {
     char fmt0[UINT_FMT] ;
     char fmt1[UINT_FMT] ;
-    char *cargv[5] = { "finish", fmt0, fmt1, servicename, 0 } ;
+    char *cargv[5] = { "finish", fmt0, fmt1, (char *)servicename, 0 } ;
     selfpipe_finish() ;
     fmt0[uint_fmt(fmt0, WIFSIGNALED(status.wstat) ? 256 : WEXITSTATUS(status.wstat))] = 0 ;
     fmt1[uint_fmt(fmt1, WTERMSIG(status.wstat))] = 0 ;

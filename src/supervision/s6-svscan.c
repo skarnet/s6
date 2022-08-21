@@ -560,6 +560,7 @@ int main (int argc, char const *const *argv)
     if (t) tain_from_millisecs(&defaulttimeout, t) ;
     else defaulttimeout = tain_infinite_relative ;
     if (max < 2) max = 2 ;
+    if (max > 90000) max = 90000 ;
   }
 
   if (notif >= 0)

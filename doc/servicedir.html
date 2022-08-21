@@ -45,11 +45,22 @@ file (such as a binary file or a link to any other executable file),
 but most of the time it will be a script, called <em>run script</em>.
 This file is the most important one in your service directory: it
 contains the commands that will setup and run your <em>foo</em> service.
-It is forked and executed by <a href="s6-supervise.html">s6-supervise</a>
+ <ul>
+  <li> It is forked and executed by <a href="s6-supervise.html">s6-supervise</a>
 every time the service must be started, i.e. normally when
 <a href="s6-supervise.html">s6-supervise</a> starts, and whenever
-the service goes down when it is supposed to be up. A run script
-should normally:
+the service goes down when it is supposed to be up. </li>
+  <li> It is given one argument, which is the same argument that the
+<a href="s6-supervise.html">s6-supervise</a> process is running with,
+i.e. the name of the service directory &mdash; or, if
+<a href="s6-supervise.html">s6-supervise</a> is run under
+<a href="s6-svscan.html">s6-svscan</a>, the name of the service directory
+as seen by <a href="s6-svscan.html">s6-svscan</a> in its
+<a href="scandir.html">scan directory</a>. That is, <tt><em>foo</em></tt>
+or <tt><em>foo</em>/log</tt>, if <em>foo</em> is the name of the
+<em>symbolic link</em> in the scan directory. </li> </ul>
+
+<p> A run script should normally: </p>
  <ul>
   <li> adjust redirections for stdin, stdout and stderr. When a run
 script starts, it inherits its standard file descriptors from
@@ -107,10 +118,12 @@ process has been killed. If the <em>foo</em> service is supposed to be up,
 script, not the finish script, should be running; the finish script should really
 be short-lived.) The maximum duration of a <tt>finish</tt> execution can be
 configured via the <tt>timeout-finish</tt> file, see below. </li>
-  <li> The finish script is
-executed with two arguments: the exit code from the run script (resp. 256 if the
-run script was killed by a signal), and an undefined number (resp. the number of
-the signal that killed the run script). </li>
+  <li> The finish script is executed with three arguments:
+   <ol>
+    <li> the exit code from the run script (resp. 256 if the run script was killed by a signal) </li>
+    <li> an undefined number (resp. the number of the signal that killed the run script) </li>
+    <li> the name of the service directory, the same that has been given to <tt>./run</tt>. </li>
+   </ol>
   <li> If the finish script exits 125, then <a href="s6-supervise.html">s6-supervise</a>
 interprets this as a permanent failure for the service, and does not restart it,
 as if an <a href="s6-svc.html">s6-svc -O</a> command had been sent. </li>
@@ -122,8 +135,8 @@ stdin and stdout pointing to <tt>/dev/null</tt>. </li>
 
  <li style="margin-bottom:1em"> A directory named <tt>supervise</tt>. It is automatically created by
 <a href="s6-supervise.html">s6-supervise</a> if it does not exist. This is where
-<a href="s6-supervise.html">s6-supervise</a> stores its information. The directory
-must be writable. </li>
+<a href="s6-supervise.html">s6-supervise</a> stores its internal information.
+The directory must be writable. </li>
 
  <li style="margin-bottom:1em"> An optional, empty, regular file named <tt>down</tt>. If such a file exists,
 the default state of the service is considered down, not up: s6-supervise will not

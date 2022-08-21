@@ -76,10 +76,11 @@ where all error messages go to the <tt>s6-svscan-log</tt> catch-all logger servi
 default, except messages from this service itself, which fall back to <em>consoleholder</em>.
 If you're not sure what to use this option for, or how, you don't need it. </li>
  <li> <tt>-c&nbsp;<em>max</em></tt>&nbsp;: maintain services for up to <em>max</em>
-service directories. Default is 500. Lower limit is 2. There is no upper limit, but:
+service directories. Default is 500. Lower limit is 2. Upper limit is 90000. If
+you're increasing this value from the default, please note that:
  <ul>
   <li> The higher <em>max</em> is, the more stack memory s6-svscan will use,
-approximately 50 bytes per service. </li>
+up to 100 bytes per service. </li>
   <li> s6-svscan uses 2 file descriptors per logged service. </li>
  </ul>
  It is the admin's responsibility to make sure that s6-svscan has enough available

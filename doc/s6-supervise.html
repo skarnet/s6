@@ -135,7 +135,12 @@ effective group id as the s6-supervise process.
 If it already exists, it uses it as is, without modifying the subscription rights. </li>
  <li> It <a href="libs6/ftrigw.html">sends</a> a <tt>'s'</tt> event to <tt>./event</tt>. </li>
  <li> If the default service state is up (i.e. there is no <tt>./down</tt> file),
-s6-supervise spawns <tt>./run</tt>. </li>
+s6-supervise spawns <tt>./run</tt>. One argument is given to the <tt>./run</tt>
+program: <em>servicedir</em>, the name of the directory s6-supervise is being
+run on. It is given exactly as given to s6-supervise, without recanonicalization.
+In particular, if s6-supervise is being managed by <a href="s6-svscan.html">s6-svscan</a>,
+<em>servicedir</em> is always of the form <tt><em>foo</em></tt> or <tt><em>foo</em>/log</tt>,
+and <em>foo</em> contains no slashes. </li>
  <li> s6-supervise sends a <tt>'u'</tt> event to <tt>./event</tt> whenever it
 successfully spawns <tt>./run</tt>. </li>
  <li> If there is a <tt>./notification-fd</tt> file in the service directory and,
@@ -152,7 +157,8 @@ service for readiness. </li>
 It then spawns <tt>./finish</tt> if it exists.
 <tt>./finish</tt> will have <tt>./run</tt>'s exit code as first argument, or 256 if
 <tt>./run</tt> was signaled; it will have the number of the signal that killed <tt>./run</tt>
-as second argument, or an undefined number if <tt>./run</tt> was not signaled. </li>
+as second argument, or an undefined number if <tt>./run</tt> was not signaled;
+and it will have <em>servicedir</em> as third argument. </li>
  <li> By default, <tt>./finish</tt> must exit in less than 5 seconds. If it takes more than that,
 s6-supervise kills it with a SIGKILL. This can be configured via the
 <tt>./timeout-finish</tt> file, see the description in the
