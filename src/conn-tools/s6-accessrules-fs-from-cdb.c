@@ -26,7 +26,7 @@ static void cleanup ()
 
 static int domkdir (char const *s)
 {
-  return mkdir(s, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH | S_ISGID) < 0 ? (errno == EEXIST) : 1 ;
+  return mkdir(s, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH | S_ISGID) < 0 ? errno == EEXIST : 1 ;
 }
 
 static void mkdirp (char *s)
@@ -105,9 +105,9 @@ static int doit (char const *key, uint32_t klen, char const *data, uint32_t dlen
   memcpy(name, basedir, basedirlen) ;
   name[basedirlen] = '/' ;
   memcpy(name + basedirlen + 1, key, klen) ;
-  name[basedirlen + klen + 1 + klen] = 0 ;
+  name[basedirlen + 1 + klen] = 0 ;
   mkdirp(name) ;
-  name[basedirlen + klen + 1] = '/' ;
+  name[basedirlen + 1 + klen] = '/' ;
   if (data[0] == 'A')
   {
     memcpy(name + basedirlen + klen + 2, "allow", 6) ;
