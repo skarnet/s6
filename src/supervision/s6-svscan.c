@@ -108,11 +108,20 @@ static void killthem (void)
 
 static inline void closethem (void)
 {
+  int gotspecial = 0 ;
   unsigned int i = 0 ;
-  for (; i < n ; i++) if (services[i].flaglog)
+  for (; i < n ; i++)
+    if (services[i].flagspecial) gotspecial = 1 ;
+    else if (services[i].flaglog)
+    {
+      if (services[i].p[1] >= 0) close(services[i].p[1]) ;
+      if (services[i].p[0] >= 0) close(services[i].p[0]) ;
+    }
+  if (gotspecial)
   {
-    if (services[i].p[1] >= 0) close(services[i].p[1]) ;
-    if (services[i].p[0] >= 0) close(services[i].p[0]) ;
+    close(1) ;
+    if (open("/dev/null", O_WRONLY) < 0)
+      strerr_warnwu1sys("open /dev/null") ;
   }
 }
 
@@ -574,6 +583,7 @@ int main (int argc, char const *const *argv)
     if (fcntl(consoleholder, F_GETFD) < 0) strerr_dief1sys(100, "invalid console holder fd") ;
     if (coe(consoleholder) < 0) strerr_diefu1sys(111, "coe console holder") ;
   }
+  if (!fd_sanitize()) strerr_diefu1x(100, "sanitize standard fds") ;
 
   if (argc && (chdir(argv[0]) < 0)) strerr_diefu1sys(111, "chdir") ;
   x[1].fd = control_init() ;
