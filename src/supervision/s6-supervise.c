@@ -3,6 +3,7 @@
 /* For SIGWINCH */
 #include <skalibs/nonposix.h>
 
+#include <stdint.h>
 #include <unistd.h>
 #include <string.h>
 #include <strings.h>
@@ -52,15 +53,23 @@ enum state_e
   LASTFINISH
 } ;
 
+struct gflags_s
+{
+  uint8_t cont : 1 ;
+  uint8_t dying : 1 ;
+} gflags =
+{
+  .cont = 1,
+  .dying = 0
+} ;
+
 typedef void action_t (void) ;
 typedef action_t *action_t_ref ;
 
 static tain deadline ;
-static tain dontrespawnbefore = TAIN_EPOCH ;
+static tain nextstart = TAIN_ZERO ;
 static s6_svstatus_t status = S6_SVSTATUS_ZERO ;
 static state_t state = DOWN ;
-static int flagdying = 0 ;
-static int cont = 1 ;
 static int notifyfd = -1 ;
 static char const *servicename = 0 ;
 
@@ -118,10 +127,10 @@ static void set_down_and_ready (char const *s, unsigned int n)
   status.pid = 0 ;
   status.flagfinishing = 0 ;
   status.flagready = 1 ;
-  tain_wallclock_read(&status.readystamp) ;
   state = DOWN ;
-  if (tain_future(&dontrespawnbefore)) deadline = dontrespawnbefore ;
-  else tain_copynow(&deadline) ;
+  if (tai_sec(tain_secp(&nextstart))) deadline = nextstart ;
+  else tain_addsec_g(&deadline, 1) ;
+  tain_wallclock_read(&status.readystamp) ;
   announce() ;
   ftrigw_notifyb_nosig(S6_SUPERVISE_EVENTDIR, s, n) ;
 }
@@ -135,7 +144,7 @@ static void nop (void)
 
 static void bail (void)
 {
-  cont = 0 ;
+  gflags.cont = 0 ;
 }
 
 static void sigint (void)
@@ -359,11 +368,11 @@ static void trystart (void)
   fd_close(p[0]) ;
   notifyfd = notifyp[0] ;
   settimeout_infinite() ;
+  nextstart = tain_zero ;
   state = UP ;
   status.pid = pid ;
   status.flagready = 0 ;
   tain_wallclock_read(&status.stamp) ;
-  tain_addsec_g(&dontrespawnbefore, 1) ;
   announce() ;
   ftrigw_notifyb_nosig(S6_SUPERVISE_EVENTDIR, "u", 1) ;
   return ;
@@ -417,7 +426,7 @@ static int uplastup_z (void)
   status.wstat = (int)status.pid ;
   status.flagpaused = 0 ;
   status.flagready = 0 ;
-  flagdying = 0 ;
+  gflags.dying = 0 ;
   tain_wallclock_read(&status.stamp) ;
   if (notifyfd >= 0)
   {
@@ -491,7 +500,7 @@ static void lastup_z (void)
 
 static void uptimeout (void)
 {
-  if (flagdying)
+  if (gflags.dying)
   {
     killk() ;
     settimeout(5) ;
@@ -520,7 +529,7 @@ static void up_d (void)
   if (timeout && tain_from_millisecs(&tto, timeout))
   {
     tain_add_g(&deadline, &tto) ;
-    flagdying = 1 ;
+    gflags.dying = 1 ;
   }
   else settimeout_infinite() ;
 }
@@ -613,6 +622,7 @@ static inline void handle_notifyfd (void)
     r = sanitize_read(fd_read(notifyfd, buf, 512)) ;
     if (r > 0 && memchr(buf, '\n', r))
     {
+      tain_addsec_g(&nextstart, 1) ;
       tain_wallclock_read(&status.readystamp) ;
       status.flagready = 1 ;
       announce() ;
@@ -806,12 +816,12 @@ int main (int argc, char const *const *argv)
 
     tain_now_set_stopwatch_g() ;
     settimeout(0) ;
-    tain_wallclock_read(&status.stamp) ;
+    tain_copynow(&status.stamp) ;
     status.readystamp = status.stamp ;
     announce() ;
     ftrigw_notifyb_nosig(S6_SUPERVISE_EVENTDIR, "s", 1) ;
 
-    while (cont)
+    while (gflags.cont)
     {
       int r ;
       x[2].fd = notifyfd ;
