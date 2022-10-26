@@ -1,5 +1,15 @@
 Changelog for s6.
 
+In 2.11.2.0
+-----------
+
+ - Bugfixes.
+ - The name of the service is now passed as an argument to ./run and
+as the third argument to ./finish.
+ - The 1-second service restart delay can now only be skipped when
+the service is ready.
+
+
 In 2.11.1.2
 -----------
 
