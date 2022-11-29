@@ -4,7 +4,7 @@
 #include <errno.h>
 #include <sys/wait.h>
 
-#include <skalibs/strerr2.h>
+#include <skalibs/strerr.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/exec.h>

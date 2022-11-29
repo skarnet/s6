@@ -5,7 +5,7 @@
 #include <signal.h>
 
 #include <skalibs/types.h>
-#include <skalibs/strerr2.h>
+#include <skalibs/strerr.h>
 #include <skalibs/bitarray.h>
 #include <skalibs/sig.h>
 #include <skalibs/tai.h>

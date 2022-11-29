@@ -7,7 +7,7 @@
 #include <stdlib.h>
 
 #include <skalibs/types.h>
-#include <skalibs/strerr2.h>
+#include <skalibs/strerr.h>
 
 static unsigned int el_getstrict (void)
 {

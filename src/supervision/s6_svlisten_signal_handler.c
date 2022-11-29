@@ -2,7 +2,7 @@
 
 #include <signal.h>
 
-#include <skalibs/strerr2.h>
+#include <skalibs/strerr.h>
 #include <skalibs/sig.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/selfpipe.h>

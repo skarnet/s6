@@ -9,7 +9,7 @@
 #include <skalibs/bytestr.h>
 #include <skalibs/types.h>
 #include <skalibs/cdb.h>
-#include <skalibs/strerr2.h>
+#include <skalibs/strerr.h>
 #include <skalibs/djbunix.h>
 
 #define USAGE "s6-accessrules-fs-from-cdb dir cdbfile"

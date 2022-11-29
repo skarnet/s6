@@ -10,7 +10,7 @@
 #include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/tai.h>
-#include <skalibs/strerr2.h>
+#include <skalibs/strerr.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/djbunix.h>
 

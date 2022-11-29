@@ -13,7 +13,7 @@
 #include <skalibs/allreadwrite.h>
 #include <skalibs/buffer.h>
 #include <skalibs/error.h>
-#include <skalibs/strerr2.h>
+#include <skalibs/strerr.h>
 #include <skalibs/tai.h>
 #include <skalibs/iopause.h>
 #include <skalibs/djbunix.h>

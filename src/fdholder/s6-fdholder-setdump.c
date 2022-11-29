@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <skalibs/types.h>
-#include <skalibs/strerr2.h>
+#include <skalibs/strerr.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/tai.h>
 #include <s6/fdholder.h>

@@ -3,7 +3,7 @@
 #include <sys/types.h>
 #include <skalibs/types.h>
 #include <skalibs/buffer.h>
-#include <skalibs/strerr2.h>
+#include <skalibs/strerr.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/sig.h>
 #include <s6/supervise.h>

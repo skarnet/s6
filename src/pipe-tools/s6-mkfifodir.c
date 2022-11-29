@@ -3,7 +3,7 @@
 #include <sys/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/types.h>
-#include <skalibs/strerr2.h>
+#include <skalibs/strerr.h>
 #include <s6/ftrigw.h>
 
 #define USAGE "s6-mkfifodir [ -f ] [ -g gid ] fifodir"

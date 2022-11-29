@@ -20,7 +20,7 @@
 #include <skalibs/bytestr.h>
 #include <skalibs/error.h>
 #include <skalibs/sgetopt.h>
-#include <skalibs/strerr2.h>
+#include <skalibs/strerr.h>
 #include <skalibs/bufalloc.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/tai.h>

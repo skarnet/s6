@@ -3,7 +3,7 @@
 #include <sys/types.h>
 #include <errno.h>
 #include <skalibs/buffer.h>
-#include <skalibs/strerr2.h>
+#include <skalibs/strerr.h>
 #include <skalibs/tai.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/skamisc.h>

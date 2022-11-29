@@ -8,7 +8,7 @@
 #include <skalibs/types.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/buffer.h>
-#include <skalibs/strerr2.h>
+#include <skalibs/strerr.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/sig.h>
 #include <skalibs/tai.h>

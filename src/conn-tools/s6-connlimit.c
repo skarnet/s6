@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 #include <skalibs/types.h>
-#include <skalibs/strerr2.h>
+#include <skalibs/strerr.h>
 #include <skalibs/exec.h>
 
 int main (int argc, char const *const *argv)

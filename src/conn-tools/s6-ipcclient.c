@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include <skalibs/sgetopt.h>
-#include <skalibs/strerr2.h>
+#include <skalibs/strerr.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/socket.h>
 #include <skalibs/exec.h>

@@ -6,7 +6,7 @@
 #include <skalibs/types.h>
 #include <skalibs/bitarray.h>
 #include <skalibs/tai.h>
-#include <skalibs/strerr2.h>
+#include <skalibs/strerr.h>
 #include <skalibs/djbunix.h>
 
 #include <s6/compat.h>

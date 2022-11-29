@@ -10,7 +10,7 @@
 #include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/buffer.h>
-#include <skalibs/strerr2.h>
+#include <skalibs/strerr.h>
 
 #include <s6/supervise.h>
 

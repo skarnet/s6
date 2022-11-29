@@ -3,6 +3,7 @@ Changelog for s6.
 In 2.11.2.0
 -----------
 
+ - Adaptation to skalibs-2.13.0.0.
  - Bugfixes.
  - The name of the service is now passed as an argument to ./run and
 as the third argument to ./finish.

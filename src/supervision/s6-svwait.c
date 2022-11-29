@@ -8,7 +8,7 @@
 #include <skalibs/bitarray.h>
 #include <skalibs/sig.h>
 #include <skalibs/tai.h>
-#include <skalibs/strerr2.h>
+#include <skalibs/strerr.h>
 
 #include "s6-svlisten.h"
 

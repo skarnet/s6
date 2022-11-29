@@ -5,7 +5,7 @@
 #include <skalibs/posixplz.h>
 #include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
-#include <skalibs/strerr2.h>
+#include <skalibs/strerr.h>
 #include <skalibs/tai.h>
 
 #include <s6/supervise.h>

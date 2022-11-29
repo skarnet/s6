@@ -3,7 +3,7 @@
 #include <sys/types.h>
 #include <sys/resource.h>
 
-#include <skalibs/strerr2.h>
+#include <skalibs/strerr.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/uint64.h>
 #include <skalibs/exec.h>
