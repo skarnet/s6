@@ -44,7 +44,7 @@ int main (int argc, char const *const *argv)
       strerr_diefu2sys(111, "bind socket to ", bindpath) ;
     if (!ipc_connect(s, argv[0]))
       strerr_diefu2sys(111, "connect to ", argv[0]) ;
-    if (verbosity >= 2) strerr_warn3x(PROG, ": connected to ", argv[0]) ;
+    if (verbosity >= 2) strerr_warni3x(PROG, ": connected to ", argv[0]) ;
     if (localname)
     {
       size_t n = strlen(localname) ;
