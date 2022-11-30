@@ -68,7 +68,7 @@ int main (int argc, char const *const *argv)
     argc -= l.ind ; argv += l.ind ;
   }
   if (!argc) dieusage() ;
-  if (argc > 1) strerr_warn1x("ignoring extra arguments") ;
+  if (argc > 1) strerr_warnw1x("ignoring extra arguments") ;
 
   if (updown[1] == 'U' || updown[1] == 'R')
   {
