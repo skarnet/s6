@@ -51,7 +51,7 @@ static inline int got (s6_svlisten_t const *foo, int wantup, int wantready, int 
   return (bitarray_first(t, foo->n, or) < foo->n) == or ;
 }
 
-int s6_svlisten_loop (s6_svlisten_t *foo, int wantup, int wantready, int or, tain const *deadline, int spfd, action_func_ref handler)
+unsigned int s6_svlisten_loop (s6_svlisten_t *foo, int wantup, int wantready, int or, tain const *deadline, int spfd, action_func_ref handler)
 {
   iopause_fd x[2] = { { .fd = ftrigr_fd(&foo->a), .events = IOPAUSE_READ }, { .fd = spfd, .events = IOPAUSE_READ, .revents = 0 } } ;
   unsigned int e = 0 ;
@@ -78,7 +78,14 @@ int s6_svlisten_loop (s6_svlisten_t *foo, int wantup, int wantready, int or, tai
           size_t j = 0 ;
           for (; j < sa.len ; j++)
           {
-            if (sa.s[j] == 'x') return -1 ;
+            if (sa.s[j] == 'x')
+            {
+              if (bitarray_peek(foo->upstate, i) != wantup
+               || bitarray_peek(foo->readystate, i) != wantready)
+                e++ ;
+              bitarray_poke(foo->upstate, i, wantup) ;
+              bitarray_poke(foo->readystate, i, wantready) ;
+            }
             else if (sa.s[j] == 'O')
             {
               if (wantup)

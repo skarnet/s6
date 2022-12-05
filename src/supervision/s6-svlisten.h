@@ -24,6 +24,6 @@ struct s6_svlisten_s
 extern void s6_svlisten_signal_handler (void) ;
 extern int s6_svlisten_selfpipe_init (void) ;
 extern void s6_svlisten_init (int, char const *const *, s6_svlisten_t *, uint16_t *, unsigned char *, unsigned char *, tain const *) ;
-extern int s6_svlisten_loop (s6_svlisten_t *, int, int, int, tain const *, int, action_func_ref) ;
+extern unsigned int s6_svlisten_loop (s6_svlisten_t *, int, int, int, tain const *, int, action_func_ref) ;
 
 #endif
