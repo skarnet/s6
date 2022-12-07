@@ -128,6 +128,8 @@ struct act_s
   acttype_t type ;
   actstuff_t data ;
   unsigned int flags ;
+  char const *prefix ;
+  size_t prefixlen ;
 } ;
 
 typedef struct scriptelem_s scriptelem_t, *scriptelem_t_ref ;
@@ -714,6 +716,7 @@ static inline void script_firstpass (char const *const *argv, unsigned int *sell
       case 'r' :
       case 'E' :
       case '^' :
+      case 'p' :
 #ifdef S6_USE_EXECLINE
       case '!' :
 #endif
@@ -773,6 +776,8 @@ static inline void script_secondpass (char const *const *argv, scriptelem_t *scr
   uint32_t tolerance = 2000 ;
   uint64_t maxdirsize = 0 ;
   char const *processor = 0 ;
+  char const *prefix = 0 ;
+  size_t prefixlen = 0 ;
   unsigned int sel = 0, act = 0, lidx = 0, flags = 0 ;
   int flagacted = 0 ;
   tain_uint(&retrytto, 2) ;
@@ -839,6 +844,10 @@ static inline void script_secondpass (char const *const *argv, scriptelem_t *scr
       case '^' :
         if (!uint0_scan(*argv + 1, &status_size)) goto fail ;
         break ;
+      case 'p' :
+        if ((*argv)[1]) { prefix = *argv + 1 ; prefixlen = strlen(prefix) ; }
+        else { prefix = 0 ; prefixlen = 0 ; }
+        break ;
 #ifdef S6_USE_EXECLINE
       case '!' :
         processor = (*argv)[1] ? *argv + 1 : 0 ;
@@ -857,26 +866,26 @@ static inline void script_secondpass (char const *const *argv, scriptelem_t *scr
         break ;
       case '1' :
       {
-        act_t a = { .type = ACTTYPE_FD1, .flags = flags } ;
+        act_t a = { .type = ACTTYPE_FD1, .flags = flags, .prefix = prefix, .prefixlen = prefixlen } ;
         actions[act++] = a ; flagacted = 1 ; flags = 0 ;
         break ;
       }
       case '2' :
       {
-        act_t a = { .type = ACTTYPE_FD2, .flags = flags, .data = { .fd2_size = fd2_size } } ;
+        act_t a = { .type = ACTTYPE_FD2, .flags = flags, .prefix = prefix, .prefixlen = prefixlen, .data = { .fd2_size = fd2_size } } ;
         actions[act++] = a ; flagacted = 1 ; flags = 0 ;
         break ;
       }
       case '=' :
       {
-        act_t a = { .type = ACTTYPE_STATUS, .flags = flags, .data = { .status = { .file = *argv + 1, .filelen = status_size } } } ;
+        act_t a = { .type = ACTTYPE_STATUS, .flags = flags, .prefix = prefix, .prefixlen = prefixlen, .data = { .status = { .file = *argv + 1, .filelen = status_size } } } ;
         actions[act++] = a ; flagacted = 1 ; flags = 0 ;
         break ;
       }
       case '.' : 
       case '/' :
       {
-        act_t a = { .type = ACTTYPE_DIR, .flags = flags, .data = { .ld = lidx } } ;
+        act_t a = { .type = ACTTYPE_DIR, .flags = flags, .prefix = prefix, .prefixlen = prefixlen, .data = { .ld = lidx } } ;
         logdir_init(lidx, s, n, tolerance, maxdirsize, &retrytto, processor, *argv, flags) ;
         lidx++ ;
         actions[act++] = a ; flagacted = 1 ; flags = 0 ;
@@ -949,11 +958,33 @@ static void script_run (scriptelem_t const *script, unsigned int scriptlen, char
       for (j = 0 ; j < script[i].actlen ; j++)
       {
         act_t const *act = script[i].acts + j ;
-        struct iovec v[4] = { { .iov_base = tstamp, .iov_len = act->flags & 1 ? TIMESTAMP+1 : 0 }, { .iov_base = hstamp, .iov_len = act->flags & 2 ? hlen : 0 }, { .iov_base = (char *)s, .iov_len = len }, { .iov_base = "\n", .iov_len = 1 } } ;
+        unsigned int m = 0 ;
+        struct iovec v[6] ;
+        if (act->flags & 1)
+        {
+          v[m].iov_base = tstamp ;
+          v[m++].iov_len = TIMESTAMP+1 ;
+        }
+        if (act->flags & 2)
+        {
+          v[m].iov_base = hstamp ;
+          v[m++].iov_len = hlen ;
+        }
+        if (act->prefix)
+        {
+          v[m].iov_base = (char *)act->prefix ;
+          v[m++].iov_len = act->prefixlen ;
+          v[m].iov_base = " " ;
+          v[m++].iov_len = 1 ;
+        }
+        v[m].iov_base = (char *)s ;
+        v[m++].iov_len = len ;
+        v[m].iov_base = "\n" ;
+        v[m++].iov_len = 1 ;
         switch (act->type)
         {
           case ACTTYPE_FD1 :
-            if (!bufalloc_putv(bufalloc_1, v, 4)) dienomem() ;
+            if (!bufalloc_putv(bufalloc_1, v, m)) dienomem() ;
           case ACTTYPE_NOTHING :
             break ;
 
@@ -962,38 +993,38 @@ static void script_run (scriptelem_t const *script, unsigned int scriptlen, char
             buffer_puts(buffer_2, ": alert: ") ;
             if (act->data.fd2_size && act->data.fd2_size + 3 < len)
             {
-              v[2].iov_len = act->data.fd2_size ;
-              v[3].iov_base = "...\n" ;
-              v[3].iov_len = 4 ;
+              v[m-2].iov_len = act->data.fd2_size ;
+              v[m-1].iov_base = "...\n" ;
+              v[m-1].iov_len = 4 ;
             }
-            buffer_putv(buffer_2, v, 4) ;
+            buffer_putv(buffer_2, v, m) ;
             buffer_flush(buffer_2) ; /* if it blocks, too bad */
             break ;
 
           case ACTTYPE_STATUS :
             if (act->data.status.filelen)
             {
-              size_t reallen = siovec_len(v, 4) ;
+              size_t reallen = siovec_len(v, m) ;
               if (reallen > act->data.status.filelen)
-                siovec_trunc(v, 4, act->data.status.filelen) ;
+                siovec_trunc(v, m, act->data.status.filelen) ;
               else
               {
                 size_t k = act->data.status.filelen - reallen + 1 ;
                 char pad[k] ;
-                v[3].iov_base = pad ;
-                v[3].iov_len = k ;
+                v[m-1].iov_base = pad ;
+                v[m-1].iov_len = k ;
                 while (k--) pad[k] = '\n' ;
-                if (!openwritevnclose_suffix(act->data.status.file, v, 4, ".new") && verbosity)
+                if (!openwritevnclose_suffix(act->data.status.file, v, m, ".new") && verbosity)
                   strerr_warnwu2sys("write status file ", act->data.status.file) ;
                 break ;
               }
             }
-            if (!openwritevnclose_suffix(act->data.status.file, v, 4, ".new") && verbosity)
+            if (!openwritevnclose_suffix(act->data.status.file, v, m, ".new") && verbosity)
               strerr_warnwu2sys("write status file ", act->data.status.file) ;
             break ;
 
           case ACTTYPE_DIR :
-            if (!bufalloc_putv(&logdirs[act->data.ld].out, v, 4)) dienomem() ;
+            if (!bufalloc_putv(&logdirs[act->data.ld].out, v, m)) dienomem() ;
             break ;
 
           default :

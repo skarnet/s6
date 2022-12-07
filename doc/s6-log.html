@@ -228,6 +228,12 @@ bytes of the selected lines will be used in the next status file updates.
 If a line is shorter than <em>statussize</em> bytes, the status file will be
 padded with newlines so it is always <em>statussize</em> bytes long. 0 means
 an unpadded, unlimited status file. By default, <em>statussize</em> is 1001. </li>
+ <li> <strong>p<em>prefix</em></strong>: sets <em>prefix</em> as a prefix to be
+printed on every output line. For instance, a <tt>pfoobar:</tt> directive means
+that the next action directives should prepend every line with <tt>foobar:</tt>
+(plus a space) before outputting it. Note that a prefix is always printed
+<em>after</em> the timestamps, if any. To remove a prefix for the next action
+directives, use <tt>p</tt>. </li>
  <li> <strong>!<em>processor</em></strong>: registers
 <tt>execlineb -Pc <em>processor</em></tt> as a processor for the next logdirs;
 <tt>execlineb</tt> must be found in s6-log's PATH. This directive is only
