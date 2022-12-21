@@ -36,6 +36,6 @@ int main (int argc, char const *const *argv)
   argc -= l.ind ; argv += l.ind ;
   if (argc < 2) strerr_dieusage(100, USAGE) ;
   if ((envdir_internal(*argv++, &modifs, options, nullis) < 0) && (insist || (errno != ENOENT)))
-    strerr_diefu1sys(111, "envdir") ;
+    strerr_diefu2sys(111, "envdir ", argv[-1]) ;
   xmexec_m(argv, modifs.s, modifs.len) ;
 }
