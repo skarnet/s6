@@ -29,6 +29,8 @@ s6-setuidgid executes a program as another user.
 </pre>
 
 <ul>
+ <li> If <em>account</em> is the empty string, then s6-setuidgid directly execs
+into <em>prog...</em> without any state changes. </li>
  <li> If <em>account</em> contains a colon, it is interpreted as <em>uid:gid</em>,
 else it is interpreted as a username and looked up by name in the account
 database. </li>
@@ -41,10 +43,10 @@ according to the group database. </li>
 
 <h2> Notes </h2>
 
-<p>
- s6-setuidgid can only be run as root. Its main use is to drop root privileges before
-starting a daemon.
-</p>
+<ul>
+ <li> Unless <em>account</em> is empty, s6-setuidgid can only be run as root. Its main use
+is to drop root privileges before starting a daemon. </li>
+</ul>
 
 </body>
 </html>

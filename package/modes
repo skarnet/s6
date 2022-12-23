@@ -65,3 +65,4 @@ s6-fdholder-setdumpc		0755
 s6-fdholder-transferdump	0755
 s6-fdholder-transferdumpc	0755
 s6-usertree-maker		0755
+s6-instance-maker		0755

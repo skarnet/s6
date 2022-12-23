@@ -10,7 +10,7 @@
 #define USAGE "s6-setuidgid username prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 
-int main (int argc, char *const *argv)
+int main (int argc, char const *const *argv)
 {
   char const *newargv[argc + 7] ;
   char *colon ;
@@ -18,6 +18,7 @@ int main (int argc, char *const *argv)
   PROG = "s6-setuidgid" ;
   if (argc < 3) dieusage() ;
   argv++ ;
+  if (!argv[0][0]) xexec(argv+1) ;
   colon = strchr(argv[0], ':') ;
   if (colon)
   {

@@ -64,5 +64,5 @@ LIB_DEFS := S6=s6
 
 ifneq ($(EXECLINE_LIB),)
 LIB_DEFS += S6AUTO=s6auto
-BIN_TARGETS += s6-usertree-maker
+BIN_TARGETS += s6-usertree-maker s6-instance-maker
 endif

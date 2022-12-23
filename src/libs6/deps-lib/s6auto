@@ -1,1 +1,5 @@
+s6_auto_write_logger.o
+s6_auto_write_logger_tmp.o
 s6_auto_write_logrun.o
+s6_auto_write_logrun_tmp.o
+s6_auto_write_service.o
