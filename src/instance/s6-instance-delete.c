@@ -42,7 +42,7 @@ int main (int argc, char const *const *argv)
   }
   if (argc < 2) dieusage() ;
   if (!argv[0][0]) strerr_dief1x(100, "invalid service path") ;
-  if (!argv[1][0] || argv[1][0] == '.' || byte_in(argv[1], strlen(argv[1]), " \t\f\r\n", 5) < 5)
+  if (!argv[1][0] || argv[1][0] == '.' || byte_in(argv[1], strlen(argv[1]), " \t\f\r\n", 5) < strlen(argv[1]))
     strerr_dief1x(100, "invalid instance name") ;
 
   tain_now_set_stopwatch_g() ;

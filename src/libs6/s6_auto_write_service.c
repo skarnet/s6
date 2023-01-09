@@ -22,22 +22,21 @@ void s6_auto_write_service (char const *dir, unsigned int nfd, s6_buffer_writer_
   char fn[dirlen + 17] ;
   if (mkdir(dir, 0755) == -1) strerr_diefu2sys(111, "mkdir ", dir) ;
   umask(m) ;
-  m = ~m & 0666 ;
   memcpy(fn, dir, dirlen) ;
+  if (nfd)
+  {
+    char fmt[UINT_FMT] ;
+    size_t l = uint_fmt(fmt, nfd) ;
+    fmt[l++] = '\n' ;
+    memcpy(fn + dirlen, "/notification-fd", 17) ;
+    if (!openwritenclose_unsafe(fn, fmt, l)) strerr_diefu2sys(111, "write to ", fn) ;
+  }
   memcpy(fn + dirlen, "/run", 5) ;
   fd = open_trunc(fn) ;
   if (fd == -1) strerr_diefu2sys(111, "open ", fn) ;
   buffer_init(&b, &buffer_write, fd, buf, 4096) ;
   if (!(*f)(&b, data)) strerr_diefu2sys(111, "write to ", fn) ;
   fd_close(fd) ;
-  if (nfd)
-  {
-    char fmt[UINT_FMT] ;
-    size_t l = uint_fmt(fmt, nfd) ;
-    fmt[l++] = '\n' ;
-    memcpy(fn + dirlen + 1, "notification-fd", 16) ;
-    if (!openwritenclose_unsafe(fn, fmt, l)) strerr_diefu2sys(111, "write to ", fn) ;
-  }
   if (logger)
   {
     memcpy(fn + dirlen + 1, "type", 5) ;
@@ -51,9 +50,9 @@ void s6_auto_write_service (char const *dir, unsigned int nfd, s6_buffer_writer_
   }
   else
   {
-    if (chmod(fn, m | ((m >> 2) & 0111)) < 0)
+    if (chmod(fn, (~m & 0666) | ((~m >> 2) & 0111)) < 0)
       strerr_diefu2sys(111, "chmod ", fn) ;
-    if (!(m & 0400))
+    if (!(~m & 0400))
       strerr_warnw2x("weird umask, check permissions manually on ", fn) ;
   }
 }

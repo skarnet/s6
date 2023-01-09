@@ -37,9 +37,9 @@ static int write_run (buffer *b, void *data)
   size_t l ;
   char fmt[UINT_FMT] ;
   l = uint_fmt(fmt, t->maxinstances) ;
-  if (buffer_puts(b, EXECLINE_EXTBINPREFIX "execlineb -P\n\n"
+  if (buffer_puts(b, "#!" EXECLINE_SHEBANGPREFIX "execlineb -P\n\n"
     EXECLINE_EXTBINPREFIX "fdmove -c 2 1\n") < 0) return 0 ;
-  if (t->user)
+  if (t->user[0])
   {
     if (!string_quote(&sa, t->user, strlen(t->user))) return 0 ;
     if (buffer_puts(b, S6_EXTBINPREFIX "s6-setuidgid ") < 0
@@ -61,8 +61,9 @@ static void write_service (char const *dir, char const *template, char const *us
 {
   svinfo data = { .user = user, .maxinstances = maxinstances } ;
   size_t dirlen = strlen(dir) ;
-  mode_t m = umask(0) ;
+  mode_t m ;
   char fn[dirlen + 21] ;
+  s6_auto_write_service(dir, 3, &write_run, &data, logger) ;
   memcpy(fn, dir, dirlen) ;
   memcpy(fn + dirlen, "/instance", 10) ;
   m = umask(0) ;
@@ -73,7 +74,6 @@ static void write_service (char const *dir, char const *template, char const *us
   memcpy(fn + dirlen + 10, "/.template", 11) ;
   if (!hiercopy_tmp(template, fn, &sa))
     strerr_diefu4sys(111, "copy file hierarchy from ", template, " to ", fn) ;
-  s6_auto_write_service(dir, 3, &write_run, &data, logger) ;
 }
 
 int main (int argc, char const *const *argv)
@@ -151,15 +151,17 @@ int main (int argc, char const *const *argv)
   dirlen = strlen(argv[1]) ;
   if (rcinfo[0])
   {
+    mode_t m = umask(0) ;
     size_t svclen = strlen(rcinfo[0]) ;
     size_t loglen = rcinfo[1] ? strlen(rcinfo[1]) : 0 ;
     char dir[dirlen + 2 + (svclen > loglen ? svclen : loglen)] ;
     memcpy(dir, argv[1], dirlen) ;
     dir[dirlen] = '/' ;
     if (mkdir(argv[1], 0755) < 0 && errno != EEXIST)
-      strerr_diefu2sys(111, "mkdir ", argv[2]) ;
+      strerr_diefu2sys(111, "mkdir ", argv[1]) ;
+    umask(m) ;
     memcpy(dir + dirlen + 1, rcinfo[0], svclen + 1) ;
-    write_service(dir, user, argv[0], maxinstances, rcinfo[1] ? rcinfo[1] : "") ;
+    write_service(dir, argv[0], user, maxinstances, rcinfo[1] ? rcinfo[1] : "") ;
     if (rcinfo[1])
     {
       memcpy(dir + dirlen + 1, rcinfo[1], loglen + 1) ;
@@ -168,7 +170,7 @@ int main (int argc, char const *const *argv)
   }
   else
   {
-    write_service(argv[1], user, argv[0], maxinstances, 0) ;
+    write_service(argv[1], argv[0], user, maxinstances, 0) ;
     if (logdir)
     {
       char dir[dirlen + 5] ;

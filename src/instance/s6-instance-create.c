@@ -71,7 +71,7 @@ int main (int argc, char const *const *argv)
 
   namelen = strlen(argv[1]) ;
   if (!argv[0][0]) strerr_dief1x(100, "invalid service path") ;
-  if (!argv[1][0] || argv[1][0] == '.' || byte_in(argv[1], namelen, " \t\f\r\n", 5) < 5)
+  if (!argv[1][0] || argv[1][0] == '.' || byte_in(argv[1], namelen, " \t\f\r\n", 5) < namelen)
     strerr_dief1x(100, "invalid instance name") ;
   checkinstanced(argv[0]) ;
 
@@ -90,7 +90,7 @@ int main (int argc, char const *const *argv)
     if (s6_supervise_link_names_g(".", (char const *const *)&sv, argv + 1, 1, options, &tto) == -1)
     {
       cleanup(sv) ;
-      strerr_diefu4sys(errno == ETIMEDOUT ? 99 : 111, "creatre instance of ", argv[0], " named ", argv[1]) ;
+      strerr_diefu4sys(errno == ETIMEDOUT ? 99 : 111, "create instance of ", argv[0], " named ", argv[1]) ;
     }
   }
   return 0 ;

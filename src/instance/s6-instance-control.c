@@ -62,7 +62,7 @@ int main (int argc, char const **argv)
   if (argc < 2) dieusage() ;
   namelen = strlen(argv[1]) ;
   if (!argv[0][0]) strerr_dief1x(100, "invalid service name") ;
-  if (!argv[1][0] || argv[1][0] == '.' || byte_in(argv[1], namelen, " \t\f\r\n", 5) < 5)
+  if (!argv[1][0] || argv[1][0] == '.' || byte_in(argv[1], namelen, " \t\f\r\n", 5) < namelen)
     strerr_dief1x(100, "invalid instance name") ;
 
   {
