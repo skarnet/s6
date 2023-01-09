@@ -50,8 +50,9 @@ for the <a href="//skarnet.org/software/s6-rc/">s6-rc</a> service manager.
 </pre>
 
 <p>
-s6-instance-maker creates a service directory in <em>dir</em>. The
-created service will be a supervisor for a set of instances (initially empty)
+s6-instance-maker creates a service directory in <em>dir</em> (which must
+not already exist). The created service will be a supervisor for a set of
+instances &mdash; initially empty &mdash;
 each running a copy of the service directory given in <em>template</em>.
 </p>
 
@@ -195,7 +196,7 @@ built if s6 is built with <a href="//skarnet.org/software/execline/">execline</a
 support - i.e. the <tt>--disable-execline</tt> switch has <em>not</em> been given
 to configure. </li>
  <li> If s6-instance-maker encounters failure (and exits 111), it does not clean up
-the directories it created. Make sure to always test s6-usertree-maker's return code
+the directories it created. Make sure to always test s6-instance-maker's return code
 and clean up after it if needed. </li>
 </ul>
 
