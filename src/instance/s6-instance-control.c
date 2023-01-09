@@ -10,7 +10,7 @@
 
 #include <s6/config.h>
 
-#define USAGE "s6-instance-control [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T timeout ] [ -abqhkti12pcyroduDUxOX ] service instance"
+#define USAGE "s6-instance-control [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T timeout ] [ -abqhkti12pcyroduDUxO ] service instance"
 #define dieusage() strerr_dieusage(100, USAGE)
 
 #define DATASIZE 63
@@ -27,7 +27,7 @@ int main (int argc, char const **argv)
     unsigned int timeout = 0 ;
     for (;;)
     {
-      int opt = subgetopt_r(argc, argv, "abqhkti12pcyroduxOT:w:", &l) ;
+      int opt = subgetopt_r(argc, argv, "abqhkti12pcyroduDUxOT:w:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {

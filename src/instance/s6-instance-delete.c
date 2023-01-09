@@ -21,6 +21,7 @@
 int main (int argc, char const *const *argv)
 {
   tain tto = TAIN_INFINITE_RELATIVE ;
+  size_t namelen ;
   uint32_t options = 1 ;
   PROG = "s6-instance-delete" ;
   {
@@ -42,7 +43,9 @@ int main (int argc, char const *const *argv)
   }
   if (argc < 2) dieusage() ;
   if (!argv[0][0]) strerr_dief1x(100, "invalid service path") ;
-  if (!argv[1][0] || argv[1][0] == '.' || byte_in(argv[1], strlen(argv[1]), " \t\f\r\n", 5) < strlen(argv[1]))
+
+  namelen = strlen(argv[1]) ;
+  if (!argv[1][0] || argv[1][0] == '.' || byte_in(argv[1], namelen, " \t\f\r\n", 5) < namelen)
     strerr_dief1x(100, "invalid instance name") ;
 
   tain_now_set_stopwatch_g() ;
@@ -50,11 +53,14 @@ int main (int argc, char const *const *argv)
 
   {
     size_t svlen = strlen(argv[0]) ;
-    char sc[svlen + 10] ;
+    char sc[svlen + 12 + namelen] ;
     memcpy(sc, argv[0], svlen) ;
     memcpy(sc + svlen, "/instance", 10) ;
     if (s6_supervise_unlink_names_g(sc, argv + 1, 1, options, &tto) == -1)
       strerr_diefu4sys(111, "prepare deletion of instance ", argv[1], " of service ", argv[0]) ;
+    memcpy(sc + svlen + 9, "s/", 2) ;
+    memcpy(sc + svlen + 11, argv[1], namelen + 1) ;
+    rm_rf(sc) ;
   }
 
   return 0 ;

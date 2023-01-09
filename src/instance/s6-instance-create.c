@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 #include <skalibs/bytestr.h>
 #include <skalibs/types.h>
@@ -80,14 +81,25 @@ int main (int argc, char const *const *argv)
 
   {
     char sv[namelen + 14] ;
+    char const *p = sv ;
     memcpy(sv, "../instances/", 13) ;
     memcpy(sv + 13, argv[1], namelen + 1) ;
+    {
+      struct stat st ;
+      if (stat(sv, &st) == 0)
+        if (!S_ISDIR(st.st_mode))
+          strerr_dief3x(100, "unexpected file preventing instance creation at ", argv[0], sv+2) ;
+        else
+          strerr_dief3x(100, "instance appears to already exist at ", argv[0], sv+2) ;
+      else if (errno != ENOENT)
+        strerr_diefu3sys(111, "stat ", argv[0], sv+2) ;
+    }
     if (!hiercopy("../instances/.template", sv))
     {
       cleanup(sv) ;
       strerr_diefu5sys(111, "copy ", argv[0], "/instances/.template to ", argv[0], sv+2) ;
     }
-    if (s6_supervise_link_names_g(".", (char const *const *)&sv, argv + 1, 1, options, &tto) == -1)
+    if (s6_supervise_link_names_g(".", &p, argv + 1, 1, options, &tto) == -1)
     {
       cleanup(sv) ;
       strerr_diefu4sys(errno == ETIMEDOUT ? 99 : 111, "create instance of ", argv[0], " named ", argv[1]) ;

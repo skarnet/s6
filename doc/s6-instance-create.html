@@ -86,6 +86,15 @@ s6-instance-create adds a service directory to that tree and ensures it gets
 supervised. </li>
  <li> If the template for the service is logged, then s6-instance-create will
 wait until supervisors have been spawned for both the instance and its logger. </li>
+ <li> s6-instance-create and <a href="s6-instance-delete.html">s6-instance-delete</a>
+are relatively expensive operations, because they have to recursively copy or
+delete directories and use the <a href="libs6/ftrigr.html">synchronization mechanism</a>
+with the instance supervisor, compared to
+<a href="s6-instance-control.html">s6-instance-control</a> which only has to send
+commands to already existing supervisors. If you are going to turn instances on and
+off on a regular basis, it is more efficient to keep the instance existing and control
+it with <a href="s6-instance-control.html">s6-instance-control</a> than it is to
+repeatedly create and delete it. </li>
 </ul>
 
 </body>

@@ -13,7 +13,7 @@
 #include <s6/config.h>
 #include <s6/supervise.h>
 
-#define USAGE "s6-svc [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T timeout ] [ -abqhkti12pcyroduDUxOX ] servicedir"
+#define USAGE "s6-svc [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T timeout ] [ -abqhkti12pcyroduDUxO ] servicedir"
 #define dieusage() strerr_dieusage(100, USAGE)
 
 #define DATASIZE 63
