@@ -1,0 +1,92 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-instance-create program</title>
+    <meta name="Description" content="s6: the s6-instance-create program" />
+    <meta name="Keywords" content="s6 command s6-instance-create instance dynamic instantiation instanced services creation s6-svlink" />
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-instance-create program </h1>
+
+<p>
+s6-instance-create creates a new instance of a currently supervised
+<a href="instances.html">instanced service</a>.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-instance-create [ -d | -D ] [ -P ] [ -f ] [ -t <em>timeout</em> ] <em>servicedir</em> <em>name</em>
+</pre>
+
+<ul>
+ <li> s6-instance-create expects a running, supervised
+<a href="instances.html">instanced service</a> in <em>servicedir</em>.
+This service typically has been created by linking the result of an
+<a href="s6-instance-maker.html">s6-instance-maker</a> invocation into
+an existing <a href="scandir.html">scan directory</a>. </li>
+ <li> s6-instance-create creates a new instance of that service, named
+<em>name</em>. Depending on the given options, it may start it
+immediately, or keep it down until a later
+<a href="s6-instance-control.html">s6-instance-control</a> invocation. </li>
+ <li> It waits for the new instance to be ready to take commands from
+<a href="s6-instance-control.html">s6-instance-control</a>. </li>
+ <li> It exits 0. </li>
+</ul>
+
+<h2> Exit codes </h2>
+
+<ul>
+ <li> 0: success </li>
+ <li> 99: timeout while waiting for the instance supervisor to start </li>
+ <li> 100: wrong usage </li>
+ <li> 111: system call failed </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-d</tt>&nbsp;: down. The instance supervisor will be started, but the instance
+itself will remain down. Any <tt>down</tt> file for the instance will be
+deleted. By default, if neither the <tt>-d</tt> nor <tt>-D</tt> options have
+been given, the supervisor auto-starts the instance as soon as it runs. </li>
+ <li> <tt>-D</tt>&nbsp;: down, and stay down. The instance supervisor will be started,
+but the instance itself will remain down. A <tt>down</tt> file
+will be created for the instance. By default, if neither the <tt>-d</tt> nor <tt>-D</tt> options have
+been given, the supervisor auto-starts the instancece as soon as it runs. </li>
+ <li> <tt>-P</tt>&nbsp;: public. Everyone will be able to subscribe to the
+instance supervisor's notification. By default, only processes running with the same gid
+as the instanced service can subscribe to it. </li>
+ <li> <tt>-f</tt>&nbsp;: force permissions. You should never need to use this
+option, it is only there for testing purposes. </li>
+ <li> <tt>-t&nbsp;<em>timeout</em></tt>&nbsp;: if the instance supervisor has not started
+after <em>timeout</em> milliseconds, s6-instance-create will print a message
+to stderr and exit 99. By default, <em>timeout</em> is 0, which means no time
+limit. </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> s6-instance-create is similar to
+<a href="s6-svlink.html">s6-svlink</a>, because it uses the same underlying
+library functions. Under the hood, an instance is a regular service running
+on a supervision tree that is specific to the instanced service, and
+s6-instance-create adds a service directory to that tree and ensures it gets
+supervised. </li>
+ <li> If the template for the service is logged, then s6-instance-create will
+wait until supervisors have been spawned for both the instance and its logger. </li>
+</ul>
+
+</body>
+</html>

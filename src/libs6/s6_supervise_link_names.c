@@ -42,6 +42,7 @@ static uint16_t registerit (ftrigr_t *a, char *fn, size_t len, gid_t gid, uint32
            bit 1: make event/ public
            bit 2: don't start the service
            bit 3: remove down files after starting supervisors
+           bit 4: allow links to relative paths
 */
 
 int s6_supervise_link_names (char const *scdir, char const *const *servicedirs, char const *const *names, size_t n, uint32_t options, tain const *deadline, tain *stamp)
@@ -118,7 +119,7 @@ int s6_supervise_link_names (char const *scdir, char const *const *servicedirs, 
       }
       fn[len] = 0 ;
       strcpy(lname + scdirlen + 1, names[i]) ;
-      if (servicedirs[i][0] != '/')
+      if (!(options & 16) && servicedirs[i][0] != '/')
       {
         rpsa.len = 0 ;
         if (sarealpath(&rpsa, servicedirs[i]) < 0 || !stralloc_0(&rpsa)) goto err ;

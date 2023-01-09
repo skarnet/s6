@@ -209,6 +209,13 @@ created by <a href="s6-supervise.html">s6-supervise</a> if it does not exist.
 is the rendez-vous point for listeners, where <a href="s6-supervise.html">s6-supervise</a>
 will send notifications when the service goes up or down. </li>
 
+ <li style="margin-bottom:1em"> Optional directories named <tt>instance<tt>
+and <tt>instances</tt>. Those are internal subdirectories created by
+<a href="s6-instance-maker.html">s6-instance maker</a> in a templated service
+directory. Outside of instanced services, these directories should never
+appear, and you should never create them manually. </li>
+
+
  <li style="margin-bottom:1em"> An optional service directory named <tt>log</tt>. If it exists and <em>foo</em>
 is in a <a href="scandir.html">scandir</a>, and <a href="s6-svscan.html">s6-svscan</a>
 runs on that scandir, then <em>two</em> services are monitored: <em>foo</em> and

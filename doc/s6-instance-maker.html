@@ -1,0 +1,203 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-instance-maker program</title>
+    <meta name="Description" content="s6: the s6-instance-maker program" />
+    <meta name="Keywords" content="s6 command s6-instance-maker instance dynamic instantiation instanced services" />
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-instance-maker program </h1>
+
+<p>
+s6-instance-maker creates a <a href="servicedir.html">service directory</a>
+implementing an <a href="instances.html">instanced service</a>. Give it a
+templated service directory describing how to run an instance of a service,
+and it will create a different service directory that can launch and
+manage several instances; each of these instances will be running a
+copy of the service directory you gave.
+</p>
+
+<p>
+ Alternatively, s6-instance-maker can create source definition directories
+for the <a href="//skarnet.org/software/s6-rc/">s6-rc</a> service manager.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-instance-maker \
+       [ -c <em>maxinstances</em> ] \
+       [ -r <em>service</em>[/<em>logger</em>[/<em>pipeline</em>]] ] \
+       [ -u <em>user</em> ] \
+       [ -l <em>loguser</em> ] \
+       [ -L <em>logdir</em> ] \
+       [ -t <em>stamptype</em> ] \
+       [ -n <em>nfiles</em> ] \
+       [ -s <em>filesize</em> ] \
+       [ -S <em>maxsize</em> ] \
+       [ -P <em>prefix</em> ] \
+       template dir
+</pre>
+
+<p>
+s6-instance-maker creates a service directory in <em>dir</em>. The
+created service will be a supervisor for a set of instances (initially empty)
+each running a copy of the service directory given in <em>template</em>.
+</p>
+
+<p>
+s6-instance-maker is an <em>offline</em> tool: it is run before you need
+instances. Once the created service directory is live, i.e. there is a
+supervisor running on it, then you can create, delete, or control
+individual instances via the
+<a href="s6-instance-create.html">s6-instance-create</a>,
+<a href="s6-instance-delete.html">s6-instance-delete</a> and
+<a href="s6-instance-control.html">s6-instance-control</a> <em>online</em>
+tools, that work with active services.
+</p>
+
+<h2> Exit codes </h2>
+
+<ul>
+ <li> 0: success </li>
+ <li> 100: wrong usage </li>
+ <li> 111: system call failed </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-c</tt>&nbsp;<em>max</em>&nbsp;: Plan for a maximum of <em>max</em>
+instances. Default is <strong>500</strong>. You can't set it lower than 2 or
+higher than 90000. If your template service directory is logged, it's unadvisable
+to set this above the default. </li> <br>
+
+ <li> <tt>-r</tt>&nbsp;<em>service</em>[/<em>logger</em>[/<em>pipeline</em>]]&nbsp;:
+create <a href="//skarnet.org/software/s6-rc">s6-rc</a> source definition directories.
+When this option is given, <em>dir</em> is not created as a service directory, but
+as a directory containing at least one service: <em>dir</em>/<em>service</em>.
+<em>dir</em> is suitable as a source argument to
+<a href="//skarnet.org/software/s6-rc/s6-rc-compile.html">s6-rc-compile</a>. If
+a <em>logger</em> part is given, then a second service, <em>dir</em>/<em>logger</em>,
+is also created, as a consumer for <em>dir</em>/<em>service</em>, and the <tt>-L</tt>
+option must also be used, to provide a directory to store the logs into. If the
+<tt>/</tt><em>pipeline</em> part is also given, <em>pipeline</em>
+is used as a name for a bundle containing both <em>service</em> and <em>logger</em>.
+When the <tt>-r</tt> option is not given at all, <em>dir</em> is a regular service
+directory for direct inclusion (or linking) in a host
+<a href="scandir.html">scan directory</a>, and if the <tt>-L</tt> option is given
+then the logger for the instance supervisor and all its instances is declared in
+<em>dir</em><tt>/log</tt>). </li> <br>
+
+ <li> <tt>-u</tt>&nbsp;<em>user</em>&nbsp;: run the instance supervisor, and all
+of the instances, as user <em>user</em>. This option should only be used when the
+supervision tree that will host the instanced service is run as root. The default
+is that the service runs as the same user as the host supervision tree. </li> <br>
+
+ <li> <tt>-l</tt>&nbsp;<em>loguser</em>&nbsp;: run the logger of the instance
+supervisor, if any (see <tt>-L</tt> below) as user <em>loguser</em>. This option
+should only be used when the
+supervision tree that will host the instanced service is run as root. The default
+is that the logger runs as the same user as the host supervision tree. </li> <br>
+
+ <li> <tt>-L</tt>&nbsp;<em>logdir</em>&nbsp;: make the service logged via
+<a href="s6-log.html">s6-log</a>, and ensure its log messages go into <em>logdir</em>.
+Error messages from the instance supervisor as well as from every instance will
+be logged to <em>logdir</em>. If this option is not given, these error messages
+will fall through to the host supervision tree's catch-all logger, if any,
+or standard error otherwise. <br>
+The options listed below are only used to configured the logger and are meaningless
+if <tt>-L</tt> is not given. </li> <br>
+
+ <li> <tt>-t</tt>&nbsp;<em>stamptype</em>&nbsp;: how
+logs are timestamped in <em>logdir</em>. 0 means no timestamp, 1 means
+<a href="https://cr.yp.to/libtai/tai64.html">external TAI64N format</a>,
+2 means
+<a href="https://www.iso.org/iso/home/standards/iso8601.htm">ISO 8601 format</a>,
+and 3 means both. Default is <strong><tt>1</tt></strong>. </li> <br>
+
+  <li> <tt>-n</tt>&nbsp;<em>nfiles</em>&nbsp;: maximum number of archive files
+in <em>logdir</em>. Default is <strong><tt>10</tt></strong>. </li> <br>
+
+  <li> <tt>-s</tt>&nbsp;<em>filesize</em>&nbsp;: maximum size of the <tt>current</tt>
+file (and archive files) in <em>logdir</em>. Default is <strong><tt>1000000</tt></strong>. </li> <br>
+
+  <li> <tt>-S</tt>&nbsp;<em>maxsize</em>&nbsp;: maximum total size of the
+archives in <em>logdir</em>. Default is <strong><tt>0</tt></strong>,
+meaning no limits apart from those enforced by the <tt>-n</tt> and
+<tt>-s</tt> options. </li> <br>
+
+  <li> <tt>-P</tt>&nbsp;<em>prefix</em>&nbsp;: when logging to <em>logdir</em>,
+prefix logged lines with the <em>prefix</em> string. Default is no prefix. </li>
+</ul>
+
+<h2> The templated service directory </h2>
+
+<p>
+ <em>template</em> should be a directory that looks exactly like a service
+directory. It will not be live, i.e. at no point will <em>template</em>
+itself be supervised; instead, a copy of it is stored under <em>dir</em>
+(and a copy of that copy will be used for every instance of the service).
+You can safely move or delete <em>template</em> after running
+s6-instance-maker.
+</p>
+
+<p>
+ To differentiate between instances, the <tt>run</tt> and <tt>finish</tt>
+script in <em>template</em> should take one additional argument (the
+first argument for <tt>run</tt> and the third argument for <tt>finish</tt>).
+This argument will be the name of the instance, as provided by the
+<a href="s6-instance-create.html">s6-instance-create</a> invocation.
+</p>
+
+<h2> Logging </h2>
+
+<p>
+ The service is logged: its stderr and stdout are piped to an
+<a href="s6-log.html">s6-log</a> process running as <em>loguser</em> and
+writing to the <em>logdir</em> directory. This logger is the catch-all logger
+for the supervision tree owned by <em>user</em>; it is recommended to make
+<em>loguser</em> distinct from <em>user</em>, and to have <em>logdir</em>
+in a place that is <strong>not</strong> under the control of <em>user</em>.
+If <em>user</em> wants to keep control of their logs, they can declare a
+logger for each of their services.
+</p>
+
+<p>
+ If <em>template</em> has a <em>log</em> subdirectory, then each instance
+will have its own dedicated logger. The <tt>run</tt> and <tt>finish</tt>
+scripts for the logger of an instance named <em>name</em> will be called
+with an additional argument of <tt><em>name</em>/log</tt>. They should
+make use of this, to ensure loggers are properly differentiated between
+instances: for instance, it is not possible to run several
+<a href="s6-log.html">s6-log</a> processes on the same log directory,
+so an instance logger script containing an invocation of s6-log on a fixed
+logdir will fail as soon as there are 2 instances.
+</p>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> s6-instance-maker makes use of the fact that
+<a href="//skarnet.org/software/execline/">execline</a> scripts are much
+easier to generate programmatically and to harden than shell scripts, so it is only
+built if s6 is built with <a href="//skarnet.org/software/execline/">execline</a>
+support - i.e. the <tt>--disable-execline</tt> switch has <em>not</em> been given
+to configure. </li>
+ <li> If s6-instance-maker encounters failure (and exits 111), it does not clean up
+the directories it created. Make sure to always test s6-usertree-maker's return code
+and clean up after it if needed. </li>
+</ul>
+
+</body>
+</html>

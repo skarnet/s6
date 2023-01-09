@@ -7,28 +7,31 @@
 #include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr.h>
+#include <skalibs/djbunix.h>
 #include <skalibs/exec.h>
 
 #include <s6/config.h>
 #include <s6/supervise.h>
 
-#define USAGE "s6-svc [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T timeout ] [ -abqhkti12pcyroduxOX ] servicedir"
+#define USAGE "s6-svc [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T timeout ] [ -abqhkti12pcyroduDUxOX ] servicedir"
 #define dieusage() strerr_dieusage(100, USAGE)
 
 #define DATASIZE 63
 
 int main (int argc, char const *const *argv)
 {
-  char data[DATASIZE+1] = "-" ;
+  size_t len ;
+  int downfile = -1 ;
   unsigned int datalen = 1 ;
   unsigned int timeout = 0 ;
+  char data[DATASIZE+1] = "-" ;
   char updown[3] = "-\0" ;
   PROG = "s6-svc" ;
   {
     subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      int opt = subgetopt_r(argc, argv, "abqhkti12pcyroduxOT:w:", &l) ;
+      int opt = subgetopt_r(argc, argv, "abqhkti12pcyroduDUxOT:w:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -55,6 +58,20 @@ int main (int argc, char const *const *argv)
           data[datalen++] = opt ;
           break ;
         }
+        case 'D' :
+        {
+          if (datalen >= DATASIZE) strerr_dief1x(100, "too many commands") ;
+          data[datalen++] = 'd' ;
+          downfile = 1 ;
+          break ;
+        }
+        case 'U' :
+        {
+          if (datalen >= DATASIZE) strerr_dief1x(100, "too many commands") ;
+          data[datalen++] = 'u' ;
+          downfile = 0 ;
+          break ;
+        }
         case 'T' : if (!uint0_scan(l.arg, &timeout)) dieusage() ; break ;
         case 'w' :
         {
@@ -69,19 +86,33 @@ int main (int argc, char const *const *argv)
   }
   if (!argc) dieusage() ;
   if (argc > 1) strerr_warnw1x("ignoring extra arguments") ;
+  len = strlen(argv[0]) ;
+  if (!len) strerr_dief1x(100, "invalid service path") ;
 
   if (updown[1] == 'U' || updown[1] == 'R')
   {
-    size_t arglen = strlen(argv[0]) ;
-    char fn[arglen + 17] ;
-    memcpy(fn, argv[0], arglen) ;
-    memcpy(fn + arglen, "/notification-fd", 17) ;
+    char fn[len + 17] ;
+    memcpy(fn, argv[0], len) ;
+    memcpy(fn + len, "/notification-fd", 17) ;
     if (access(fn, F_OK) < 0)
     {
       if (errno != ENOENT) strerr_diefu2sys(111, "access ", fn) ;
       updown[1] = updown[1] == 'U' ? 'u' : 'r' ;
       strerr_warnw2x(fn, " not present - ignoring request for readiness notification") ;
     }
+  }
+
+  if (downfile >= 0)
+  {
+    char fn[len + 6] ;
+    memcpy(fn, argv[0], len) ;
+    memcpy(fn + len, "/down", 6) ;
+    if (downfile)
+    {
+      if (!openwritenclose_unsafe(fn, "", 0))
+        strerr_diefu2sys(111, "touch ", fn) ;
+    }
+    else unlink_void(fn) ;
   }
 
   if (updown[1])

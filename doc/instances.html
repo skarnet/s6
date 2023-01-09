@@ -1,0 +1,121 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: dynamic instantiation</title>
+    <meta name="Description" content="s6: dynamic instantiation" />
+    <meta name="Keywords" content="s6 instances dynamic instantiation" />
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> Dynamic instantiation under s6 </h1>
+
+<p>
+ A <em>instanced service</em> is a parameterized service that you want to
+run several copies of, with only the parameter changing. Each copy of the
+service is called an <em>instance</em>.
+</p>
+
+<p>
+ With s6, a <a href="servicedir.html">service directory</a> can only
+handle one process at a time. So, if we want instanced services, there
+will have to be one service directory per instance, always.
+</p>
+
+<p>
+ <em>Static instantiation</em> means that the set of possible instances
+is finite and known in advance. With s6, it means that all the service
+directories for all possible instances are created, typically by a
+preprocessor, and instances are treated like regular services.
+</p>
+
+<p>
+ <em>Dynamic instantiation</em> means that instances are created
+on demand instead of preallocated. Starting with version 2.11.2.0, s6
+provides a few tools to help users set up and manage dynamically
+instanced services.
+</p>
+
+<h2> How to make a dynamically instanced service under s6 </h2>
+
+<ul>
+ <li> Write a template for a service directory that would run under
+<a href="s6-supervise.html">s6-supervise</a>.
+The <tt>run</tt> script should take the name of the instance as its
+first argument; the <tt>finish</tt> script should take the name of the
+instance as its third argument. </li>
+ <li> Call the <a href="s6-instance-maker.html">s6-instance-maker</a> program
+with this template as first argument, and a path <em>dir</em> as second
+argument. <a href="s6-instance-maker.html">s6-instance-maker</a> will create
+a service directory in <em>dir</em>. This is an offline tool: it does not
+interact with any currently active services or supervision trees. </li>
+ <li> Supervise <em>dir</em> by adding it to your regular
+<a href="scandir.html">scan directory</a>. This will be your instanced
+service, but it's not running any instances yet. It is, instead, a nested
+supervision tree - the instanced service is an
+<a href="s6-svscan.html">s6-svscan</a> process that will supervise all the
+instances. </li>
+ <li> Create and delete instances at will with the
+<a href="s6-instance-create.html">s6-instance-create</a> and
+<a href="s6-instance-delete.html">s6-instance-delete</a> programs. Instances
+are regular supervised processes; you can control them with
+<a href="s6-instance-control.html">s6-instance-control</a>. These tools are
+<em>online</em>: they work with live service directories (i.e. that are
+being supervised by <a href="s6-supervise.html">s6-supervise</a>). They
+are really syntactic sugar around the
+<a href="s6-svlink.html">s6-svlink</a>,
+<a href="s6-svunlink.html">s6-svunlink</a> and
+<a href="s6-svc.html">s6-svc</a> programs; they provide you with the
+same functionality but allow you to address individual instances via the
+instanced service name (the service directory running the nested
+supervision tree) and the instance name. </li>
+</ul>
+
+<h2> Internal workings </h2>
+
+<p>
+This section is not normative; users should not rely on it. It is only
+here for informational purposes.
+</p>
+
+<ul>
+ <li> The service directory created by <a href="s6-instance-maker.html">s6-instance-maker</a>
+has two specifics subdirectories in it: <tt>instance</tt> and <tt>instances</tt>. They
+are initially empty, except that the template service directory is stored in
+<tt>instances/.template</tt>. </li>
+ <li> When the service is active, there is an <a href="s6-svscan.html">s6-svscan</a>
+process running on <tt>instance</tt>. </li>
+ <li> <a href="s6-instance-create.html">s6-instance-create</a> makes a copy of
+<tt>instances/.template</tt> into <tt>instances/<em>name</em>/tt>, and
+<a href="s6-svlink.html">s6-svlink</a>s <tt>instances/<em>name</em>/tt> to
+<tt>instance</tt>. When it returns, there is an <a href="s6-supervise.html">s6-supervise</a>
+process running on <tt>instance/<em>name</em></tt>, and the instance may be up
+or not depending on the given options. </li>
+ <li> <a href="s6-instance-control.html">s6-instance-control</a> is syntactic sugar
+around <a href="s6-svc.html">s6-svc</a> on <tt>instance/<em>name</em></tt>. </li>
+ <li> <a href="s6-instance-delete.html">s6-instance-delete</a> is syntactic sugar
+around <a href="s6-svunlink.html">s6-svunlink</a> on <tt>instance/<em>name</em></tt>. </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> This implementation of dynamic instances may seem expensive: it
+creates one <a href="s6-svscan.html">s6-svscan</a> process per
+instanced service, and one <a href="s6-supervise.html">s6-supervise</a>
+process per instance. However, remember that these processes use very
+little private memory, so having additional copies of them is far less
+expensive than it looks. It's really a convenient way to implement the
+feature by reusing existing code. </li>
+</ul>
+
+</body>
+</html>

@@ -21,7 +21,7 @@
 <p>
 s6-usertree-maker creates a <a href="servicedir.html">service directory</a>
 implementing a service that runs an <a href="s6-svscan.html">s6-svscan</a>
-instance owned by a given user, on a <a href="scandir.html">scan directory</a>
+process owned by a given user, on a <a href="scandir.html">scan directory</a>
 belonging to that user. It is meant to help admins deploy systems where
 each user has their own supervision subtree, rooted in the main supervision
 tree owned by root.
@@ -45,6 +45,7 @@ for the <a href="//skarnet.org/software/s6-rc/">s6-rc</a> service manager.
        [ -n <em>nfiles</em> ] \
        [ -s <em>filesize</em> ] \
        [ -S <em>maxsize</em> ] \
+       [ -P <em>prefix</em> ] \
        user logdir dir
 </pre>
 
@@ -123,6 +124,9 @@ file (and archive files) in <em>logdir</em>. Default is <strong><tt>1000000</tt>
 archives in the <em>logdir</em>. Default is <strong><tt>0</tt></strong>,
 meaning no limits apart from those enforced by the <tt>-n</tt> and
 <tt>-s</tt> options. </li> <br />
+
+  <li> <tt>-P</tt>&nbsp;<em>prefix</em>&nbsp;: when logging to <em>logdir</em>,
+prefix logged lines with the <em>prefix</em> string. </li> <br />
 </ul>
 
 <h2> Operation of the service </h2>

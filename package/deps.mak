@@ -42,6 +42,9 @@ src/fdholder/s6-fdholder-setdump.o src/fdholder/s6-fdholder-setdump.lo: src/fdho
 src/fdholder/s6-fdholder-store.o src/fdholder/s6-fdholder-store.lo: src/fdholder/s6-fdholder-store.c src/include/s6/fdholder.h
 src/fdholder/s6-fdholder-transferdump.o src/fdholder/s6-fdholder-transferdump.lo: src/fdholder/s6-fdholder-transferdump.c src/include/s6/fdholder.h
 src/fdholder/s6-fdholderd.o src/fdholder/s6-fdholderd.lo: src/fdholder/s6-fdholderd.c src/include/s6/accessrules.h src/include/s6/fdholder.h
+src/instance/s6-instance-control.o src/instance/s6-instance-control.lo: src/instance/s6-instance-control.c src/include/s6/config.h
+src/instance/s6-instance-create.o src/instance/s6-instance-create.lo: src/instance/s6-instance-create.c src/include/s6/supervise.h
+src/instance/s6-instance-delete.o src/instance/s6-instance-delete.lo: src/instance/s6-instance-delete.c src/include/s6/supervise.h
 src/instance/s6-instance-maker.o src/instance/s6-instance-maker.lo: src/instance/s6-instance-maker.c src/include/s6/auto.h src/include/s6/config.h
 src/libs6/ftrig1_free.o src/libs6/ftrig1_free.lo: src/libs6/ftrig1_free.c src/libs6/ftrig1.h
 src/libs6/ftrig1_make.o src/libs6/ftrig1_make.lo: src/libs6/ftrig1_make.c src/libs6/ftrig1.h
@@ -217,6 +220,12 @@ s6-fdholder-transferdump: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
 s6-fdholder-transferdump: src/fdholder/s6-fdholder-transferdump.o ${LIBS6}
 s6-fdholderd: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
 s6-fdholderd: src/fdholder/s6-fdholderd.o ${LIBS6}
+s6-instance-control: EXTRA_LIBS := -lskarnet
+s6-instance-control: src/instance/s6-instance-control.o
+s6-instance-create: EXTRA_LIBS := -lskarnet
+s6-instance-create: src/instance/s6-instance-create.o ${LIBS6}
+s6-instance-delete: EXTRA_LIBS := -lskarnet
+s6-instance-delete: src/instance/s6-instance-delete.o ${LIBS6}
 s6-instance-maker: EXTRA_LIBS := -lskarnet
 s6-instance-maker: src/instance/s6-instance-maker.o libs6auto.a.xyzzy
 ifeq ($(strip $(STATIC_LIBS_ARE_PIC)),)

@@ -37,7 +37,7 @@ static int write_run (buffer *b, void *data)
   size_t l ;
   char fmt[UINT_FMT] ;
   l = uint_fmt(fmt, t->maxinstances) ;
-  if (buffer_puts(b, EXECLINE_EXTBINPREFIX "execlineb -S1\n\n"
+  if (buffer_puts(b, EXECLINE_EXTBINPREFIX "execlineb -P\n\n"
     EXECLINE_EXTBINPREFIX "fdmove -c 2 1\n") < 0) return 0 ;
   if (t->user)
   {

@@ -1,0 +1,72 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-instance-delete program</title>
+    <meta name="Description" content="s6: the s6-instance-delete program" />
+    <meta name="Keywords" content="s6 command s6-instance-delete instance dynamic instantiation instanced services deletion s6-svunlink" />
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-instance-delete program </h1>
+
+<p>
+s6-instance-delete deletes an existing instance of a currently supervised
+<a href="instances.html">instanced service</a>.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-instance-delete [ -X ] [ -t <em>timeout</em> ] <em>servicedir</em> <em>name</em>
+</pre>
+
+<ul>
+ <li> s6-instance-delete expects a running, supervised
+<a href="instances.html">instanced service</a> in <em>servicedir</em>,
+as well as an existing instance of this service named <em>name</em>
+(it doesn't matter if the instance is up or down). </li>
+ <li> It deletes the <em>name</em> instance. </li>
+ <li> It exits 0. </li>
+</ul>
+
+<h2> Exit codes </h2>
+
+<ul>
+ <li> 0: success </li>
+ <li> 100: wrong usage </li>
+ <li> 111: system call failed </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-X</tt>&nbsp;: don't wait. s6-instance-delete will exit right away,
+without waiting for the instance (and its supervisor) to properly disappear. </li>
+ <li> <tt>-t&nbsp;<em>timeout</em></tt>&nbsp;: if the instance supervisor has not exited
+after <em>timeout</em> milliseconds, s6-instance-delete will still exit.
+By default, <em>timeout</em> is 0, which means no time limit. </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> s6-instance-delete is similar to
+<a href="s6-svunlink.html">s6-svunlink</a>, because it uses the same underlying
+library functions. Under the hood, an instance is a regular service running
+on a supervision tree that is specific to the instanced service, and
+s6-instance-delete removes a service directory from that tree. </li>
+ <li> If the template for the service is logged, then s6-instance-delete will
+delete both the instance and its logger. </li>
+</ul>
+
+</body>
+</html>

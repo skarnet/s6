@@ -56,7 +56,10 @@ s6-fdholder-getdump \
 s6-fdholder-setdump \
 s6-fdholder-transferdump \
 s6-applyuidgid \
-s6-setuidgid
+s6-setuidgid \
+s6-instance-create \
+s6-instance-delete \
+s6-instance-control
 
 LIBEXEC_TARGETS := s6lockd-helper
 

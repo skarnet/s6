@@ -28,7 +28,7 @@ knowing their PIDs, and without using horrible hacks such as .pid files.
 <h2> Interface </h2>
 
 <pre>
-     s6-svc [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T <em>timeout</em> ] [ -abqhkti12pcyoduxOr ] <em>servicedir</em>
+     s6-svc [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T <em>timeout</em> ] [ -abqhkti12pcyoduDUxOr ] <em>servicedir</em>
 </pre>
 
 <p>
@@ -59,8 +59,13 @@ a SIGTERM (by default) then a SIGCONT (to make sure even stopped processes
 receive the signal aimed to kill them) and do not restart it.
 The SIGTERM default can be changed by editing the <tt>./down-signal</tt>
 file in the <a href="servicedir.html">service directory</a>. </li>
+ <li> <tt>-D</tt>&nbsp;: down, and create a <tt>./down</tt> file so the
+service does not restart automatically if the supervisor dies. </li>
  <li> <tt>-u</tt>&nbsp;: up. If the supervised process is down, start it.
 Automatically restart it when it dies. </li>
+ <li> <tt>-U</tt>&nbsp;: up, and remove any <tt>./down</tt> file that may
+exist, in order to make sure the service is automatically restarted even
+if the supervisor dies. </li>
  <li> <tt>-x</tt>&nbsp;: exit. When the service is asked to be down and
 the supervised process dies, s6-supervise will exit too. This command should
 normally never be used on a working system. Note that if this command is
