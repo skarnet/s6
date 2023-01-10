@@ -9,6 +9,9 @@ In 2.11.2.0
 as the third argument to ./finish.
  - The 1-second service restart delay can now only be skipped when
 the service is ready.
+ - Implementation of instances! New programs: s6-instance-maker,
+s6-instance-create, s6-instance-delete, s6-instance-control,
+s6-instance-status, s6-instance-list.
 
 
 In 2.11.1.2

@@ -1,0 +1,60 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-instance-list program</title>
+    <meta name="Description" content="s6: the s6-instance-list program" />
+    <meta name="Keywords" content="s6 command s6-instance-list instance dynamic instantiation instanced services list listing" />
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-instance-list program </h1>
+
+<p>
+s6-instance-list gives a list of all currently created instances of an
+<a href="instances.html">instanced service</a>.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-instance-list <em>servicedir</em>
+</pre>
+
+<ul>
+ <li> s6-instance-list expects a running, supervised
+<a href="instances.html">instanced service</a> in <em>servicedir</em>,
+as well as an existing instance of this service named <em>name</em>. </li>
+ <li> It prints to stdout, one per line, the names of all existing instances of <em>servicedir</em>, i.e.
+the ones that have been created and not deleted. It does not matter if the instances are
+up or down; if they've been created and not deleted, they're printed. </li>
+ <li> It exits 0. </li>
+</ul>
+
+<h2> Exit codes </h2>
+
+<ul>
+ <li> 0: success </li>
+ <li> 100: wrong usage </li>
+ <li> 111: system call failed </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> The list is unsorted, the instance names are printed in an unspecified order. </li>
+ <li> You can use s6-instance-list to script commands that handle sets of instances.
+For instance, to get the status of all the instances of a given service, you could write:
+<code> for i in `s6-instance-list <em>service</em>` ; do printf "%s: " $i ; s6-instance-status <em>service</em> $i ; done </code> </li>
+</ul>
+
+</body>
+</html>

@@ -3,9 +3,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta http-equiv="Content-Language" content="en" />
-    <title>s6: the s6-instance-control program</title>
-    <meta name="Description" content="s6: the s6-instance-control program" />
-    <meta name="Keywords" content="s6 command s6-instance-control instance dynamic instantiation instanced services control s6-svc" />
+    <title>s6: the s6-instance-status program</title>
+    <meta name="Description" content="s6: the s6-instance-status program" />
+    <meta name="Keywords" content="s6 command s6-instance-status instance dynamic instantiation instanced services status s6-svstat" />
     <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
   </head>
 <body>
@@ -16,25 +16,25 @@
 <a href="//skarnet.org/">skarnet.org</a>
 </p>
 
-<h1> The s6-instance-control program </h1>
+<h1> The s6-instance-status program </h1>
 
 <p>
-s6-instance-control sends commands to a running instance of an
-<a href="instances.html">instanced service</a>.
+s6-instance-status gives the status of a running instance of an
+<a href="instances.html">instanced service</a>, as a short human-readable
+summary or programmatically parsable output.
 </p>
 
 <h2> Interface </h2>
 
 <pre>
-     s6-instance-control [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T <em>timeout</em> ] [ -abqhkti12pcyroduDUxO ] <em>servicedir</em> <em>name</em>
+     s6-instance-status [ -uwNrpest | -o up,wantedup,normallyup,ready,paused,pid,exitcode,signal,signum,updownsince,readysince,updownfor,readyfor ] [ -n ] <em>servicedir</em> <em>name</em>
 </pre>
 
 <ul>
- <li> s6-instance-control expects a running, supervised
+ <li> s6-instance-status expects a running, supervised
 <a href="instances.html">instanced service</a> in <em>servicedir</em>,
 as well as an existing instance of this service named <em>name</em>. </li>
- <li> It sends the given series of commands to the supervisor monitoring
-the <em>name</em> instance. </li>
+ <li> It prints information to stdout about the monitored instance of <em>servicedir</em> named <em>name</em>. </li>
  <li> It exits 0. </li>
 </ul>
 
@@ -42,7 +42,6 @@ the <em>name</em> instance. </li>
 
 <ul>
  <li> 0: success </li>
- <li> 99: with one of the <tt>-w</tt> options, timed out while waiting for the command to complete </li>
  <li> 100: wrong usage </li>
  <li> 111: system call failed </li>
 </ul>
@@ -50,13 +49,12 @@ the <em>name</em> instance. </li>
 <h2> Options </h2>
 
 <p>
- The options, and the commands they represent, are exactly the same as the ones
-understood by <a href="s6-svc.html">s6-svc</a>.
+ The options are exactly the same as the ones understood by <a href="s6-svstat.html">s6-svstat</a>.
 </p>
 
 <p>
- In fact, s6-instance-control is
-nothing more than a call to <a href="s6-svc.html">s6-svc</a> on the service
+ In fact, s6-instance-status is
+nothing more than a call to <a href="s6-svstat.html">s6-svstat</a> on the service
 directory representing the <em>name</em> instance. It is syntactic sugar so
 the user does not have to depend on the internal representation of instances
 and the location of instances' service directories.

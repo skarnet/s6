@@ -65,18 +65,16 @@ supervision tree - the instanced service is an
 instances. </li>
  <li> Create and delete instances at will with the
 <a href="s6-instance-create.html">s6-instance-create</a> and
-<a href="s6-instance-delete.html">s6-instance-delete</a> programs. Instances
-are regular supervised processes; you can control them with
-<a href="s6-instance-control.html">s6-instance-control</a>. These tools are
-<em>online</em>: they work with live service directories (i.e. that are
-being supervised by <a href="s6-supervise.html">s6-supervise</a>). They
-are really syntactic sugar around the
-<a href="s6-svlink.html">s6-svlink</a>,
-<a href="s6-svunlink.html">s6-svunlink</a> and
-<a href="s6-svc.html">s6-svc</a> programs; they provide you with the
-same functionality but allow you to address individual instances via the
-instanced service name (the service directory running the nested
-supervision tree) and the instance name. </li>
+<a href="s6-instance-delete.html">s6-instance-delete</a> programs; you
+can list all the available instances with
+<a href="s6-instance-list.html">s6-instance-list</a>.
+ These tools are <em>online</em>: they work with live service directories,
+i.e. that are being supervised by <a href="s6-supervise.html">s6-supervise</a>.
+ <li> Instances are regular supervised processes. You can control individual
+instances with <a href="s6-instance-control.html">s6-instance-control</a>,
+and check their status with
+<a href="s6-instance-status.html">s6-instance-status</a>. These tools
+are online as well. </li>
 </ul>
 
 <h2> Internal workings </h2>
@@ -101,6 +99,10 @@ process running on <tt>instance/<em>name</em></tt>, and the instance may be up
 or not depending on the given options. </li>
  <li> <a href="s6-instance-control.html">s6-instance-control</a> is syntactic sugar
 around <a href="s6-svc.html">s6-svc</a> on <tt>instance/<em>name</em></tt>. </li>
+ <li> <a href="s6-instance-status.html">s6-instance-status</a> is syntactic sugar
+around <a href="s6-svstat.html">s6-svstat</a> on <tt>instance/<em>name</em></tt>. </li>
+ <li> <a href="s6-instance-list.html">s6-instance-list</a> is roughly equivalent
+to <code>ls -1 instance </code>. </li>
  <li> <a href="s6-instance-delete.html">s6-instance-delete</a> is syntactic sugar
 around <a href="s6-svunlink.html">s6-svunlink</a> on <tt>instance/<em>name</em></tt>. </li>
 </ul>
