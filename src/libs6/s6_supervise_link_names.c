@@ -11,7 +11,6 @@
 #include <skalibs/tai.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/djbunix.h>
-#include <skalibs/lolstdio.h>
 
 #include <s6/ftrigr.h>
 #include <s6/ftrigw.h>
@@ -56,10 +55,8 @@ int s6_supervise_link_names (char const *scdir, char const *const *servicedirs, 
   memset(locked, 0, bitarray_div8(n)) ;
   memset(logged, 0, bitarray_div8(n)) ;
 
-  LOLDEBUG("s6_supervise_link_names: scdir = %s  n = %zu  options = %u", scdir, n, options) ;
   for (size_t i = 0 ; i < n ; i++)
   {
-    LOLDEBUG("i = %zu  dir = %s  name = %s", i, servicedirs[i], names[i]) ;
     struct stat st ;
     size_t len = strlen(servicedirs[i]) ;
     size_t nlen = strlen(names[i]) ;

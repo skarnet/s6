@@ -3,7 +3,6 @@
 #include <errno.h>
 #include <stdint.h>
 #include <string.h>
-#include <unistd.h>
 #include <sys/stat.h>
 
 #include <skalibs/bytestr.h>
@@ -11,29 +10,12 @@
 #include <skalibs/sgetopt.h>
 #include <skalibs/tai.h>
 #include <skalibs/strerr.h>
-#include <skalibs/stralloc.h>
 #include <skalibs/djbunix.h>
 
 #include <s6/supervise.h>
 
 #define USAGE "s6-instance-create [ -d | -D ] [ -f ] [ -P ] [ -t timeout ] service instancename"
 #define dieusage() strerr_dieusage(100, USAGE)
-
-static inline void checkinstanced (char const *s)  /* chdirs */
-{
-  int fd, r ;
-  size_t len = strlen(s) ;
-  char fn[len + 10] ;
-  memcpy(fn, s, len) ;
-  memcpy(fn + len, "/instance", 10) ;
-  if (chdir(fn) == -1) strerr_diefu2sys(111, "chdir to ", fn) ;
-  fd = open_read(S6_SVSCAN_CTLDIR "/lock") ;
-  if (fd < 0) strerr_diefu3sys(111, "open ", fn, "/" S6_SVSCAN_CTLDIR "/lock") ;
-  r = fd_islocked(fd) ;
-  if (r < 0) strerr_diefu3sys(111, "check lock on ", fn, "/" S6_SVSCAN_CTLDIR "/lock") ;
-  if (!r) strerr_dief2x(1, "instanced service not running on ", s) ;
-  fd_close(fd) ;
-}
 
 static void cleanup (char const *s)
 {
@@ -71,10 +53,9 @@ int main (int argc, char const *const *argv)
   if (argc < 2) dieusage() ;
 
   namelen = strlen(argv[1]) ;
-  if (!argv[0][0]) strerr_dief1x(100, "invalid service path") ;
   if (!argv[1][0] || argv[1][0] == '.' || byte_in(argv[1], namelen, " \t\f\r\n", 5) < namelen)
     strerr_dief1x(100, "invalid instance name") ;
-  checkinstanced(argv[0]) ;
+  s6_instance_chdirservice(argv[0]) ;
 
   tain_now_set_stopwatch_g() ;
   tain_add_g(&tto, &tto) ;

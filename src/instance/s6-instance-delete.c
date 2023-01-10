@@ -1,16 +1,13 @@
 /* ISC license. */
 
-#include <errno.h>
 #include <stdint.h>
 #include <string.h>
-#include <unistd.h>
 
 #include <skalibs/bytestr.h>
 #include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/tai.h>
 #include <skalibs/strerr.h>
-#include <skalibs/stralloc.h>
 #include <skalibs/djbunix.h>
 
 #include <s6/supervise.h>
@@ -42,25 +39,23 @@ int main (int argc, char const *const *argv)
     if (t) tain_from_millisecs(&tto, t) ;
   }
   if (argc < 2) dieusage() ;
-  if (!argv[0][0]) strerr_dief1x(100, "invalid service path") ;
 
   namelen = strlen(argv[1]) ;
   if (!argv[1][0] || argv[1][0] == '.' || byte_in(argv[1], namelen, " \t\f\r\n", 5) < namelen)
     strerr_dief1x(100, "invalid instance name") ;
+  s6_instance_chdirservice(argv[0]) ;
 
   tain_now_set_stopwatch_g() ;
   tain_add_g(&tto, &tto) ;
 
+  if (s6_supervise_unlink_names_g(".", argv + 1, 1, options, &tto) == -1)
+    strerr_diefu4sys(111, "prepare deletion of instance ", argv[1], " of service ", argv[0]) ;
+
   {
-    size_t svlen = strlen(argv[0]) ;
-    char sc[svlen + 12 + namelen] ;
-    memcpy(sc, argv[0], svlen) ;
-    memcpy(sc + svlen, "/instance", 10) ;
-    if (s6_supervise_unlink_names_g(sc, argv + 1, 1, options, &tto) == -1)
-      strerr_diefu4sys(111, "prepare deletion of instance ", argv[1], " of service ", argv[0]) ;
-    memcpy(sc + svlen + 9, "s/", 2) ;
-    memcpy(sc + svlen + 11, argv[1], namelen + 1) ;
-    rm_rf(sc) ;
+    char fn[14 + namelen] ;
+    memcpy(fn, "../instances/", 13) ;
+    memcpy(fn + 13, argv[1], namelen + 1) ;
+    rm_rf(fn) ;
   }
 
   return 0 ;

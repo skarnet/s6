@@ -10,7 +10,7 @@
 
 #include <s6/config.h>
 
-#define USAGE "s6-instance-control [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T timeout ] [ -abqhkti12pcyroduDUxO ] service instance"
+#define USAGE "s6-instance-control [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T timeout ] [ -abqhkti12pcyroduDUxO ] service instancename"
 #define dieusage() strerr_dieusage(100, USAGE)
 
 #define DATASIZE 63

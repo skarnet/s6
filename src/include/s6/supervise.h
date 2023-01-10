@@ -75,4 +75,6 @@ extern void s6_dtally_unpack (char const *, s6_dtally_t *) ;
 extern ssize_t s6_dtally_read (char const *, s6_dtally_t *, size_t) ;
 extern int s6_dtally_write (char const *, s6_dtally_t const *, size_t) ;
 
+extern void s6_instance_chdirservice (char const *s) ;  /* chdirs to s/instance */
+
 #endif
