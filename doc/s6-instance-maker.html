@@ -59,12 +59,10 @@ each running a copy of the service directory given in <em>template</em>.
 <p>
 s6-instance-maker is an <em>offline</em> tool: it is run before you need
 instances. Once the created service directory is live, i.e. there is a
-supervisor running on it, then you can create, delete, or control
-individual instances via the
-<a href="s6-instance-create.html">s6-instance-create</a>,
-<a href="s6-instance-delete.html">s6-instance-delete</a> and
-<a href="s6-instance-control.html">s6-instance-control</a> <em>online</em>
-tools, that work with active services.
+supervisor running on it, then you can create and delete individual instances via the
+<a href="s6-instance-create.html">s6-instance-create</a> and
+<a href="s6-instance-delete.html">s6-instance-delete</a>
+<em>online</em> tools, that work with active services.
 </p>
 
 <h2> Exit codes </h2>
@@ -167,20 +165,18 @@ This argument will be the name of the instance, as provided by the
  The service is logged: its stderr and stdout are piped to an
 <a href="s6-log.html">s6-log</a> process running as <em>loguser</em> and
 writing to the <em>logdir</em> directory. This logger is the catch-all logger
-for the supervision tree owned by <em>user</em>; it is recommended to make
-<em>loguser</em> distinct from <em>user</em>, and to have <em>logdir</em>
-in a place that is <strong>not</strong> under the control of <em>user</em>.
-If <em>user</em> wants to keep control of their logs, they can declare a
-logger for each of their services.
+for all the instances and the supervision tree hosting them. If <em>user</em>
+and <em>loguser</em> are provided, it is recommended to make them distinct
+from each other.
 </p>
 
 <p>
- If <em>template</em> has a <em>log</em> subdirectory, then each instance
+ Additionally, if <em>template</em> has a <em>log</em> subdirectory, then each instance
 will have its own dedicated logger. The <tt>run</tt> and <tt>finish</tt>
 scripts for the logger of an instance named <em>name</em> will be called
 with an additional argument of <tt><em>name</em>/log</tt>. They should
 make use of this, to ensure loggers are properly differentiated between
-instances: for instance, it is not possible to run several
+instances: for example, it is not possible to run several
 <a href="s6-log.html">s6-log</a> processes on the same log directory,
 so an instance logger script containing an invocation of s6-log on a fixed
 logdir will fail as soon as there are 2 instances.

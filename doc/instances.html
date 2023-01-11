@@ -16,7 +16,7 @@
 <a href="//skarnet.org/">skarnet.org</a>
 </p>
 
-<h1> Dynamic instantiation under s6 </h1>
+<h1> Dynamic instantiation </h1>
 
 <p>
  An <em>instanced service</em> is a parameterized service that you want to
@@ -50,8 +50,8 @@ instanced services.
  <li> Write a template for a service directory that would run under
 <a href="s6-supervise.html">s6-supervise</a>.
 The <tt>run</tt> script should take the name of the instance as its
-first argument; the <tt>finish</tt> script should take the name of the
-instance as its third argument. </li>
+first argument; the <tt>finish</tt> script, if present, should take the name
+of the instance as its third argument. </li>
  <li> Call the <a href="s6-instance-maker.html">s6-instance-maker</a> program
 with this template as first argument, and a path <em>dir</em> as second
 argument. <a href="s6-instance-maker.html">s6-instance-maker</a> will create
@@ -101,10 +101,10 @@ or not depending on the given options. </li>
 around <a href="s6-svc.html">s6-svc</a> on <tt>instance/<em>name</em></tt>. </li>
  <li> <a href="s6-instance-status.html">s6-instance-status</a> is syntactic sugar
 around <a href="s6-svstat.html">s6-svstat</a> on <tt>instance/<em>name</em></tt>. </li>
- <li> <a href="s6-instance-list.html">s6-instance-list</a> is roughly equivalent
-to <code>ls -1 instance </code>. </li>
  <li> <a href="s6-instance-delete.html">s6-instance-delete</a> is syntactic sugar
 around <a href="s6-svunlink.html">s6-svunlink</a> on <tt>instance/<em>name</em></tt>. </li>
+ <li> <a href="s6-instance-list.html">s6-instance-list</a> is roughly equivalent
+to <code>ls -1 instance </code>. </li>
 </ul>
 
 <h2> Notes </h2>

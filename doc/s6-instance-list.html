@@ -52,7 +52,7 @@ up or down; if they've been created and not deleted, they're printed. </li>
 <ul>
  <li> The list is unsorted, the instance names are printed in an unspecified order. </li>
  <li> You can use s6-instance-list to script commands that handle sets of instances.
-For instance, to get the status of all the instances of a given service, you could write:
+For example, to get the status of all the instances of a given service, you could write:
 <code> for i in `s6-instance-list <em>service</em>` ; do printf "%s: " $i ; s6-instance-status <em>service</em> $i ; done </code> </li>
 </ul>
 
