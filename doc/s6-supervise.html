@@ -211,12 +211,12 @@ service. </li>
 subdirectory of <em>servicedir</em>. <em>servicedir</em> itself can be read-only,
 but both <em>servicedir</em><tt>/supervise</tt> and <em>servicedir</em><tt>/event</tt>
 need to be read-write. </li>
- <li> If <em>servicedir</em> is read-only, then the <a href="s6-svc.html">s6-svc</a>
-<tt>-D</tt> and <tt>-U</tt> commands will not work properly since s6-supervise will
-be unable to create or delete a <em>servicedir</em><tt>/down</tt> file; in this case
-s6-supervise will print a warning on stderr, and perform the equivalent of <tt>-d</tt>
-and <tt>-u</tt> instead, but will be unable to change the permanent service
-configuration. </li>
+ <li> If <em>servicedir</em> isn't writable by s6-supervise, for any reason, then the
+<a href="s6-svc.html">s6-svc</a> <tt>-D</tt> and <tt>-U</tt> commands will not work
+properly since s6-supervise will be unable to create or delete a
+<em>servicedir</em><tt>/down</tt> file; in this case s6-supervise will print a warning
+on stderr, and perform the equivalent of <tt>-d</tt> or <tt>-u</tt> instead &mdash; it
+will just be unable to change the permanent service configuration. </li>
 </ul>
 
 <h2> Implementation notes </h2>
