@@ -21,7 +21,6 @@
 int main (int argc, char const *const *argv)
 {
   size_t len ;
-  int downfile = -1 ;
   unsigned int datalen = 1 ;
   unsigned int timeout = 0 ;
   char data[DATASIZE+1] = "-" ;
@@ -51,25 +50,13 @@ int main (int argc, char const *const *argv)
         case 'o' :
         case 'd' :
         case 'u' :
+        case 'D' :
+        case 'U' :
         case 'x' :
         case 'O' :
         {
           if (datalen >= DATASIZE) strerr_dief1x(100, "too many commands") ;
           data[datalen++] = opt ;
-          break ;
-        }
-        case 'D' :
-        {
-          if (datalen >= DATASIZE) strerr_dief1x(100, "too many commands") ;
-          data[datalen++] = 'd' ;
-          downfile = 1 ;
-          break ;
-        }
-        case 'U' :
-        {
-          if (datalen >= DATASIZE) strerr_dief1x(100, "too many commands") ;
-          data[datalen++] = 'u' ;
-          downfile = 0 ;
           break ;
         }
         case 'T' : if (!uint0_scan(l.arg, &timeout)) dieusage() ; break ;
@@ -100,19 +87,6 @@ int main (int argc, char const *const *argv)
       updown[1] = updown[1] == 'U' ? 'u' : 'r' ;
       strerr_warnw2x(fn, " not present - ignoring request for readiness notification") ;
     }
-  }
-
-  if (downfile >= 0)
-  {
-    char fn[len + 6] ;
-    memcpy(fn, argv[0], len) ;
-    memcpy(fn + len, "/down", 6) ;
-    if (downfile)
-    {
-      if (!openwritenclose_unsafe(fn, "", 0))
-        strerr_diefu2sys(111, "touch ", fn) ;
-    }
-    else unlink_void(fn) ;
   }
 
   if (updown[1])
