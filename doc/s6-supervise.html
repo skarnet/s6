@@ -213,7 +213,7 @@ but both <em>servicedir</em><tt>/supervise</tt> and <em>servicedir</em><tt>/even
 need to be read-write. </li>
  <li> If <em>servicedir</em> is read-only, then the <a href="s6-svc.html">s6-svc</a>
 <tt>-D</tt> and <tt>-U</tt> commands will not work properly since s6-supervise will
-be unable to create or delete a <em>servicedir<em><tt>/down</tt> file; in this case
+be unable to create or delete a <em>servicedir</em><tt>/down</tt> file; in this case
 s6-supervise will print a warning on stderr, and perform the equivalent of <tt>-d</tt>
 and <tt>-u</tt> instead, but will be unable to change the permanent service
 configuration. </li>
