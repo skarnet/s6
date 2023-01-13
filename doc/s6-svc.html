@@ -60,12 +60,15 @@ receive the signal aimed to kill them) and do not restart it.
 The SIGTERM default can be changed by editing the <tt>./down-signal</tt>
 file in the <a href="servicedir.html">service directory</a>. </li>
  <li> <tt>-D</tt>&nbsp;: down, and create a <tt>./down</tt> file so the
-service does not restart automatically if the supervisor dies. </li>
+service does not restart automatically if the supervisor dies. This
+option is mostly used by automated systems working on top of s6; as a
+human user, you probably don't need it. </li>
  <li> <tt>-u</tt>&nbsp;: up. If the supervised process is down, start it.
 Automatically restart it when it dies. </li>
  <li> <tt>-U</tt>&nbsp;: up, and remove any <tt>./down</tt> file that may
 exist, in order to make sure the service is automatically restarted even
-if the supervisor dies. </li>
+if the supervisor dies. This option is mostly used by automated systems
+working on top of s6; as a human user, you probably don't need it. </li>
  <li> <tt>-x</tt>&nbsp;: exit. When the service is asked to be down and
 the supervised process dies, s6-supervise will exit too. This command should
 normally never be used on a working system. Note that if this command is
@@ -171,6 +174,15 @@ they do nothing, and in particular they do not instruct s6-supervise to bring th
 service up. Consequently, <tt>s6-svc -rwr <em>servicedir</em></tt> may wait forever
 for the service to be up, if it is currently wanted down. To avoid that, make sure
 your service is wanted up by using <tt>s6-svc -ruwr <em>servicedir</em></tt> instead. </li>
+ <li> The <tt>U</tt> and <tt>D</tt> letters, which convey the same idea as <tt>u</tt>
+and <tt>d</tt> (<em>up</em> and <em>down</em>) but with added emphasis, do not have the
+same meaning in the <tt>-U</tt>/<tt>-D</tt> and <tt>-wU</tt>/<tt>-wD</tt> options.
+In the <tt>-U</tt>/<tt>-D</tt> case, they mean "change the external service configuration
+to match what the supervisor has been instructed that the starting state of the service
+should be". In the <tt>-wU</tt>/<tt>-wD</tt> case, they mean "wait until the service
+has reached the wanted state <em>and also</em> is ready" (or "ready to be started again"
+for <tt>-wD</tt>). The thing to remember is "it's up/down, with something more", but
+the "something" isn't the same. </li>
 </ul>
 
 </body>
