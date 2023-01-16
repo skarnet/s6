@@ -172,7 +172,7 @@ to <tt>./event</tt> <em>before</em> the <tt>'D'</tt>, and it
 been called. This can be used to signify permanent failure to start the service. </li>
  <li> There is a minimum 1-second delay between two <tt>./run</tt> spawns, to avoid busylooping
 if <tt>./run</tt> exits too quickly. If the service has been <em>ready</em> for more
-than one second, it will restart immediately, but if it not <em>ready</em> when
+than one second, it will restart immediately, but if it is not <em>ready</em> when
 it dies, s6-supervise will always pause for 1 second before spawning it again. </li>
  <li> When killed or asked to exit, it waits for the service to go down one last time, then
 sends a <tt>'x'</tt> event to <tt>./event</tt> before exiting 0. </li>
