@@ -1,5 +1,12 @@
 Changelog for s6.
 
+In 2.11.2.1
+-----------
+
+ - Bugfixes.
+ - Internal changes to instances and servicedir reserved names.
+
+
 In 2.11.2.0
 -----------
 

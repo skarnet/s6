@@ -55,6 +55,21 @@ int main (int argc, char const *const *argv)
   namelen = strlen(argv[1]) ;
   if (!argv[1][0] || argv[1][0] == '.' || byte_in(argv[1], namelen, " \t\f\r\n", 5) < namelen)
     strerr_dief1x(100, "invalid instance name") ;
+
+  {
+    mode_t m = umask(0) ;
+    size_t svlen = strlen(argv[0]) ;
+    char fn[svlen + 11] ;
+    memcpy(fn, argv[0], svlen) ;
+    memcpy(fn + svlen, "/instances", 11) ;
+    if (mkdir(fn, 0755) == -1 && errno != EEXIST)
+      strerr_diefu2sys(111, "mkdir ", fn) ;
+    fn[svlen + 9] = 0 ;
+    if (mkdir(fn, 0755) == -1 && errno != EEXIST)
+      strerr_diefu2sys(111, "mkdir ", fn) ;
+    umask(m) ;
+  }
+
   s6_instance_chdirservice(argv[0]) ;
 
   tain_now_set_stopwatch_g() ;
@@ -75,10 +90,10 @@ int main (int argc, char const *const *argv)
       else if (errno != ENOENT)
         strerr_diefu3sys(111, "stat ", argv[0], sv+2) ;
     }
-    if (!hiercopy("../instances/.template", sv))
+    if (!hiercopy("../template", sv))
     {
       cleanup(sv) ;
-      strerr_diefu5sys(111, "copy ", argv[0], "/instances/.template to ", argv[0], sv+2) ;
+      strerr_diefu5sys(111, "copy ", argv[0], "/template to ", argv[0], sv+2) ;
     }
     if (s6_supervise_link_names_g(".", &p, argv + 1, 1, options, &tto) == -1)
     {

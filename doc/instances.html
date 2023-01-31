@@ -86,13 +86,12 @@ here for informational purposes.
 
 <ul>
  <li> The service directory created by <a href="s6-instance-maker.html">s6-instance-maker</a>
-has two specific subdirectories in it: <tt>instance</tt> and <tt>instances</tt>. They
-are initially empty, except that the template service directory is stored in
-<tt>instances/.template</tt>. </li>
+has three specific subdirectories in it: <tt>instance</tt> and <tt>instances</tt>, which
+are initially empty, and <tt>template</tt>, storing the template service directory. </li>
  <li> When the service is active, there is an <a href="s6-svscan.html">s6-svscan</a>
 process running on <tt>instance</tt>. </li>
  <li> <a href="s6-instance-create.html">s6-instance-create</a> makes a copy of
-<tt>instances/.template</tt> into <tt>instances/<em>name</em></tt>, and
+<tt>template</tt> into <tt>instances/<em>name</em></tt>, and
 <a href="s6-svlink.html">s6-svlink</a>s <tt>instances/<em>name</em></tt> to
 <tt>instance</tt>. When it returns, there is an <a href="s6-supervise.html">s6-supervise</a>
 process running on <tt>instance/<em>name</em></tt>, and the instance may be up
