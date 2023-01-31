@@ -61,16 +61,18 @@ static void write_service (char const *dir, char const *template, char const *us
 {
   svinfo data = { .user = user, .maxinstances = maxinstances } ;
   size_t dirlen = strlen(dir) ;
-  mode_t m ;
   char fn[dirlen + 11] ;
-  s6_auto_write_service(dir, 3, &write_run, &data, logger) ;
   memcpy(fn, dir, dirlen) ;
-  memcpy(fn + dirlen, "/instance", 10) ;
-  m = umask(0) ;
-  if (mkdir(fn, 0755) == -1) strerr_diefu2sys(111, "mkdir ", fn) ;
-  memcpy(fn + dirlen + 9, "s", 2) ;
-  if (mkdir(fn, 0755) == -1) strerr_diefu2sys(111, "mkdir ", fn) ;
-  umask(m) ;
+  s6_auto_write_service(dir, 3, &write_run, &data, logger) ;
+  if (!logger)
+  {
+    mode_t m = umask(0) ;
+    memcpy(fn + dirlen, "/instance", 10) ;
+    if (mkdir(fn, 0755) == -1) strerr_diefu2sys(111, "mkdir ", fn) ;
+    memcpy(fn + dirlen + 9, "s", 2) ;
+    if (mkdir(fn, 0755) == -1) strerr_diefu2sys(111, "mkdir ", fn) ;
+    umask(m) ;
+  }
   memcpy(fn + dirlen, "/template", 10) ;
   if (!hiercopy_tmp(template, fn, &sa))
     strerr_diefu4sys(111, "copy file hierarchy from ", template, " to ", fn) ;
