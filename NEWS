@@ -1,10 +1,11 @@
 Changelog for s6.
 
-In 2.11.2.1
+In 2.11.3.0
 -----------
 
  - Bugfixes.
  - Internal changes to instances and servicedir reserved names.
+ - New s6-svc -Q command.
 
 
 In 2.11.2.0
@@ -12,6 +13,7 @@ In 2.11.2.0
 
  - Adaptation to skalibs-2.13.0.0.
  - Bugfixes.
+ - New s6-svc -D and s6-svc -U commands.
  - The name of the service is now passed as an argument to ./run and
 as the third argument to ./finish.
  - The 1-second service restart delay can now only be skipped when
