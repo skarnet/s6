@@ -40,7 +40,7 @@ enum trans_e
 {
   V_TIMEOUT, V_CHLD, V_TERM, V_HUP, V_QUIT, V_INT,
   V_a, V_b, V_q, V_h, V_k, V_t, V_i, V_1, V_2, V_p, V_c, V_y, V_r,
-  V_o, V_d, V_u, V_D, V_U, V_x, V_O
+  V_o, V_d, V_u, V_D, V_U, V_x, V_O, V_Q
 } ;
 
 typedef enum state_e state_t, *state_t_ref ;
@@ -416,6 +416,18 @@ static void wantup (void)
   announce() ;
 }
 
+static void wantDOWN (void)
+{
+  adddown() ;
+  wantdown() ;
+}
+
+static void wantUP (void)
+{
+  deldown() ;
+  wantup() ;
+}
+
 static void downtimeout (void)
 {
   if (status.flagwantup) trystart() ;
@@ -434,16 +446,10 @@ static void down_u (void)
   trystart() ;
 }
 
-static void down_D (void)
-{
-  adddown() ;
-  wantdown() ;
-}
-
 static void down_U (void)
 {
-  deldown() ;
-  down_u() ;
+  wantUP() ;
+  trystart() ;
 }
 
 static int uplastup_z (void)
@@ -559,12 +565,6 @@ static void up_D (void)
   up_d() ;
 }
 
-static void up_U (void)
-{
-  deldown() ;
-  wantup() ;
-}
-
 static void up_x (void)
 {
   state = LASTUP ;
@@ -607,23 +607,23 @@ static void lastfinish_z (void)
   bail() ;
 }
 
-static action_t_ref const actions[5][26] =
+static action_t_ref const actions[5][27] =
 {
   { &downtimeout, &nop, &bail, &bail, &bail, &bail,
     &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop,
-    &down_o, &wantdown, &down_u, &down_D, &down_U, &bail, &wantdown },
+    &down_o, &wantdown, &down_u, &wantDOWN, &down_U, &bail, &wantdown, &wantDOWN },
   { &uptimeout, &up_z, &up_term, &up_x, &bail, &sigint,
     &killa, &killb, &killq, &killh, &killk, &killt, &killi, &kill1, &kill2, &killp, &killc, &killy, &killr,
-    &wantdown, &up_d, &wantup, &up_D, &up_U, &up_x, &wantdown },
+    &wantdown, &up_d, &wantup, &up_D, &wantUP, &up_x, &wantdown, &wantDOWN },
   { &finishtimeout, &finish_z, &finish_x, &finish_x, &bail, &sigint,
     &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop,
-    &wantdown, &wantdown, &wantup, &down_D, &up_U, &finish_x, &wantdown },
+    &wantdown, &wantdown, &wantup, &wantDOWN, &wantUP, &finish_x, &wantdown, &wantDOWN },
   { &uptimeout, &lastup_z, &up_d, &closethem, &bail, &sigint,
     &killa, &killb, &killq, &killh, &killk, &killt, &killi, &kill1, &kill2, &killp, &killc, &killy, &killr,
-    &wantdown, &up_d, &wantup, &up_D, &up_U, &closethem, &wantdown },
+    &wantdown, &up_d, &wantup, &up_D, &wantUP, &closethem, &wantdown, &wantDOWN },
   { &finishtimeout, &lastfinish_z, &nop, &closethem, &bail, &sigint,
     &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop,
-    &wantdown, &wantdown, &wantup, &down_D, &up_U, &closethem, &wantdown }
+    &wantdown, &wantdown, &wantup, &wantDOWN, &wantUP, &closethem, &wantdown, &wantDOWN }
 } ;
 
 
@@ -706,8 +706,8 @@ static inline void handle_control (int fd)
     else if (!r) break ;
     else
     {
-      size_t pos = byte_chr("abqhkti12pcyroduDUxO", 20, c) ;
-      if (pos < 20) (*actions[state][V_a + pos])() ;
+      size_t pos = byte_chr("abqhkti12pcyroduDUxOQ", 21, c) ;
+      if (pos < 21) (*actions[state][V_a + pos])() ;
     }
   }
 }

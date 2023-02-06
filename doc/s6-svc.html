@@ -79,6 +79,9 @@ and stdout redirected to <tt>/dev/null</tt>. </li>
  <li> <tt>-O</tt>&nbsp;: mark the service to run once at most. iow: do not
 restart the supervised process when it dies. If it is down when the command
 is received, do not even start it. </li>
+ <li> <tt>-Q</tt>&nbsp;: once at most, and create a <tt>./down</tt> file.
+Like <tt>-D</tt>, but do not terminate the service if it is currently
+running. </li>
  <li> <tt>-r</tt>&nbsp;: If the service is up, restart it, by sending it a
 signal to kill it and letting <a href="s6-supervise.html">s6-supervise</a>
 start it again. By default, the signal is a SIGTERM; this can be configured
