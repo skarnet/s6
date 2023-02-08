@@ -5,6 +5,8 @@
 
 #include <stdint.h>
 
+#include <skalibs/stralloc.h>
+
 #define S6_SERVICEDIR_FILE_MAXLEN 16
 
 #define S6_FILETYPE_NORMAL 0
@@ -25,5 +27,8 @@ struct s6_servicedir_desc_s
 } ;
 
 extern s6_servicedir_desc const *const s6_servicedir_file_list ;
+
+extern int s6_servicedir_instances_recreate_offline (char const *, char const *) ;
+extern int s6_servicedir_instances_recreate_offline_tmp (char const *, char const *, stralloc *) ;
 
 #endif

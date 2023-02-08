@@ -33,6 +33,8 @@ s6_dtally_read.o
 s6_dtally_write.o
 s6_instance_chdirservice.o
 s6_servicedir_file_list.o
+s6_servicedir_instances_recreate_offline.o
+s6_servicedir_instances_recreate_offline_tmp.o
 s6_svc_ok.o
 s6_svc_write.o
 s6_svc_writectl.o
