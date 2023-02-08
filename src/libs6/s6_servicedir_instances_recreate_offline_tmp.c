@@ -18,21 +18,26 @@ int s6_servicedir_instances_recreate_offline_tmp (char const *old, char const *n
   size_t sabase = sa->len ;
   size_t oldlen = strlen(old) ;
   size_t newlen = strlen(new) ;
-  char templatedir[oldlen + 11] ;
-  memcpy(templatedir, old, oldlen) ;
-  memcpy(templatedir + oldlen, "/instances", 11) ;
-  n = sals(templatedir, sa, &maxlen) ;
+
+  {
+    char olddir[oldlen + 11] ;
+    memcpy(olddir, old, oldlen) ;
+    memcpy(olddir + oldlen, "/instances", 11) ;
+    n = sals(olddir, sa, &maxlen) ;
+  }
   if (n == -1) return errno == ENOENT ? 0 : -1 ;
 
   {
     size_t pos = sabase ;
-    char olddir[oldlen + 16 + maxlen] ;
+    char olddir[oldlen + 17 + maxlen] ;
+    char templatedir[newlen + 10] ;
     char newsd[newlen + 11 + maxlen] ;
     char newdir[newlen + 17 + maxlen] ;
     char lnk[14 + maxlen] ;
-    memcpy(olddir, templatedir, oldlen + 10) ;
-    olddir[oldlen + 10] = '/' ;
-    memcpy(templatedir + oldlen + 1, "template", 9) ;
+    memcpy(olddir, old, oldlen) ;
+    memcpy(olddir + oldlen, "/instances/", 11) ;
+    memcpy(templatedir, new, newlen) ;
+    memcpy(templatedir + newlen, "/template", 10) ;
     memcpy(newsd, new, newlen) ;
     memcpy(newsd + newlen, "/instance", 10) ;
     memcpy(newdir, newsd, newlen + 9) ;
@@ -47,8 +52,8 @@ int s6_servicedir_instances_recreate_offline_tmp (char const *old, char const *n
     while (pos < sa->len)
     {
       size_t len = strlen(sa->s + pos) ;
-      memcpy(olddir + oldlen + 10, sa->s + pos, len) ;
-      memcpy(olddir + oldlen + 10 + len, "/down", 6) ;
+      memcpy(olddir + oldlen + 11, sa->s + pos, len) ;
+      memcpy(olddir + oldlen + 11 + len, "/down", 6) ;
       memcpy(newsd + newlen + 10, sa->s + pos, len + 1) ;
       memcpy(newdir + newlen + 11, sa->s + pos, len + 1) ;
       memcpy(lnk + 13, sa->s + pos, len + 1) ;
