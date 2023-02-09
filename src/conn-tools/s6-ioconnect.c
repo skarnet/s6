@@ -2,6 +2,7 @@
 
 #include <errno.h>
 #include <signal.h>
+#include <sys/stat.h>
 
 #include <skalibs/types.h>
 #include <skalibs/allreadwrite.h>
@@ -15,7 +16,7 @@
 #include <skalibs/iopause.h>
 #include <skalibs/djbunix.h>
 
-#define USAGE "s6-ioconnect [ -t timeout ] [ -r fdr ] [ -w fdw ] [ -0 ] [ -1 ] [ -6 ] [ -7 ]"
+#define USAGE "s6-ioconnect [ -t timeout ] [ -r fdr ] [ -w fdw ]"
 #define dieusage() strerr_dieusage(100, USAGE)
 
 #define BSIZE 8192
@@ -32,12 +33,12 @@ static char buf[2][BSIZE] = { { '\0' }, { '\0' } } ;
 static ioblah a[2][2] =
 {
   {
-    { .b = BUFFER_INIT(&buffer_read, 0, buf[0], BSIZE), .xindex = 5, .flagsocket = 0 },
-    { .b = BUFFER_INIT(&buffer_write, 7, buf[0], BSIZE), .xindex = 5, .flagsocket = 0 }
+    { .b = BUFFER_INIT(&buffer_read, 0, buf[0], BSIZE), .xindex = 5 },
+    { .b = BUFFER_INIT(&buffer_write, 7, buf[0], BSIZE), .xindex = 5 }
   },
   {
-    { .b = BUFFER_INIT(&buffer_read, 6, buf[1], BSIZE), .xindex = 5, .flagsocket = 0 },
-    { .b = BUFFER_INIT(&buffer_write, 1, buf[1], BSIZE), .xindex = 5, .flagsocket = 0 }
+    { .b = BUFFER_INIT(&buffer_read, 6, buf[1], BSIZE), .xindex = 5 },
+    { .b = BUFFER_INIT(&buffer_write, 1, buf[1], BSIZE), .xindex = 5 }
   }
 } ;
 static iopause_fd x[5] = { [0] = { .fd = -1, .events = IOPAUSE_READ } } ;
@@ -99,10 +100,10 @@ int main (int argc, char const *const *argv)
       if (opt < 0) break ;
       switch (opt)
       {
-        case '0' : a[0][0].flagsocket = 1 ; break ;
-        case '1' : a[1][1].flagsocket = 1 ; break ;
-        case '6' : a[1][0].flagsocket = 1 ; break ;
-        case '7' : a[0][1].flagsocket = 1 ; break ;
+        case '0' : break ;  /* these options are deprecated */
+        case '1' : break ;  /* only there for compatibility */
+        case '6' : break ;  /* flagsocket is autodetected now */
+        case '7' : break ;
         case 't' : if (!uint0_scan(l.arg, &t)) dieusage() ; break ;
         case 'r' : if (!int0_scan(l.arg, &buffer_fd(&a[1][0].b))) dieusage() ; break ;
         case 'w' : if (!int0_scan(l.arg, &buffer_fd(&a[0][1].b))) dieusage() ; break ;
@@ -113,14 +114,24 @@ int main (int argc, char const *const *argv)
     argc -= l.ind ; argv += l.ind ;
   }
   if ((buffer_fd(&a[0][1].b) < 3) || (buffer_fd(&a[1][0].b) < 3)) dieusage() ;
-  for (i = 0 ; i < 2 ; i++)
-    for (j = 0 ; j < 2 ; j++)
-      if (ndelay_on(buffer_fd(&a[i][j].b)) == -1)
-      {
-        char fmt[INT_FMT] ;
-        fmt[int_fmt(fmt, buffer_fd(&a[i][j].b))] = 0 ;
-        strerr_diefu3sys(111, "set fd ", fmt, " non-blocking") ;
-      }
+  for (i = 0 ; i < 2 ; i++) for (j = 0 ; j < 2 ; j++)
+  {
+    int fd = buffer_fd(&a[i][j].b) ;
+    struct stat st ;
+    if (fstat(fd, &st) == -1)
+    {
+      char fmt[INT_FMT] ;
+      fmt[int_fmt(fmt, fd)] = 0 ;
+      strerr_diefu2sys(111, "fstat fd ", fmt) ;
+    }
+    a[i][j].flagsocket = !!S_ISSOCK(st.st_mode) ;
+    if (ndelay_on(fd) == -1)
+    {
+      char fmt[INT_FMT] ;
+      fmt[int_fmt(fmt, fd)] = 0 ;
+      strerr_diefu3sys(111, "set fd ", fmt, " non-blocking") ;
+    }
+  }
   if (!sig_ignore(SIGPIPE)) strerr_diefu1sys(111, "ignore SIGPIPE") ;
   tain_now_set_stopwatch_g() ;
   x[0].fd = selfpipe_init() ;

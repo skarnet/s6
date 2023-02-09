@@ -26,7 +26,7 @@ between two sets of open file descriptors.
 <h2> Interface </h2>
 
 <pre>
-     s6-ioconnect [ -t <em>millisecs</em> ] [ -r <em>fdr</em> ] [ -w <em>fdw</em> ] [ -0 ] [ -1 ] [ -6 ] [ -7 ]
+     s6-ioconnect [ -t <em>millisecs</em> ] [ -r <em>fdr</em> ] [ -w <em>fdw</em> ]
 </pre>
 
 <ul>
@@ -49,25 +49,17 @@ closes the connection on both ends and exits 1. By default,
 "remote" reading instead of fd 6. </li>
  <li> <tt>-w&nbsp;<em>fdw</em></tt>&nbsp;: Use fd <em>fdw</em> for
 "remote" writing instead of fd 7. </li>
- <li> <tt>-0</tt>: assume stdin is a socket and needs to be shut down
-for reading after an EOF. </li>
- <li> <tt>-1</tt>: assume stdout is a socket and needs to be shut down
-for writing to correctly transmit an EOF. </li>
- <li> <tt>-6</tt>: assume the remote reading fd is a socket and needs to be shut down
-for reading after an EOF. </li>
- <li> <tt>-7</tt>: assume the remote writing fd is a socket and needs to be shut down
-for writing to correctly transmit  an EOF. </li>
+ <li> The <tt>-0</tt>, <tt>-1</tt>, <tt>-6</tt> and <tt>-7</tt> options
+are still recognized for compatibility, but do nothing; they are
+deprecated. They were previously used to tell
+s6-ioconnect that the local reading, local writing, remote reading and
+remote writing endpoints, respectively, were sockets &mdash; but this is
+now autodetected. </li>
 </ul>
 
 <h2> Notes </h2>
 
 <ul>
- <li> Transmitting EOF across full-duplex sockets
-<a href="https://cr.yp.to/tcpip/twofd.html">is ugly</a>. The right thing
-in every case cannot be automatically determined, so it is up to the user
-to mention that a socket must be shut down. Most of the time, though,
-shutting down sockets after EOF <em>is</em> the right thing to do, so
-<tt>s6-ioconnect -67</tt> should be the common use case. </li>
  <li> The point of s6-ioconnect is to be used together with
 <a href="//skarnet.org/software/s6-networking/s6-tcpclient.html">s6-tcpclient</a> or
 <a href="s6-ipcclient.html">s6-ipcclient</a> to establish a full-
