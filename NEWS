@@ -6,6 +6,7 @@ In 2.11.3.0
  - Bugfixes.
  - Internal changes to instances and servicedir reserved names.
  - New s6-svc -Q command.
+ - -0167 options to s6-ioconnect are now deprecated.
 
 
 In 2.11.2.0
