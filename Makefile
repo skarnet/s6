@@ -16,7 +16,6 @@ CC = $(error Please use ./configure first)
 
 STATIC_LIBS :=
 SHARED_LIBS :=
-INTERNAL_LIBS :=
 EXTRA_TARGETS :=
 LIB_DEFS :=
 
