@@ -1,5 +1,11 @@
 Changelog for s6.
 
+In 2.11.3.1
+-----------
+
+ - Resource limit shenanigans.
+
+
 In 2.11.3.0
 -----------
 

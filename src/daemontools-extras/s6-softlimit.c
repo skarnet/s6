@@ -10,17 +10,27 @@
 
 #define USAGE "s6-softlimit [ -a allbytes ] [ -c corebytes ] [ -d databytes ] [ -f filebytes ] [ -l lockbytes ] [ -m membytes ] [ -o openfiles ] [ -p processes ] [ -r residentbytes ] [ -s stackbytes ] [ -t cpusecs ] prog..."
 
+static int what = 1 ;
+
 static void doit (int res, char const *arg)
 {
   struct rlimit r ;
   if (getrlimit(res, &r) < 0) strerr_diefu1sys(111, "getrlimit") ;
-  if ((arg[0] == '=') && !arg[1]) r.rlim_cur = r.rlim_max ;
+  if ((arg[0] == '=') && !arg[1])
+  {
+    if (what & 2) r.rlim_max = RLIM_INFINITY ;
+    if (what & 1) r.rlim_cur = r.rlim_max ;
+  }
   else
   {
     uint64_t n ;
     if (!uint640_scan(arg, &n)) strerr_dieusage(100, USAGE) ;
-    if (n > (uint64_t)r.rlim_max) n = (uint64_t)r.rlim_max ;
-    r.rlim_cur = (rlim_t)n ;
+    if (what & 2) r.rlim_max = n ;
+    if (what & 1)
+    {
+      if (n > r.rlim_max) n = r.rlim_max ;
+      r.rlim_cur = n ;
+    }
   }
   if (setrlimit(res, &r) < 0) strerr_diefu1sys(111, "setrlimit") ;
 }
@@ -31,10 +41,12 @@ int main (int argc, char const *const *argv)
   PROG = "s6-softlimit" ;
   for (;;)
   {
-    int opt = subgetopt_r(argc, argv, "a:c:d:f:l:m:o:p:r:s:t:", &l) ;
+    int opt = subgetopt_r(argc, argv, "hHa:c:d:f:l:m:o:p:r:s:t:", &l) ;
     if (opt == -1) break ;
     switch (opt)
     {
+      case 'h' : what = 2 ; break ;
+      case 'H' : what = 3 ; break ;
       case 'a' :
 #ifdef RLIMIT_AS
         doit(RLIMIT_AS, l.arg) ;
