@@ -19,7 +19,6 @@
 extern int s6_svc_ok (char const *) ;
 extern int s6_svc_write (char const *, char const *, size_t) ;
 extern int s6_svc_writectl (char const *, char const *, char const *, size_t) ;
-extern int s6_svc_main (int, char const *const *, char const *, char const *, char const *) ;
 
 typedef struct s6_svstatus_s s6_svstatus_t, *s6_svstatus_t_ref ;
 struct s6_svstatus_s
