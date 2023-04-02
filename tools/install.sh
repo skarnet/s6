@@ -1,19 +1,21 @@
 #!/bin/sh
 
 usage() {
-  echo "usage: $0 [-D] [-l] [-m mode] src dst" 1>&2
+  echo "usage: $0 [ -D ] [ -l ] [ -m mode ] [ -O owner:group ] src dst" 1>&2
   exit 1
 }
 
 mkdirp=false
 symlink=false
 mode=0755
+og=
 
-while getopts Dlm: name ; do
+while getopts Dlm:O: name ; do
   case "$name" in
     D) mkdirp=true ;;
     l) symlink=true ;;
     m) mode=$OPTARG ;;
+    O) og=$OPTARG ;;
     ?) usage ;;
   esac
 done
@@ -46,7 +48,10 @@ if $symlink ; then
   ln -s "$src" "$tmp"
 else
   cat < "$1" > "$tmp"
-  chmod "$mode" "$tmp"
+  if test -n "$og" ; then
+    chown -- "$og" "$tmp"
+  fi
+  chmod -- "$mode" "$tmp"
 fi
 
 mv -f "$tmp" "$dst"
