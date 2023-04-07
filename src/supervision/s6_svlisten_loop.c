@@ -9,6 +9,7 @@
 #include <skalibs/iopause.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/djbunix.h>
+#include <skalibs/selfpipe.h>
 
 #include <s6/ftrigw.h>
 #include <s6/ftrigr.h>

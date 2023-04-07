@@ -7,6 +7,7 @@
 #include <skalibs/tai.h>
 #include <skalibs/strerr.h>
 #include <skalibs/djbunix.h>
+#include <skalibs/selfpipe.h>
 
 #include "s6-svlisten.h"
 
@@ -18,7 +19,6 @@ int main (int argc, char const *const *argv, char const *const *envp)
   s6_svlisten_t foo = S6_SVLISTEN_ZERO ;
   tain deadline, tto ;
   pid_t pid ;
-  int spfd ;
   int wantup = 1, wantready = 0, wantrestart = 0 ;
   uint16_t id ;
   unsigned char upstate, readystate ;
@@ -48,14 +48,14 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (argc < 2) dieusage() ;
   tain_now_set_stopwatch_g() ;
   tain_add_g(&deadline, &tto) ;
-  spfd = s6_svlisten_selfpipe_init() ;
+  s6_svlisten_selfpipe_init() ;
   s6_svlisten_init(1, argv, &foo, &id, &upstate, &readystate, &deadline) ;
   pid = child_spawn0(argv[1], argv + 1, envp) ;
   if (!pid) strerr_diefu2sys(111, "spawn ", argv[1]) ;
   if (wantrestart)
-    if (s6_svlisten_loop(&foo, 0, 1, 1, &deadline, spfd, &s6_svlisten_signal_handler))
+    if (s6_svlisten_loop(&foo, 0, 1, 1, &deadline, selfpipe_fd(), &s6_svlisten_signal_handler))
       strerr_dief2x(1, argv[0], " failed permanently or its supervisor died") ;
-  if (s6_svlisten_loop(&foo, wantup, wantready, 1, &deadline, spfd, &s6_svlisten_signal_handler))
+  if (s6_svlisten_loop(&foo, wantup, wantready, 1, &deadline, selfpipe_fd(), &s6_svlisten_signal_handler))
     strerr_dief2x(1, argv[0], " failed permanently or its supervisor died") ;
   return 0 ;
 }

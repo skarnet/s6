@@ -180,7 +180,6 @@ static int parse_protocol (struct iovec const *v, void *context)
 int main (int argc, char const *const *argv)
 {
   tain deadline ;
-  int sfd ;
   PROG = "s6lockd" ;
   
   if (argc < 2) strerr_dieusage(100, USAGE) ;
@@ -189,8 +188,7 @@ int main (int argc, char const *const *argv)
   if (ndelay_on(1) < 0) strerr_diefu2sys(111, "ndelay_on ", "1") ;
   if (!sig_altignore(SIGPIPE)) strerr_diefu1sys(111, "ignore SIGPIPE") ;
 
-  sfd = selfpipe_init() ;
-  if (sfd < 0) strerr_diefu1sys(111, "selfpipe_init") ;
+  if (selfpipe_init() == -1) strerr_diefu1sys(111, "selfpipe_init") ;
   {
     sigset_t set ;
     sigemptyset(&set) ;
@@ -222,7 +220,7 @@ int main (int argc, char const *const *argv)
     x[1].fd = 1 ; x[1].events = IOPAUSE_EXCEPT | (textmessage_sender_isempty(textmessage_sender_1) ? 0 : IOPAUSE_WRITE ) ;
     x[2].fd = textmessage_sender_fd(textmessage_sender_x) ;
     x[2].events = IOPAUSE_EXCEPT | (textmessage_sender_isempty(textmessage_sender_x) ? 0 : IOPAUSE_WRITE) ;
-    x[3].fd = sfd ; x[3].events = IOPAUSE_READ ;
+    x[3].fd = selfpipe_fd() ; x[3].events = IOPAUSE_READ ;
     for (; i < n ; i++)
     {
       s6lockio_t *p = genalloc_s(s6lockio_t, &a) + i ;

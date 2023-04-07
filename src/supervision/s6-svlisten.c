@@ -8,6 +8,7 @@
 #include <skalibs/tai.h>
 #include <skalibs/strerr.h>
 #include <skalibs/djbunix.h>
+#include <skalibs/selfpipe.h>
 
 #include <s6/compat.h>
 #include "s6-svlisten.h"
@@ -18,7 +19,6 @@
 int main (int argc, char const **argv, char const *const *envp)
 {
   tain deadline, tto ;
-  int spfd ;
   int argc1 ;
   int or = 0 ;
   int wantup = 1, wantready = 0 ;
@@ -59,7 +59,7 @@ int main (int argc, char const **argv, char const *const *envp)
 
   tain_now_set_stopwatch_g() ;
   tain_add_g(&deadline, &tto) ;
-  spfd = s6_svlisten_selfpipe_init() ;
+  s6_svlisten_selfpipe_init() ;
 
   {
     s6_svlisten_t foo = S6_SVLISTEN_ZERO ;
@@ -74,10 +74,10 @@ int main (int argc, char const **argv, char const *const *envp)
     if (wantup == 2)
     {
       wantup = 1 ;
-      e = s6_svlisten_loop(&foo, 0, 1, or, &deadline, spfd, &s6_svlisten_signal_handler) ;
+      e = s6_svlisten_loop(&foo, 0, 1, or, &deadline, selfpipe_fd(), &s6_svlisten_signal_handler) ;
       if (e) strerr_dief1x(e, "some services reported permanent failure or their supervisor died") ;
     }
-    e = s6_svlisten_loop(&foo, wantup, wantready, or, &deadline, spfd, &s6_svlisten_signal_handler) ;
+    e = s6_svlisten_loop(&foo, wantup, wantready, or, &deadline, selfpipe_fd(), &s6_svlisten_signal_handler) ;
     if (e) strerr_dief1x(e, "some services reported permanent failure or their supervisor died") ;
   }
   return 0 ;
