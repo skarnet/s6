@@ -1,0 +1,1399 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: how to convert systemd unit files to an s6 installation</title>
+    <meta name="Description" content="s6: how to convert systemd unit files to an s6 installation" />
+    <meta name="Keywords" content="s6 systemd unit files configuration conversion porting" />
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> How to convert systemd unit files to an s6 installation </h1>
+
+<p>
+ Converting a set of services managed by <a href="https://systemd.io/">systemd</a>
+to a set of services managed by <a href="index.html">s6</a> is
+a recurring question on our support channels, and having an automated conversion tool
+parsing a set of <a href="https://man7.org/linux/man-pages/man5/systemd.unit.5.html">systemd
+unit files</a> and outputting a set of <a href="servicedir.html">s6
+service directories</a> or
+<a href="//skarnet.org/software/s6-rc/s6-rc-compile.html#source">s6-rc service
+definition directories</a> would be extremely useful to people who want to migrate to
+s6 but have an existing base of services running under systemd.
+</p>
+
+<p>
+ Unfortunately, automating such a conversion is extremely difficult. The main
+reason for this is that systemd and s6 are architectured in very different ways:
+how they view a set of services, how they modelize a machine, what kind of solution
+they bring to a given problem, and the extent of what they're supposed to manage
+&mdash; there are few similarities between how systemd and s6 operate. As a
+consequence, the way systemd maps a set of services into unit files is not
+isomorphic to the way s6 does, so translating a setup between systemd and s6
+requires intelligence. It is not possible to write an automated tool that converts
+a set of services accurately and idiomatically without doing a full, deep system
+analysis - and writing such a tool would be a huge undertaking.
+</p>
+
+<p>
+ Fortunately, in practice, most unit files only use a small subset of all the
+theoretically supported directives: most services that run under systemd can be
+converted to run under s6 without too much trouble. So, depending on the exact
+nature of the set of services, it may be possible to write a reasonable converter,
+that is limited in what it supports but does not require a full understanding
+of systemd or s6.
+</p>
+
+<p>
+ This document targets people who think about writing a tool to automatically
+convert a set of unit files to a set of s6 services and are trying to assess
+its feasability and difficulty. We analyze all the directives that may appear
+in a unit file for their services, and rate the difficulty of translating the
+directive, i.e. the amount of complexity that would need to go into the
+converter tool if that directive were to be supported.
+</p>
+
+<p>
+ We rate difficulty on a scale from <strong>0</strong> to <strong>10</strong>.
+A <strong>0</strong> means that the directive is irrelevant to s6 and can
+be ignored. A <strong>1</strong> means that there is a straightforward,
+one-for-one way of translating the systemd directive into s6 parlance. A
+<strong>10</strong> means that the directive is so systemd-specific that it
+is impossible to express it on an s6 system and the unit file cannot be
+converted as is. A <strong>9</strong> means that it is theoretically possible
+to convert, given infinite time and manpower to write a tool that analyzes
+the systemd-managed system holistically and outputs an equivalent system
+managed by s6, but in practice nobody's ever going to write such a tool.
+</p>
+
+<hr />
+
+<ul>
+ <li>
+  <a href="#by-directive">All the directives listed by the order in the
+systemd documentation, with their difficulty</a>
+  <ul>
+   <li> <a href="#systemd.unit">in systemd.unit(5)</a>
+    <ul>
+     <li> <a href="#unit-section"><tt>[Unit]</tt> section</a> </li>
+     <li> <a href="#install-section"><tt>[Install]</tt> section</a> </li>
+    </ul>
+   </li>
+   <li> <a href="#systemd.service">in systemd.service(5)</a>
+    <ul>
+     <li> <a href="#service-section"><tt>[Service]</tt> section</a> </li>
+    </ul>
+   </li>
+   <li> <a href="#systemd.exec">in systemd.exec(5)</a>
+    <ul>
+     <li> <a href="#systemd.exec-paths">Paths</a> </li>
+     <li> <a href="#systemd.exec-identity">User/group identity</a> </li>
+     <li> <a href="#systemd.exec-security">Security</a> </li>
+     <li> <a href="#systemd.exec-mandatoryac">Mandatory access control</a> </li>
+     <li> <a href="#systemd.exec-properties">Process properties</a> </li>
+     <li> <a href="#systemd.exec-scheduling">Scheduling</a> </li>
+     <li> <a href="#systemd.exec-sandboxing">Sandboxing</a> </li>
+     <li> <a href="#systemd.exec-filtering">System call filtering</a> </li>
+     <li> <a href="#systemd.exec-environment">Environment</a> </li>
+     <li> <a href="#systemd.exec-logging">Logging and standard input/output</a> </li>
+     <li> <a href="#systemd.exec-credentials">Credentials</a> </li>
+     <li> <a href="#systemd.exec-sysv">System V compatibility</a> </li>
+    </ul>
+   </li>
+   <li> <a href="#systemd.kill">in systemd.kill(5)</a> </li>
+  </ul>
+ </li>
+ <li>
+  <a href="#by-difficulty">All the directives listed by their difficulty</a>
+  <ul>
+   <li> <a href="#difficulty-0">0</a> </li>
+   <li> <a href="#difficulty-1">1</a> </li>
+   <li> <a href="#difficulty-2">2</a> </li>
+   <li> <a href="#difficulty-3">3</a> </li>
+   <li> <a href="#difficulty-4">4</a> </li>
+   <li> <a href="#difficulty-5">5</a> </li>
+   <li> <a href="#difficulty-6">6</a> </li>
+   <li> <a href="#difficulty-7">7</a> </li>
+   <li> <a href="#difficulty-8">8</a> </li>
+   <li> <a href="#difficulty-9">9</a> </li>
+   <li> <a href="#difficulty-10">10</a> </li>
+  </ul>
+ </li>
+</ul>
+
+<hr />
+
+<h2 id="by-directive"> Difficulty by directive </h2>
+
+<p>
+ Use this section to answer the question: "I have this directive in my unit file,
+how hard would it be to write a converter tool that processes this file?"
+</p>
+
+<h3 id="systemd.unit">
+ Directives documented in <a href="https://man7.org/linux/man-pages/man5/systemd.unit.5.html">systemd.unit(5)</a>
+</h3>
+
+<h4 id="unit-section">
+ <tt>[Unit]</tt> section
+</h4>
+
+<ul>
+ <li> <tt>Description=</tt>&nbsp;: <strong>0</strong>. </li>
+ <p />
+ <li> <tt>Documentation=</tt>&nbsp;: <strong>0</strong>. </li>
+ <p />
+ <li> <tt>Wants=</tt>&nbsp;: <strong>3</strong>. Dependencies between services
+are implemented via <a href="//skarnet.org/software/s6-rc/">s6-rc</a>; in order
+to implement <tt>Wants=</tt>. the converter needs to target s6-rc, which is a
+reasonable requirement for a complete set of services. However, <tt>Wants=</tt>
+expresses weak dependencies, which are not supported by the current version of
+s6-rc, so the exact nature of the dependency needs to be checked by hand. </li>
+ <p />
+ <li> <tt>Requires=</tt>&nbsp;: <strong>2</strong>. The converter needs to
+target <a href="//skarnet.org/software/s6-rc/">s6-rc</a>, but <tt>Requires=</tt>
+dependencies map well to the s6-rc dependency model. </li>
+ <p />
+ <li> <tt>Requisite=</tt>&nbsp;: <strong>3</strong>. systemd supports a lot of
+weird types of dependencies that the current version of s6-rc does not (by
+design). </li>
+ <p />
+ <li> <tt>BindsTo=</tt>&nbsp;: <strong>3</strong>. Same. </li>
+ <p />
+ <li> <tt>PartOf=</tt>&nbsp;: <strong>3</strong>. Same. </li>
+ <p />
+ <li> <tt>Upholds=</tt>&nbsp;: <strong>0</strong>. In s6, services are upheld by
+the supervisor, not by other services. </li>
+ <p />
+ <li> <tt>Conflicts=</tt>&nbsp;: <strong>5</strong>. There are no negative
+dependencies in the s6 world, and a converter tool would have to implement it
+on top of the existing system. </li>
+ <p />
+ <li> <tt>Before=</tt>&nbsp;: <strong>2</strong>. systemd loves to have a
+zillion of keywords to express slightly different kinds of dependencies, and
+only a small subset of all the possible combinations are useful. </li>
+ <p />
+ <li> <tt>After=</tt>&nbsp;: <strong>2</strong>. </li>
+ <p />
+ <li> <tt>OnFailure=</tt>&nbsp;: <strong>5</strong>. Permanent failure is
+a very exceptional state in s6, there are no hooks to do something when
+permanent failure occurs; so a converter would need to add scripting around that. </li>
+ <p />
+ <li> <tt>OnSuccess=</tt>&nbsp;: <strong>2</strong>. These are oneshot
+dependencies. </li>
+ <p />
+ <li> <tt>PropagatesReloadTo=</tt>&nbsp;: <strong>0</strong>. Under s6-rc
+you can either reload a single service or the whole dependency chain that
+starts at the service. Other configurations just make no sense. </li>
+ <p />
+ <li> <tt>ReloadPropagatedFrom=</tt>&nbsp;: <strong>0</strong>. Same. </li>
+ <p />
+ <li> <tt>PropagatesStopTo=</tt>&nbsp;: <strong>0</strong>. Same with stopping
+a single service or a dependency chain of services. </li>
+ <p />
+ <li> <tt>StopPropagatedFrom=</tt>&nbsp;: <strong>0</strong>. Same. </li>
+ <p />
+ <li> <tt>JoinsNamespaceOf=</tt>&nbsp;: <strong>8</strong>. There are no
+native s6 tools to manage namespaces. </li>
+ <p />
+ <li> <tt>RequiresMountsFor=</tt>&nbsp;: <strong>4</strong>. Mounts are
+not handled in a special way in s6, the converter would have to know
+what service mounts what filesystem. </li>
+ <p />
+ <li> <tt>OnFailureJobMode=</tt>&nbsp;: <strong>6</strong>. This is what
+happens when you mix layers. </li>
+ <p />
+ <li> <tt>IgnoreOnIsolate=</tt>&nbsp;: <strong>0</strong>. </li>
+ <p />
+ <li> <tt>StopWhenUnneeded=</tt>&nbsp;: <strong>0</strong>. </li>
+ <p />
+ <li> <tt>RefuseManualStart=</tt>&nbsp;: <strong>4</strong>. Would need
+some scripting around. There's no reason to ever use that directive though. </li>
+ <p />
+ <li> <tt>RefuseManualStop=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+ <li> <tt>AllowIsolate=</tt>&nbsp;: <strong>0</strong>. </li>
+ <p />
+ <li> <tt>DefaultDependencies=</tt>&nbsp;: <strong>2</strong>. </li>
+ <p />
+ <li> <tt>CollectMode=</tt>&nbsp;: <strong>0</strong>. </li>
+ <p />
+ <li> <tt>FailureAction=</tt>&nbsp;: <strong>3</strong>. Anything involving
+permanent failure need to be scripted around, because s6 considers that
+it is an extreme state that requires administrator attention and will
+stop making automatic decisions. </li>
+ <p />
+ <li> <tt>SuccessAction=</tt>&nbsp;: <strong>3</strong>. That's a oneshot
+dependency, but systemd doesn't realize that. </li>
+ <p />
+ <li> <tt>FailureActionExitStatus=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+ <li> <tt>SuccessActionExitStatus=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+ <li> <tt>JobTimeoutSec=</tt>&nbsp;: <strong>9</strong>. s6 has no
+concept of jobs. </li>
+ <p />
+ <li> <tt>JobRunningTimeoutSec=</tt>&nbsp;: <strong>9</strong>. Same. </li>
+ <p />
+ <li> <tt>JobTimeoutAction=</tt>&nbsp;: <strong>9</strong>. Same. </li>
+ <p />
+ <li> <tt>JobTimeoutRebootArgument=</tt>&nbsp;: <strong>9</strong>. Same. </li>
+ <p />
+ <li> <tt>StartLimitIntervalSec=</tt>&nbsp;: <strong>3</strong>. s6 does
+not limit start rate. It can stop a service that has a high <em>death</em>
+rate: that's the configuration knob that makes sense. That directive can
+be converted to check death interval instead. </li>
+ <p />
+ <li> <tt>StartLimitBurst=</tt>&nbsp;: <strong>3</strong>. Same. </li>
+ <p />
+ <li> <tt>StartLimitAction=</tt>&nbsp;: <strong>3</strong>. Same. </li>
+ <p />
+ <li> <tt>RebootArgument=</tt>&nbsp;: <strong>5</strong>. Any "system mode"
+action such as a reboot has no place in an s6 set of services anyway;
+systemd obviously likes to mix unrelated layers. In the s6 world, the only
+place where a reboot should occur is
+<a href="//skarnet.org/software/s6-linux-init/">s6-linux-init</a>, and the
+related scripting in <tt>rc.init</tt> files. </li>
+ <p />
+ <li> <tt>SourcePath=</tt>&nbsp;: <strong>0</strong>. </li>
+ <p />
+ <li> Conditions and Asserts: <strong>9</strong>. Most of these are tied to the
+global machine state and absolutely not local to a given set of services. And
+even for those that are not, what they do is change the whole service manager's
+behaviour depending on some external dynamic state such as the existence of a
+file in the filesystem &mdash; and that is entirely contrary to the s6
+philosophy of making services predictable and reproductble. </li>
+</ul>
+
+<h4 id="install-section">
+ <tt>[Install]</tt> section
+</h4>
+
+<p>
+ Any directive under <tt>[Install]</tt> can be ignored, since it has no
+meaning on the run-time behaviour of the service. So the difficulty is
+<strong>0</strong>. However, an automatic converter would need to
+analyze the whole installed service configuration, e.g. the links in
+<tt>/etc/systemd/system/multi-user.target.wants/</tt>, in order to
+understand the dependencies between services. systemd targets can
+typically be converted into s6-rc bundles.
+</p>
+
+<h3 id="systemd.service">
+ Directives documented in <a href="https://man7.org/linux/man-pages/man5/systemd.service.5.html">systemd.service(5)</a>
+</h3>
+
+<h4 id="service-section">
+ <tt>[Service]</tt> section
+</h4>
+
+<ul>
+ <li> <tt>Type=</tt>&nbsp;: depending on its type, a systemd "service"
+can translate to wildly different things under s6.
+  <ul>
+   <li> <tt>simple</tt>&nbsp;: <strong>1</strong>. </li>
+   <li> <tt>exec</tt>&nbsp;: <strong>1</strong>. </li>
+   <li> <tt>forking</tt>&nbsp;: <strong>2</strong>. This type is strongly discouraged. </li>
+   <li> <tt>oneshot</tt>&nbsp;: <strong>1</strong>. </li>
+   <li> <tt>dbus</tt>&nbsp;: <strong>5</strong>. This type requires implementing dbus
+management programs for s6. </li>
+   <li> <tt>notify</tt>&nbsp;: <strong>7</strong>. This type requires an implementation
+of a compatibility server for
+<a href="https://man7.org/linux/man-pages/man3/sd_notify.3.html"><tt>sd_notify()</tt></a>,
+which is heavily tied to the monolithic systemd architecture and is difficult to support
+in a modular system such as s6. It is much easier to modify the services themselves so
+they use the <a href="notifywhenup.html">s6 readiness
+notification mechanism</a> instead of sd_notify. </li>
+   <li> <tt>idle</tt>&nbsp;: <strong>0</strong>. This type is meaningless under s6 and
+should be treated like <tt>simple</tt>. </li>
+  </ul>
+ </li>
+ <p />
+ <li> <tt>ExitType=</tt>&nbsp;: again, it depends on the value.
+  <ul>
+   <li> <tt>main</tt>&nbsp;: <strong>1</strong>. </li>
+   <li> <tt>cgroup</tt>&nbsp;: <strong>3</strong>. This requires implementing, or
+having access to, command-line cgroup tools. </li>
+  </ul>
+ </li>
+ <p />
+ <li> <tt>RemainAfterExit=</tt>&nbsp;: <strong>0</strong>. </li>
+ <p />
+ <li> <tt>GuessMainPid=</tt>&nbsp;: <strong>0</strong>. But don't use <tt>forking</tt>
+if you can avoid it. </li>
+ <p />
+ <li> <tt>PIDFile=</tt>&nbsp;: <strong>2</strong>. Same. </li>
+ <p />
+ <li> <tt>BusName=</tt>&nbsp;: <strong>5</strong>. Avoid type <tt>dbus</tt> if possible. </li>
+ <p />
+ <li> <tt>ExecStart=</tt>&nbsp;: <strong>2</strong>, with caveats. This is the bread and
+butter of service definitions; all your services will likely have such a directive, and
+the contents of <tt>ExecStart=</tt> will typically go into a run script (for longruns) or
+an up file (for oneshots). However, since systemd hates simplicity, there are a number
+of transformations that have to happen to the command line before it can be used in a
+script, and in particular if the command has a <em>special executable prefix</em>.
+Implementing these has its own difficulty ratings:
+  <ul>
+   <li> <tt>@</tt>&nbsp;: <strong>1</strong>. </li>
+   <li> <tt>-</tt>&nbsp;: <strong>1</strong>. </li>
+   <li> <tt>:</tt>&nbsp;: <strong>2</strong>. </li>
+   <li> <tt>+</tt>&nbsp;: <strong>5</strong>. </li>
+   <li> <tt>!</tt>&nbsp;: <strong>3</strong>. </li>
+   <li> <tt>!!</tt>&nbsp;: <strong>3</strong>. </li>
+  </ul>
+ </li>
+ <p />
+ <li> <tt>ExecStartPre=</tt>&nbsp;: <strong>2</strong>. In order to have a strict
+semantic equivalence with their systemd version, <tt>ExecStartPre=</tt> lines must
+be implemented as s6-rc oneshots, and the whole unit file must be implemented as
+a bundle. </li>
+ <p />
+ <li> <tt>ExecStartPost=</tt>&nbsp;: <strong>2</strong>. Same. </li>
+ <p />
+ <li> <tt>ExecCondition=</tt>&nbsp;: <strong>2</strong>. </li>
+ <p />
+ <li> <tt>ExecReload=</tt>&nbsp;: <strong>0</strong>. A reloading command that
+does not involve restarting the service does not need the service manager as
+a third-party. systemd cannot help inserting itself where it does not belong. </li>
+ <p />
+ <li> <tt>ExecStop=</tt>&nbsp;: <strong>6</strong>. s6 only supports terminating
+services via signals, so if a service needs a specific command to be stopped,
+the converter needs to target an interface layer on top of s6 with a repository
+of stop commands; such a layer would likely need to be on top of s6-rc as well
+and a lot of complexity would ensue. Fortunately, a huge majority of services
+support termination via signals and it is often easy to avoid relying on
+<tt>ExecStop=</tt>. </li>
+ <p />
+ <li> <tt>ExecStopPost=</tt>&nbsp;: <strong>2</strong>. These are the
+<tt>down</tt> scripts of the <tt>ExecStartPre=</tt> oneshots. </li>
+ <p />
+ <li> <tt>RestartSec=</tt>&nbsp;: <strong>2</strong>. s6 has no setting for that,
+because it aims for maximum uptime; but there are still ways to implement that
+bad idea. </li>
+ <p />
+ <li> <tt>TimeoutStartSec=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+ <li> <tt>TimeoutStopSec=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+ <li> <tt>TimeoutAbortSec=</tt>&nbsp;: <strong>7</strong>. This would need a
+watchdog implementation, in the server implementation of <tt>sd_notify()</tt>. </li>
+ <p />
+ <li> <tt>TimeoutSec=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+ <li> <tt>TimeoutStartFailureMode=</tt>&nbsp;: <strong>0</strong> for
+<tt>terminate</tt> and <tt>kill</tt>, <strong>7</strong> for <tt>abort</tt>. </li>
+ <p />
+ <li> <tt>TimeoutStopFailureMode=</tt>&nbsp;: <strong>0</strong> for
+<tt>terminate</tt> and <tt>kill</tt>, <strong>7</strong> for <tt>abort</tt>. </li>
+ <p />
+ <li> <tt>RuntimeMaxSec=</tt>&nbsp;: <strong>4</strong>. This is the exact
+opposite of what you need a process supervisor for, so s6 does not
+implement it. It is best to run such a process (not a <em>service</em>)
+outside of any kind of supervision framework. </li>
+ <p />
+ <li> <tt>RuntimeRandomizedExtraSec=</tt>&nbsp;: <strong>4</strong>. Same. </li>
+ <p />
+ <li> <tt>WatchdogSec=</tt>&nbsp;: <strong>7</strong>. Requires a watchdog
+implementation in the very specific systemd way. </li>
+ <p />
+ <li> <tt>Restart=</tt>&nbsp;: depends on the value.
+  <ul>
+   <li> <tt>no</tt>&nbsp;: <strong>2</strong>, but why use a process supervisor
+in the first place? </li>
+   <li> <tt>on-success</tt>&nbsp;: <strong>2</strong>. </li>
+   <li> <tt>on-failure</tt>&nbsp;: <strong>2</strong>. </li>
+   <li> <tt>on-abnormal</tt>&nbsp;: <strong>2</strong>. </li>
+   <li> <tt>on-watchdog</tt>&nbsp;: <strong>7</strong>. Again, this requires
+a watchdog implementation. </li>
+   <li> <tt>on-abort</tt>&nbsp;: <strong>2</strong>. </li>
+   <li> <tt>always</tt>&nbsp;: <strong>1</strong>. </li>
+  </ul>
+ </li>
+ <p />
+ <li> <tt>SuccessExitStatus=</tt>&nbsp;: <strong>3</strong>. This can be easily
+scripted, but supporting all the systemd formats is annoying. </li>
+ <p />
+ <li> <tt>RestartPreventExitStatus=</tt>&nbsp;: <strong>1</strong>. This is
+exactly what <a href="s6-permafailon.html">s6-permafailon</a>
+is for. </li>
+ <p />
+ <li> <tt>RestartForceExitStatus=</tt>&nbsp;: <strong>2</strong>. </li>
+ <p />
+ <li> <tt>RootDirectoryStartOnly=</tt>&nbsp;: <strong>2</strong>. </li>
+ <p />
+ <li> <tt>NonBlocking=</tt>&nbsp;: <strong>5</strong>. This requires an
+emulation of systemd's socket activation. s6 provides the useful parts of
+it, like a <a href="s6-fdholder-daemon.html">process
+to hold file descriptors</a>, but the systemd-specific API around socket
+activation, <a href="https://www.freedesktop.org/software/systemd/man/sd_listen_fds.html">sd_listen_fds(3)</a>,
+still needs to be implemented. </li>
+ <p />
+ <li> <tt>NotifyAccess=</tt>&nbsp;: <strong>1</strong> if <tt>none</tt>, <strong>7</strong>
+otherwise, because it needs an implementation of <tt>sd_notify()</tt>. </li>
+ <p />
+ <li> <tt>Sockets=</tt>&nbsp;: <strong>5</strong>. Requires an implementation
+of systemd's socket activation. </li>
+ <p />
+ <li> <tt>FileDescriptorStoreMax=</tt>&nbsp;: <strong>7</strong>. Requires an implementation
+of <tt>sd_notify()</tt>; the fd store itself is native to s6. </li>
+ <p />
+ <li> <tt>USBFunctionDescriptors=</tt>&nbsp;: <strong>9</strong>. This is
+low-level machine management, not service management. </li>
+ <p />
+ <li> <tt>USBFunctionStrings=</tt>&nbsp;: <strong>9</strong>. Same. </li>
+ <p />
+ <li> <tt>OOMPolicy=</tt>&nbsp;: <strong>9</strong>. Same. </li>
+</ul>
+
+<h3 id="systemd.exec">
+ Directives documented in <a href="https://man7.org/linux/man-pages/man5/systemd.exec.5.html">systemd.exec(5)</a>
+</h3>
+
+<h4 id="systemd.exec-paths">
+ Paths
+</h4>
+
+<ul>
+ <li> <tt>ExecSearchPath=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+ <li> <tt>WorkingDirectory=</tt>&nbsp;: <strong>2</strong>. </li>
+ <p />
+ <li> <tt>RootDirectory=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+ <li> <tt>RootImage=</tt>&nbsp;: <strong>6</strong>. I am discovering these
+options in real time and shaking my head - systemd still manages to baffle me
+with the amount of gratuitous ad-hoc that went into it. Still, this is
+regular low-level programming for Linux, this is less difficult to implement than
+systemd-specific stuff, that's why it only gets a 6. </li>
+ <p />
+ <li> <tt>RootImageOptions=</tt>&nbsp;: <strong>6</strong>. Same. </li>
+ <p />
+ <li> <tt>RootHash=</tt>&nbsp;: <strong>9</strong>. Please. </li>
+ <p />
+ <li> <tt>RootHashSignature=</tt>&nbsp;: <strong>9</strong>. </li>
+ <p />
+ <li> <tt>RootVerity=</tt>&nbsp;: <strong>9</strong>. </li>
+ <p />
+ <li> <tt>MountAPIVFS=</tt>&nbsp;: <strong>6</strong>. </li>
+ <p />
+ <li> <tt>ProtectProc=</tt>&nbsp;: <strong>6</strong>. </li>
+ <p />
+ <li> <tt>ProcSubset=</tt>&nbsp;: <strong>6</strong>. </li>
+ <p />
+ <li> <tt>BindPaths=</tt>&nbsp;: <strong>6</strong>. </li>
+ <p />
+ <li> <tt>BindReadOnlyPaths=</tt>&nbsp;: <strong>6</strong>. </li>
+ <p />
+ <li> <tt>MountImages=</tt>&nbsp;: <strong>6</strong>. </li>
+ <p />
+ <li> <tt>ExtensionImages=</tt>&nbsp;: <strong>6</strong>. </li>
+ <p />
+ <li> <tt>ExtensionDirectories=</tt>&nbsp;: <strong>6</strong>. It's a full low-level
+userspace implementation at this point. It's not very <em>complex</em>, the 6 feels
+accurate, but it's a whole lot of work. This is how systemd maintains its
+hegemony: not because it does incredible, awe-inspiring magic, but because it
+substitutes its monolithic self to a whole ecosystem, imposes its own API, and
+locks users in &mdash; people who want to smoothly transition away from systemd need
+to implement <em>the whole shtick</em>, which is obviously a huge undertaking, as
+the author of <a href="https://web.archive.org/web/20150516113530/http://uselessd.darknedgy.net/">uselessd</a>
+can confirm. </li>
+</ul>
+
+<h4 id="systemd.exec-identity">
+ User/group identity
+</h4>
+
+<ul>
+ <li> <tt>User=</tt>&nbsp;: <strong>3</strong>. This looks very simple, but is
+treacherous, because <tt>User=</tt> is a mash of two very different features:
+setting users <em>statically</em> (via numeric ID, which don't change meanings
+between two invocations) and setting users <em>dynamically</em> (via user name,
+which needs to be interpreted by
+<a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/getpwnam.html">getpwnam(3)</a>
+on every invocation of the service. s6 supports both, but since these are two
+different things, the way to do them in s6 is different (statically setting the
+UID and GID variables and calling
+<a href="s6-applyuidgid.html">s6-applyuidgid -U</a>,
+or calling <a href="s6-setuidgid.html">s6-setuidgid</a>).
+This is the exact kind of small detail that makes writing an automatic converter more difficult
+than it should be: the systemd unit file syntax is rife with semantic pitfalls, and managing
+your way across it requires very close attention. </li>
+ <p />
+ <li> <tt>Group=</tt>&nbsp;: <strong>3</strong>. Same. </li>
+ <p />
+ <li> <tt>DynamicUser=</tt>&nbsp;: <strong>5</strong>. Of course this flag has an
+<em>entirely</em> different meaning from setting users statically or dynamically, or
+else it would be too easy to understand. No, this flag is about <em>allocating temporary
+new users</em>, which is a prime example of overengineering. </li>
+ <p />
+ <li> <tt>SupplementaryGroups=</tt>&nbsp;: <strong>1</strong>. Same. </li>
+ <p />
+ <li> <tt>PAMName=</tt>&nbsp;: <strong>4</strong>. Requires PAM command-line
+utilities. </li>
+</ul>
+
+<h4 id="systemd.exec-capabilities">
+ Capabilities
+</h4>
+
+<ul>
+ <li> <tt>CapabilityBoundingSet=</tt>&nbsp;: <strong>4</strong>. This requires
+command-line tools implementing capabilities. </li>
+ <p />
+ <li> <tt>AmbientCapabilities=</tt>&nbsp;: <strong>4</strong>. Same. </li>
+</ul>
+
+<h4 id="systemd.exec-security">
+ Security
+</h4>
+
+<ul>
+ <li> <tt>NoNewPrivileges=</tt>&nbsp;: <strong>4</strong>. Similar to capabilities,
+this requires a command-line tool controlling the Linux-specific
+<a href="https://man7.org/linux/man-pages/man2/prctl.2.html">prctl(2)</a> system
+call. </li>
+ <p />
+ <li> <tt>SecureBits=</tt>&nbsp;: <strong>4</strong>. Same. </li>
+</ul>
+
+<h4 id="systemd.exec-mandatoryac">
+ Mandatory access control
+</h4>
+
+<ul>
+  <li> <tt>SELinuxContext=</tt>&nbsp;: <strong>5</strong>. This requires
+command-line tools managing SELinux. </li>
+ <p />
+  <li> <tt>AppArmorProfile=</tt>&nbsp;: <strong>5</strong>. Same, with AppArmor. </li>
+ <p />
+  <li> <tt>SmackProcessLabel=</tt>&nbsp;: <strong>5</strong>. Same, with SMACK.
+systemd needs to know and understand all the Linux security modules in order
+to interact with them. s6 does not - it expects a service's run script to
+perform all the needed process state changes and controls before executing
+into the daemon. </li>
+</ul>
+
+<h4 id="systemd.exec-properties">
+ Process properties
+</h4>
+
+<ul>
+  <li> <tt>LimitCPU=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+  <li> <tt>LimitFSIZE=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+  <li> <tt>LimitDATA=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+  <li> <tt>LimitSTACK=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+  <li> <tt>LimitCORE=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+  <li> <tt>LimitRSS=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+  <li> <tt>LimitNOFILE=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+  <li> <tt>LimitAS=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+  <li> <tt>LimitNPROC=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+  <li> <tt>LimitMEMLOCK=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+  <li> <tt>LimitLOCKS=</tt>&nbsp;: <strong>2</strong>. This resource limit
+isn't natively supported by
+<a href="//skarnet.org/software/s6/s6-softlimit.html">s6-softlimit</a>, but
+it could appear in a future s6 version - and it's easy to add in any case. </li>
+ <p />
+  <li> <tt>LimitSIGPENDING=</tt>&nbsp;: <strong>2</strong>. Same. </li>
+ <p />
+  <li> <tt>LimitMSGQUEUE=</tt>&nbsp;: <strong>2</strong>. Same. </li>
+ <p />
+  <li> <tt>LimitNICE=</tt>&nbsp;: <strong>2</strong>. Same. </li>
+ <p />
+  <li> <tt>LimitRTPRIO=</tt>&nbsp;: <strong>2</strong>. Same. </li>
+ <p />
+  <li> <tt>LimitRTTIME=</tt>&nbsp;: <strong>2</strong>. Same. </li>
+ <p />
+  <li> <tt>UMask=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+  <li> <tt>CoredumpFilter=</tt>&nbsp;: <strong>4</strong>. Requires a
+command-line tool around <a href="https://man7.org/linux/man-pages/man2/prctl.2.html">prctl(2)</a>. </li>
+ <p />
+  <li> <tt>KeyringMode=</tt>&nbsp;: <strong>5</strong>. Requires
+interaction with PAM and an understanding of keyrings. Fortunately,
+practically nothing will need that. </li>
+ <p />
+  <li> <tt>OOMScoreAdjust=</tt>&nbsp;: <strong>2</strong>. </li>
+ <p />
+  <li> <tt>TimerSlackNSec=</tt>&nbsp;: <strong>4</strong>. Requires a
+command-line tool around <a href="https://man7.org/linux/man-pages/man2/prctl.2.html">prctl(2)</a>. </li>
+ <p />
+  <li> <tt>Personality=</tt>&nbsp;: <strong>3</strong>. Requires a
+command-line tool around <a href="https://man7.org/linux/man-pages/man2/personality.2.html">personality(2)</a>. </li>
+ <p />
+  <li> <tt>IgnoreSIGPIPE=</tt>&nbsp;: <strong>2</strong>. </li>
+</ul>
+
+<h4 id="systemd.exec-scheduling">
+ Scheduling
+</h4>
+
+<ul>
+ <li> <tt>Nice=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+ <li> <tt>CPUSchedulingPolicy=</tt>&nbsp;: <strong>3</strong>. Requires a
+command-line tool around <a href="https://man7.org/linux/man-pages/man2/sched_setscheduler.2.html">sched_setscheduler(2)</a>. </li>
+ <p />
+ <li> <tt>CPUSchedulingPriority=</tt>&nbsp;: <strong>3</strong>. Same. </li>
+ <p />
+  <li> <tt>CPUSchedulingResetOnFork=</tt>&nbsp;: <strong>3</strong>. Same. </li>
+ <p />
+ <li> <tt>CPUAffinity=</tt>&nbsp;: <strong>3</strong>. Requires a
+command-line tool around <a href="https://man7.org/linux/man-pages/man2/sched_setaffinity.2.html">sched_setaffinity(2)</a>. </li>
+ <p />
+ <li> <tt>NUMAPolicy=</tt>&nbsp;: <strong>3</strong>. Requires a
+command-line tool around <a href="https://man7.org/linux/man-pages/man2/set_mempolicy.2.html">set_mempolicy(2)</a>. </li>
+ <p />
+ <li> <tt>NUMAMask=</tt>&nbsp;: <strong>3</strong>. Same. </li>
+ <p />
+ <li> <tt>IOSchedulingClass=</tt>&nbsp;: <strong>3</strong>. Requires a
+command-line tool around <a href="https://man7.org/linux/man-pages/man2/ioprio_set.2.html">ioprio_set(2)</a>. </li>
+ <p />
+ <li> <tt>IOSchedulingPriority=</tt>&nbsp;: <strong>3</strong>. Same. </li>
+</ul>
+
+<h4 id="systemd.exec-sandboxing">
+ Sandboxing
+</h4>
+
+<p>
+ systemd gracefully turns off the sandboxing options on systems that
+do not support the necessary functionality, so all these options can
+be ignored (difficulty <strong>0</strong>) and the services will still
+work. However, in order to actually implementing the sandboxing, it is
+necessary to pair s6 with command-line tools that perform the required
+process state changes by interfacing with namespaces, cgroups, seccomp,
+or any other relevant feature of the Linux kernel, so for all these
+directives the difficulty is somewhere between <strong>2</strong>, if
+the tool already exists, and <strong>8</strong>, if it requires writing
+a full container implementation from scratch. The following numbers are
+only a rough guess.
+</p>
+
+<ul>
+ <li> <tt>ProtectSystem=</tt>&nbsp;: <strong>6</strong>. </li>
+ <p />
+ <li> <tt>ProtectHome=</tt>&nbsp;: <strong>6</strong>. </li>
+ <p />
+ <li> <tt>RuntimeDirectory=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+ <li> <tt>StateDirectory=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+ <li> <tt>CacheDirectory=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+ <li> <tt>LogsDirectory=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+ <li> <tt>ConfigurationDirectory=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+ <li> <tt>RuntimeDirectoryMode=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+ <li> <tt>StateDirectoryMode=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+ <li> <tt>CacheDirectoryMode=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+ <li> <tt>LogsDirectoryMode=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+ <li> <tt>ConfigurationDirectoryMode=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+ <li> <tt>RuntimeDirectoryPreserve=</tt>&nbsp;: <strong>3</strong>. </li>
+ <p />
+ <li> <tt>TimeoutCleanSec=</tt>&nbsp;: <strong>3</strong>. </li>
+ <p />
+ <li> <tt>ReadWritePaths=</tt>&nbsp;: <strong>5</strong>. </li>
+ <p />
+ <li> <tt>ReadOnlyPaths=</tt>&nbsp;: <strong>5</strong>. </li>
+ <p />
+ <li> <tt>InaccessiblePaths=</tt>&nbsp;: <strong>5</strong>. </li>
+ <p />
+ <li> <tt>ExecPaths=</tt>&nbsp;: <strong>5</strong>. </li>
+ <p />
+ <li> <tt>NoExecPaths=</tt>&nbsp;: <strong>5</strong>. </li>
+ <p />
+ <li> <tt>TemporaryFileSystem=</tt>&nbsp;: <strong>5</strong>. </li>
+ <p />
+ <li> <tt>PrivateTmp=</tt>&nbsp;: <strong>5</strong>. </li>
+ <p />
+ <li> <tt>PrivateDevices=</tt>&nbsp;: <strong>5</strong>. </li>
+ <p />
+ <li> <tt>PrivateNetwork=</tt>&nbsp;: <strong>8</strong>. </li>
+ <p />
+ <li> <tt>NetworkNamespacePath=</tt>&nbsp;: <strong>8</strong>. </li>
+ <p />
+ <li> <tt>PrivateIPC=</tt>&nbsp;: <strong>5</strong>. </li>
+ <p />
+ <li> <tt>IPCNamespacePath=</tt>&nbsp;: <strong>5</strong>. </li>
+ <p />
+ <li> <tt>PrivateUsers=</tt>&nbsp;: <strong>5</strong>. </li>
+ <p />
+ <li> <tt>ProtectHostname=</tt>&nbsp;: <strong>5</strong>. </li>
+ <p />
+ <li> <tt>ProtectClock=</tt>&nbsp;: <strong>7</strong>. </li>
+ <p />
+ <li> <tt>ProtectKernelTunables=</tt>&nbsp;: <strong>7</strong>. </li>
+ <p />
+ <li> <tt>ProtectKernelModules=</tt>&nbsp;: <strong>7</strong>. </li>
+ <p />
+ <li> <tt>ProtectKernelLogs=</tt>&nbsp;: <strong>7</strong>. </li>
+ <p />
+ <li> <tt>ProtectControlGroups=</tt>&nbsp;: <strong>7</strong>. </li>
+ <p />
+ <li> <tt>RestrictAddressFamilies=</tt>&nbsp;: <strong>7</strong>. </li>
+ <p />
+ <li> <tt>RestrictFilesystems=</tt>&nbsp;: <strong>7</strong>. </li>
+ <p />
+ <li> <tt>RestrictNamespaces=</tt>&nbsp;: <strong>7</strong>. </li>
+ <p />
+ <li> <tt>LockPersonality=</tt>&nbsp;: <strong>7</strong>. </li>
+ <p />
+ <li> <tt>MemoryDenyWriteExecute=</tt>&nbsp;: <strong>7</strong>. </li>
+ <p />
+ <li> <tt>RestrictRealtime=</tt>&nbsp;: <strong>7</strong>. </li>
+ <p />
+ <li> <tt>RestrictSUIDSGID=</tt>&nbsp;: <strong>7</strong>. </li>
+ <p />
+ <li> <tt>RemoveIPC=</tt>&nbsp;: <strong>5</strong>. </li>
+ <p />
+ <li> <tt>PrivateMounts=</tt>&nbsp;: <strong>5</strong>. </li>
+</ul>
+
+<h4 id="systemd.exec-filtering">
+ System call filtering
+</h4>
+
+<ul>
+ <li> <tt>SystemCallFilter=</tt>&nbsp;: <strong>8</strong>. </li>
+ <p />
+ <li> <tt>SystemCallErrorNumber=</tt>&nbsp;: <strong>8</strong>. </li>
+ <p />
+ <li> <tt>SystemCallArchitectures=</tt>&nbsp;: <strong>8</strong>. </li>
+ <p />
+ <li> <tt>SystemCallLog=</tt>&nbsp;: <strong>8</strong>. </li>
+</ul>
+
+<h4 id="systemd.exec-environment">
+ Environment
+</h4>
+
+<ul>
+ <li> <tt>Environment=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+ <li> <tt>EnvironmentFile=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+ <li> <tt>PassEnvironment=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+ <li> <tt>UnsetEnvironment=</tt>&nbsp;: <strong>1</strong>. </li>
+</ul>
+
+<h4 id="systemd.exec-logging">
+ Logging and standard input/output
+</h4>
+
+<ul>
+ <li> <tt>StandardInput=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+ <li> <tt>StandardOutput=</tt>&nbsp;: <strong>1</strong>, except
+for <tt>journal</tt> which cannot be supported (<strong>10</strong>). </li>
+ <p />
+ <li> <tt>StandardError=</tt>&nbsp;: same.  </li>
+ <p />
+ <li> <tt>StandardInputText=</tt>&nbsp;: <strong>2</strong>. </li>
+ <p />
+ <li> <tt>StandardInputData=</tt>&nbsp;: <strong>2</strong>. </li>
+ <p />
+ <li> <tt>LogLevelMax=</tt>&nbsp;: <strong>3</strong>. </li>
+ <p />
+ <li> <tt>LogExtraFields=</tt>&nbsp;: <strong>10</strong>. </li>
+ <p />
+ <li> <tt>LogRateLimitIntervalSec=</tt>&nbsp;: <strong>10</strong>. </li>
+ <p />
+ <li> <tt>LogRateLimitBurst=</tt>&nbsp;: <strong>10</strong>. </li>
+ <p />
+ <li> <tt>LogFilterPatterns=</tt>&nbsp;: <strong>4</strong>. </li>
+ <p />
+ <li> <tt>LogNamespace=</tt>&nbsp;: <strong>10</strong>. </li>
+ <p />
+ <li> <tt>SyslogIdentifier=</tt>&nbsp;: <strong>2</strong>. </li>
+ <p />
+ <li> <tt>SyslogFacility=</tt>&nbsp;: <strong>2</strong>. </li>
+ <p />
+ <li> <tt>SyslogLevel=</tt>&nbsp;: <strong>2</strong>. </li>
+ <p />
+ <li> <tt>SyslogLevelPrefix=</tt>&nbsp;: <strong>4</strong>. </li>
+ <p />
+ <li> <tt>TTYPath=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+ <li> <tt>TTYReset=</tt>&nbsp;: <strong>3</strong>. </li>
+ <p />
+ <li> <tt>TTYVHangup=</tt>&nbsp;: <strong>3</strong>. </li>
+ <p />
+ <li> <tt>TTYRows=</tt>&nbsp;: <strong>3</strong>. </li>
+ <p />
+ <li> <tt>TTYColumns=</tt>&nbsp;: <strong>3</strong>. </li>
+ <p />
+ <li> <tt>TTYDisallocate=</tt>&nbsp;: <strong>3</strong>. </li>
+ <p />
+</ul>
+
+<h4 id="systemd.exec-credentials">
+ Credentials
+</h4>
+
+<p>
+ systemd implements its own credentials store mechanism, for no obvious
+benefit. The whole credentials system needs to be reimplemented outside
+of systemd in order for credentials-related directives to be supported
+by s6. Consequently, all these directives are rated <strong>6</strong>.
+</p>
+
+<h4 id="systemd.exec-sysv">
+ System V compatibility
+</h4>
+
+<p>
+ The utmp directives can be made significantly easier to implement if the target
+system is using <a href="//skarnet.org/software/utmps/">utmps</a>,
+because the directives then become a single call to
+<a href="//skarnet.org/software/utmps/utmps-write.html">utmps-write</a>
+with the relevant options. If <a href="//skarnet.org/software/utmps/">utmps</a>
+cannot be used, then the utmp calls need to be reimplemented.
+</p>
+
+<ul>
+ <li> <tt>UtmpIdentifier=</tt>&nbsp;: <strong>4</strong>. </li>
+ <p />
+ <li> <tt>UtmpMode=</tt>&nbsp;: <strong>4</strong>. </li>
+</ul>
+
+<h3 id="systemd.kill">
+ Directives documented in <a href="https://man7.org/linux/man-pages/man5/systemd.kill.5.html">systemd.kill(5)</a>
+</h3>
+
+<ul>
+ <li> <tt>KillMode=</tt>&nbsp;: depends on the kill mode.
+<tt>control-group</tt> and <tt>mixed</tt> are <strong>3</strong>,
+because they require cgroup control commands (that can be implemented
+in shell). <tt>process</tt> is <strong>1</strong>. <tt>none</tt> is
+<strong>2</strong>. </li>
+ <p />
+ <li> <tt>KillSignal=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+ <li> <tt>RestartKillSignal=</tt>&nbsp;: <strong>5</strong>. s6
+doesn't use a different signal for restarting; implementing this
+requires an outer layer. (This is overengineering.) </li>
+ <p />
+ <li> <tt>SendSIGHUP=</tt>&nbsp;: <strong>5</strong>. Same. </li>
+ <p />
+ <li> <tt>SendSIGKILL=</tt>&nbsp;: <strong>1</strong>. </li>
+ <p />
+ <li> <tt>FinalKillSignal=</tt>&nbsp;: <strong>5</strong>. (This
+is <em>absolute</em> overengineering.) </li>
+ <p />
+ <li> <tt>WatchdogSignal=</tt>&nbsp;: <strong>7</strong>. Only meaningful
+with an implementation of systemd's watchdog system. </li>
+</ul>
+
+<h3 id="systemd.resource-control">
+ Directives documented in <a href="https://man7.org/linux/man-pages/man5/systemd.resource-control.5.html">systemd.resource-control(5)</a>
+</h3>
+
+<p>
+ All these directives relate to cgroups, so implementing them means
+having access to at least some cgroups commands (difficulty at least
+<strong>3</strong>. Others are even more involved, requiring tight
+service integration with the system. Generally, seeing these directives
+in your unit files is a bad sign; despite some of them only having
+<strong>3</strong> or <strong>4</strong> listed, we do not recommend
+implementing <a href="https://man7.org/linux/man-pages/man5/systemd.resource-control.5.html">systemd.resource-control(5)</a>
+without having a full holistic view of the system.
+</p>
+
+<ul>
+ <li> <tt>CPUAccounting=</tt>&nbsp;: <strong>3</strong>. </li>
+ <p />
+ <li> <tt>CPUWeight=</tt>&nbsp;: <strong>4</strong>. </li>
+ <p />
+ <li> <tt>StartupCPUWeight=</tt>&nbsp;: <strong>9</strong>. Involves
+startup and shutdown. </li>
+ <p />
+ <li> <tt>CPUQuota=</tt>&nbsp;: <strong>4</strong>. </li>
+ <p />
+ <li> <tt>CPUQuotaPeriodSec=</tt>&nbsp;: <strong>4</strong>. </li>
+ <p />
+ <li> <tt>AllowedCPUs=</tt>&nbsp;: <strong>3</strong>. </li>
+ <p />
+ <li> <tt>StartupAllowedCPUs=</tt>&nbsp;: <strong>9</strong>. Involves
+startup and shutdown. </li>
+ <p />
+ <li> <tt>AllowedMemoryNodes=</tt>&nbsp;: <strong>3</strong>. </li>
+ <p />
+ <li> <tt>StartupAllowedMemoryNodes=</tt>&nbsp;: <strong>9</strong>.
+Involves startup and shutdown. </li>
+ <p />
+ <li> <tt>MemoryAccounting=</tt>&nbsp;: <strong>3</strong>. </li>
+ <p />
+ <li> <tt>MemoryMin=</tt>&nbsp;: <strong>3</strong>. </li>
+ <p />
+ <li> <tt>MemoryLow=</tt>&nbsp;: <strong>3</strong>. </li>
+ <p />
+ <li> <tt>MemoryHigh=</tt>&nbsp;: <strong>3</strong>. </li>
+ <p />
+ <li> <tt>MemoryMax=</tt>&nbsp;: <strong>3</strong>. </li>
+ <p />
+ <li> <tt>MemorySwapMax=</tt>&nbsp;: <strong>3</strong>. </li>
+ <p />
+ <li> <tt>MemoryZSwapMax=</tt>&nbsp;: <strong>3</strong>. </li>
+ <p />
+ <li> <tt>TasksAccounting=</tt>&nbsp;: <strong>3</strong>. </li>
+ <p />
+ <li> <tt>TasksMax=</tt>&nbsp;: <strong>3</strong>. </li>
+ <p />
+ <li> <tt>IOAccounting=</tt>&nbsp;: <strong>3</strong>. </li>
+ <p />
+ <li> <tt>IOWeight=</tt>&nbsp;: <strong>3</strong>. </li>
+ <p />
+ <li> <tt>StartupIOWeight=</tt>&nbsp;: <strong>9</strong>. Involves
+startup and shutdown. </li>
+ <p />
+ <li> <tt>IODeviceWeight=</tt>&nbsp;: <strong>5</strong>. </li>
+ <p />
+ <li> <tt>IOReadBandwidthMax=</tt>&nbsp;: <strong>5</strong>. </li>
+ <p />
+ <li> <tt>IOWriteBandwidthMax=</tt>&nbsp;: <strong>5</strong>. </li>
+ <p />
+ <li> <tt>IOReadIOPSMax=</tt>&nbsp;: <strong>5</strong>. </li>
+ <p />
+ <li> <tt>IOWriteIOPSMax=</tt>&nbsp;: <strong>5</strong>. </li>
+ <p />
+ <li> <tt>IODeviceLatencyTargetSec=</tt>&nbsp;: <strong>4</strong>. </li>
+ <p />
+ <li> <tt>IPAccounting=</tt>&nbsp;: <strong>7</strong>. </li>
+ <p />
+ <li> <tt>IPAddressAllow=</tt>&nbsp;: <strong>7</strong>. </li>
+ <p />
+ <li> <tt>IPAddressDeny=</tt>&nbsp;: <strong>7</strong>. </li>
+ <p />
+ <li> <tt>IPIngressFilterPath=</tt>&nbsp;: <strong>8</strong>. </li>
+ <p />
+ <li> <tt>IPEgressFilterPath=</tt>&nbsp;: <strong>8</strong>. </li>
+ <p />
+ <li> <tt>BPFProgram=</tt>&nbsp;: <strong>8</strong>. </li>
+ <p />
+ <li> <tt>SocketBindAllow=</tt>&nbsp;: <strong>6</strong>. </li>
+ <p />
+ <li> <tt>SocketBindDeny=</tt>&nbsp;: <strong>6</strong>. </li>
+ <p />
+ <li> <tt>RestrictNetworkInterfaces=</tt>&nbsp;: <strong>4</strong>. </li>
+ <p />
+ <li> <tt>DeviceAllow=</tt>&nbsp;: <strong>6</strong>. </li>
+ <p />
+ <li> <tt>DevicePolicy=</tt>&nbsp;: <strong>6</strong>. </li>
+ <p />
+ <li> <tt>Slice=</tt>&nbsp;: <strong>9</strong>. Slices are a systemd concept,
+and fully implementing them requires a holistic system analysis. </li>
+ <p />
+ <li> <tt>Delegate=</tt>&nbsp;: <strong>4</strong>. </li>
+ <p />
+ <li> <tt>DisableControllers=</tt>&nbsp;: <strong>3</strong>. </li>
+ <p />
+ <li> <tt>ManagedOOMSwap=</tt>&nbsp;: <strong>8</strong>. Out-of-memory
+management is an entire systemd subsystem; instead of implementing that,
+we recommend provisioning your machines correctly, and freeing up more
+resources for your applications by using s6.
+ <p />
+ <li> <tt>ManagedOOMMemoryPressure=</tt>&nbsp;: <strong>8</strong>. </li>
+ <p />
+ <li> <tt>ManagedOOMMemoryPressureLimit=</tt>&nbsp;: <strong>8</strong>. </li>
+ <p />
+ <li> <tt>ManagedOOMPreference=</tt>&nbsp;: <strong>8</strong>. </li>
+</ul>
+
+
+<h2 id="by-difficulty"> Directives rated by difficulty </h2>
+
+<p>
+ Use this section to answer the question: "If I were to write a converter tool
+from systemd to s6, what subset of the unit file syntax should I focus on
+first?"
+</p>
+
+<p>
+ Take this classification with a grain of salt: for instance, it does not
+make sense to implement an easy directive if it's only used in the context
+of a larger subsystem that's much harder to implement - typically, most
+cgroups-related resource control directives.
+</p>
+
+<h3 id="difficulty-0">
+ Difficulty: 0 &mdash; directives that can be ignored
+</h3>
+
+<ul>
+ <li> <tt>Description=</tt> </li>
+ <li> <tt>Documentation=</tt> </li>
+ <li> <tt>Upholds=</tt> </li>
+ <li> <tt>PropagatesReloadTo=</tt> </li>
+ <li> <tt>PropagatesStopTp=</tt> </li>
+ <li> <tt>StopPropagatedFrom=</tt> </li>
+ <li> <tt>IgnoreOnIsolate=</tt> </li>
+ <li> <tt>StopWhenUnneeded=</tt> </li>
+ <li> <tt>AllowIsolate=</tt> </li>
+ <li> <tt>CollectMode=</tt> </li>
+ <li> <tt>SourcePath=</tt> </li>
+ <li> <tt>Type=idle</tt> </li>
+ <li> <tt>RemainAfterExit=</tt> </li>
+ <li> <tt>GuessMainPid=</tt> </li>
+ <li> <tt>ExecReload=</tt> </li>
+ <li> <tt>TimeoutStartFailureMode=</tt> </li>
+ <li> <tt>TimeoutStopFailureMode=</tt> </li>
+</ul>
+
+<h3 id="difficulty-1">
+ Difficulty: 1 &mdash; direct functionality mapping
+</h3>
+
+<ul>
+ <li> <tt>RefuseManualStop=</tt> </li>
+ <li> <tt>FailureActionExitStatus=</tt> </li>
+ <li> <tt>SuccessActionExitStatus=</tt> </li>
+ <li> <tt>Type=simple</tt>, <tt>exec</tt> or <tt>oneshot</tt> </li>
+ <li> <tt>ExitType=main</tt> </li>
+ <li> <tt>TimeoutStartSec=</tt> </li>
+ <li> <tt>TimeoutStopSec=</tt> </li>
+ <li> <tt>TimeoutSec=</tt> </li>
+ <li> <tt>Restart=always</tt> </li>
+ <li> <tt>RestartPreventExitStatus=</tt> </li>
+ <li> <tt>NotifyAccess=none</tt> </li>
+ <li> <tt>ExecSearchPath=</tt> </li>
+ <li> <tt>RootDirectory=</tt> </li>
+ <li> <tt>SupplementaryGroups=</tt> </li>
+ <li> <tt>LimitCPU=</tt> </li>
+ <li> <tt>LimitFSIZE=</tt> </li>
+ <li> <tt>LimitDATA=</tt> </li>
+ <li> <tt>LimitSTACK=</tt> </li>
+ <li> <tt>LimitCORE=</tt> </li>
+ <li> <tt>LimitRSS=</tt> </li>
+ <li> <tt>LimitNOFILE=</tt> </li>
+ <li> <tt>LimitAS=</tt> </li>
+ <li> <tt>LimitNPROC=</tt> </li>
+ <li> <tt>LimitMEMLOCK=</tt> </li>
+ <li> <tt>UMask=</tt> </li>
+ <li> <tt>Nice=</tt> </li>
+ <li> <tt>RuntimeDirectory=</tt> </li>
+ <li> <tt>StateDirectory=</tt> </li>
+ <li> <tt>CacheDirectory=</tt> </li>
+ <li> <tt>LogsDirectory=</tt> </li>
+ <li> <tt>ConfigurationDirectory=</tt> </li>
+ <li> <tt>RuntimeDirectoryMode=</tt> </li>
+ <li> <tt>StateDirectoryMode=</tt> </li>
+ <li> <tt>CacheDirectoryMode=</tt> </li>
+ <li> <tt>LogsDirectoryMode=</tt> </li>
+ <li> <tt>ConfigurationDirectoryMode=</tt> </li>
+ <li> <tt>Environment=</tt> </li>
+ <li> <tt>EnvironmentFile=</tt> </li>
+ <li> <tt>PassEnvironment=</tt> </li>
+ <li> <tt>UnsetEnvironment=</tt> </li>
+ <li> <tt>StandardInput=</tt> </li>
+ <li> <tt>StandardOutput=</tt> (except <tt>journal</tt>) </li>
+ <li> <tt>StandardError=</tt> (except <tt>journal</tt>) </li>
+ <li> <tt>TTYPath=</tt> </li>
+ <li> <tt>KillMode=process</tt> </li>
+ <li> <tt>KillSignal=</tt> </li>
+ <li> <tt>SendSIGKILL=</tt> </li>
+</ul>
+
+<h3 id="difficulty-2">
+ Difficulty: 2 &mdash; straightforward implementation
+</h3>
+
+<ul>
+ <li> <tt>Requires=</tt> </li>
+ <li> <tt>Before=</tt> </li>
+ <li> <tt>After=</tt> </li>
+ <li> <tt>OnSuccess=</tt> </li>
+ <li> <tt>DefaultDependencies=</tt> </li>
+ <li> <tt>Type=forking</tt> </li>
+ <li> <tt>PIDFile=</tt> </li>
+ <li> <tt>ExecStart=</tt> (omitting some prefixes) </li>
+ <li> <tt>ExecStartPre=</tt> </li>
+ <li> <tt>ExecStartPost=</tt> </li>
+ <li> <tt>ExecCondition=</tt> </li>
+ <li> <tt>ExecStopPost=</tt> </li>
+ <li> <tt>RestartSec=</tt> </li>
+ <li> <tt>Restart=</tt> except <tt>on-watchdog</tt> </li>
+ <li> <tt>RestartForceExitStatus=</tt> </li>
+ <li> <tt>RootDirectoryStartOnly=</tt> </li>
+ <li> <tt>WorkingDirectory=</tt> </li>
+ <li> <tt>LimitLOCKS=</tt> </li>
+ <li> <tt>LimitSIGPENDING=</tt> </li>
+ <li> <tt>LimitMSGQUEUE=</tt> </li>
+ <li> <tt>LimitNICE=</tt> </li>
+ <li> <tt>LimitRTPRIO=</tt> </li>
+ <li> <tt>LimitRTTIME=</tt> </li>
+ <li> <tt>OOMScoreAdjust=</tt> </li>
+ <li> <tt>IgnoreSIGPIPE=</tt> </li>
+ <li> <tt>StandardInputText=</tt> </li>
+ <li> <tt>StandardInputData=</tt> </li>
+ <li> <tt>SyslogIdentifier=</tt> </li>
+ <li> <tt>SyslogFacility=</tt> </li>
+ <li> <tt>SyslogLevel=</tt> </li>
+ <li> <tt>KillMode=none</tt> </li>
+</ul>
+
+<h3 id="difficulty-3">
+ Difficulty: 3 &mdash; requires easy additional programming 
+</h3>
+
+<ul>
+ <li> <tt>Wants=</tt> </li>
+ <li> <tt>Requisite=</tt> </li>
+ <li> <tt>BindsTo=</tt> </li>
+ <li> <tt>PartOf=</tt> </li>
+ <li> <tt>FailureAction=</tt> </li>
+ <li> <tt>SuccessAction=</tt> </li>
+ <li> <tt>StartLimitIntervalSec=</tt> </li>
+ <li> <tt>StartLimitBurst=</tt> </li>
+ <li> <tt>StartLimitAction=</tt> </li>
+ <li> <tt>ExitType=cgroup</tt> </li>
+ <li> <tt>SuccessExitStatus=</tt> </li>
+ <li> <tt>User=</tt> </li>
+ <li> <tt>Group=</tt> </li>
+ <li> <tt>Personality=</tt> </li>
+ <li> <tt>CPUSchedulingPolicy=</tt> </li>
+ <li> <tt>CPUSchedulingPriority=</tt> </li>
+ <li> <tt>CPUSchedulingResetOnFork=</tt> </li>
+ <li> <tt>CPUAffinity=</tt> </li>
+ <li> <tt>NUMAPolicy=</tt> </li>
+ <li> <tt>NUMAMask=</tt> </li>
+ <li> <tt>IOSchedulingClass=</tt> </li>
+ <li> <tt>IOSchedulingPriority=</tt> </li>
+ <li> <tt>RuntimeDirectoryPreserve=</tt> </li>
+ <li> <tt>TimeoutCleanSec=</tt> </li>
+ <li> <tt>LoglevelMax=</tt> </li>
+ <li> <tt>TTYReset=</tt> </li>
+ <li> <tt>TTYVHangup=</tt> </li>
+ <li> <tt>TTYRows=</tt> </li>
+ <li> <tt>TTYColumns=</tt> </li>
+ <li> <tt>TTYDisallocate=</tt> </li>
+ <li> <tt>KillMode=control-group</tt> and <tt>mixed</tt> </li>
+ <li> <tt>CPUAccounting=</tt> </li>
+ <li> <tt>AllowedCPUs=</tt> </li>
+ <li> <tt>AllowedMemoryNodes=</tt> </li>
+ <li> <tt>MemoryAccounting=</tt> </li>
+ <li> <tt>MemoryMin=</tt> </li>
+ <li> <tt>MemoryLow=</tt> </li>
+ <li> <tt>MemoryHigh=</tt> </li>
+ <li> <tt>MemoryMax=</tt> </li>
+ <li> <tt>MemorySwapMax=</tt> </li>
+ <li> <tt>MemoryZSwapMax=</tt> </li>
+ <li> <tt>TasksAccounting=</tt> </li>
+ <li> <tt>TasksMax=</tt> </li>
+ <li> <tt>IOAccounting=</tt> </li>
+ <li> <tt>IOWeight=</tt> </li>
+ <li> <tt>DisableControllers=</tt> </li>
+</ul>
+
+<h3 id="difficulty-4">
+ Difficulty: 4 &mdash; requires medium additional programming
+</h3>
+
+<ul>
+ <li> <tt>RuntimeMaxSec=</tt> </li>
+ <li> <tt>RuntimeRandomizedExtraSec=</tt> </li>
+ <li> <tt>RequiresMountsFor=</tt> </li>
+ <li> <tt>RefuseManualStart=</tt> </li>
+ <li> <tt>PAMName=</tt> </li>
+ <li> <tt>CapabilityBoundingSet=</tt> </li>
+ <li> <tt>AmbientCapabilities=</tt> </li>
+ <li> <tt>NoNewPrivileges=</tt> </li>
+ <li> <tt>SecureBits=</tt> </li>
+ <li> <tt>CoredumpFilter=</tt> </li>
+ <li> <tt>TimerSlackNSec=</tt> </li>
+ <li> <tt>LogFilterPatterns=</tt> </li>
+ <li> <tt>SyslogLevelPrefix=</tt> </li>
+ <li> <tt>UtmpIdentifier=</tt> </li>
+ <li> <tt>UtmpMode=</tt> </li>
+ <li> <tt>CPUWeight=</tt> </li>
+ <li> <tt>CPUQuota=</tt> </li>
+ <li> <tt>CPUQuotaPeriodSec=</tt> </li>
+ <li> <tt>IODeviceLatencyTargetSec=</tt> </li>
+ <li> <tt>RestrictNetworkInterfaces=</tt> </li>
+ <li> <tt>Delegate=</tt> </li>
+</ul>
+
+<h3 id="difficulty-5">
+ Difficulty: 5 &mdash; requires complex additional programming
+</h3>
+
+<ul>
+ <li> <tt>Conflicts=</tt> </li>
+ <li> <tt>OnFailure=</tt> </li>
+ <li> <tt>RebootArgument=</tt> </li>
+ <li> <tt>Type=dbus</tt> </li>
+ <li> <tt>BusName=</tt> </li>
+ <li> <tt>NonBlocking=</tt> </li>
+ <li> <tt>Sockets=</tt> </li>
+ <li> <tt>DynamicUser=</tt> </li>
+ <li> <tt>SELinuxContext=</tt> </li>
+ <li> <tt>AppArmorProfile=</tt> </li>
+ <li> <tt>SmackProcessLabel=</tt> </li>
+ <li> <tt>KeyringMode=</tt> </li>
+ <li> <tt>ReadWritePaths=</tt> </li>
+ <li> <tt>ReadOnlyPaths=</tt> </li>
+ <li> <tt>InaccessiblePaths=</tt> </li>
+ <li> <tt>ExecPaths=</tt> </li>
+ <li> <tt>NoExecPaths=</tt> </li>
+ <li> <tt>TemporaryFilesystem=</tt> </li>
+ <li> <tt>PrivateTmp=</tt> </li>
+ <li> <tt>PrivateDevices=</tt> </li>
+ <li> <tt>PrivateIPC=</tt> </li>
+ <li> <tt>IPCNamespacePath=</tt> </li>
+ <li> <tt>PrivateUsers=</tt> </li>
+ <li> <tt>ProtectHostname=</tt> </li>
+ <li> <tt>RemoveIPC=</tt> </li>
+ <li> <tt>PrivateMounts=</tt> </li>
+ <li> <tt>RestartKillSignal=</tt> </li>
+ <li> <tt>SendSIGHUP=</tt> </li>
+ <li> <tt>FinalKillSignal=</tt> </li>
+ <li> <tt>IODeviceWeight=</tt> </li>
+ <li> <tt>IOReadBandwidthMax=</tt> </li>
+ <li> <tt>IOWriteBandwidthMax=</tt> </li>
+ <li> <tt>IOReadIOPSMax=</tt> </li>
+ <li> <tt>IOWriteIOPSMax=</tt> </li>
+</ul>
+
+<h3 id="difficulty-6">
+ Difficulty: 6 &mdash; requires a full independent implementation
+of a Linux subsystem and/or a part of the systemd architecture
+</h3>
+
+<ul>
+ <li> <tt>OnFailureJobMode=</tt> </li>
+ <li> <tt>RootImage=</tt> </li>
+ <li> <tt>RootImageOptions=</tt> </li>
+ <li> <tt>MountAPIVFS=</tt> </li>
+ <li> <tt>ProtectProc=</tt> </li>
+ <li> <tt>ProcSubset=</tt> </li>
+ <li> <tt>BindPaths=</tt> </li>
+ <li> <tt>BindReadOnlyPaths=</tt> </li>
+ <li> <tt>MountImages=</tt> </li>
+ <li> <tt>ExtensionImages=</tt> </li>
+ <li> <tt>ExtensionDirectories=</tt> </li>
+ <li> <tt>ProtectSystem=</tt> </li>
+ <li> <tt>ProtectHome=</tt> </li>
+ <li> All <a href="https://man7.org/linux/man-pages/man5/systemd.exec.5.html#CREDENTIALS">credentials-related</a> directives </li>
+ <li> <tt>SocketBindAllow=</tt> </li>
+ <li> <tt>SocketBindDeny=</tt> </li>
+ <li> <tt>DeviceAllow=</tt> </li>
+ <li> <tt>DevicePolicy=</tt> </li>
+</ul>
+
+<h3 id="difficulty-7">
+ Difficulty: 7 &mdash; requires a full independent implementation
+of a complex Linux subsystem and/or a significant part of the
+systemd architecture
+</h3>
+
+<ul>
+ <li> <tt>Type=notify</tt> </li>
+ <li> <tt>TimeoutAbortSec=</tt> </li>
+ <li> <tt>TimeoutStartFailureMode=abort</tt> </li>
+ <li> <tt>TimeoutStopFailureMode=abort</tt> </li>
+ <li> <tt>WatchdogSec=</tt> </li>
+ <li> <tt>Restart=on-watchdog</tt> </li>
+ <li> <tt>NotifyAccess=</tt> </li>
+ <li> <tt>FileDescriptorStoreMax=</tt> </li>
+ <li> <tt>ProtectClock=</tt> </li>
+ <li> <tt>ProtectKernelTunables=</tt> </li>
+ <li> <tt>ProtectKernelModules=</tt> </li>
+ <li> <tt>ProtectKernelLogs=</tt> </li>
+ <li> <tt>ProtectControlGroups=</tt> </li>
+ <li> <tt>RestrictAddressFamilies=</tt> </li>
+ <li> <tt>RestrictFilesystems=</tt> </li>
+ <li> <tt>RestrictNamespaces=</tt> </li>
+ <li> <tt>LockPersonality=</tt> </li>
+ <li> <tt>MemoryDenyWriteExecute=</tt> </li>
+ <li> <tt>RestrictRealtime=</tt> </li>
+ <li> <tt>RestrictSUIDSGID=</tt> </li>
+ <li> <tt>WatchdogSignal=</tt> </li>
+ <li> <tt>IPAccounting=</tt> </li>
+ <li> <tt>IPAddressAllow=</tt> </li>
+ <li> <tt>IPAddressDeny=</tt> </li>
+</ul>
+
+<h3 id="difficulty-8">
+ Difficulty: 8 &mdash; requires a complete implementation of complex
+Linux-specific tooling
+</h3>
+
+<ul>
+ <li> <tt>JoinsNamespaceOf=</tt> </li>
+ <li> <tt>PrivateNetwork=</tt> </li>
+ <li> <tt>NetworkNamespacePath=</tt> </li>
+ <li> <tt>SystemCallFilter=</tt> </li>
+ <li> <tt>SystemCallErrorNumber=</tt> </li>
+ <li> <tt>SystemCallArchitectures=</tt> </li>
+ <li> <tt>SystemCallLog=</tt> </li>
+ <li> <tt>IPIngressFilterPath=</tt> </li>
+ <li> <tt>IPEgressFilterPath=</tt> </li>
+ <li> <tt>BPFProgram=</tt> </li>
+ <li> <tt>ManagedOOMSwap=</tt> </li>
+ <li> <tt>ManagedOOMMemoryPressure=</tt> </li>
+ <li> <tt>ManagedOOMMemoryPressureLimit=</tt> </li>
+ <li> <tt>ManagedOOMPreference=</tt> </li>
+</ul>
+
+<h3 id="difficulty-9">
+ Difficulty: 9 &mdash; requires a full system analysis and remodelization
+</h3>
+
+<ul>
+ <li> <tt>JobTimeoutSec=</tt> </li>
+ <li> <tt>JobRunningTimeoutSec=</tt> </li>
+ <li> <tt>JobTimeoutAction=</tt> </li>
+ <li> <tt>JobTimeoutRebootArgument=</tt> </li>
+ <li> Conditions and Asserts </li>
+ <li> <tt>USBFunctionDescriptors=</tt> </li>
+ <li> <tt>USBFunctionStrings=</tt> </li>
+ <li> <tt>OOMPolicy=</tt> </li>
+ <li> <tt>RootHash=</tt> </li>
+ <li> <tt>RootHashSignature=</tt> </li>
+ <li> <tt>RootVerity=</tt> </li>
+ <li> <tt>StartupCPUWeight=</tt> </li>
+ <li> <tt>StartupAllowedCPUs=</tt> </li>
+ <li> <tt>StartupAllowedMemoryNodes=</tt> </li>
+ <li> <tt>StartupIOWeight=</tt> </li>
+ <li> <tt>Slice=</tt> </li>
+</ul>
+
+<h3 id="difficulty-10">
+ Difficulty: 10 &mdash; implementing this basically means reimplementing systemd
+</h3>
+
+<ul>
+ <li> <tt>StandardOutput=journal</tt> </li>
+ <li> <tt>StandardError=journal</tt> </li>
+ <li> <tt>LogExtraFields=</tt> </li>
+ <li> <tt>LogRateLimitIntervalSec=</tt> </li>
+ <li> <tt>LogRateLimitBurst=</tt> </li>
+ <li> <tt>LogNamespace=</tt> </li>
+</ul>
+
+</body>
+</html>
