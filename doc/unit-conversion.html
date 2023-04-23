@@ -26,7 +26,7 @@ parsing a set of <a href="https://man7.org/linux/man-pages/man5/systemd.unit.5.h
 unit files</a> and outputting a set of <a href="servicedir.html">s6
 service directories</a> or
 <a href="//skarnet.org/software/s6-rc/s6-rc-compile.html#source">s6-rc service
-definition directories</a> would be extremely useful to people who want to migrate to
+definition directories</a> would be useful to people who want to migrate to
 s6 but have an existing base of services running under systemd.
 </p>
 
@@ -49,7 +49,7 @@ theoretically supported directives: most services that run under systemd can be
 converted to run under s6 without too much trouble. So, depending on the exact
 nature of the set of services, it may be possible to write a reasonable converter,
 that is limited in what it supports but does not require a full understanding
-of systemd or s6.
+of systemd (or even s6).
 </p>
 
 <p>
@@ -72,6 +72,13 @@ converted as is. A <strong>9</strong> means that it is theoretically possible
 to convert, given infinite time and manpower to write a tool that analyzes
 the systemd-managed system holistically and outputs an equivalent system
 managed by s6, but in practice nobody's ever going to write such a tool.
+</p>
+
+<p>
+ We only address directives that can appear in <em>service units</em>, which
+are the ones that can reasonably be expected to translate to s6 or s6-rc
+services. We do not address directives that can only appear in other kinds
+of unit files such as slices, timers, sockets, etc.
 </p>
 
 <hr />
@@ -109,6 +116,7 @@ systemd documentation, with their difficulty</a>
     </ul>
    </li>
    <li> <a href="#systemd.kill">in systemd.kill(5)</a> </li>
+   <li> <a href="#systemd.resource-control">in systemd.resource-control(5)</a> </li>
   </ul>
  </li>
  <li>
@@ -364,7 +372,7 @@ a bundle. </li>
 does not involve restarting the service does not need the service manager as
 a third-party. systemd cannot help inserting itself where it does not belong. </li>
  <p />
- <li> <tt>ExecStop=</tt>&nbsp;: <strong>6</strong>. s6 only supports terminating
+ <li> <tt>ExecStop=</tt>&nbsp;: <strong>5</strong>. s6 only supports terminating
 services via signals, so if a service needs a specific command to be stopped,
 the converter needs to target an interface layer on top of s6 with a repository
 of stop commands; such a layer would likely need to be on top of s6-rc as well
@@ -1247,6 +1255,7 @@ cgroups-related resource control directives.
  <li> <tt>RebootArgument=</tt> </li>
  <li> <tt>Type=dbus</tt> </li>
  <li> <tt>BusName=</tt> </li>
+ <li> <tt>ExecStop=</tt> </li>
  <li> <tt>NonBlocking=</tt> </li>
  <li> <tt>Sockets=</tt> </li>
  <li> <tt>DynamicUser=</tt> </li>
