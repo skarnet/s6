@@ -108,8 +108,8 @@ directly hacking into the fifodir internals.
 </p>
 
 <p>
-Fifodirs are created by, so they always originally have the same uid and gid as,
-their notifier. A notifier must be able to make his fifodir either publicly
+Fifodirs are created by their notifier, so they always originally inherit its
+uid and gid. A notifier must be able to make his fifodir either publicly
 accessible (anyone can subscribe) or restricted (only a given group can
 subscribe).
 </p> 
