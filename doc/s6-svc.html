@@ -28,7 +28,7 @@ knowing their PIDs, and without using horrible hacks such as .pid files.
 <h2> Interface </h2>
 
 <pre>
-     s6-svc [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T <em>timeout</em> ] [ -abqhkti12pcyroduDUxO ] <em>servicedir</em>
+     s6-svc [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T <em>timeout</em> ] [ -s <em>signal</em> | -abqhkti12pcy ] [ -roduDUxO ] <em>servicedir</em>
 </pre>
 
 <p>
@@ -53,6 +53,13 @@ a command, or 100 if no s6-supervise process is running on <em>servicedir</em>.
  <li> <tt>-p</tt>&nbsp;: send a SIGSTOP to the supervised process </li>
  <li> <tt>-c</tt>&nbsp;: send a SIGCONT to the supervised process </li>
  <li> <tt>-y</tt>&nbsp;: send a SIGWINCH to the supervised process </li>
+ <li> <tt>-s&nbsp;<em>signal</em></tt>&nbsp;: send <em>signal</em> to the
+supervised process. <em>signal</em> can be given as its name (case-
+insensitive) or its number, but only the signals listed above are
+accepted - you cannot, for instance, manually send a SIGSEGV to the
+supervised process. </li>
+</ul> <br />
+<ul>
  <li> <tt>-o</tt>&nbsp;: once. Equivalent to "-uO". </li>
  <li> <tt>-d</tt>&nbsp;: down. If the supervised process is up, send it
 a SIGTERM (by default) then a SIGCONT (to make sure even stopped processes

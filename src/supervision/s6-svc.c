@@ -1,25 +1,46 @@
 /* ISC license. */
 
+#include <skalibs/nonposix.h>
+
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <signal.h>
 
 #include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr.h>
+#include <skalibs/nsig.h>
+#include <skalibs/sig.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/exec.h>
 
 #include <s6/config.h>
 #include <s6/supervise.h>
 
-#define USAGE "s6-svc [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T timeout ] [ -abqhkti12pcyroduDUxOQ ] servicedir"
+#define USAGE "s6-svc [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T timeout ] [ -s signal | -abqhkti12pcy ] [ -roduDUxOQ ] servicedir"
 #define dieusage() strerr_dieusage(100, USAGE)
 
 #define DATASIZE 63
 
 int main (int argc, char const *const *argv)
 {
+  static char const cmdsig[NSIG] =
+  {
+    0,
+    [SIGALRM] = 'a',
+    [SIGABRT] = 'b',
+    [SIGQUIT] = 'q',
+    [SIGHUP] = 'h',
+    [SIGKILL] = 'k',
+    [SIGTERM] = 't',
+    [SIGINT] = 'i',
+    [SIGUSR1] = '1',
+    [SIGUSR2] = '2',
+    [SIGSTOP] = 'p',
+    [SIGCONT] = 'c',
+    [SIGWINCH] = 'y'
+  } ;
   size_t len ;
   unsigned int datalen = 1 ;
   unsigned int timeout = 0 ;
@@ -30,10 +51,17 @@ int main (int argc, char const *const *argv)
     subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      int opt = subgetopt_r(argc, argv, "abqhkti12pcyroduDUxOQT:w:", &l) ;
+      int opt = subgetopt_r(argc, argv, "s:abqhkti12pcyroduDUxOQT:w:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
+        case 's' :
+        {
+          int sig ;
+          if (!sig0_scan(l.arg, &sig)) strerr_dief2x(100, "invalid signal: ", l.arg) ;
+          if (!cmdsig[sig]) strerr_dief2x(100, l.arg, " is not in the list of user-available signals") ;
+          opt = cmdsig[sig] ;
+        }
         case 'a' :
         case 'b' :
         case 'q' :
