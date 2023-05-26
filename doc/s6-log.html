@@ -27,7 +27,7 @@ with full POSIX regular expression support.
 <h2> Interface </h2>
 
 <pre>
-     s6-log [ -d <em>notif</em> ] [ -q | -v ] [ -b ] [ -p ] [ -l <em>linelimit</em> ] [ -- ] <em>logging script</em>
+     s6-log [ -d <em>notif</em> ] [ -q | -v ] [ -b ] [ -p ] [ -l <em>linelimit</em> ] [ -t <em>lastlinetimeout</em> ] [ -- ] <em>logging script</em>
 </pre>
 
 <p>
@@ -75,6 +75,15 @@ etc. <em>linelimit</em> cannot be less than 48, unless it is 0 (which means
 infinite). The default is 8192 bytes. Setting <em>linelimit</em> to 0 ensures
 that lines will never be split; this may cause important memory consumption
 by s6-log if it is fed extremely long lines, so use with caution. </li>
+ <li> <tt>-t&nbsp;<em>lastlinetimeout</em></tt>&nbsp;: if s6-log receives
+a termination signal but has a read a partial line in its buffer, it will
+wait for at most <em>lastlinetimeout</em> milliseconds for its service
+to send it the remainder of the line; if it still hasn't read a newline
+character by then, it will add a newline character itself and process the
+line, then exit. By default, <em>lastlinetimeout</em> is 2000, which means
+s6-log will wait for at most 2 seconds for completion of its last partial line.
+If <em>lastlinetimeout</em> is given as <strong>0</strong>, then s6-log
+will wait forever; it won't exit until it actually reads a newline or EOF. </li>
 </ul>
 
 <h2> Logdirs </h2>

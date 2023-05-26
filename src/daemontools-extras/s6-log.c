@@ -39,7 +39,7 @@
 #include <execline/config.h>
 #endif
 
-#define USAGE "s6-log [ -d notif ] [ -q | -v ] [ -b ] [ -p ] [ -l linelimit ] [ -- ] logging_script"
+#define USAGE "s6-log [ -d notif ] [ -q | -v ] [ -b ] [ -p ] [ -l linelimit ] [ -t lastlinetimeout ] [ -- ] logging_script"
 #define dieusage() strerr_dieusage(100, USAGE)
 #define dienomem() strerr_diefu1sys(111, "stralloc_catb")
 
@@ -49,9 +49,10 @@ static mode_t mask ;
 static int flagprotect = 0 ;
 static int flagexiting = 0 ;
 static unsigned int verbosity = 1 ;
+static tain lastlinetto = TAIN_INFINITE_RELATIVE ;
+static tain exit_deadline = TAIN_INFINITE ;
 
 static stralloc indata = STRALLOC_ZERO ;
-
 
  /* Data types */
 
@@ -1087,6 +1088,13 @@ static void normal_stdin (scriptelem_t const *script, unsigned int scriptlen, si
   }
 }
 
+static void process_partial_line (scriptelem_t const *script, unsigned int scriptlen, unsigned int gflags)
+{
+  if (!stralloc_0(&indata)) dienomem() ;
+  script_run(script, scriptlen, indata.s, indata.len - 1, gflags) ;
+  indata.len = 0 ;
+}
+
 static void last_stdin (scriptelem_t const *script, unsigned int scriptlen, size_t linelimit, unsigned int gflags)
 {
   for (;;)
@@ -1097,25 +1105,22 @@ static void last_stdin (scriptelem_t const *script, unsigned int scriptlen, size
       case 0 : return ;
       case -1 :
         if ((errno != EPIPE) && verbosity) strerr_warnwu1sys("read from stdin") ;
-        if (!indata.len) goto eof ;
- addfinalnewline:
-        c = '\n' ;
+        if (indata.len) goto lastline ;
+        goto end ;
       case 1 :
+        if (c == '\n' || !c) goto lastline ;
         if (!stralloc_catb(&indata, &c, 1)) dienomem() ;
-        if (c == '\n')
-        {
-          script_run(script, scriptlen, indata.s, indata.len - 1, gflags) ;
-          goto eof ;
-        }
-        else if (linelimit && indata.len > linelimit)
+        if (linelimit && indata.len >= linelimit)
         {
           if (verbosity) strerr_warnw2x("input line too long, ", "stopping before the end") ;
-          goto addfinalnewline ;
+          goto lastline ;
         }
-        break ;
+        else break ;
     }
   }
- eof:
+ lastline:
+  process_partial_line(script, scriptlen, gflags) ;
+ end:
   prepare_to_exit() ;
 }
 
@@ -1170,6 +1175,7 @@ static inline int handle_signals (void)
         if (flagprotect) break ;
       case SIGHUP :
         handle_stdin = &last_stdin ;
+        tain_add_g(&exit_deadline, &lastlinetto) ;
         if (!indata.len) { prepare_to_exit() ; e = 1 ; }
         break ;
       case SIGCHLD :
@@ -1203,9 +1209,10 @@ int main (int argc, char const *const *argv)
   PROG = "s6-log" ;
   {
     subgetopt l = SUBGETOPT_ZERO ;
+    unsigned int t = 2000 ;
     for (;;)
     {
-      int opt = subgetopt_r(argc, argv, "qvbpl:d:", &l) ;
+      int opt = subgetopt_r(argc, argv, "qvbpl:d:t:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -1219,10 +1226,13 @@ int main (int argc, char const *const *argv)
           if (notif < 3) strerr_dief1x(100, "notification fd must be 3 or more") ;
           if (fcntl(notif, F_GETFD) < 0) strerr_dief1sys(100, "invalid notification fd") ;
           break ;
+        case 't' : if (!uint0_scan(l.arg, &t)) dieusage() ; break ;
         default : dieusage() ;
       }
     }
     argc -= l.ind ; argv += l.ind ;
+    if (t) tain_from_millisecs(&lastlinetto, t) ;
+    else lastlinetto = tain_infinite_relative ;
   }
   if (!argc) dieusage() ;
   if (linelimit && linelimit < LINELIMIT_MIN) linelimit = LINELIMIT_MIN ;
@@ -1265,11 +1275,10 @@ int main (int argc, char const *const *argv)
 
     for (;;)
     {
-      tain deadline ;
+      tain deadline = exit_deadline ;
       int r = 0 ;
       unsigned int xindex0, xindex1 ;
       unsigned int i = 0, j = 1 ;
-      tain_add_g(&deadline, &tain_infinite_relative) ;
       if (bufalloc_1->fd == 1 && bufalloc_len(bufalloc_1))
       {
         r = 1 ;
@@ -1285,13 +1294,7 @@ int main (int argc, char const *const *argv)
         if (bufalloc_len(&logdirs[i].out) || (logdirs[i].rstate != ROTSTATE_WRITABLE))
         {
           r = 1 ;
-          if (!tain_future(&logdirs[i].deadline))
-          {
-            x[j].fd = logdirs[i].fd ;
-            x[j].events = IOPAUSE_WRITE ;
-            logdirs[i].xindex = j++ ;
-          }
-          else if (tain_less(&logdirs[i].deadline, &deadline))
+          if (tain_less(&logdirs[i].deadline, &deadline))
             deadline = logdirs[i].deadline ;
         }
       }
@@ -1307,7 +1310,18 @@ int main (int argc, char const *const *argv)
 
       r = iopause_g(x, j, &deadline) ;
       if (r < 0) strerr_diefu1sys(111, "iopause") ;
-      else if (!r) continue ;
+      else if (!r)
+      {
+        if (!tain_future(&exit_deadline))
+        {
+          if (indata.len) process_partial_line(script, scriptlen, gflags) ;
+          prepare_to_exit() ;
+        }
+        for (i = 0 ; i < llen ; i++)
+          if (!tain_future(&logdirs[i].deadline))
+            rotate_or_flush(logdirs + i) ;
+        continue ;
+      }
 
       if (x[0].revents & (IOPAUSE_READ | IOPAUSE_EXCEPT) && handle_signals()) continue ;
 
@@ -1336,13 +1350,8 @@ int main (int argc, char const *const *argv)
           (*handle_stdin)(script, scriptlen, linelimit, gflags) ;
         else
         {
+          if (indata.len) process_partial_line(script, scriptlen, gflags) ;
           prepare_to_exit() ;
-          if (indata.len)
-          {
-            if (!stralloc_0(&indata)) dienomem() ;
-            script_run(script, scriptlen, indata.s, indata.len-1, gflags) ;
-            indata.len = 0 ;
-          }
         }
       }
     }

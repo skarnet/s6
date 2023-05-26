@@ -4,6 +4,7 @@ In 2.11.4.0
 -----------
 
  - New option to s6-svc: -s, to specify a signal by name (or number).
+ - New option to s6-log: -t, to specify a timeout for partial last lines.
 
 
 In 2.11.3.2
