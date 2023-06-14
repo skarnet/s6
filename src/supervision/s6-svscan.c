@@ -9,22 +9,30 @@
 #include <signal.h>
 
 #include <skalibs/posixplz.h>
+#include <skalibs/uint32.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/types.h>
 #include <skalibs/strerr.h>
 #include <skalibs/tai.h>
 #include <skalibs/iopause.h>
+#include <skalibs/devino.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/direntry.h>
 #include <skalibs/sig.h>
 #include <skalibs/selfpipe.h>
 #include <skalibs/exec.h>
+#include <skalibs/bitarray.h>
+#include <skalibs/genset.h>
+#include <skalibs/avltreen.h>
+#include <skalibs/lolstdio.h>
 
 #include <s6/config.h>
 #include <s6/supervise.h>
 
-#define USAGE "s6-svscan [ -c maxservices ] [ -t timeout ] [ -d notif ] [ -X consoleholder ] [ dir ]"
+#include <skalibs/posixishard.h>
+
+#define USAGE "s6-svscan [ -c services_max | -C services_max ] [ -L name_max ] [ -t timeout ] [ -d notif ] [ -X consoleholder ] [ dir ]"
 #define dieusage() strerr_dieusage(100, USAGE)
 
 #define CTL S6_SVSCAN_CTLDIR "/control"
@@ -35,35 +43,79 @@
 #define SIGNAL_PROG_LEN (sizeof(SIGNAL_PROG) - 1)
 #define SPECIAL_LOGGER_SERVICE "s6-svscan-log"
 
-#define DIR_RETRY_TIMEOUT 3
-#define CHECK_RETRY_TIMEOUT 4
-
-struct svinfo_s
+typedef struct service_s service, *service_ref ;
+struct service_s
 {
-  dev_t dev ;
-  ino_t ino ;
-  tain restartafter[2] ;
-  pid_t pid[2] ;
-  int p[2] ;
-  unsigned int flagactive : 1 ;
-  unsigned int flaglog : 1 ;
-  unsigned int flagspecial : 1 ;
+  devino devino ;
+  pid_t pid ;
+  tain start ;
+  int p ;
+  uint32_t peer ;
 } ;
 
-static struct svinfo_s *services ;
-static unsigned int max = 500 ;
-static unsigned int n = 0 ;
-static tain deadline, defaulttimeout ;
-static int wantreap = 1 ;
-static int wantscan = 1 ;
-static unsigned int wantkill = 0 ;
-static int cont = 1 ;
-static int waitall = 1 ;
-static int consoleholder = -1 ;
+struct flags_s
+{
+  uint8_t cont : 1 ;
+  uint8_t waitall : 1 ;
+} ;
+
+static unsigned int consoleholder = 0 ;
+static struct flags_s flags = { .cont = 1, .waitall = 0 } ;
+
+static uint32_t namemax = 251 ;
+static char *names ;
+#define NAME(i) (names + (i) * (namemax + 5))
+
+static genset *services ;
+#define SERVICE(i) genset_p(service, services, (i))
+static uint32_t max = 1000 ;
+static uint32_t special ;
+
+static avltreen *by_pid ;
+static avltreen *by_devino ;
+static char *active ;
+
+static tain scan_deadline = TAIN_EPOCH ;
+static tain start_deadline = TAIN_INFINITE ;
+static tain scantto = TAIN_INFINITE_RELATIVE ;
+
+
+ /* Tree management */
+
+static void *bydevino_dtok (uint32_t d, void *aux)
+{
+  genset *g = aux ;
+  return &genset_p(service, g, d)->devino ;
+}
+
+static int bydevino_cmp (void const *a, void const *b, void *aux)
+{
+  (void)aux ;
+  LOLDEBUG("bydevino_cmp: (%llu, %llu) vs (%llu, %llu)", (unsigned long long)((devino const *)a)->dev, (unsigned long long)((devino const *)a)->ino, (unsigned long long)((devino const *)b)->dev, (unsigned long long)((devino const *)b)->ino) ;
+  return devino_cmp(a, b) ;
+}
+
+static void *bypid_dtok (uint32_t d, void *aux)
+{
+  genset *g = aux ;
+  return &genset_p(service, g, d)->pid ;
+}
+
+static int bypid_cmp (void const *a, void const *b, void *aux)
+{
+  (void)aux ;
+  pid_t const *aa = a ;
+  pid_t const *bb = b ;
+  LOLDEBUG("bypid_cmp: %llu vs %llu", (unsigned long long)*aa, (unsigned long long)*bb) ;
+  return *aa < *bb ? -1 : *aa > *bb ;
+}
+
+
+ /* On-exit utility */
 
 static void restore_console (void)
 {
-  if (consoleholder >= 0)
+  if (consoleholder)
   {
     fd_move(2, consoleholder) ;
     if (fd_copy(1, 2) < 0) strerr_warnwu1sys("restore stdout") ;
@@ -77,8 +129,7 @@ static void panicnosp (char const *errmsg)
   strerr_warnwu1sys(errmsg) ;
   strerr_warnw2x("executing into ", eargv[0]) ;
   execv(eargv[0], (char *const *)eargv) ;
- /* and if that exec fails, screw it and just die */
-  strerr_dieexec(111, eargv[0]) ;
+  strerr_dieexec(errno == ENOENT ? 127 : 126, eargv[0]) ;
 }
 
 static void panic (char const *) gccattr_noreturn ;
@@ -91,33 +142,19 @@ static void panic (char const *errmsg)
   panicnosp(errmsg) ;
 }
 
-static void killthem (void)
+static int close_pipes_iter (void *data, void *aux)
 {
-  unsigned int i = 0 ;
-  if (!wantkill) return ;
-  for (; i < n ; i++)
-  {
-    if (!(wantkill & 1) && services[i].flagactive) continue ;
-    if (services[i].pid[0])
-      kill(services[i].pid[0], (wantkill & (2 << services[i].flagspecial)) ? SIGTERM : SIGHUP) ;
-    if (services[i].flaglog && services[i].pid[1])
-      kill(services[i].pid[1], (wantkill & 4) ? SIGTERM : SIGHUP) ;
-  }
-  wantkill = 0 ;
+  service *sv = data ;
+  LOLDEBUG("close_pipes_iter for %u: %d", sv - SERVICE(0), sv->p) ;
+  if (sv->p >= 0) close(sv->p) ;
+  (void)aux ;
+  return 1 ;
 }
 
-static inline void closethem (void)
+static inline void close_pipes (void)
 {
-  int gotspecial = 0 ;
-  unsigned int i = 0 ;
-  for (; i < n ; i++)
-    if (services[i].flagspecial) gotspecial = 1 ;
-    else if (services[i].flaglog)
-    {
-      if (services[i].p[1] >= 0) close(services[i].p[1]) ;
-      if (services[i].p[0] >= 0) close(services[i].p[0]) ;
-    }
-  if (gotspecial)
+  genset_iter(services, &close_pipes_iter, 0) ;
+  if (special < max)
   {
     close(1) ;
     if (open("/dev/null", O_WRONLY) < 0)
@@ -127,58 +164,68 @@ static inline void closethem (void)
 
 static inline void waitthem (void)
 {
-  unsigned int m = 0 ;
-  unsigned int i = 0 ;
-  pid_t pids[n << 1] ;
-  for (; i < n ; i++)
+  while (avltreen_len(by_pid))
   {
-    if (services[i].pid[0])
-      pids[m++] = services[i].pid[0] ;
-    if (services[i].flaglog && services[i].pid[1])
-      pids[m++] = services[i].pid[1] ;
+    int wstat ;
+    pid_t pid = wait_nointr(&wstat) ;
+    if (pid < 0)
+    {
+      strerr_warnwu1sys("wait for all s6-supervise processes") ;
+      break ;
+    }
+    avltreen_delete(by_pid, &pid) ;
   }
-  if (!waitn(pids, m))
-    strerr_warnwu1sys("wait for all s6-supervise processes") ;
 }
 
-static inline void chld (void)
+
+ /* Misc utility */
+
+static inline int is_logger (uint32_t i)
 {
-  wantreap = 1 ;
+  return !!strchr(NAME(i), '/') ;
+}
+
+ /* Triggered actions: config */
+
+static inline void chld (unsigned int *what)
+{
+  *what |= 8 ;
 }
 
 static inline void alrm (void)
 {
-  wantscan = 1 ;
+  tain_copynow(&scan_deadline) ;
 }
 
 static inline void abrt (void)
 {
-  cont = 0 ;
-  waitall = 0 ;
+  flags.cont = 0 ;
+  flags.waitall = 0 ;
 }
 
-static void hup (void)
+static void hup (unsigned int *what)
 {
-  wantkill = 2 ;
-  wantscan = 1 ;
+  *what |= 2 ;
+  tain_copynow(&scan_deadline) ;
 }
 
-static void term (void)
+static void term (unsigned int *what)
 {
-  cont = 0 ;
-  waitall = 1 ;
-  wantkill = 3 ;
+  flags.cont = 0 ;
+  flags.waitall = 1 ;
+  *what |= 3 ;
 }
 
-static void quit (void)
+static void quit (unsigned int *what)
 {
-  cont = 0 ;
-  waitall = 1 ;
-  wantkill = 7 ;
+  flags.cont = 0 ;
+  flags.waitall = 1 ;
+  *what |= 7 ;
 }
 
-static void handle_signals (void)
+static void handle_signals (unsigned int *what)
 {
+  LOLDEBUG("handle_signals") ;
   for (;;)
   {
     int sig = selfpipe_read() ;
@@ -186,7 +233,7 @@ static void handle_signals (void)
     {
       case -1 : panic("selfpipe_read") ;
       case 0 : return ;
-      case SIGCHLD : chld() ; break ;
+      case SIGCHLD : chld(what) ; break ;
       case SIGALRM : alrm() ; break ;
       case SIGABRT : abrt() ; break ;
       default :
@@ -202,10 +249,10 @@ static void handle_signals (void)
           if (errno != ENOENT) strerr_warnwu2sys("spawn ", newargv[0]) ;
           switch (sig)
           {
-            case SIGHUP : hup() ; break ;
+            case SIGHUP : hup(what) ; break ;
             case SIGINT :
-            case SIGTERM : term() ; break ;
-            case SIGQUIT : quit() ; break ;
+            case SIGTERM : term(what) ; break ;
+            case SIGQUIT : quit(what) ; break ;
           }
         }
       }
@@ -213,8 +260,9 @@ static void handle_signals (void)
   }
 }
 
-static void handle_control (int fd)
+static void handle_control (int fd, unsigned int *what)
 {
+  LOLDEBUG("handle_control") ;
   for (;;)
   {
     char c ;
@@ -223,15 +271,15 @@ static void handle_control (int fd)
     else if (!r) break ;
     else switch (c)
     {
-      case 'z' : chld() ; break ;
+      case 'z' : chld(what) ; break ;
       case 'a' : alrm() ; break ;
       case 'b' : abrt() ; break ;
-      case 'h' : hup() ; break ;
+      case 'h' : hup(what) ; break ;
       case 'i' :
-      case 't' : term() ; break ;
-      case 'q' : quit() ; break ;
-      case 'n' : wantkill = 2 ; break ;
-      case 'N' : wantkill = 6 ; break ;
+      case 't' : term(what) ; break ;
+      case 'q' : quit(what) ; break ;
+      case 'n' : *what |= 2 ; break ;
+      case 'N' : *what |= 6 ; break ;
       default :
       {
         char s[2] = { c, 0 } ;
@@ -242,263 +290,317 @@ static void handle_control (int fd)
 }
 
 
-/* First essential function: the reaper.
-   s6-svscan must wait() for all children,
-   including ones it doesn't know it has.
-   Dead active services are flagged to be restarted in 1 second. */
+ /* Triggered action: killer */
+
+static int killthem_iter (void *data, void *aux)
+{
+  service *sv = data ;
+  unsigned int *what = aux ;
+  uint32_t i = sv - SERVICE(0) ;
+  if ((*what & 1 || !bitarray_peek(active, i)) && sv->pid)
+  {
+    LOLDEBUG("killthem: service %u: sending %s to pid %llu", i, *what & (2 << (i == special || is_logger(i))) ? "SIGTERM" : "SIGHUP", (unsigned long long)sv->pid) ;
+    kill(sv->pid, *what & (2 << (i == special || is_logger(i))) ? SIGTERM : SIGHUP) ;
+  }
+  return 1 ;
+}
+
+static inline void killthem (unsigned int what)
+{
+  genset_iter(services, &killthem_iter, &what) ;
+}
+
+
+ /* Triggered action: reaper */
+
+ /*
+   sv->p values:
+   0+ : this end of the pipe
+   -1 : not a logged service
+   -2 : inactive and peer dead, do not reactivate
+   -3 : reactivation wanted, trigger rescan on death
+ */
+
+static void remove_service (service *sv)
+{
+  LOLDEBUG("remove_service: %u", sv - SERVICE(0)) ;
+  if (sv->peer < max)
+  {
+    service *peer = SERVICE(sv->peer) ;
+    if (peer->p >= 0)
+    {
+      close(peer->p) ;
+      peer->p = -2 ;
+    }
+    peer->peer = max ;
+  }
+  if (sv->p == -3) tain_earliest1(&scan_deadline, &sv->start) ;
+  else if (sv->p >= 0) close(sv->p) ;
+  avltreen_delete(by_devino, &sv->devino) ;
+  genset_delete(services, sv - SERVICE(0)) ;
+}
 
 static void reap (void)
 {
-  tain nextscan ;
-  if (!wantreap) return ;
-  wantreap = 0 ;
-  tain_addsec_g(&nextscan, 1) ;
+  LOLDEBUG("reap") ;
   for (;;)
   {
+    uint32_t i ;
     int wstat ;
-    pid_t r = wait_nohang(&wstat) ;
-    if (r < 0)
+    pid_t pid = wait_nohang(&wstat) ;
+    if (pid < 0)
       if (errno != ECHILD) panic("wait_nohang") ;
       else break ;
-    else if (!r) break ;
+    else if (!pid) break ;
     else
     {
-      unsigned int i = 0 ;
-      for (; i < n ; i++)
+      LOLDEBUG("reap: pid %llu", (unsigned long long)pid) ;
+      if (avltreen_search(by_pid, &pid, &i))
       {
-        if (services[i].pid[0] == r)
-        {
-          services[i].pid[0] = 0 ;
-          services[i].restartafter[0] = nextscan ;
-          break ;
-        }
-        else if (services[i].pid[1] == r)
-        {
-          services[i].pid[1] = 0 ;
-          services[i].restartafter[1] = nextscan ;
-          break ;
-        }
+        service *sv = SERVICE(i) ;
+        LOLDEBUG("reap: pid %llu is service %u", (unsigned long long)pid, i) ;
+        avltreen_delete(by_pid, &pid) ;
+        sv->pid = 0 ;
+        if (bitarray_peek(active, i)) tain_earliest1(&start_deadline, &sv->start) ;
+        else remove_service(sv) ;
       }
-      if (i == n) continue ;
-      if (services[i].flagactive)
-      {
-        if (tain_less(&nextscan, &deadline)) deadline = nextscan ;
-      }
-      else
-      {
-        if (services[i].flaglog)
-        {
+    }
+  }
+}
+
+
  /*
-    BLACK MAGIC:
-     - we need to close the pipe early:
-       * as soon as the writer exits so the logger can exit on EOF
-       * or as soon as the logger exits so the writer can crash on EPIPE
-     - but if the same service gets reactivated before the second
-       supervise process exits, ouch: we've lost the pipe
-     - so we can't reuse the same service even if it gets reactivated
-     - so we're marking a dying service with a closed pipe
-     - if the scanner sees a service with p[0] = -1 it won't flag
-       it as active (and won't restart the dead supervise)
-     - but if the service gets reactivated we want it to restart
-       as soon as the 2nd supervise process dies
-     - so the scanner marks such a process with p[0] = -2
-     - and the reaper triggers a scan when it finds a -2.
+    On-timeout action: scanner.
+    (This can be triggered, but the trigger just sets the timeout to 0.)
+    It's on-timeout because it can fail and get rescheduled for later.
  */
-          if (services[i].p[0] >= 0)
-          {
-            fd_close(services[i].p[1]) ; services[i].p[1] = -1 ;
-            fd_close(services[i].p[0]) ; services[i].p[0] = -1 ;
-          }
-          else if (services[i].p[0] == -2) wantscan = 1 ;
-        }
-        if (!services[i].pid[0] && (!services[i].flaglog || !services[i].pid[1]))
-          services[i] = services[--n] ;
-      }
-    }
-  }
-}
 
-
-/* Second essential function: the scanner.
-   It monitors the service directories and spawns a supervisor
-   if needed. */
-
-static void trystart (unsigned int i, char const *name, int islog)
-{
-  pid_t pid = fork() ;
-  switch (pid)
-  {
-    case -1 :
-      tain_addsec_g(&services[i].restartafter[islog], CHECK_RETRY_TIMEOUT) ;
-      strerr_warnwu2sys("fork for ", name) ;
-      return ;
-    case 0 :
-    {
-      char const *cargv[3] = { "s6-supervise", name, 0 } ;
-      PROG = "s6-svscan (child)" ;
-      selfpipe_finish() ;
-      if (services[i].flaglog)
-        if (fd_move(!islog, services[i].p[!islog]) == -1)
-          strerr_diefu2sys(111, "set fds for ", name) ;
-      if (consoleholder >= 0 && services[i].flagspecial
-       && fd_move(2, consoleholder) < 0)  /* autoclears coe */
-         strerr_diefu2sys(111, "restore console fd for service ", name) ;
-      xexec_a(S6_BINPREFIX "s6-supervise", cargv) ;
-    }
-  }
-  services[i].pid[islog] = pid ;
-}
-
-static void retrydirlater (void)
-{
-  tain a ;
-  tain_addsec_g(&a, DIR_RETRY_TIMEOUT) ;
-  if (tain_less(&a, &deadline)) deadline = a ;
-}
-
-static inline void check (char const *name)
+static int check (char const *name, uint32_t prod, char *act)
 {
   struct stat st ;
-  size_t namelen ;
-  unsigned int i = 0 ;
-  if (name[0] == '.') return ;
+  devino di ;
+  uint32_t i ;
+  service *sv ;
+  LOLDEBUG("checking %s (producer is %u)", name, prod) ;
   if (stat(name, &st) == -1)
   {
-    strerr_warnwu2sys("stat ", name) ;
-    retrydirlater() ;
-    return ;
-  }
-  if (!S_ISDIR(st.st_mode)) return ;
-  namelen = strlen(name) ;
-  for (; i < n ; i++) if ((services[i].ino == st.st_ino) && (services[i].dev == st.st_dev)) break ;
-  if (i < n)
-  {
-    if (services[i].flaglog && (services[i].p[0] < 0))
+    if (prod < max && errno == ENOENT)
     {
-     /* See BLACK MAGIC above. */
-      services[i].p[0] = -2 ;
-      return ;
+      if (SERVICE(prod)->peer < max)
+        strerr_warnw3x("logger for service ", NAME(prod), " has been moved") ;
+      return max ;
+    }
+    strerr_warnwu2sys("stat ", name) ;
+    return -4 ;
+  }
+  if (!S_ISDIR(st.st_mode)) return max ;
+  di.dev = st.st_dev ;
+  di.ino = st.st_ino ;
+  if (avltreen_search(by_devino, &di, &i))
+  {
+    LOLDEBUG("check: existing service %u", i) ;
+    sv = SERVICE(i) ;
+    if (sv->peer < max)
+    {
+      if (prod < max && prod != sv->peer)
+      {
+        strerr_warnw3x("old service ", name, " still exists, waiting") ;
+        return -10 ;
+      }
+      if (sv->p == -1)
+      {
+        sv->p = -2 ;
+        return i ;
+      }
     }
   }
   else
   {
-    if (n >= max)
+    i = genset_new(services) ;
+    if (i >= max)
     {
       strerr_warnwu3x("start supervisor for ", name, ": too many services") ;
-      return ;
+      return -60 ;
+    }
+    LOLDEBUG("check: new service %u", i) ;
+    sv = SERVICE(i) ;
+    sv->devino = di ;
+    sv->pid = 0 ;
+    tain_copynow(&sv->start) ;
+    tain_copynow(&start_deadline) ; /* XXX: may cause a superfluous start if logger fails, oh well */
+    if (prod >= max)
+    {
+      sv->peer = max ;
+      sv->p = -1 ;
+      if (special >= max && !strcmp(name, SPECIAL_LOGGER_SERVICE))
+      {
+        special = i ;
+        LOLDEBUG("check: %u is special", i) ;
+      }
     }
     else
     {
-      if (!strcmp(name, SPECIAL_LOGGER_SERVICE))
+      int p[2] ;
+      if (pipecoe(p) == -1)
       {
-        services[i].flagspecial = 1 ;
-        services[i].flaglog = 0 ;
+        strerr_warnwu2sys("create pipe for ", name) ;
+        genset_delete(services, i) ;
+        return -3 ;
       }
-      else
-      {
-        struct stat su ;
-        char tmp[namelen + 5] ;
-        services[i].flagspecial = 0 ;
-        memcpy(tmp, name, namelen) ;
-        memcpy(tmp + namelen, "/log", 5) ;
-        if (stat(tmp, &su) < 0)
-          if (errno == ENOENT) services[i].flaglog = 0 ;
-          else
-          {
-            strerr_warnwu2sys("stat ", tmp) ;
-            retrydirlater() ;
-            return ;
-          }
-        else if (!S_ISDIR(su.st_mode))
-          services[i].flaglog = 0 ;
-        else
-        {
-          if (pipecoe(services[i].p) < 0)
-          {
-            strerr_warnwu1sys("pipecoe") ;
-            retrydirlater() ;
-            return ;
-          }
-          services[i].flaglog = 1 ;
-        }
-      }
-      services[i].ino = st.st_ino ;
-      services[i].dev = st.st_dev ;
-      tain_copynow(&services[i].restartafter[0]) ;
-      tain_copynow(&services[i].restartafter[1]) ;
-      services[i].pid[0] = 0 ;
-      services[i].pid[1] = 0 ;
-      n++ ;
+      sv->peer = prod ;
+      sv->p = p[0] ;
+      SERVICE(prod)->peer = i ;
+      SERVICE(prod)->p = p[1] ;
+      LOLDEBUG("check: %u paired with %u", i, prod) ;
     }
+    avltreen_insert(by_devino, i) ;
   }
-  
-  services[i].flagactive = 1 ;
-
-  if (services[i].flaglog && !services[i].pid[1])
-  {
-    if (!tain_future(&services[i].restartafter[1]))
-    {
-      char tmp[namelen + 5] ;
-      memcpy(tmp, name, namelen) ;
-      memcpy(tmp + namelen, "/log", 5) ;
-      trystart(i, tmp, 1) ;
-    }
-    else if (tain_less(&services[i].restartafter[1], &deadline))
-      deadline = services[i].restartafter[1] ;
-  }
-
-  if (!services[i].pid[0])
-  {
-    if (!tain_future(&services[i].restartafter[0]))
-      trystart(i, name, 0) ;
-    else if (tain_less(&services[i].restartafter[0], &deadline))
-      deadline = services[i].restartafter[0] ;
-  }
+  strcpy(NAME(i), name) ;
+  bitarray_set(act, i) ;
+  return i ;
 }
 
-static inline void scan (void)
+static void set_scan_timeout (unsigned int n)
 {
-  unsigned int i = 0 ;
-  DIR *dir ;
-  if (!wantscan) return ;
-  wantscan = 0 ;
-  tain_add_g(&deadline, &defaulttimeout) ;
-  dir = opendir(".") ;
+  tain a ;
+  tain_addsec_g(&a, n) ;
+  tain_earliest1(&scan_deadline, &a) ;
+  LOLDEBUG("set_scan_timeout to %u", n) ;
+}
+
+static int remove_deadinactive_iter (void *data, void *aux)
+{
+  service *sv = data ;
+  uint32_t *n = aux ;
+  if (!bitarray_peek(active, sv - SERVICE(0)))
+  {
+    LOLDEBUG("scan: %u is inactive", sv - SERVICE(0)) ;
+    if (!sv->pid) remove_service(sv) ;
+    if (!--n) return 0 ;
+  }
+  return 1 ;
+}
+
+static void scan (void)
+{
+  DIR *dir = opendir(".") ;
+  char tmpactive[bitarray_div8(max)] ;
+  tain_add_g(&scan_deadline, &scantto) ;
+  memset(tmpactive, 0, bitarray_div8(max)) ;
+  LOLDEBUG("scan") ;
   if (!dir)
   {
     strerr_warnwu1sys("opendir .") ;
-    retrydirlater() ;
+    set_scan_timeout(5) ;
     return ;
   }
-  for (; i < n ; i++) services[i].flagactive = 0 ;
   for (;;)
   {
+    int i ;
+    size_t len ;
     direntry *d ;
     errno = 0 ;
     d = readdir(dir) ;
     if (!d) break ;
-    check(d->d_name) ;
+    if (d->d_name[0] == '.') continue ;
+    len = strlen(d->d_name) ;
+    if (len > namemax)
+    {
+      strerr_warnw2x("name too long - not spawning service: ", d->d_name) ;
+      continue ;
+    }
+    i = check(d->d_name, max, tmpactive) ;
+    if (i < 0)
+    {
+      dir_close(dir) ;
+      set_scan_timeout(-i) ;
+      return ;
+    }
+    if (i < max)
+    {
+      char logname[len + 5] ;
+      memcpy(logname, d->d_name, len) ;
+      memcpy(logname + len, "/log", 5) ;
+      if (check(logname, i, tmpactive) < 0)
+      {
+        genset_delete(services, i) ;
+        dir_close(dir) ;
+        set_scan_timeout(-i) ;
+        return ;
+      }
+    }
   }
+  dir_close(dir) ;
   if (errno)
   {
     strerr_warnwu1sys("readdir .") ;
-    retrydirlater() ;
+    set_scan_timeout(5) ;
+    return ;
   }
-  dir_close(dir) ;
-  for (i = 0 ; i < n ; i++) if (!services[i].flagactive && !services[i].pid[0])
+  memcpy(active, tmpactive, bitarray_div8(max)) ;
+
   {
-    if (services[i].flaglog)
-    {
-      if (services[i].pid[1]) continue ;
-      if (services[i].p[0] >= 0)
-      {
-        fd_close(services[i].p[1]) ; services[i].p[1] = -1 ;
-        fd_close(services[i].p[0]) ; services[i].p[0] = -1 ;
-      }
-    }
-    services[i] = services[--n] ;
+    uint32_t n = genset_n(services) - avltreen_len(by_devino) ;
+    if (n) genset_iter(services, &remove_deadinactive_iter, &n) ;
   }
+  LOLDEBUG("scan: end") ;
 }
+
+
+ /*
+    On-timeout action: starter.
+    This cannot be user-triggered. It runs when a service needs to (re)start.
+ */
+
+static int start_iter (void *data, void *aux)
+{
+  service *sv = data ;
+  uint32_t i = sv - SERVICE(0) ;
+  if (!bitarray_peek(active, i)
+   || sv->pid
+   || tain_future(&sv->start)) return 1 ;
+  LOLDEBUG("start: spawning %u", i) ;
+  sv->pid = fork() ;
+  switch (sv->pid)
+  {
+    case -1 :
+      sv->pid = 0 ;
+      strerr_warnwu2sys("fork", NAME(i)) ;
+      tain_addsec_g(&start_deadline, 10) ;
+      return 0 ;
+    case 0 :
+    {
+      char const *cargv[3] = { "s6-supervise", NAME(i), 0 } ;
+      PROG = "s6-svscan (child)" ;
+      if (sv->peer < max)
+      {
+        if (fd_move(!is_logger(i), sv->p) == -1)
+          strerr_diefu2sys(111, "dup2 pipe for ", NAME(i)) ;
+      }
+      if (consoleholder && i == special)
+      {
+        if (fd_move(2, consoleholder) == -1)
+         strerr_diefu2sys(111, "restore console fd for service ", NAME(i)) ;
+      }
+      selfpipe_finish() ;
+      xexec_a(S6_BINPREFIX "s6-supervise", cargv) ;
+    }
+  }
+  LOLDEBUG("start: by_pid has %u nodes, inserting new pid %llu", avltreen_len(by_pid), (unsigned long long)sv->pid) ;
+  avltreen_insert(by_pid, i) ;
+  tain_addsec_g(&sv->start, 1) ;
+  (void)aux ;
+  return 1 ;
+}
+
+static inline void start (void)
+{
+  start_deadline = tain_infinite ;
+  genset_iter(services, &start_iter, 0) ;
+}
+
+
+ /* Main. */
 
 static inline int control_init (void)
 {
@@ -546,114 +648,145 @@ static inline int control_init (void)
 
 int main (int argc, char const *const *argv)
 {
-  iopause_fd x[2] = { { -1, IOPAUSE_READ, 0 }, { -1, IOPAUSE_READ, 0 } } ;
-  int notif = -1 ;
+  iopause_fd x[2] = { { .fd = -1, .events = IOPAUSE_READ }, { .fd = -1, .events = IOPAUSE_READ } } ;
   PROG = "s6-svscan" ;
+
   {
     subgetopt l = SUBGETOPT_ZERO ;
+    unsigned int notif = 0 ;
     unsigned int t = 0 ;
     for (;;)
     {
-      int opt = subgetopt_r(argc, argv, "c:t:d:X:", &l) ;
+      int opt = subgetopt_r(argc, argv, "c:C:L:t:d:X:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
-        case 'c' : if (uint0_scan(l.arg, &max)) break ;
-        case 't' : if (uint0_scan(l.arg, &t)) break ;
-        case 'd' : { unsigned int u ; if (!uint0_scan(l.arg, &u)) dieusage() ; notif = u ; break ; }
-        case 'X' : { unsigned int u ; if (!uint0_scan(l.arg, &u)) dieusage() ; consoleholder = u ; break ; }
+        case 'c' : if (!uint320_scan(l.arg, &max)) dieusage() ; max <<= 1 ; break ;
+        case 'C' : if (!uint320_scan(l.arg, &max)) dieusage() ; break ;
+        case 'L' : if (!uint320_scan(l.arg, &namemax)) dieusage() ; break ;
+        case 't' : if (!uint0_scan(l.arg, &t)) dieusage() ; break ;
+        case 'd' : if (!uint0_scan(l.arg, &notif)) dieusage() ; break ;
+        case 'X' : if (!uint0_scan(l.arg, &consoleholder)) dieusage() ; break ;
         default : dieusage() ;
       }
     }
     argc -= l.ind ; argv += l.ind ;
-    if (t) tain_from_millisecs(&defaulttimeout, t) ;
-    else defaulttimeout = tain_infinite_relative ;
-    if (max < 2) max = 2 ;
-    if (max > 90000) max = 90000 ;
-  }
+    if (t) tain_from_millisecs(&scantto, t) ;
+    if (max < 4) max = 4 ;
+    if (max > 160000) max = 160000 ;
+    special = max ;
+    if (namemax < 11) namemax = 11 ;
+    if (namemax > 1019) namemax = 1019 ;
 
-  if (notif >= 0)
-  {
-    if (notif < 3) strerr_dief1x(100, "notification fd must be 3 or more") ;
-    if (fcntl(notif, F_GETFD) < 0) strerr_dief1sys(100, "invalid notification fd") ;
-  }
-  if (consoleholder >= 0)
-  {
-    if (consoleholder < 3) strerr_dief1x(100, "console holder fd must be 3 or more") ;
-    if (fcntl(consoleholder, F_GETFD) < 0) strerr_dief1sys(100, "invalid console holder fd") ;
-    if (coe(consoleholder) < 0) strerr_diefu1sys(111, "coe console holder") ;
-  }
-  if (!fd_sanitize()) strerr_diefu1x(100, "sanitize standard fds") ;
+    if (notif)
+    {
+      if (notif < 3) strerr_dief1x(100, "notification fd must be 3 or more") ;
+      if (fcntl(notif, F_GETFD) == -1) strerr_dief1sys(100, "invalid notification fd") ;
+    }
+    if (consoleholder)
+    {
+      if (consoleholder < 3) strerr_dief1x(100, "console holder fd must be 3 or more") ;
+      if (fcntl(consoleholder, F_GETFD) < 0) strerr_dief1sys(100, "invalid console holder fd") ;
+      if (coe(consoleholder) == -1) strerr_diefu1sys(111, "coe console holder") ;
+    }
+    if (!fd_sanitize()) strerr_diefu1x(100, "sanitize standard fds") ;
 
-  if (argc && (chdir(argv[0]) < 0)) strerr_diefu1sys(111, "chdir") ;
-  x[1].fd = control_init() ;
-  x[0].fd = selfpipe_init() ;
-  if (x[0].fd < 0) strerr_diefu1sys(111, "selfpipe_init") ;
+    if (argc && (chdir(argv[0]) == -1)) strerr_diefu1sys(111, "chdir") ;
+    x[1].fd = control_init() ;
+    x[0].fd = selfpipe_init() ;
+    if (x[0].fd < 0) strerr_diefu1sys(111, "selfpipe_init") ;
 
-  if (!sig_altignore(SIGPIPE)) strerr_diefu1sys(111, "ignore SIGPIPE") ;
-  {
-    sigset_t set ;
-    sigemptyset(&set) ;
-    sigaddset(&set, SIGCHLD) ;
-    sigaddset(&set, SIGALRM) ;
-    sigaddset(&set, SIGABRT) ;
-    sigaddset(&set, SIGHUP) ;
-    sigaddset(&set, SIGINT) ;
-    sigaddset(&set, SIGTERM) ;
-    sigaddset(&set, SIGQUIT) ;
-    sigaddset(&set, SIGUSR1) ;
-    sigaddset(&set, SIGUSR2) ;
+    if (!sig_altignore(SIGPIPE)) strerr_diefu1sys(111, "ignore SIGPIPE") ;
+    {
+      sigset_t set ;
+      sigemptyset(&set) ;
+      sigaddset(&set, SIGCHLD) ;
+      sigaddset(&set, SIGALRM) ;
+      sigaddset(&set, SIGABRT) ;
+      sigaddset(&set, SIGHUP) ;
+      sigaddset(&set, SIGINT) ;
+      sigaddset(&set, SIGTERM) ;
+      sigaddset(&set, SIGQUIT) ;
+      sigaddset(&set, SIGUSR1) ;
+      sigaddset(&set, SIGUSR2) ;
 #ifdef SIGPWR
-    sigaddset(&set, SIGPWR) ;
+      sigaddset(&set, SIGPWR) ;
 #endif
 #ifdef SIGWINCH
-    sigaddset(&set, SIGWINCH) ;
+      sigaddset(&set, SIGWINCH) ;
 #endif
-    if (!selfpipe_trapset(&set)) strerr_diefu1sys(111, "trap signals") ;
-  }
-  if (notif >= 0)
-  {
-    fd_write(notif, "\n", 1) ;
-    fd_close(notif) ;
-    notif = -1 ;
+      if (!selfpipe_trapset(&set)) strerr_diefu1sys(111, "trap signals") ;
+    }
+    if (notif)
+    {
+      write(notif, "\n", 1) ;
+      close(notif) ;
+    }
   }
 
   {
-    struct svinfo_s blob[max] ; /* careful with that stack, Eugene */
-    services = blob ;
+    service services_storage[max] ;
+    uint32_t services_freelist[max] ;
+    avlnode bydevino_storage[max] ;
+    uint32_t bydevino_freelist[max] ;
+    avlnode bypid_storage[max] ;
+    uint32_t bypid_freelist[max] ;
+    genset services_info ;
+    avltreen bydevino_info ;
+    avltreen bypid_info ;
+    char name_storage[max * (namemax + 5)] ;
+    char active_storage[bitarray_div8(max)] ;
+
+    GENSET_init(&services_info, service, services_storage, services_freelist, max) ;
+    avltreen_init(&bydevino_info, bydevino_storage, bydevino_freelist, max, &bydevino_dtok, &bydevino_cmp, &services_info) ;
+    avltreen_init(&bypid_info, bypid_storage, bypid_freelist, max, &bypid_dtok, &bypid_cmp, &services_info) ;
+    services = &services_info ;
+    by_devino = &bydevino_info ;
+    by_pid = &bypid_info ;
+    names = name_storage ;
+    active = active_storage ;
+
     tain_now_set_stopwatch_g() ;
 
     /* From now on, we must not die.
        Temporize on recoverable errors, and panic on serious ones. */
 
-    while (cont)
+    while (flags.cont)
     {
       int r ;
-      reap() ;
-      scan() ;
-      killthem() ;
+      tain deadline = scan_deadline ;
+      LOLDEBUG("loop") ;
+      tain_earliest1(&deadline, &start_deadline) ;
       r = iopause_g(x, 2, &deadline) ;
       if (r < 0) panic("iopause") ;
-      else if (!r) wantscan = 1 ;
+      else if (!r)
+      {
+        LOLDEBUG("loop: timeout") ;
+        if (!tain_future(&scan_deadline)) scan() ;
+        if (!tain_future(&start_deadline)) start() ;
+      }
       else
       {
+        unsigned int what = 0 ;
+        LOLDEBUG("loop: event") ;
         if ((x[0].revents | x[1].revents) & IOPAUSE_EXCEPT)
         {
           errno = EIO ;
           panic("check internal pipes") ;
         }
-        if (x[0].revents & IOPAUSE_READ) handle_signals() ;
-        if (x[1].revents & IOPAUSE_READ) handle_control(x[1].fd) ;
+        if (x[0].revents & IOPAUSE_READ) handle_signals(&what) ;
+        if (x[1].revents & IOPAUSE_READ) handle_control(x[1].fd, &what) ;
+        if (what & 7) killthem(what & 7) ;
+        if (what & 8) reap() ;
       }
     }
-
+    LOLDEBUG("exiting loop") ;
 
     /* Finish phase. */
 
-    killthem() ;
-    closethem() ;
+    close_pipes() ;
     restore_console() ;
-    if (waitall) waitthem() ; else { chld() ; reap() ; }
+    if (flags.waitall) waitthem() ;
     selfpipe_finish() ;
   }
   {
