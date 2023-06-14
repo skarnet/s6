@@ -300,10 +300,10 @@ static int do_retrieve (uint32_t cc, unixmessage const *m)
   return 1 ;
 }
 
-static int fill_siovec_with_ids_iter (char *thing, void *data)
+static int fill_siovec_with_ids_iter (void *thing, void *data)
 {
   struct iovec *v = (*(struct iovec **)data)++ ;
-  s6_fdholder_fd_t *p = (s6_fdholder_fd_t *)thing ;
+  s6_fdholder_fd_t *p = thing ;
   v->iov_base = p->id ;
   v->iov_len = strlen(p->id) + 1 ;
   return 1 ;
@@ -334,9 +334,9 @@ struct getdumpiter_s
   char *limit ;
 } ;
 
-static int getdump_iter (char *thing, void *stuff)
+static int getdump_iter (void *thing, void *stuff)
 {
-  s6_fdholder_fd_t *p = (s6_fdholder_fd_t *)thing ;
+  s6_fdholder_fd_t *p = thing ;
   getdumpiter_t *blah = stuff ;
   unsigned char len = strlen(p->id) ;
   tain_pack(blah->limit, &p->limit) ;
