@@ -229,6 +229,7 @@ static void handle_signals (unsigned int *what)
   for (;;)
   {
     int sig = selfpipe_read() ;
+    LOLDEBUG("handle_signals: got %d (%s%s)", sig, sig ? "SIG" : "", sig ? sig_name(sig) : "done") ;
     switch (sig)
     {
       case -1 : panic("selfpipe_read") ;
@@ -238,22 +239,25 @@ static void handle_signals (unsigned int *what)
       case SIGABRT : abrt() ; break ;
       default :
       {
+        int usebuiltin = 1 ;
         char const *name = sig_name(sig) ;
         size_t len = strlen(name) ;
         char fn[SIGNAL_PROG_LEN + len + 1] ;
         char const *const newargv[2] = { fn, 0 } ;
         memcpy(fn, SIGNAL_PROG, SIGNAL_PROG_LEN) ;
         memcpy(fn + SIGNAL_PROG_LEN, name, len + 1) ;
-        if (!child_spawn0(newargv[0], newargv, (char const **)environ))
+        if (access(newargv[0], X_OK) == 0)  /* avoids a fork, don't care about the toctou */
         {
-          if (errno != ENOENT) strerr_warnwu2sys("spawn ", newargv[0]) ;
-          switch (sig)
-          {
-            case SIGHUP : hup(what) ; break ;
-            case SIGINT :
-            case SIGTERM : term(what) ; break ;
-            case SIGQUIT : quit(what) ; break ;
-          }
+          LOLDEBUG("handle_signals: spawning custom handler for SIG%s", sig_name(sig)) ;
+          if (child_spawn0(newargv[0], newargv, (char const **)environ)) usebuiltin = 0 ;
+          else if (errno != ENOENT) strerr_warnwu2sys("spawn ", newargv[0]) ;
+        }
+        if (usebuiltin) switch (sig)
+        {
+          case SIGHUP : hup(what) ; break ;
+          case SIGINT :
+          case SIGTERM : term(what) ; break ;
+          case SIGQUIT : quit(what) ; break ;
         }
       }
     }
@@ -269,7 +273,8 @@ static void handle_control (int fd, unsigned int *what)
     ssize_t r = sanitize_read(fd_read(fd, &c, 1)) ;
     if (r < 0) panic("read control pipe") ;
     else if (!r) break ;
-    else switch (c)
+    LOLDEBUG("handle_control: got '%c'", c) ;
+    switch (c)
     {
       case 'z' : chld(what) ; break ;
       case 'a' : alrm() ; break ;
@@ -543,7 +548,6 @@ static void scan (void)
     uint32_t n = genset_n(services) - avltreen_len(by_devino) ;
     if (n) genset_iter(services, &remove_deadinactive_iter, &n) ;
   }
-  LOLDEBUG("scan: end") ;
 }
 
 
@@ -755,8 +759,25 @@ int main (int argc, char const *const *argv)
     {
       int r ;
       tain deadline = scan_deadline ;
-      LOLDEBUG("loop") ;
       tain_earliest1(&deadline, &start_deadline) ;
+#ifdef DEBUG
+      {
+        int ms = 0 ;
+        unsigned int flag = 0 ;
+        if (tain_future(&deadline))
+        {
+          tain t ;
+          tain_sub(&t, &deadline, &STAMP) ;
+          ms = tain_to_millisecs(&t) ;
+        }
+        else
+        {
+          if (!tain_future(&scan_deadline)) flag |= 1 ;
+          if (!tain_future(&start_deadline)) flag |= 2 ;
+        }
+        LOLDEBUG("loop: %d ms%s%s", ms, flag & 1 ? ", scan" : "", flag & 2 ? ", start" : "") ;
+      }
+#endif
       r = iopause_g(x, 2, &deadline) ;
       if (r < 0) panic("iopause") ;
       else if (!r)
