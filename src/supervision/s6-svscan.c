@@ -363,7 +363,7 @@ static void reap (void)
       if (avltreen_search(by_pid, &pid, &i))
       {
         service *sv = SERVICE(i) ;
-        LOLDEBUG("reap: pid %llu is service %u", (unsigned long long)pid, i) ;
+        LOLDEBUG("reap: pid %llu is service %u - %s", (unsigned long long)pid, i, NAME(i)) ;
         avltreen_delete(by_pid, &pid) ;
         sv->pid = 0 ;
         if (bitarray_peek(active, i)) tain_earliest1(&start_deadline, &sv->start) ;
@@ -563,7 +563,7 @@ static int start_iter (void *data, void *aux)
   if (!bitarray_peek(active, i)
    || sv->pid
    || tain_future(&sv->start)) return 1 ;
-  LOLDEBUG("start: spawning %u", i) ;
+  LOLDEBUG("start: spawning %u - %s", i, NAME(i)) ;
   sv->pid = fork() ;
   switch (sv->pid)
   {
