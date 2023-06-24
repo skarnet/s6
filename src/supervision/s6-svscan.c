@@ -775,7 +775,7 @@ int main (int argc, char const *const *argv)
           if (!tain_future(&scan_deadline)) flag |= 1 ;
           if (!tain_future(&start_deadline)) flag |= 2 ;
         }
-        LOLDEBUG("loop: %d ms%s%s", ms, flag & 1 ? ", scan" : "", flag & 2 ? ", start" : "") ;
+        LOLDEBUG("loop: %d ms", ms) ;
       }
 #endif
       r = iopause_g(x, 2, &deadline) ;
