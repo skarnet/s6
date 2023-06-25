@@ -52,6 +52,8 @@ their state changes. </li>
  <li> It spawns <em>prog...</em> as a child right after getting the
 initial state of all the monitored services. </li>
  <li> It then blocks until the wanted state happens. </li>
+ <li> If no service directories are listed (the block is empty), then
+instead of doing all that, it immediately execs into <em>prog...</em>.
 </ul>
 
 <h2> Exit codes </h2>

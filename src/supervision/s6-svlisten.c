@@ -9,6 +9,7 @@
 #include <skalibs/strerr.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/selfpipe.h>
+#include <skalibs/exec.h>
 
 #include <s6/compat.h>
 #include "s6-svlisten.h"
@@ -49,8 +50,9 @@ int main (int argc, char const **argv, char const *const *envp)
   }
   if (argc < 3) dieusage() ;
   argc1 = s6_el_semicolon(argv) ;
-  if (!argc1 || argc == argc1 + 1) dieusage() ;
+  if (argc == argc1 + 1) dieusage() ;
   if (argc1 >= argc) strerr_dief1x(100, "unterminated servicedir block") ;
+  if (!argc1) xexec(argv + argc1 + 1) ;
   if (wantup == 2 && or)
   {
     or = 0 ;
