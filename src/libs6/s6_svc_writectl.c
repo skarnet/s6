@@ -27,12 +27,12 @@ int s6_svc_writectl (char const *service, char const *subdir, char const *s, siz
  /* Investigate what went wrong */
 
   {
-    int fd, fdsub ;
-    fd = open(service, O_RDONLY | O_DIRECTORY) ;
-    if (fd < 0) return -1 ;
+    int fdsub ;
+    int fd = open2(service, O_RDONLY | O_DIRECTORY) ;
+    if (fd == -1) return -1 ;
     fdsub = open2_at(fd, subdir, O_RDONLY | O_DIRECTORY) ;
     fd_close(fd) ;
-    if (fdsub < 0) return (errno == ENOENT) ? 0 : -2 ;
+    if (fdsub == -1) return (errno == ENOENT) ? 0 : -2 ;
     fd_close(fdsub) ;
     return -2 ;
   }

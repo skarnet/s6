@@ -25,7 +25,6 @@
 #include <skalibs/bitarray.h>
 #include <skalibs/genset.h>
 #include <skalibs/avltreen.h>
-#include <skalibs/lolstdio.h>
 
 #include <s6/config.h>
 #include <s6/supervise.h>
@@ -91,7 +90,6 @@ static void *bydevino_dtok (uint32_t d, void *aux)
 static int bydevino_cmp (void const *a, void const *b, void *aux)
 {
   (void)aux ;
-  LOLDEBUG("bydevino_cmp: (%llu, %llu) vs (%llu, %llu)", (unsigned long long)((devino const *)a)->dev, (unsigned long long)((devino const *)a)->ino, (unsigned long long)((devino const *)b)->dev, (unsigned long long)((devino const *)b)->ino) ;
   return devino_cmp(a, b) ;
 }
 
@@ -106,7 +104,6 @@ static int bypid_cmp (void const *a, void const *b, void *aux)
   (void)aux ;
   pid_t const *aa = a ;
   pid_t const *bb = b ;
-  LOLDEBUG("bypid_cmp: %llu vs %llu", (unsigned long long)*aa, (unsigned long long)*bb) ;
   return *aa < *bb ? -1 : *aa > *bb ;
 }
 
@@ -145,7 +142,6 @@ static void panic (char const *errmsg)
 static int close_pipes_iter (void *data, void *aux)
 {
   service *sv = data ;
-  LOLDEBUG("close_pipes_iter for %u: %d", sv - SERVICE(0), sv->p) ;
   if (sv->p >= 0) close(sv->p) ;
   (void)aux ;
   return 1 ;
@@ -156,8 +152,8 @@ static inline void close_pipes (void)
   genset_iter(services, &close_pipes_iter, 0) ;
   if (special < max)
   {
-    close(1) ;
-    if (open("/dev/null", O_WRONLY) < 0)
+    fd_close(1) ;
+    if (open2("/dev/null", O_WRONLY) < 0)
       strerr_warnwu1sys("open /dev/null") ;
   }
 }
@@ -225,11 +221,9 @@ static void quit (unsigned int *what)
 
 static void handle_signals (unsigned int *what)
 {
-  LOLDEBUG("handle_signals") ;
   for (;;)
   {
     int sig = selfpipe_read() ;
-    LOLDEBUG("handle_signals: got %d (%s%s)", sig, sig ? "SIG" : "", sig ? sig_name(sig) : "done") ;
     switch (sig)
     {
       case -1 : panic("selfpipe_read") ;
@@ -248,7 +242,6 @@ static void handle_signals (unsigned int *what)
         memcpy(fn + SIGNAL_PROG_LEN, name, len + 1) ;
         if (access(newargv[0], X_OK) == 0)  /* avoids a fork, don't care about the toctou */
         {
-          LOLDEBUG("handle_signals: spawning custom handler for SIG%s", sig_name(sig)) ;
           if (child_spawn0(newargv[0], newargv, (char const **)environ)) usebuiltin = 0 ;
           else if (errno != ENOENT) strerr_warnwu2sys("spawn ", newargv[0]) ;
         }
@@ -266,14 +259,12 @@ static void handle_signals (unsigned int *what)
 
 static void handle_control (int fd, unsigned int *what)
 {
-  LOLDEBUG("handle_control") ;
   for (;;)
   {
     char c ;
     ssize_t r = sanitize_read(fd_read(fd, &c, 1)) ;
     if (r < 0) panic("read control pipe") ;
     else if (!r) break ;
-    LOLDEBUG("handle_control: got '%c'", c) ;
     switch (c)
     {
       case 'z' : chld(what) ; break ;
@@ -303,10 +294,7 @@ static int killthem_iter (void *data, void *aux)
   unsigned int *what = aux ;
   uint32_t i = sv - SERVICE(0) ;
   if ((*what & 1 || !bitarray_peek(active, i)) && sv->pid)
-  {
-    LOLDEBUG("killthem: service %u: sending %s to pid %llu", i, *what & (2 << (i == special || is_logger(i))) ? "SIGTERM" : "SIGHUP", (unsigned long long)sv->pid) ;
     kill(sv->pid, *what & (2 << (i == special || is_logger(i))) ? SIGTERM : SIGHUP) ;
-  }
   return 1 ;
 }
 
@@ -328,7 +316,6 @@ static inline void killthem (unsigned int what)
 
 static void remove_service (service *sv)
 {
-  LOLDEBUG("remove_service: %u", sv - SERVICE(0)) ;
   if (sv->peer < max)
   {
     service *peer = SERVICE(sv->peer) ;
@@ -347,7 +334,6 @@ static void remove_service (service *sv)
 
 static void reap (void)
 {
-  LOLDEBUG("reap") ;
   for (;;)
   {
     uint32_t i ;
@@ -357,18 +343,13 @@ static void reap (void)
       if (errno != ECHILD) panic("wait_nohang") ;
       else break ;
     else if (!pid) break ;
-    else
-    {
-      LOLDEBUG("reap: pid %llu", (unsigned long long)pid) ;
-      if (avltreen_search(by_pid, &pid, &i))
-      {
-        service *sv = SERVICE(i) ;
-        LOLDEBUG("reap: pid %llu is service %u - %s", (unsigned long long)pid, i, NAME(i)) ;
-        avltreen_delete(by_pid, &pid) ;
-        sv->pid = 0 ;
-        if (bitarray_peek(active, i)) tain_earliest1(&start_deadline, &sv->start) ;
-        else remove_service(sv) ;
-      }
+    else if (avltreen_search(by_pid, &pid, &i))
+     {
+      service *sv = SERVICE(i) ;
+      avltreen_delete(by_pid, &pid) ;
+      sv->pid = 0 ;
+      if (bitarray_peek(active, i)) tain_earliest1(&start_deadline, &sv->start) ;
+      else remove_service(sv) ;
     }
   }
 }
@@ -386,7 +367,6 @@ static int check (char const *name, uint32_t prod, char *act)
   devino di ;
   uint32_t i ;
   service *sv ;
-  LOLDEBUG("checking %s (producer is %u)", name, prod) ;
   if (stat(name, &st) == -1)
   {
     if (prod < max && errno == ENOENT)
@@ -403,7 +383,6 @@ static int check (char const *name, uint32_t prod, char *act)
   di.ino = st.st_ino ;
   if (avltreen_search(by_devino, &di, &i))
   {
-    LOLDEBUG("check: existing service %u", i) ;
     sv = SERVICE(i) ;
     if (sv->peer < max)
     {
@@ -427,7 +406,6 @@ static int check (char const *name, uint32_t prod, char *act)
       strerr_warnwu3x("start supervisor for ", name, ": too many services") ;
       return -60 ;
     }
-    LOLDEBUG("check: new service %u", i) ;
     sv = SERVICE(i) ;
     sv->devino = di ;
     sv->pid = 0 ;
@@ -437,11 +415,7 @@ static int check (char const *name, uint32_t prod, char *act)
     {
       sv->peer = max ;
       sv->p = -1 ;
-      if (special >= max && !strcmp(name, SPECIAL_LOGGER_SERVICE))
-      {
-        special = i ;
-        LOLDEBUG("check: %u is special", i) ;
-      }
+      if (special >= max && !strcmp(name, SPECIAL_LOGGER_SERVICE)) special = i ;
     }
     else
     {
@@ -456,7 +430,6 @@ static int check (char const *name, uint32_t prod, char *act)
       sv->p = p[0] ;
       SERVICE(prod)->peer = i ;
       SERVICE(prod)->p = p[1] ;
-      LOLDEBUG("check: %u paired with %u", i, prod) ;
     }
     avltreen_insert(by_devino, i) ;
   }
@@ -470,7 +443,6 @@ static void set_scan_timeout (unsigned int n)
   tain a ;
   tain_addsec_g(&a, n) ;
   tain_earliest1(&scan_deadline, &a) ;
-  LOLDEBUG("set_scan_timeout to %u", n) ;
 }
 
 static int remove_deadinactive_iter (void *data, void *aux)
@@ -479,7 +451,6 @@ static int remove_deadinactive_iter (void *data, void *aux)
   uint32_t *n = aux ;
   if (!bitarray_peek(active, sv - SERVICE(0)))
   {
-    LOLDEBUG("scan: %u is inactive", sv - SERVICE(0)) ;
     if (!sv->pid) remove_service(sv) ;
     if (!--n) return 0 ;
   }
@@ -492,7 +463,6 @@ static void scan (void)
   char tmpactive[bitarray_div8(max)] ;
   tain_add_g(&scan_deadline, &scantto) ;
   memset(tmpactive, 0, bitarray_div8(max)) ;
-  LOLDEBUG("scan") ;
   if (!dir)
   {
     strerr_warnwu1sys("opendir .") ;
@@ -563,7 +533,6 @@ static int start_iter (void *data, void *aux)
   if (!bitarray_peek(active, i)
    || sv->pid
    || tain_future(&sv->start)) return 1 ;
-  LOLDEBUG("start: spawning %u - %s", i, NAME(i)) ;
   sv->pid = fork() ;
   switch (sv->pid)
   {
@@ -590,7 +559,6 @@ static int start_iter (void *data, void *aux)
       xexec_a(S6_BINPREFIX "s6-supervise", cargv) ;
     }
   }
-  LOLDEBUG("start: by_pid has %u nodes, inserting new pid %llu", avltreen_len(by_pid), (unsigned long long)sv->pid) ;
   avltreen_insert(by_pid, i) ;
   tain_addsec_g(&sv->start, 1) ;
   (void)aux ;
@@ -621,7 +589,7 @@ static inline int control_init (void)
       strerr_dief1x(100, S6_SVSCAN_CTLDIR " exists and is not a directory") ;
   }
 
-  fdlck = open(LCK, O_WRONLY | O_NONBLOCK | O_CREAT | O_CLOEXEC, 0600) ;
+  fdlck = open3(LCK, O_WRONLY | O_NONBLOCK | O_CREAT | O_CLOEXEC, 0600) ;
   if (fdlck < 0) strerr_diefu1sys(111, "open " LCK) ;
   r = fd_lock(fdlck, 1, 1) ;
   if (r < 0) strerr_diefu1sys(111, "lock " LCK) ;
@@ -760,36 +728,16 @@ int main (int argc, char const *const *argv)
       int r ;
       tain deadline = scan_deadline ;
       tain_earliest1(&deadline, &start_deadline) ;
-#ifdef DEBUG
-      {
-        int ms = 0 ;
-        unsigned int flag = 0 ;
-        if (tain_future(&deadline))
-        {
-          tain t ;
-          tain_sub(&t, &deadline, &STAMP) ;
-          ms = tain_to_millisecs(&t) ;
-        }
-        else
-        {
-          if (!tain_future(&scan_deadline)) flag |= 1 ;
-          if (!tain_future(&start_deadline)) flag |= 2 ;
-        }
-        LOLDEBUG("loop: %d ms", ms) ;
-      }
-#endif
       r = iopause_g(x, 2, &deadline) ;
       if (r < 0) panic("iopause") ;
       else if (!r)
       {
-        LOLDEBUG("loop: timeout") ;
         if (!tain_future(&scan_deadline)) scan() ;
         if (!tain_future(&start_deadline)) start() ;
       }
       else
       {
         unsigned int what = 0 ;
-        LOLDEBUG("loop: event") ;
         if ((x[0].revents | x[1].revents) & IOPAUSE_EXCEPT)
         {
           errno = EIO ;
@@ -801,7 +749,6 @@ int main (int argc, char const *const *argv)
         if (what & 8) reap() ;
       }
     }
-    LOLDEBUG("exiting loop") ;
 
     /* Finish phase. */
 
