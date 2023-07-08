@@ -200,7 +200,7 @@ for arg ; do
     --host=*|--target=*) target=${arg#*=} ;;
     --build=*) build=${arg#*=} ;;
     -* ) echo "$0: unknown option $arg" ;;
-    *=*) eval "$arg" ;;
+    *=*) eval "${arg%%=*}=\${arg#*=}" ;;
     *) target=$arg ;;
   esac
 done
