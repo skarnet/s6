@@ -10,5 +10,6 @@
 #include <s6/accessrules.h>
 #include <s6/lock.h>
 #include <s6/auto.h>
+#include <s6/ucspiserver.h>
 
 #endif

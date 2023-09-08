@@ -22,9 +22,11 @@
 #include <skalibs/socket.h>
 #include <skalibs/exec.h>
 
+#include <s6/ucspiserver.h>
+
 #define USAGE "s6-ipcserverd [ -v verbosity ] [ -1 ] [ -P | -p ] [ -c maxconn ] [ -C localmaxconn ] prog..."
 
-#define ABSOLUTE_MAXCONN 1000
+#define ABSOLUTE_MAXCONN 16384
 
 static unsigned int maxconn = 40 ;
 static unsigned int localmaxconn = 40 ;
@@ -228,43 +230,16 @@ static inline void handle_signals (void)
 
  /* New connection handling */
 
-static void run_child (int, uid_t, gid_t, unsigned int, char const *, char const *const *) gccattr_noreturn ;
-static void run_child (int s, uid_t uid, gid_t gid, unsigned int num, char const *remotepath, char const *const *argv)
-{
-  size_t rplen = strlen(remotepath) + 1 ;
-  unsigned int n = 0 ;
-  char fmt[65 + UID_FMT + GID_FMT + UINT_FMT + rplen] ;
-  PROG = "s6-ipcserver (child)" ;
-  if ((fd_move(1, s) < 0) || (fd_copy(0, 1) < 0))
-    strerr_diefu1sys(111, "move fds") ;
-  memcpy(fmt+n, "PROTO=IPC\0IPCREMOTEEUID", 23) ; n += 23 ;
-  if (flaglookup)
-  {
-    fmt[n++] = '=' ;
-    n += uid_fmt(fmt+n, uid) ;
-  }
-  fmt[n++] = 0 ;
-  memcpy(fmt+n, "IPCREMOTEEGID", 13) ; n += 13 ;
-  if (flaglookup)
-  {
-    fmt[n++] = '=' ;
-    n += gid_fmt(fmt+n, gid) ;
-  }
-  fmt[n++] = 0 ;
-  memcpy(fmt+n, "IPCCONNNUM=", 11) ; n += 11 ;
-  if (flaglookup) n += uint_fmt(fmt+n, num) ;
-  fmt[n++] = 0 ;
-  memcpy(fmt+n, "IPCREMOTEPATH=", 14) ; n += 14 ;
-  memcpy(fmt+n, remotepath, rplen) ; n += rplen ;
-  xmexec_n(argv, fmt, n, 5) ;
-}
-
-static void new_connection (int s, char const *remotepath, char const *const *argv)
+static void new_connection (int s, char const *remotepath, char const *const *argv, char const *const *envp, size_t envlen)
 {
   uid_t uid = 0 ;
   gid_t gid = 0 ;
+  size_t m = 0 ;
+  size_t rplen = strlen(remotepath) + 1 ;
   pid_t pid ;
   unsigned int num, i ;
+  char fmt[65 + UID_FMT + GID_FMT + UINT_FMT + rplen] ;
+
   if (flaglookup && (getpeereid(s, &uid, &gid) < 0))
   {
     if (verbosity) strerr_warnwu1sys("getpeereid") ;
@@ -277,16 +252,32 @@ static void new_connection (int s, char const *remotepath, char const *const *ar
     log_deny(uid, gid, num) ;
     return ;
   }
-  pid = fork() ;
-  if (pid < 0)
+
+  memcpy(fmt + m, "PROTO=IPC\0IPCREMOTEEUID", 23) ; m += 23 ;
+  if (flaglookup)
+  {
+    fmt[m++] = '=' ;
+    m += uid_fmt(fmt + m, uid) ;
+  }
+  fmt[m++] = 0 ;
+  memcpy(fmt + m, "IPCREMOTEEGID", 13) ; m += 13 ;
+  if (flaglookup)
+  {
+    fmt[m++] = '=' ;
+    m += gid_fmt(fmt + m, gid) ;
+  }
+  fmt[m++] = 0 ;
+  memcpy(fmt + m, "IPCCONNNUM=", 11) ; m += 11 ;
+  if (flaglookup) m += uint_fmt(fmt + m, num) ;
+  fmt[m++] = 0 ;
+  memcpy(fmt + m, "IPCREMOTEPATH=", 14) ; m += 14 ;
+  memcpy(fmt + m, remotepath, rplen) ; m += rplen ;
+
+  pid = s6_ucspiserver_spawn(s, argv, envp, envlen, fmt, m, 5) ;
+  if (!pid)
   {
     if (verbosity) strerr_warnwu1sys("fork") ;
     return ;
-  }
-  else if (!pid)
-  {
-    selfpipe_finish() ;
-    run_child(s, uid, gid, num+1, remotepath, argv) ;
   }
 
   if (i < uidlen) uidnum[i].right = num + 1 ;
@@ -376,6 +367,7 @@ int main (int argc, char const *const *argv)
   {
     piduid_t inyostack0[maxconn] ;
     uidnum_t inyostack1[flaglookup ? maxconn : 1] ;
+    size_t envlen = env_len((char const *const *)environ) ;
     piduid = inyostack0 ;
     uidnum = inyostack1 ;
 
@@ -400,7 +392,7 @@ int main (int argc, char const *const *argv)
           }
           else
           {
-            new_connection(sock, remotepath, argv) ;
+            new_connection(sock, remotepath, argv, (char const *const *)environ, envlen) ;
             fd_close(sock) ;
           }
         }

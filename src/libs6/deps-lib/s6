@@ -70,4 +70,5 @@ s6_supervise_link.o
 s6_supervise_link_names.o
 s6_supervise_unlink.o
 s6_supervise_unlink_names.o
+s6_ucspiserver_spawn.o
 -lskarnet
