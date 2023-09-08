@@ -276,7 +276,7 @@ static void new_connection (int s, char const *remotepath, char const *const *ar
   pid = s6_ucspiserver_spawn(s, argv, envp, envlen, fmt, m, 5) ;
   if (!pid)
   {
-    if (verbosity) strerr_warnwu1sys("fork") ;
+    if (verbosity) strerr_warnwu2sys("spawn ", argv[0]) ;
     return ;
   }
 

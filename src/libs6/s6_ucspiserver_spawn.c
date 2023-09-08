@@ -22,10 +22,6 @@
 #include <skalibs/config.h>
 #include <skalibs/env.h>
 
-#ifdef SKALIBS_HASPOSIXSPAWNEARLYRETURN
-extern pid_t child_spawn_workaround (pid_t, int const *) ;  /* XXX: non-public skalibs function */
-#endif
-
 pid_t s6_ucspiserver_spawn (int fd, char const *const *argv, char const *const *envp, size_t envlen, char const *modifs, size_t modiflen, size_t modifn)
 {
   pid_t pid ;
