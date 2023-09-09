@@ -7,7 +7,7 @@
 #include <skalibs/bitarray.h>
 #include <skalibs/tai.h>
 #include <skalibs/strerr.h>
-#include <skalibs/djbunix.h>
+#include <skalibs/cspawn.h>
 #include <skalibs/selfpipe.h>
 #include <skalibs/exec.h>
 
@@ -71,7 +71,7 @@ int main (int argc, char const **argv, char const *const *envp)
     unsigned char upstate[bitarray_div8(argc1)] ;
     unsigned char readystate[bitarray_div8(argc1)] ;
     s6_svlisten_init(argc1, argv, &foo, ids, upstate, readystate, &deadline) ;
-    pid = child_spawn0(argv[argc1 + 1], argv + argc1 + 1, envp) ;
+    pid = cspawn(argv[argc1 + 1], argv + argc1 + 1, envp, CSPAWN_FLAGS_SELFPIPE_FINISH, 0, 0) ;
     if (!pid) strerr_diefu2sys(111, "spawn ", argv[argc1 + 1]) ;
     if (wantup == 2)
     {

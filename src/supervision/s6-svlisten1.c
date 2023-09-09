@@ -6,7 +6,7 @@
 #include <skalibs/types.h>
 #include <skalibs/tai.h>
 #include <skalibs/strerr.h>
-#include <skalibs/djbunix.h>
+#include <skalibs/cspawn.h>
 #include <skalibs/selfpipe.h>
 
 #include "s6-svlisten.h"
@@ -50,7 +50,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   tain_add_g(&deadline, &tto) ;
   s6_svlisten_selfpipe_init() ;
   s6_svlisten_init(1, argv, &foo, &id, &upstate, &readystate, &deadline) ;
-  pid = child_spawn0(argv[1], argv + 1, envp) ;
+  pid = cspawn(argv[1], argv + 1, envp, CSPAWN_FLAGS_SELFPIPE_FINISH, 0, 0) ;
   if (!pid) strerr_diefu2sys(111, "spawn ", argv[1]) ;
   if (wantrestart)
     if (s6_svlisten_loop(&foo, 0, 1, 1, &deadline, selfpipe_fd(), &s6_svlisten_signal_handler))

@@ -13,6 +13,7 @@
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr.h>
 #include <skalibs/tai.h>
+#include <skalibs/cspawn.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/selfpipe.h>
 #include <skalibs/iopause.h>
@@ -230,7 +231,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
       if (handle_event(&a, id, 0)) return 2 ;
     }
 
-    pid = child_spawn0(childargv[0], childargv, envp) ;
+    pid = cspawn(childargv[0], childargv, envp, CSPAWN_FLAGS_SELFPIPE_FINISH, 0, 0) ;
     if (!pid)
     {
       strerr_warnwu2sys("spawn ", childargv[0]) ;

@@ -10,6 +10,7 @@
 #include <skalibs/types.h>
 #include <skalibs/tai.h>
 #include <skalibs/iopause.h>
+#include <skalibs/cspawn.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/exec.h>
 

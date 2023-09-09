@@ -14,6 +14,7 @@
 #include <skalibs/djbunix.h>
 #include <skalibs/sig.h>
 #include <skalibs/selfpipe.h>
+#include <skalibs/cspawn.h>
 
 #include <s6/ftrigr.h>
 
@@ -69,7 +70,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (!selfpipe_trap(SIGCHLD)) strerr_diefu1sys(111, "selfpipe_trap") ;
   x[1].fd = ftrigr_fd(&a) ;
 
-  pid = child_spawn0(argv[2], argv+2, envp) ;
+  pid = cspawn(argv[2], argv+2, envp, CSPAWN_FLAGS_SELFPIPE_FINISH, 0, 0) ;
   if (!pid) strerr_diefu2sys(111, "spawn ", argv[2]) ;
 
   for (;;)

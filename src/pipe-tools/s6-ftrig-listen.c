@@ -13,6 +13,7 @@
 #include <skalibs/djbunix.h>
 #include <skalibs/sig.h>
 #include <skalibs/selfpipe.h>
+#include <skalibs/cspawn.h>
 
 #include <s6/compat.h>
 #include <s6/ftrigr.h>
@@ -81,7 +82,7 @@ int main (int argc, char const **argv, char const *const *envp)
       if (!ids[i]) strerr_diefu4sys(111, "subscribe to ", argv[i<<1], " with regexp ", argv[(i<<1)+1]) ;
     }
 
-    pid = child_spawn0(argv[argc1 + 1], argv + argc1 + 1, envp) ;
+    pid = cspawn(argv[argc1 + 1], argv + argc1 + 1, envp, CSPAWN_FLAGS_SELFPIPE_FINISH, 0, 0) ;
     if (!pid) strerr_diefu2sys(111, "spawn ", argv[argc1 + 1]) ;
 
     for (;;)

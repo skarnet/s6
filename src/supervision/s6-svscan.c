@@ -17,6 +17,7 @@
 #include <skalibs/tai.h>
 #include <skalibs/iopause.h>
 #include <skalibs/devino.h>
+#include <skalibs/cspawn.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/direntry.h>
 #include <skalibs/sig.h>
@@ -242,7 +243,8 @@ static void handle_signals (unsigned int *what)
         memcpy(fn + SIGNAL_PROG_LEN, name, len + 1) ;
         if (access(newargv[0], X_OK) == 0)  /* avoids a fork, don't care about the toctou */
         {
-          if (child_spawn0(newargv[0], newargv, (char const **)environ)) usebuiltin = 0 ;
+          if (cspawn(newargv[0], newargv, (char const **)environ, CSPAWN_FLAGS_SELFPIPE_FINISH, 0, 0))
+            usebuiltin = 0 ;
           else if (errno != ENOENT) strerr_warnwu2sys("spawn ", newargv[0]) ;
         }
         if (usebuiltin) switch (sig)
@@ -530,34 +532,36 @@ static int start_iter (void *data, void *aux)
 {
   service *sv = data ;
   uint32_t i = sv - SERVICE(0) ;
+  char const *const cargv[3] = { "s6-supervise", NAME(i), 0 } ;
+  cspawn_fileaction fa[2] =
+  {
+    [0] = { .type = CSPAWN_FA_MOVE },
+    [1] = { .type = CSPAWN_FA_MOVE }
+  } ;
+  size_t j = 0 ;
+
   if (!bitarray_peek(active, i)
    || sv->pid
    || tain_future(&sv->start)) return 1 ;
-  sv->pid = fork() ;
-  switch (sv->pid)
+  if (sv->peer < max)
   {
-    case -1 :
-      sv->pid = 0 ;
-      strerr_warnwu2sys("fork", NAME(i)) ;
-      tain_addsec_g(&start_deadline, 10) ;
-      return 0 ;
-    case 0 :
-    {
-      char const *cargv[3] = { "s6-supervise", NAME(i), 0 } ;
-      PROG = "s6-svscan (child)" ;
-      if (sv->peer < max)
-      {
-        if (fd_move(!is_logger(i), sv->p) == -1)
-          strerr_diefu2sys(111, "dup2 pipe for ", NAME(i)) ;
-      }
-      if (consoleholder && i == special)
-      {
-        if (fd_move(2, consoleholder) == -1)
-         strerr_diefu2sys(111, "restore console fd for service ", NAME(i)) ;
-      }
-      selfpipe_finish() ;
-      xexec_a(S6_BINPREFIX "s6-supervise", cargv) ;
-    }
+    fa[j].x.fd2[0] = !is_logger(i) ;
+    fa[j].x.fd2[1] = sv->p ;
+    j++ ;
+  }
+  if (consoleholder && i == special)
+  {
+    fa[j].x.fd2[0] = 2 ;
+    fa[j].x.fd2[1] = consoleholder ;
+    j++ ;
+  }
+  
+  sv->pid = cspawn(S6_BINPREFIX "s6-supervise", cargv, (char const *const *)environ, CSPAWN_FLAGS_SELFPIPE_FINISH, fa, j) ;
+  if (!sv->pid)
+  {
+    strerr_warnwu2sys("spawn s6-supervise for ", NAME(i)) ;
+    tain_addsec_g(&start_deadline, 10) ;
+    return 0 ;
   }
   avltreen_insert(by_pid, i) ;
   tain_addsec_g(&sv->start, 1) ;
