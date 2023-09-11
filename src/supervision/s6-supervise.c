@@ -11,20 +11,24 @@
 #include <limits.h>
 #include <signal.h>
 #include <fcntl.h>
+#include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 
+#include <skalibs/posixplz.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/types.h>
 #include <skalibs/strerr.h>
 #include <skalibs/tai.h>
 #include <skalibs/iopause.h>
+#include <skalibs/cspawn.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/sig.h>
 #include <skalibs/selfpipe.h>
 #include <skalibs/skamisc.h>
 
+#include <s6/config.h>
 #include <s6/ftrigw.h>
 #include <s6/supervise.h>
 
@@ -72,6 +76,7 @@ static s6_svstatus_t status = S6_SVSTATUS_ZERO ;
 static state_t state = DOWN ;
 static int notifyfd = -1 ;
 static char const *servicename = 0 ;
+static rlim_t maxfd ;
 
 static inline void settimeout (int secs)
 {
@@ -248,160 +253,109 @@ static void killr (void)
   kill(status.pid, read_downsig()) ;
 }
 
-static void failcoe (int fd)
-{
-  int e = errno ;
-  fd_write(fd, "", 1) ;
-  errno = e ;
-}
-
 static void trystart (void)
 {
-  int p[2] ;
+  cspawn_fileaction fa[2] =
+  {
+    [0] = { .type = CSPAWN_FA_CLOSE },
+    [1] = { .type = CSPAWN_FA_MOVE },
+  } ;
+  char lkfmt[UINT_FMT] ;
+  char const *cargv[7] = { S6_BINPREFIX "s6-setlock", "-d", lkfmt, "--", "./run", servicename, 0 } ;
+  size_t orig = 4 ;
   int notifyp[2] = { -1, -1 } ;
-  int lfd = -1 ;
-  int locked = 1 ;
-  unsigned int notif, lk ;
-  pid_t pid ;
+  unsigned int lk = 0, notif = 0 ;
+
   if (read_uint("lock-fd", &lk))
   {
-    if (lk > INT_MAX) strerr_warnw2x("invalid ", "lock-fd") ;
+    if (lk > maxfd) strerr_warnw2x("invalid ", "lock-fd") ;
     else
     {
       struct stat st ;
-      lfd = open_write(SLCK) ;
+      int islocked ;
+      int lfd = open_write(SLCK) ;
       if (lfd == -1)
       {
         settimeout(60) ;
         strerr_warnwu4sys("open ", SLCK, " for writing", " (waiting 60 seconds)") ;
-        return ;
+        goto errn ;
       }
       if (fstat(lfd, &st) == -1)
       {
         settimeout(60) ;
         strerr_warnwu3sys("stat ", SLCK, " (waiting 60 seconds)") ;
-        goto errl ;
+        fd_close(lfd) ;
+        return ;
       }
       if (st.st_size)
       {
         ftruncate(lfd, 0) ;
         strerr_warnw1x("a previous instance of the service wrote to the lock file!") ;
       }
-      locked = fd_lock(lfd, 1, 1) ;
-      if (locked == -1)
+      islocked = fd_islocked(lfd) ;
+      if (islocked == -1)
       {
         settimeout(60) ;
-        strerr_warnwu3sys("lock ", SLCK, " (waiting 60 seconds)") ;
-        goto errl ;
+        strerr_warnwu3sys("read lock state on ", SLCK, " (waiting 60 seconds)") ;
+        fd_close(lfd) ;
+        return ;
       }
-      if (!locked)
+      if (islocked)
         strerr_warnw1x("another instance of the service is already running, child will block") ;
+      fd_close(lfd) ;
+      lkfmt[uint_fmt(lkfmt, lk)] = 0 ;
+      orig = 0 ;
     }
   }
+
   if (read_uint("notification-fd", &notif))
   {
-    if (notif > INT_MAX) strerr_warnw2x("invalid ", "notification-fd") ;
-    else if (lfd >= 0 && notif == lk)
+    if (notif > maxfd) strerr_warnw2x("invalid ", "notification-fd") ;
+    if (!orig && notif == lk)
     {
       settimeout_infinite() ;
       strerr_warnwu1x("start service: notification-fd and lock-fd are the same") ;
-      goto errl ;
+      return ;
     }
-    else if (pipe(notifyp) < 0)
+    if (pipe(notifyp) == -1)
     {
       settimeout(60) ;
-      strerr_warnwu2sys("pipe", " (waiting 60 seconds)") ;
-      goto errl ;
+      strerr_warnwu2sys("create notification pipe", " (waiting 60 seconds)") ;
+      return ;
     }
+    fa[0].x.fd = notifyp[0] ;
+    fa[1].x.fd2[0] = notif ;
+    fa[1].x.fd2[1] = notifyp[1] ;
   }
-  if (pipecoe(p) < 0)
+
+  status.pid = cspawn(cargv[orig], cargv + orig, (char const *const *)environ, CSPAWN_FLAGS_SELFPIPE_FINISH | CSPAWN_FLAGS_SETSID, fa, notifyp[1] >= 0 ? 2 : 0) ;
+  if (!status.pid)
   {
     settimeout(60) ;
-    strerr_warnwu2sys("pipe", " (waiting 60 seconds)") ;
+    strerr_warnwu3sys("spawn ", cargv[orig], " (waiting 60 seconds)") ;
     goto errn ;
   }
-  pid = fork() ;
-  if (pid < 0)
+
+  if (notifyp[1] >= 0)
   {
-    settimeout(60) ;
-    strerr_warnwu2sys("fork", " (waiting 60 seconds)") ;
-    goto errp ;
+    fd_close(notifyp[1]) ;
+    notifyfd = notifyp[0] ;
   }
-  else if (!pid)
-  {
-    char const *cargv[3] = { "run", servicename, 0 } ;
-    ((char *)PROG)[strlen(PROG)] = ' ' ;
-    selfpipe_finish() ;
-    if (notifyp[0] >= 0) close(notifyp[0]) ;
-    close(p[0]) ;
-    if (notifyp[1] >= 0 && fd_move(notif, notifyp[1]) < 0)
-    {
-      failcoe(p[1]) ;
-      strerr_diefu1sys(127, "move notification descriptor") ;
-    }
-    if (lfd >= 0)
-    {
-      if (fd_move(lk, lfd) < 0)
-      {
-        failcoe(p[1]) ;
-        strerr_diefu1sys(127, "move lock descriptor") ;
-      }
-      if (!locked && fd_lock(lk, 1, 0) == -1)
-      {
-        failcoe(p[1]) ;
-        strerr_diefu2sys(127, "lock ", SLCK) ;
-      }
-    }
-    setsid() ;
-    execv("./run", (char *const *)cargv) ;
-    failcoe(p[1]) ;
-    strerr_dieexec(127, "run") ;
-  }
-  fd_close(p[1]) ;
-  if (notifyp[1] >= 0) fd_close(notifyp[1]) ;
-  if (lfd >= 0) fd_close(lfd) ;
-  {
-    char c ;
-    switch (fd_read(p[0], &c, 1))
-    {
-      case -1 :
-        fd_close(p[0]) ;
-        settimeout(60) ;
-        strerr_warnwu1sys("read pipe (waiting 60 seconds)") ;
-        kill(pid, SIGKILL) ;
-        return ;
-      case 1 :
-      {
-        fd_close(p[0]) ;
-        settimeout(10) ;
-        strerr_warnwu1x("spawn ./run - waiting 10 seconds") ;
-        return ;
-      }
-    }
-  }
-  fd_close(p[0]) ;
-  notifyfd = notifyp[0] ;
   settimeout_infinite() ;
   nextstart = tain_zero ;
   state = UP ;
-  status.pid = pid ;
   status.flagready = 0 ;
   tain_wallclock_read(&status.stamp) ;
   announce() ;
   ftrigw_notifyb_nosig(S6_SUPERVISE_EVENTDIR, "u", 1) ;
   return ;
 
- errp:
-  fd_close(p[1]) ;
-  fd_close(p[0]) ;
  errn:
   if (notifyp[1] >= 0)
   {
     fd_close(notifyp[1]) ;
     fd_close(notifyp[0]) ;
   }
- errl:
-  if (lfd >= 0) fd_close(lfd) ;
 }
 
 static void wantdown (void)
@@ -454,6 +408,11 @@ static void down_U (void)
 
 static int uplastup_z (void)
 {
+  unsigned int n ;
+  char fmt0[UINT_FMT] ;
+  char fmt1[UINT_FMT] ;
+  char const *cargv[5] = { "finish", fmt0, fmt1, servicename, 0 } ;
+
   status.wstat = (int)status.pid ;
   status.flagpaused = 0 ;
   status.flagready = 0 ;
@@ -464,49 +423,33 @@ static int uplastup_z (void)
     fd_close(notifyfd) ;
     notifyfd = -1 ;
   }
+  fmt0[uint_fmt(fmt0, WIFSIGNALED(status.wstat) ? 256 : WEXITSTATUS(status.wstat))] = 0 ;
+  fmt1[uint_fmt(fmt1, WTERMSIG(status.wstat))] = 0 ;
 
+  if (!read_uint("max-death-tally", &n)) n = 100 ;
+  if (n > S6_MAX_DEATH_TALLY) n = S6_MAX_DEATH_TALLY ;
+  if (n)
   {
-    unsigned int n ;
-    if (!read_uint("max-death-tally", &n)) n = 100 ;
-    if (n > S6_MAX_DEATH_TALLY) n = S6_MAX_DEATH_TALLY ;
-    if (n)
+    s6_dtally_t tab[n+1] ;
+    ssize_t m = s6_dtally_read(".", tab, n) ;
+    if (m < 0) strerr_warnwu2sys("read ", S6_DTALLY_FILENAME) ;
+    else
     {
-      s6_dtally_t tab[n+1] ;
-      ssize_t m = s6_dtally_read(".", tab, n) ;
-      if (m < 0) strerr_warnwu2sys("read ", S6_DTALLY_FILENAME) ;
-      else
-      {
-        tab[m].stamp = status.stamp ;
-        tab[m].sig = WIFSIGNALED(status.wstat) ? WTERMSIG(status.wstat) : 0 ;
-        tab[m].exitcode = WIFSIGNALED(status.wstat) ? 128 + WTERMSIG(status.wstat) : WEXITSTATUS(status.wstat) ;
-        if (!(m >= n ? s6_dtally_write(".", tab+1, n) : s6_dtally_write(".", tab, m+1)))
-          strerr_warnwu2sys("write ", S6_DTALLY_FILENAME) ;
-      }
+      tab[m].stamp = status.stamp ;
+      tab[m].sig = WIFSIGNALED(status.wstat) ? WTERMSIG(status.wstat) : 0 ;
+      tab[m].exitcode = WIFSIGNALED(status.wstat) ? 128 + WTERMSIG(status.wstat) : WEXITSTATUS(status.wstat) ;
+      if (!(m >= n ? s6_dtally_write(".", tab+1, n) : s6_dtally_write(".", tab, m+1)))
+        strerr_warnwu2sys("write ", S6_DTALLY_FILENAME) ;
     }
   }
 
-  status.pid = fork() ;
-  if (status.pid < 0)
+  status.pid = cspawn("./finish", cargv, (char const *const *)environ, CSPAWN_FLAGS_SELFPIPE_FINISH | CSPAWN_FLAGS_SETSID, 0, 0) ;
+  if (!status.pid)
   {
-    strerr_warnwu2sys("fork for ", "./finish") ;
+    strerr_warnwu2sys("spawn ", "./finish") ;
     set_down_and_ready("dD", 2) ;
     return 0 ;
   }
-  else if (!status.pid)
-  {
-    char fmt0[UINT_FMT] ;
-    char fmt1[UINT_FMT] ;
-    char *cargv[5] = { "finish", fmt0, fmt1, (char *)servicename, 0 } ;
-    selfpipe_finish() ;
-    fmt0[uint_fmt(fmt0, WIFSIGNALED(status.wstat) ? 256 : WEXITSTATUS(status.wstat))] = 0 ;
-    fmt1[uint_fmt(fmt1, WTERMSIG(status.wstat))] = 0 ;
-    setsid() ;
-    execv("./finish", cargv) ;
-    _exit(127) ;
-  }
-  status.flagfinishing = 1 ;
-  announce() ;
-  ftrigw_notifyb_nosig(S6_SUPERVISE_EVENTDIR, "d", 1) ;
   {
     tain tto ;
     unsigned int timeout ;
@@ -515,6 +458,9 @@ static int uplastup_z (void)
       tain_add_g(&deadline, &tto) ;
     else settimeout_infinite() ;
   }
+  status.flagfinishing = 1 ;
+  announce() ;
+  ftrigw_notifyb_nosig(S6_SUPERVISE_EVENTDIR, "d", 1) ;
   return 1 ;
 }
 
@@ -806,6 +752,12 @@ int main (int argc, char const *const *argv)
     memcpy(progname + proglen + 2 + namelen, "(child)", 8) ;
     PROG = progname ;
     if (!fd_sanitize()) strerr_diefu1sys(111, "sanitize stdin and stdout") ;
+    {
+      struct rlimit rl ;
+      if (getrlimit(RLIMIT_NOFILE, &rl) == -1)
+        strerr_diefu1sys(111, "getrlimit") ;
+      maxfd = rl.rlim_cur ;
+    }
     x[1].fd = control_init() ;
     x[0].fd = selfpipe_init() ;
     if (x[0].fd == -1) strerr_diefu1sys(111, "init selfpipe") ;
