@@ -20,9 +20,8 @@
 #include <skalibs/selfpipe.h>
 #include <skalibs/iopause.h>
 #include <skalibs/socket.h>
-#include <skalibs/exec.h>
-
-#include <s6/ucspiserver.h>
+#include <skalibs/env.h>
+#include <skalibs/cspawn.h>
 
 #define USAGE "s6-ipcserverd [ -v verbosity ] [ -1 ] [ -P | -p ] [ -c maxconn ] [ -C localmaxconn ] prog..."
 
@@ -55,9 +54,6 @@ static unsigned int numconn = 0 ;
 static uidnum_t *uidnum ;
 static unsigned int uidlen = 0 ;
 
-
- /* Utility functions */
-
 static inline void dieusage ()
 {
   strerr_dieusage(100, USAGE) ;
@@ -67,9 +63,6 @@ static inline void X (void)
 {
   strerr_dief1x(101, "internal inconsistency. Please submit a bug-report.") ;
 }
-
-
- /* Lookup primitives */
 
 static unsigned int lookup_pid (pid_t pid)
 {
@@ -84,9 +77,6 @@ static inline unsigned int lookup_uid (uid_t uid)
   for (; i < uidlen ; i++) if (uid == uidnum[i].left) break ;
   return i ;
 }
-
-
- /* Logging */
 
 static inline void log_start (void)
 {
@@ -146,9 +136,6 @@ static inline void log_close (pid_t pid, uid_t uid, int w)
   fmtw[uint_fmt(fmtw, WIFSIGNALED(w) ? WTERMSIG(w) : WEXITSTATUS(w))] = 0 ;
   strerr_warni6x("end pid ", fmtpid, " uid ", fmtuid, WIFSIGNALED(w) ? " signal " : " exitcode ", fmtw) ;
 }
-
-
- /* Signal handling */
 
 static void killthem (int sig)
 {
@@ -227,9 +214,6 @@ static inline void handle_signals (void)
   }
 }
 
-
- /* New connection handling */
-
 static void new_connection (int s, char const *remotepath, char const *const *argv, char const *const *envp, size_t envlen)
 {
   uid_t uid = 0 ;
@@ -238,6 +222,12 @@ static void new_connection (int s, char const *remotepath, char const *const *ar
   size_t rplen = strlen(remotepath) + 1 ;
   pid_t pid ;
   unsigned int num, i ;
+  cspawn_fileaction fa[2] =
+  {
+    [0] = { .type = CSPAWN_FA_MOVE, .x = { .fd2 = { [0] = 0, [1] = s } } },
+    [1] = { .type = CSPAWN_FA_COPY, .x = { .fd2 = { [0] = 1, [1] = 0 } } }
+  } ;
+  char const *newenvp[envlen + 6] ;
   char fmt[65 + UID_FMT + GID_FMT + UINT_FMT + rplen] ;
 
   if (flaglookup && (getpeereid(s, &uid, &gid) < 0))
@@ -272,8 +262,8 @@ static void new_connection (int s, char const *remotepath, char const *const *ar
   fmt[m++] = 0 ;
   memcpy(fmt + m, "IPCREMOTEPATH=", 14) ; m += 14 ;
   memcpy(fmt + m, remotepath, rplen) ; m += rplen ;
-
-  pid = s6_ucspiserver_spawn(s, argv, envp, envlen, fmt, m, 5) ;
+  env_mergen(newenvp, envlen + 6, envp, envlen, fmt, m, 5) ;
+  pid = cspawn(argv[0], argv, newenvp, CSPAWN_FLAGS_SELFPIPE_FINISH, fa, 2) ;
   if (!pid)
   {
     if (verbosity) strerr_warnwu2sys("spawn ", argv[0]) ;
@@ -294,7 +284,6 @@ static void new_connection (int s, char const *remotepath, char const *const *ar
     log_status() ;
   }
 }
-
 
 int main (int argc, char const *const *argv)
 {

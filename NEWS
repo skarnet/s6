@@ -1,13 +1,13 @@
 Changelog for s6.
 
-In 2.11.4.0
+In 2.12.0.0
 -----------
 
  - New option to s6-svc: -s, to specify a signal by name (or number).
  - New option to s6-log: -t, to specify a timeout for partial last lines.
  - s6-svscan rewrite: no more quadratic reaps, no more forced 1s wait on shutdown
  - Eliminated fork() wherever possible on systems supporting posix_spawn()
- - New s6_ucspiserver_spawn() library function
+ - Obsolete s6lockd subsystem removed.
 
 
 In 2.11.3.2

@@ -1,3 +1,2 @@
-${LIBS6}
 -lskarnet
 ${SOCKET_LIB}

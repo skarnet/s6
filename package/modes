@@ -4,8 +4,6 @@ s6-ftrig-listen1		0755
 s6-ftrig-listen			0755
 s6-ftrig-notify			0755
 s6-ftrig-wait			0755
-s6lockd				0755
-s6lockd-helper			0755
 s6-cleanfifodir			0755
 s6-mkfifodir			0755
 s6-svscan			0755

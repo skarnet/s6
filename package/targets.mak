@@ -5,7 +5,6 @@ s6-ftrig-listen1 \
 s6-ftrig-listen \
 s6-ftrig-notify \
 s6-ftrig-wait \
-s6lockd \
 s6-cleanfifodir \
 s6-mkfifodir \
 s6-svscan \
@@ -62,8 +61,6 @@ s6-instance-delete \
 s6-instance-control \
 s6-instance-status \
 s6-instance-list
-
-LIBEXEC_TARGETS := s6lockd-helper
 
 LIB_DEFS := S6=s6
 

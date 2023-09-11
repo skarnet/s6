@@ -18,7 +18,7 @@
 
 <h1> What has changed in s6 </h1>
 
-<h2> in 2.11.4.0 </h2>
+<h2> in 2.12.0.0 </h2>
 
 <ul>
  <li> <a href="//skarnet.org/software/skalibs/">skalibs</a>
@@ -31,6 +31,10 @@ recommended dependency bumped to 2.9.4.0. </li>
  <li> New <tt>-t</tt> option to <a href="s6-log.html">s6-log</a>. </li>
  <li> <a href="s6-svscan.html">s6-svscan</a> rewrite; new options
 <tt>-C</tt> and <tt>-L</tt>. </li>
+ <li> Obsolete <tt>s6lockd</tt> subsystem removed. </li>
+ <li> <a href="s6-setlock.html">s6-setlock</a> now has a <tt>-d</tt>
+option to pin the lock to a fixed descriptor. Timeout management also
+simplified. </li>
 </ul>
 
 <h2> in 2.11.3.2 </h2>
