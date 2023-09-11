@@ -161,13 +161,13 @@ s6-ipcserver-access: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
 s6-ipcserver-access: src/conn-tools/s6-ipcserver-access.o ${LIBS6}
 s6-ipcserver-socketbinder: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
 s6-ipcserver-socketbinder: src/conn-tools/s6-ipcserver-socketbinder.o
-s6-ipcserverd: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
+s6-ipcserverd: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SPAWN_LIB}
 s6-ipcserverd: src/conn-tools/s6-ipcserverd.o
 s6-sudo: EXTRA_LIBS := -lskarnet
 s6-sudo: src/conn-tools/s6-sudo.o
 s6-sudoc: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
 s6-sudoc: src/conn-tools/s6-sudoc.o
-s6-sudod: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
+s6-sudod: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SPAWN_LIB} ${SYSCLOCK_LIB}
 s6-sudod: src/conn-tools/s6-sudod.o
 s6-applyuidgid: EXTRA_LIBS := -lskarnet
 s6-applyuidgid: src/daemontools-extras/s6-applyuidgid.o

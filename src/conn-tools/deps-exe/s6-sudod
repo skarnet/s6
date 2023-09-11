@@ -1,3 +1,4 @@
 -lskarnet
 ${SOCKET_LIB}
+${SPAWN_LIB}
 ${SYSCLOCK_LIB}

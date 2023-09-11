@@ -18,7 +18,7 @@
 #include <skalibs/iopause.h>
 #include <skalibs/selfpipe.h>
 #include <skalibs/env.h>
-#include <skalibs/exec.h>
+#include <skalibs/cspawn.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/unix-timed.h>
 #include <skalibs/unixmessage.h>
@@ -114,6 +114,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     strerr_dief1x(100, "wrong client argc/envlen") ;
   if ((cargc > 131072) || (cenvc > 131072))
     strerr_dief1x(100, "too many args/envvars from client") ;
+  if (argc + cargc == 0) strerr_dief1x(100, "client and server args both empty") ;
 
   if (nullfds & 1)
   {
@@ -134,9 +135,14 @@ int main (int argc, char const *const *argv, char const *const *envp)
   }
  
   {
+    cspawn_fileaction fa[3] =
+    {
+      [0] = { .type = CSPAWN_FA_MOVE, .x = { .fd2 = { [0] = 0, [1] = m.fds[0] } } },
+      [1] = { .type = CSPAWN_FA_MOVE, .x = { .fd2 = { [0] = 1, [1] = m.fds[1] } } },
+      [2] = { .type = CSPAWN_FA_MOVE, .x = { .fd2 = { [0] = 2, [1] = m.fds[2] } } }
+    } ;
     char const *targv[argc + 1 + cargc] ;
     char const *tenvp[envc + 1 + cenvc] ;
-    int p[2] ;
     unsigned int i = 0 ;
     for (; i < (unsigned int)argc ; i++) targv[i] = argv[i] ;
     for (i = 0 ; i <= envc ; i++) tenvp[i] = envp[i] ;
@@ -177,40 +183,9 @@ int main (int argc, char const *const *argv, char const *const *envp)
     x[0].fd = selfpipe_init() ;
     if (x[0].fd < 0) strerr_diefu1sys(111, "selfpipe_init") ;
     if (!selfpipe_trap(SIGCHLD)) strerr_diefu1sys(111, "trap SIGCHLD") ;
-    if (pipecoe(p) < 0) strerr_diefu1sys(111, "pipe") ;
-    pid = fork() ;
-    if (pid < 0) strerr_diefu1sys(111, "fork") ;
-    if (!pid)
-    {
-      char c ;
-      PROG = "s6-sudod (child)" ;
-      if ((fd_move(2, m.fds[2]) < 0)
-       || (fd_move(1, m.fds[1]) < 0)
-       || (fd_move(0, m.fds[0]) < 0))
-      {
-        char c = errno ;
-        fd_write(p[1], &c, 1) ;
-        strerr_diefu1sys(111, "move fds") ;
-      }
-      selfpipe_finish() ;
-      exec0_e(targv, tenvp) ;
-      c = errno ;
-      fd_write(p[1], &c, 1) ;
-      strerr_dieexec(c == ENOENT ? 127 : 126, targv[0]) ;
-    }
-    fd_close(p[1]) ;
-    {
-      char c ;
-      ssize_t r = fd_read(p[0], &c, 1) ;
-      if (r < 0) strerr_diefu1sys(111, "read from child") ;
-      if (r)
-      {
-        buffer_putnoflush(buffer_1small, &c, 1) ;
-        buffer_timed_flush_g(buffer_1small, &deadline) ;
-        return 111 ;
-      }
-    }
-    fd_close(p[0]) ;
+
+    pid = cspawn(targv[0], targv, tenvp, CSPAWN_FLAGS_SELFPIPE_FINISH, fa, 3) ;
+    if (!pid) strerr_diefu2sys(111, "spawn ", targv[0]) ;
   }
 
   fd_close(m.fds[0]) ;
