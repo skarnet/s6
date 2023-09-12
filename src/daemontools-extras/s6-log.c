@@ -31,7 +31,7 @@
 #include <skalibs/sig.h>
 #include <skalibs/selfpipe.h>
 #include <skalibs/siovec.h>
-#include <skalibs/exec.h>
+#include <skalibs/cspawn.h>
 
 #include <s6/config.h>
 
@@ -315,32 +315,6 @@ static int finish (logdir_t *ldp, char const *name, char suffix)
   return logdir_trim(ldp) ;
 }
 
-static inline void exec_processor (logdir_t *ldp)
-{
-#ifdef S6_USE_EXECLINE
-  char const *cargv[4] = { ldp->flags & 4 ? "/bin/sh" : EXECLINE_EXTBINPREFIX "execlineb", ldp->flags & 4 ? "-c" : "-Pc", ldp->processor, 0 } ;
-#else
-  char const *cargv[4] = { "/bin/sh", "-c", ldp->processor, 0 } ;
-#endif
-  int fd ;
-  PROG = "s6-log (processor child)" ;
-  if (chdir(ldp->dir) < 0) strerr_diefu2sys(111, "chdir to ", ldp->dir) ;
-  fd = open_readb("previous") ;
-  if (fd < 0) strerr_diefu3sys(111, "open_readb ", ldp->dir, "/previous") ;
-  if (fd_move(0, fd) < 0) strerr_diefu3sys(111, "fd_move ", ldp->dir, "/previous") ;
-  fd = open_trunc("processed") ;
-  if (fd < 0) strerr_diefu3sys(111, "open_trunc ", ldp->dir, "/processed") ;
-  if (fd_move(1, fd) < 0) strerr_diefu3sys(111, "fd_move ", ldp->dir, "/processed") ;
-  fd = open_readb("state") ;
-  if (fd < 0) strerr_diefu3sys(111, "open_readb ", ldp->dir, "/state") ;
-  if (fd_move(4, fd) < 0) strerr_diefu3sys(111, "fd_move ", ldp->dir, "/state") ;
-  fd = open_trunc("newstate") ;
-  if (fd < 0) strerr_diefu3sys(111, "open_trunc ", ldp->dir, "/newstate") ;
-  if (fd_move(5, fd) < 0) strerr_diefu3sys(111, "fd_move ", ldp->dir, "/newstate") ;
-  selfpipe_finish() ;
-  xexec(cargv) ;
-}
-
 static int rotator (logdir_t *ldp)
 {
   size_t dirlen = strlen(ldp->dir) ;
@@ -412,13 +386,25 @@ static int rotator (logdir_t *ldp)
       ldp->rstate = ROTSTATE_RUNPROCESSOR ;
     case ROTSTATE_RUNPROCESSOR :
     {
-      pid_t pid = fork() ;
-      if (pid < 0)
+#ifdef S6_USE_EXECLINE
+      char const *cargv[4] = { ldp->flags & 4 ? "/bin/sh" : EXECLINE_EXTBINPREFIX "execlineb", ldp->flags & 4 ? "-c" : "-Pc", ldp->processor, 0 } ;
+#else
+      char const *cargv[4] = { "/bin/sh", "-c", ldp->processor, 0 } ;
+#endif
+      cspawn_fileaction fa[5] =
       {
-        if (verbosity) strerr_warnwu2sys("fork processor for logdir ", ldp->dir) ;
+        [0] = { .type = CSPAWN_FA_CHDIR, .x = { .path = ldp->dir } }, 
+        [1] = { .type = CSPAWN_FA_OPEN, .x = { .openinfo = { .fd = 0, .file = "previous", .oflag = O_RDONLY, .mode = 0644 } } }, 
+        [2] = { .type = CSPAWN_FA_OPEN, .x = { .openinfo = { .fd = 1, .file = "processed", .oflag = O_WRONLY | O_CREAT | O_TRUNC, .mode = 0666 } } }, 
+        [3] = { .type = CSPAWN_FA_OPEN, .x = { .openinfo = { .fd = 4, .file = "state", .oflag = O_RDONLY, .mode = 0644 } } }, 
+        [4] = { .type = CSPAWN_FA_OPEN, .x = { .openinfo = { .fd = 5, .file = "newstate", .oflag = O_WRONLY | O_CREAT | O_TRUNC, .mode = 0666 } } }
+      } ;
+      pid_t pid = cspawn(cargv[0], cargv, (char const *const *)environ, CSPAWN_FLAGS_SELFPIPE_FINISH, fa, 5) ;
+      if (!pid)
+      {
+        if (verbosity) strerr_warnwu2sys("spawn processor for logdir ", ldp->dir) ;
         goto fail ;
       }
-      else if (!pid) exec_processor(ldp) ;
       ldp->pid = pid ;
       tain_add_g(&ldp->deadline, &tain_infinite_relative) ;
       ldp->rstate = ROTSTATE_WAITPROCESSOR ;

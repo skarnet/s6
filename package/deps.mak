@@ -177,7 +177,7 @@ s6-envuidgid: EXTRA_LIBS := -lskarnet ${MAYBEPTHREAD_LIB}
 s6-envuidgid: src/daemontools-extras/s6-envuidgid.o ${LIBNSSS}
 s6-fghack: EXTRA_LIBS := -lskarnet ${SPAWN_LIB}
 s6-fghack: src/daemontools-extras/s6-fghack.o
-s6-log: EXTRA_LIBS := -lskarnet ${SYSCLOCK_LIB}
+s6-log: EXTRA_LIBS := -lskarnet ${SPAWN_LIB} ${SYSCLOCK_LIB}
 s6-log: src/daemontools-extras/s6-log.o
 s6-setlock: EXTRA_LIBS := -lskarnet ${TIMER_LIB}
 s6-setlock: src/daemontools-extras/s6-setlock.o
