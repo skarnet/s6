@@ -127,7 +127,7 @@ src/pipe-tools/s6-ftrig-wait.o src/pipe-tools/s6-ftrig-wait.lo: src/pipe-tools/s
 src/pipe-tools/s6-mkfifodir.o src/pipe-tools/s6-mkfifodir.lo: src/pipe-tools/s6-mkfifodir.c src/include/s6/ftrigw.h
 src/supervision/s6-notifyoncheck.o src/supervision/s6-notifyoncheck.lo: src/supervision/s6-notifyoncheck.c src/include/s6/s6.h
 src/supervision/s6-permafailon.o src/supervision/s6-permafailon.lo: src/supervision/s6-permafailon.c src/include/s6/supervise.h
-src/supervision/s6-supervise.o src/supervision/s6-supervise.lo: src/supervision/s6-supervise.c src/include/s6/ftrigw.h src/include/s6/supervise.h
+src/supervision/s6-supervise.o src/supervision/s6-supervise.lo: src/supervision/s6-supervise.c src/include/s6/config.h src/include/s6/ftrigw.h src/include/s6/supervise.h
 src/supervision/s6-svc.o src/supervision/s6-svc.lo: src/supervision/s6-svc.c src/include/s6/config.h src/include/s6/supervise.h
 src/supervision/s6-svdt-clear.o src/supervision/s6-svdt-clear.lo: src/supervision/s6-svdt-clear.c src/include/s6/supervise.h
 src/supervision/s6-svdt.o src/supervision/s6-svdt.lo: src/supervision/s6-svdt.c src/include/s6/supervise.h
@@ -175,7 +175,7 @@ s6-envdir: EXTRA_LIBS := -lskarnet
 s6-envdir: src/daemontools-extras/s6-envdir.o
 s6-envuidgid: EXTRA_LIBS := -lskarnet ${MAYBEPTHREAD_LIB}
 s6-envuidgid: src/daemontools-extras/s6-envuidgid.o ${LIBNSSS}
-s6-fghack: EXTRA_LIBS := -lskarnet
+s6-fghack: EXTRA_LIBS := -lskarnet ${SPAWN_LIB}
 s6-fghack: src/daemontools-extras/s6-fghack.o
 s6-log: EXTRA_LIBS := -lskarnet ${SYSCLOCK_LIB}
 s6-log: src/daemontools-extras/s6-log.o

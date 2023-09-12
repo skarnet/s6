@@ -30,12 +30,13 @@ s6-fghack is an anti-backgrounding tool.
 
 <ul>
  <li> s6-fghack opens a lot of file descriptors (all writing to a single pipe). </li>
- <li> Then it forks and executes <em>prog...</em>. </li>
+ <li> Then it spawns <em>prog...</em> as a child. </li>
  <li> If something gets written on one of those descriptors, it's a bug in <em>prog</em>.
 s6-fghack then complains and exits 102. </li>
  <li> Unless <em>prog...</em> goes out of its way to close descriptors it does not know about,
-s6-fghack is able to detect when <em>prog...</em> exits. It exits with the same exit
-code (or 111 if <em>prog...</em> has crashed). </li>
+s6-fghack is able to detect when <em>prog...</em> exits. It exits with an
+<a href="//skarnet.org/software/execline/exitcodes.html">approximation</a> of the same exit
+code. </li>
 </ul>
 
 <h2> Notes </h2>
