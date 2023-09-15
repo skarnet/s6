@@ -337,7 +337,7 @@ before reading the next one.
 updating it when it finds a log line starting with "STAT". </li>
  <li> Logs all other lines to logdir <tt>/var/log/foobard</tt>, prepending
 them with an ISO 8601 timestamp. When <tt>current</tt>
-reaches at least 9998 kB (i.e. 10 MB filesise minus 2kB tolerance), pipe it
+reaches at least 9998 kB (i.e. 10 MB filesize minus 2kB tolerance), pipe it
 through <tt>gzip -nq9</tt> and save the result into a timestamped archive file, with
 a maximum of 30 such files or a total of 15 MB of compressed archive files. </li>
 </ul>
