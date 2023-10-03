@@ -160,6 +160,17 @@ and runnable as that user. </li>
  <li> Note that s6-notifyoncheck should be used to check if <em>the
 current service itself</em> is running. You cannot use it to
 poll for the readiness of another service. </li>
+ <li> s6-notifyoncheck must be run with the service directory as its
+current working directory. In other words: you cannot use <tt>cd</tt>
+in your run script before you execute the command line containing
+s6-notifyoncheck (else you will get a weird error message saying the
+supervisor is not running). If your service needs to run in a different
+working directory, you need to change working directories <em>after</em>
+the s6-notifyoncheck invocation. The
+<a href="//skarnet.org/software/execline/cd.html">cd</a> utility from
+the <a href="//skarnet.org/software/execline/">execline</a> package
+can be used to change working directories in the middle of a command
+line (and exec the rest of the command line) without invoking a shell. </li>
 </ul>
 
 </body>
