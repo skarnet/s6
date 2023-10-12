@@ -184,7 +184,7 @@ int main (int argc, char const *const *argv)
         else
         {
           ip46 ip ;
-          uint16 port ;
+          uint16_t port ;
           r = sanitize_read(socket_recv46(x[2].fd, line, linelen + 1, &ip, &port)) ;
           if (r == -1) strerr_diefu1sys(111, "recv") ;
           if (r)
