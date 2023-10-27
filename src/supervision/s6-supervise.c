@@ -446,7 +446,7 @@ static int uplastup_z (void)
   status.pid = cspawn("./finish", cargv, (char const *const *)environ, CSPAWN_FLAGS_SELFPIPE_FINISH | CSPAWN_FLAGS_SETSID, 0, 0) ;
   if (!status.pid)
   {
-    strerr_warnwu2sys("spawn ", "./finish") ;
+    if (errno != ENOENT) strerr_warnwu2sys("spawn ", "./finish") ;
     set_down_and_ready("dD", 2) ;
     return 0 ;
   }
