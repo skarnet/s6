@@ -27,7 +27,6 @@ int main (int argc, char const *const *argv)
 {
   static char const cmdsig[NSIG] =
   {
-    0,
     [SIGALRM] = 'a',
     [SIGABRT] = 'b',
     [SIGQUIT] = 'q',
