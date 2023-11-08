@@ -177,6 +177,15 @@ static inline void waitthem (void)
 
  /* Misc utility */
 
+ /*
+    what:
+     1 -> kill all services
+     2 -> kill inactive services
+     4 -> send a SIGTERM to loggers instead of SIGHUP
+     8 -> reap
+    16 -> delay killing until the next scan
+ */
+
 static inline int is_logger (uint32_t i)
 {
   return !!strchr(NAME(i), '/') ;
@@ -189,8 +198,9 @@ static inline void chld (unsigned int *what)
   *what |= 8 ;
 }
 
-static inline void alrm (void)
+static inline void alrm (unsigned int *what)
 {
+  *what |= 16 ;
   tain_copynow(&scan_deadline) ;
 }
 
@@ -202,7 +212,7 @@ static inline void abrt (void)
 
 static void hup (unsigned int *what)
 {
-  *what |= 2 ;
+  *what |= 18 ;
   tain_copynow(&scan_deadline) ;
 }
 
@@ -230,7 +240,7 @@ static void handle_signals (unsigned int *what)
       case -1 : panic("selfpipe_read") ;
       case 0 : return ;
       case SIGCHLD : chld(what) ; break ;
-      case SIGALRM : alrm() ; break ;
+      case SIGALRM : alrm(what) ; break ;
       case SIGABRT : abrt() ; break ;
       default :
       {
@@ -241,7 +251,7 @@ static void handle_signals (unsigned int *what)
         char const *const newargv[2] = { fn, 0 } ;
         memcpy(fn, SIGNAL_PROG, SIGNAL_PROG_LEN) ;
         memcpy(fn + SIGNAL_PROG_LEN, name, len + 1) ;
-        if (access(newargv[0], X_OK) == 0)  /* avoids a fork, don't care about the toctou */
+        if (access(newargv[0], X_OK) == 0)  /* avoids a spawn, don't care about the toctou */
         {
           if (cspawn(newargv[0], newargv, (char const **)environ, CSPAWN_FLAGS_SELFPIPE_FINISH, 0, 0))
             usebuiltin = 0 ;
@@ -270,7 +280,7 @@ static void handle_control (int fd, unsigned int *what)
     switch (c)
     {
       case 'z' : chld(what) ; break ;
-      case 'a' : alrm() ; break ;
+      case 'a' : alrm(what) ; break ;
       case 'b' : abrt() ; break ;
       case 'h' : hup(what) ; break ;
       case 'i' :
@@ -300,9 +310,11 @@ static int killthem_iter (void *data, void *aux)
   return 1 ;
 }
 
-static inline void killthem (unsigned int what)
+static inline void killthem (unsigned int *what)
 {
-  genset_iter(services, &killthem_iter, &what) ;
+  if (*what & 16 || !(*what & 7)) return ;
+  genset_iter(services, &killthem_iter, what) ;
+  *what &= ~7 ;
 }
 
 
@@ -334,8 +346,10 @@ static void remove_service (service *sv)
   genset_delete(services, sv - SERVICE(0)) ;
 }
 
-static void reap (void)
+static void reap (unsigned int *what)
 {
+  if (!(*what & 8)) return ;
+  *what &= ~8 ;
   for (;;)
   {
     uint32_t i ;
@@ -459,7 +473,7 @@ static int remove_deadinactive_iter (void *data, void *aux)
   return 1 ;
 }
 
-static void scan (void)
+static void scan (unsigned int *what)
 {
   DIR *dir = opendir(".") ;
   char tmpactive[bitarray_div8(max)] ;
@@ -520,6 +534,7 @@ static void scan (void)
     uint32_t n = genset_n(services) - avltreen_len(by_devino) ;
     if (n) genset_iter(services, &remove_deadinactive_iter, &n) ;
   }
+  *what &= ~16 ;
 }
 
 
@@ -701,6 +716,7 @@ int main (int argc, char const *const *argv)
   }
 
   {
+    unsigned int what = 0 ;
     service services_storage[max] ;
     uint32_t services_freelist[max] ;
     avlnode bydevino_storage[max] ;
@@ -732,16 +748,17 @@ int main (int argc, char const *const *argv)
       int r ;
       tain deadline = scan_deadline ;
       tain_earliest1(&deadline, &start_deadline) ;
+      killthem(&what) ;
+      reap(&what) ;
       r = iopause_g(x, 2, &deadline) ;
       if (r < 0) panic("iopause") ;
       else if (!r)
       {
-        if (!tain_future(&scan_deadline)) scan() ;
+        if (!tain_future(&scan_deadline)) scan(&what) ;
         if (!tain_future(&start_deadline)) start() ;
       }
       else
       {
-        unsigned int what = 0 ;
         if ((x[0].revents | x[1].revents) & IOPAUSE_EXCEPT)
         {
           errno = EIO ;
@@ -749,8 +766,6 @@ int main (int argc, char const *const *argv)
         }
         if (x[0].revents & IOPAUSE_READ) handle_signals(&what) ;
         if (x[1].revents & IOPAUSE_READ) handle_control(x[1].fd, &what) ;
-        if (what & 7) killthem(what & 7) ;
-        if (what & 8) reap() ;
       }
     }
 
