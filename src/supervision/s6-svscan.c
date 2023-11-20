@@ -748,8 +748,6 @@ int main (int argc, char const *const *argv)
       int r ;
       tain deadline = scan_deadline ;
       tain_earliest1(&deadline, &start_deadline) ;
-      killthem(&what) ;
-      reap(&what) ;
       r = iopause_g(x, 2, &deadline) ;
       if (r < 0) panic("iopause") ;
       else if (!r)
@@ -767,6 +765,8 @@ int main (int argc, char const *const *argv)
         if (x[0].revents & IOPAUSE_READ) handle_signals(&what) ;
         if (x[1].revents & IOPAUSE_READ) handle_control(x[1].fd, &what) ;
       }
+      killthem(&what) ;
+      reap(&what) ;
     }
 
     /* Finish phase. */
