@@ -120,8 +120,8 @@ WantedBy=multi-user.target
 
 [Service]
 Type=simple
-ExecStart=/command/s6-svscan /service
-ExecReload=/command/s6-svscanctl -an /service
+ExecStart=/command/s6-svscan /run/service
+ExecReload=/command/s6-svscanctl -an /run/service
 Restart=always
 RestartSec=1
 KillMode=mixed
