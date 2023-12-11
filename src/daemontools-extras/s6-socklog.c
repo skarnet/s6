@@ -49,6 +49,7 @@ int main (int argc, char const *const *argv)
 {
   iopause_fd x[3] = { { .events = IOPAUSE_READ }, { .fd = 1 } } ;
   int flagraw = 0 ;
+  int is6 = 0 ;
   char const *usock = "/dev/log" ;
   unsigned int linelen = 1024 ;
   PROG = "s6-socklog" ;
@@ -135,6 +136,7 @@ int main (int argc, char const *const *argv)
         fmtp[uint16_fmt(fmtp, port)] = 0 ;
         strerr_diefu5sys(111, "bind socket to ", "ip ", fmti, " port ", fmtp) ;
       }
+      is6 = ip46_is6(&ip) ;
     }
 
     if (gidn != (size_t)-1 && setgroups_and_gid(gid ? gid : getegid(), gidn, gids) < 0)
@@ -185,7 +187,7 @@ int main (int argc, char const *const *argv)
         {
           ip46 ip ;
           uint16_t port ;
-          r = sanitize_read(socket_recv46(x[2].fd, line, linelen + 1, &ip, &port)) ;
+          r = sanitize_read(socket_recv46(x[2].fd, line, linelen + 1, &ip, &port, is6)) ;
           if (r == -1) strerr_diefu1sys(111, "recv") ;
           if (r)
           {
