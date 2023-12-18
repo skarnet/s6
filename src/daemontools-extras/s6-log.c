@@ -1232,7 +1232,7 @@ int main (int argc, char const *const *argv)
   mask = ~mask & 0666 ;
   script_firstpass(argv, &sellen, &actlen, &scriptlen, &gflags) ;
   {
-    sel_t selections[sellen] ;
+    sel_t selections[sellen ? sellen : 1] ;
     act_t actions[actlen] ;
     scriptelem_t script[scriptlen] ;
     logdir_t logdirblob[llen] ;
