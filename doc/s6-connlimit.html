@@ -46,9 +46,8 @@ no maximum number of connections has been defined. </li>
 <h2> Usage </h2>
 
 <p>
- The <a href="//skarnet.org/software/s6-networking/s6-tcpserver4.html">s6-tcpserver4</a> and
-<a href="//skarnet.org/software/s6-networking/s6-tcpserver6.html">s6-tcpserver6</a> programs
-define the PROTO environment variable to "TCP", and spawn every child server with the TCPCONNNUM environment
+ The <a href="//skarnet.org/software/s6-networking/s6-tcpserver.html">s6-tcpserver</a> program
+defines the PROTO environment variable to "TCP", and spawns every child server with the TCPCONNNUM environment
 variable set to the number of connections from the same IP address.
  The <a href="//skarnet.org/software/s6-networking/s6-tcpserver-access.html">s6-tcpserver-access</a> program
 can set environment variables depending on the client's IP address. If the
@@ -72,7 +71,7 @@ of client connections by UID.
 </p>
 
 <pre>
-     s6-tcpserver4 -v2 -c1000 -C40 1.2.3.4 80 \
+     s6-tcpserver -v2 -c1000 -C40 1.2.3.4 80 \
      s6-tcpserver-access -v2 -RHl0 -i <em>dir</em> \
      s6-connlimit \
      <em>prog...</em>

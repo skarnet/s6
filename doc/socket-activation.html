@@ -34,9 +34,8 @@ because doing so is bad engineering.
 However, it <em>will</em> help you set up super-servers. The
 <a href="s6-ipcserver.html">s6-ipcserver</a>
 program, for Unix domain sockets, as well as the
-<a href="//skarnet.org/software/s6-networking/s6-tcpserver4.html">s6-tcpserver4</a> and
-<a href="//skarnet.org/software/s6-networking/s6-tcpserver6.html">s6-tcpserver6</a>
-programs, for TCP INET domain sockets (available in the
+<a href="//skarnet.org/software/s6-networking/s6-tcpserver.html">s6-tcpserver</a>
+program, for TCP INET domain sockets (available in the
 <a href="//skarnet.org/software/s6-networking/">s6-networking</a>
 package) are super-servers you can use to
 your heart's content. They are even wrappers around simpler programs,
@@ -56,9 +55,8 @@ never lose logs:
 <a href="s6-svscan.html">s6-svscan</a>. </li>
   <li> ways to open your sockets and bind them as early as you want in
 your boot process, and make them accept client connections later:
-<a href="s6-ipcserver-socketbinder.html">s6-ipcserver-socketbinder</a>,
-<a href="//skarnet.org/software/s6-networking/s6-tcpserver4-socketbinder.html">s6-tcpserver4-socketbinder</a> and
-<a href="//skarnet.org/software/s6-networking/s6-tcpserver6-socketbinder.html">s6-tcpserver6-socketbinder</a>.
+<a href="s6-ipcserver-socketbinder.html">s6-ipcserver-socketbinder</a> and
+<a href="//skarnet.org/software/s6-networking/s6-tcpserver-socketbinder.html">s6-tcpserver-socketbinder</a>.
  </li>
  <li> A supervision infrastructure that can start as many services in parallel
 as you want:
