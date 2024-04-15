@@ -156,6 +156,8 @@ static inline void close_pipes (void)
     fd_close(1) ;
     if (open2("/dev/null", O_WRONLY) < 0)
       strerr_warnwu1sys("open /dev/null") ;
+    if (fd_copy(2, 1) == -1)
+      strerr_warnwu1sys("redirect stderr to /dev/null") ;
   }
 }
 
