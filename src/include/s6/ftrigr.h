@@ -5,12 +5,14 @@
 
 #include <sys/types.h>
 #include <stdint.h>
+
 #include <skalibs/config.h>
 #include <skalibs/tai.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/genalloc.h>
 #include <skalibs/gensetdyn.h>
 #include <skalibs/textclient.h>
+
 #include <s6/config.h>
 
 
@@ -23,8 +25,6 @@
 #define FTRIGR_BANNER1_LEN (sizeof FTRIGR_BANNER1 - 1)
 #define FTRIGR_BANNER2 "ftrigr v1.0 (a)\n"
 #define FTRIGR_BANNER2_LEN (sizeof FTRIGR_BANNER2 - 1)
-
-#define FTRIGR_MAX 1000
 
 
  /* Internals of the ftrigr_t */

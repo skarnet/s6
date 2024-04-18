@@ -14,6 +14,7 @@
 #include <skalibs/strerr.h>
 #include <skalibs/buffer.h>
 #include <skalibs/stralloc.h>
+#include <skalibs/genalloc.h>
 #include <skalibs/sig.h>
 #include <skalibs/tai.h>
 #include <skalibs/djbunix.h>
@@ -31,7 +32,7 @@
 
 #define dienomem() strerr_diefu1sys(111, "stralloc_catb")
 
-typedef struct ftrigio_s ftrigio_t, *ftrigio_t_ref ;
+typedef struct ftrigio_s ftrigio, *ftrigio_ref ;
 struct ftrigio_s
 {
   unsigned int xindex ;
@@ -45,22 +46,7 @@ struct ftrigio_s
 } ;
 #define FTRIGIO_ZERO { .xindex = 0, .trig = FTRIG1_ZERO, .b = BUFFER_INIT(0, -1, 0, 0), .buf = "", .sa = STRALLOC_ZERO, .options = 0, .id = 0 }
 
-static ftrigio_t a[FTRIGR_MAX] ;
-static unsigned int n = 0 ;
-
-static void ftrigio_deepfree (ftrigio_t *p)
-{
-  ftrig1_free(&p->trig) ;
-  stralloc_free(&p->sa) ;
-  regfree(&p->re) ;
-}
-
-static void cleanup (void)
-{
-  unsigned int i = 0 ;
-  for (; i < n ; i++) ftrigio_deepfree(a + i) ;
-  n = 0 ;
-}
+static genalloc g = GENALLOC_ZERO ; /* ftrigio */
 
 static void trig (uint16_t id, char what, char info)
 {
@@ -68,29 +54,33 @@ static void trig (uint16_t id, char what, char info)
   uint16_pack_big(pack, id) ;
   pack[2] = what ; pack[3] = info ;
   if (!textmessage_put(textmessage_sender_x, pack, 4))
-  {
-    cleanup() ;
     strerr_diefu1sys(111, "build answer") ;
-  }
 }
 
 static void answer (unsigned char c)
 {
   if (!textmessage_put(textmessage_sender_1, (char *)&c, 1))
-  {
-    cleanup() ;
     strerr_diefu1sys(111, "textmessage_put") ;
-  }
 }
 
-static void remove (unsigned int i)
+static void ftrigio_deepfree (ftrigio *p)
 {
+  ftrig1_free(&p->trig) ;
+  stralloc_free(&p->sa) ;
+  regfree(&p->re) ;
+}
+
+static void remove (size_t i)
+{
+  size_t n = genalloc_len(ftrigio, &g) ;
+  ftrigio *a = genalloc_s(ftrigio, &g) ;
   ftrigio_deepfree(a + i) ;
   a[i] = a[--n] ;
   a[i].b.c.x = a[i].buf ;
+  genalloc_setlen(ftrigio, &g, n) ;
 }
 
-static inline int ftrigio_read (ftrigio_t *p)
+static inline int ftrigio_read (ftrigio *p)
 {
   unsigned int i = FTRIGRD_MAXREADS ;
   while (i--)
@@ -121,17 +111,15 @@ static int parse_protocol (struct iovec const *v, void *context)
   char const *s = v->iov_base ;
   uint16_t id ;
   if (v->iov_len < 3)
-  {
-    cleanup() ;
     strerr_dief1x(100, "invalid client request") ;
-  }
   uint16_unpack_big(s, &id) ;
   switch (s[2])
   {
     case 'U' : /* unsubscribe */
     {
-      unsigned int i = 0 ;
-      for (; i < n ; i++) if (a[i].id == id) break ;
+      size_t n = genalloc_len(ftrigio, &g) ;
+      size_t i = 0 ;
+      for (; i < n ; i++) if (genalloc_s(ftrigio, &g)[i].id == id) break ;
       if (i < n)
       {
         remove(i) ;
@@ -142,6 +130,8 @@ static int parse_protocol (struct iovec const *v, void *context)
     }
     case 'L' : /* subscribe to path and match re */
     {
+      size_t n = genalloc_len(ftrigio, &g) ;
+      ftrigio *p ;
       uint32_t options, pathlen, relen ;
       int r ;
       if (v->iov_len < 19)
@@ -157,36 +147,34 @@ static int parse_protocol (struct iovec const *v, void *context)
         answer(EPROTO) ;
         break ;
       }
-      if (n >= FTRIGR_MAX)
+      if (!genalloc_readyplus(ftrigio, &g, 1))
       {
-        answer(ENFILE) ;
+        answer(ENOMEM) ;
         break ;
       }
-      r = skalibs_regcomp(&a[n].re, s + 16 + pathlen, REG_EXTENDED) ;
+      p = genalloc_s(ftrigio, &g) + n ;
+      r = skalibs_regcomp(&p->re, s + 16 + pathlen, REG_EXTENDED) ;
       if (r)
       {
         answer(r == REG_ESPACE ? ENOMEM : EINVAL) ;
         break ;
       }
-      if (!ftrig1_make(&a[n].trig, s + 15))
+      if (!ftrig1_make(&p->trig, s + 15))
       {
-        regfree(&a[n].re) ;
+        regfree(&p->re) ;
         answer(errno) ;
         break ;
       }
-      buffer_init(&a[n].b, &buffer_read, a[n].trig.fd, a[n].buf, FTRIGRD_BUFSIZE) ;
-      a[n].options = options ;
-      a[n].id = id ;
-      a[n].sa = stralloc_zero ;
-      n++ ;
+      buffer_init(&p->b, &buffer_read, p->trig.fd, p->buf, FTRIGRD_BUFSIZE) ;
+      p->options = options ;
+      p->id = id ;
+      p->sa = stralloc_zero ;
+      genalloc_setlen(ftrigio, &g, n+1) ;
       answer(0) ;
       break ;
     }
     default :
-    {
-      cleanup() ;
       strerr_dief1x(100, "invalid client request") ;
-    }
   }
   (void)context ;
   return 1 ;
@@ -210,8 +198,9 @@ int main (void)
 
   for (;;)
   {
-    iopause_fd x[3 + n] ;
-    unsigned int i = 0 ;
+    iopause_fd x[3 + genalloc_len(ftrigio, &g)] ;
+    size_t n = genalloc_len(ftrigio, &g) ;
+    size_t i = 0 ;
 
     x[0].fd = 0 ; x[0].events = IOPAUSE_EXCEPT | IOPAUSE_READ ;
     x[1].fd = 1 ; x[1].events = IOPAUSE_EXCEPT | (textmessage_sender_isempty(textmessage_sender_1) ? 0 : IOPAUSE_WRITE) ;
@@ -219,16 +208,13 @@ int main (void)
     x[2].events = IOPAUSE_EXCEPT | (textmessage_sender_isempty(textmessage_sender_x) ? 0 : IOPAUSE_WRITE) ;
     for (; i < n ; i++)
     {
-      a[i].xindex = 3 + i ;
-      x[3+i].fd = a[i].trig.fd ;
+      genalloc_s(ftrigio, &g)[i].xindex = 3 + i ;
+      x[3+i].fd = genalloc_s(ftrigio, &g)[i].trig.fd ;
       x[3+i].events = IOPAUSE_READ ;
     }
 
     if (iopause(x, 3 + n, 0, 0) < 0)
-    {
-      cleanup() ;
       strerr_diefu1sys(111, "iopause") ;
-    }
 
    /* client closed */
     if ((x[0].revents | x[1].revents) & IOPAUSE_EXCEPT) break ;
@@ -236,22 +222,17 @@ int main (void)
    /* client is reading */
     if (x[1].revents & IOPAUSE_WRITE)
       if (!textmessage_sender_flush(textmessage_sender_1) && !error_isagain(errno))
-      {
-        cleanup() ;
         strerr_diefu1sys(111, "flush stdout") ;
-      }
     if (x[2].revents & IOPAUSE_WRITE)
       if (!textmessage_sender_flush(textmessage_sender_x) && !error_isagain(errno))
-      {
-        cleanup() ;
         return 1 ;
-      }
 
    /* scan listening ftrigs */
     for (i = 0 ; i < n ; i++)
     {
-      if (x[a[i].xindex].revents & IOPAUSE_READ)
-        if (!ftrigio_read(a+i)) remove(i--) ;
+      ftrigio *p = genalloc_s(ftrigio, &g) + i ;
+      if (x[p->xindex].revents & IOPAUSE_READ)
+        if (!ftrigio_read(p)) remove(i--) ;
     }
 
    /* client is writing */
@@ -260,11 +241,9 @@ int main (void)
       if (textmessage_handle(textmessage_receiver_0, &parse_protocol, 0) < 0)
       {
         if (errno == EPIPE) break ; /* normal exit */
-        cleanup() ;
         strerr_diefu1sys(111, "handle messages from client") ;
       }
     }
   }
-  cleanup() ;
   return 0 ;
 }
