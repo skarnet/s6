@@ -28,7 +28,7 @@
 #include <skalibs/posixishard.h>
 
 #define FTRIGRD_MAXREADS 32
-#define FTRIGRD_BUFSIZE 17
+#define FTRIGRD_BUFSIZE 16
 
 #define dienomem() strerr_diefu1sys(111, "stralloc_catb")
 
@@ -184,9 +184,10 @@ int main (void)
 {
   PROG = "s6-ftrigrd" ;
 
-  if (ndelay_on(0) < 0) strerr_diefu2sys(111, "ndelay_on ", "0") ;
-  if (ndelay_on(1) < 0) strerr_diefu2sys(111, "ndelay_on ", "1") ;
-  if (!sig_ignore(SIGPIPE)) strerr_diefu1sys(111, "ignore SIGPIPE") ;
+  if (ndelay_on(0) == -1 || ndelay_on(1) == -1)
+    strerr_diefu1sys(111, "make fds nonblocking") ;
+  if (!sig_altignore(SIGPIPE))
+    strerr_diefu1sys(111, "ignore SIGPIPE") ;
 
   {
     tain deadline ;
@@ -198,9 +199,9 @@ int main (void)
 
   for (;;)
   {
-    iopause_fd x[3 + genalloc_len(ftrigio, &g)] ;
     size_t n = genalloc_len(ftrigio, &g) ;
     size_t i = 0 ;
+    iopause_fd x[3 + n] ;
 
     x[0].fd = 0 ; x[0].events = IOPAUSE_EXCEPT | IOPAUSE_READ ;
     x[1].fd = 1 ; x[1].events = IOPAUSE_EXCEPT | (textmessage_sender_isempty(textmessage_sender_1) ? 0 : IOPAUSE_WRITE) ;
@@ -208,8 +209,9 @@ int main (void)
     x[2].events = IOPAUSE_EXCEPT | (textmessage_sender_isempty(textmessage_sender_x) ? 0 : IOPAUSE_WRITE) ;
     for (; i < n ; i++)
     {
-      genalloc_s(ftrigio, &g)[i].xindex = 3 + i ;
-      x[3+i].fd = genalloc_s(ftrigio, &g)[i].trig.fd ;
+      ftrigio *p = genalloc_s(ftrigio, &g) + i ;
+      p->xindex = 3+i ;
+      x[3+i].fd = p->trig.fd ;
       x[3+i].events = IOPAUSE_READ ;
     }
 
@@ -228,7 +230,7 @@ int main (void)
         return 1 ;
 
    /* scan listening ftrigs */
-    for (i = 0 ; i < n ; i++)
+    for (i = 0 ; i < genalloc_len(ftrigio, &g) ; i++)
     {
       ftrigio *p = genalloc_s(ftrigio, &g) + i ;
       if (x[p->xindex].revents & IOPAUSE_READ)
