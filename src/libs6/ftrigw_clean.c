@@ -15,9 +15,9 @@ int ftrigw_clean (char const *path)
   DIR *dir = opendir(path) ;
   if (!dir) return 0 ;
   {
-    char tmp[pathlen + FTRIG1_PREFIXLEN + 45] ;
+    char tmp[pathlen + FTRIG1_PREFIXLEN + 35] ;
     memcpy(tmp, path, pathlen) ;
-    tmp[pathlen] = '/' ; tmp[pathlen + FTRIG1_PREFIXLEN + 44] = 0 ;
+    tmp[pathlen] = '/' ; tmp[pathlen + FTRIG1_PREFIXLEN + 34] = 0 ;
     for (;;)
     {
       direntry *d ;
@@ -26,8 +26,8 @@ int ftrigw_clean (char const *path)
       d = readdir(dir) ;
       if (!d) break ;
       if (strncmp(d->d_name, FTRIG1_PREFIX, FTRIG1_PREFIXLEN)) continue ;
-      if (strlen(d->d_name) != FTRIG1_PREFIXLEN + 43) continue ;
-      memcpy(tmp + pathlen + 1, d->d_name, FTRIG1_PREFIXLEN + 43) ;
+      if (strlen(d->d_name) != FTRIG1_PREFIXLEN + 33) continue ;
+      memcpy(tmp + pathlen + 1, d->d_name, FTRIG1_PREFIXLEN + 33) ;
       fd = open_write(tmp) ;
       if (fd >= 0) fd_close(fd) ;
       else if ((errno == ENXIO) && (unlink(tmp) < 0)) e = errno ;

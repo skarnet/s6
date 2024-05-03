@@ -23,7 +23,7 @@ int ftrig1_make (ftrig1_t *f, char const *path)
   tmp[pathlen + 2 + FTRIG1_PREFIXLEN] = ':' ;
   if (!timestamp(tmp + pathlen + 3 + FTRIG1_PREFIXLEN)) return 0 ;
   memcpy(tmp + pathlen + FTRIG1_PREFIXLEN + 28, ":XXXXXX", 8) ;
-  ff.fd = mkptemp2(tmp, O_NONBLOCK|O_CLOEXEC) ;
+  ff.fd = mkptemp3(tmp, 0622, O_NONBLOCK|O_CLOEXEC) ;
   if (ff.fd == -1) return 0 ;
   ff.fdw = open_write(tmp) ;
   if (ff.fdw == -1) goto err1 ;
