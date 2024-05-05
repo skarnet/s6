@@ -50,7 +50,7 @@ static genalloc g = GENALLOC_ZERO ; /* ftrigio */
 
 static void ftrigio_free (ftrigio *p)
 {
-  alloc_free(&p->b.c.x) ;
+  alloc_free(p->b.c.x) ;
   ftrig1_free(&p->trig) ;
   stralloc_free(&p->sa) ;
   regfree(&p->re) ;
