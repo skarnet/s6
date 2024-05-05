@@ -13,6 +13,7 @@
 #include <skalibs/error.h>
 #include <skalibs/strerr.h>
 #include <skalibs/buffer.h>
+#include <skalibs/alloc.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/genalloc.h>
 #include <skalibs/sig.h>
@@ -38,7 +39,6 @@ struct ftrigio_s
   unsigned int xindex ;
   ftrig1_t trig ;
   buffer b ;
-  char buf[FTRIGRD_BUFSIZE] ;
   regex_t re ;
   stralloc sa ;
   uint32_t options ;
@@ -48,8 +48,9 @@ struct ftrigio_s
 
 static genalloc g = GENALLOC_ZERO ; /* ftrigio */
 
-static void ftrigio_deepfree (ftrigio *p)
+static void ftrigio_free (ftrigio *p)
 {
+  alloc_free(&p->b.c.x) ;
   ftrig1_free(&p->trig) ;
   stralloc_free(&p->sa) ;
   regfree(&p->re) ;
@@ -59,7 +60,7 @@ static void cleanup (void)
 {
   size_t n = genalloc_len(ftrigio, &g) ;
   ftrigio *a = genalloc_s(ftrigio, &g) ;
-  for (size_t i = 0 ; i < n ; i++) ftrigio_deepfree(a + i) ;
+  for (size_t i = 0 ; i < n ; i++) ftrigio_free(a + i) ;
   genalloc_setlen(ftrigio, &g, 0) ;
 }
 
@@ -88,9 +89,8 @@ static void remove (size_t i)
 {
   size_t n = genalloc_len(ftrigio, &g) ;
   ftrigio *a = genalloc_s(ftrigio, &g) ;
-  ftrigio_deepfree(a + i) ;
+  ftrigio_free(a + i) ;
   a[i] = a[--n] ;
-  a[i].b.c.x = a[i].buf ;
   genalloc_setlen(ftrigio, &g, n) ;
 }
 
@@ -153,6 +153,7 @@ static int parse_protocol (struct iovec const *v, void *context)
     {
       size_t n = genalloc_len(ftrigio, &g) ;
       ftrigio *p ;
+      char *x ;
       uint32_t options, pathlen, relen ;
       int r ;
       if (v->iov_len < 19)
@@ -173,20 +174,28 @@ static int parse_protocol (struct iovec const *v, void *context)
         answer(ENOMEM) ;
         break ;
       }
+      x = alloc(FTRIGRD_BUFSIZE) ;
+      if (!x)
+      {
+        answer(ENOMEM) ;
+        break ;
+      }
       p = genalloc_s(ftrigio, &g) + n ;
       r = skalibs_regcomp(&p->re, s + 16 + pathlen, REG_EXTENDED) ;
       if (r)
       {
+        alloc_free(x) ;
         answer(r == REG_ESPACE ? ENOMEM : EINVAL) ;
         break ;
       }
       if (!ftrig1_make(&p->trig, s + 15))
       {
         regfree(&p->re) ;
+        alloc_free(x) ;
         answer(errno) ;
         break ;
       }
-      buffer_init(&p->b, &buffer_read, p->trig.fd, p->buf, FTRIGRD_BUFSIZE) ;
+      buffer_init(&p->b, &buffer_read, p->trig.fd, x, FTRIGRD_BUFSIZE) ;
       p->options = options ;
       p->id = id ;
       p->sa = stralloc_zero ;
