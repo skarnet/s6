@@ -46,7 +46,7 @@ but most of the time it will be a script, called <em>run script</em>.
 This file is the most important one in your service directory: it
 contains the commands that will setup and run your <em>foo</em> service.
  <ul>
-  <li> It is forked and executed by <a href="s6-supervise.html">s6-supervise</a>
+  <li> It is spawned by <a href="s6-supervise.html">s6-supervise</a>
 every time the service must be started, i.e. normally when
 <a href="s6-supervise.html">s6-supervise</a> starts, and whenever
 the service goes down when it is supposed to be up. </li>
@@ -118,11 +118,16 @@ process has been killed. If the <em>foo</em> service is supposed to be up,
 script, not the finish script, should be running; the finish script should really
 be short-lived.) The maximum duration of a <tt>finish</tt> execution can be
 configured via the <tt>timeout-finish</tt> file, see below. </li>
-  <li> The finish script is executed with three arguments:
+  <li> The finish script is executed with four arguments:
    <ol>
     <li> the exit code from the run script (resp. 256 if the run script was killed by a signal) </li>
     <li> an undefined number (resp. the number of the signal that killed the run script) </li>
-    <li> the name of the service directory, the same that has been given to <tt>./run</tt>. </li>
+    <li> the name of the service directory, the same that has been given to <tt>./run</tt> </li>
+    <li> the process group id of the defunct run script. This is useful to clean up
+services that leave children behind: for instance, <tt>if test "$1" -gt 255 ; then kill -9 -- -"$4" ; fi</tt>
+in the finish script will SIGKILL all children processes if the service crashed.
+This is not an entirely reliable mechanism, because an annoying service could spawn
+children processes in a different process group, but it should catch most offenders. </li>
    </ol>
   <li> If the finish script exits 125, then <a href="s6-supervise.html">s6-supervise</a>
 interprets this as a permanent failure for the service, and does not restart it,

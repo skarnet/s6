@@ -14,10 +14,12 @@ void s6_svstatus_unpack (char const *pack, s6_svstatus_t *sv)
   tain_unpack(pack + 12, &sv->readystamp) ;
   uint64_unpack_big(pack + 24, &pid) ;
   sv->pid = pid ;
-  uint16_unpack_big(pack + 32, &wstat) ;
+  uint64_unpack_big(pack + 32, &pid) ;
+  sv->pgid = pid ;
+  uint16_unpack_big(pack + 40, &wstat) ;
   sv->wstat = wstat ;
-  sv->flagpaused = pack[34] & 1 ;
-  sv->flagfinishing = !!(pack[34] & 2) ;
-  sv->flagwantup = !!(pack[34] & 4) ;
-  sv->flagready = !!(pack[34] & 8) ;
+  sv->flagpaused = pack[42] & 1 ;
+  sv->flagfinishing = !!(pack[42] & 2) ;
+  sv->flagwantup = !!(pack[42] & 4) ;
+  sv->flagready = !!(pack[42] & 8) ;
 }

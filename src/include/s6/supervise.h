@@ -12,7 +12,7 @@
 #define S6_SUPERVISE_EVENTDIR "event"
 #define S6_SVSCAN_CTLDIR ".s6-svscan"
 #define S6_SVSTATUS_FILENAME S6_SUPERVISE_CTLDIR "/status"
-#define S6_SVSTATUS_SIZE 35
+#define S6_SVSTATUS_SIZE 43
 #define S6_DTALLY_FILENAME S6_SUPERVISE_CTLDIR "/death_tally"
 #define S6_MAX_DEATH_TALLY 4096
 
@@ -26,6 +26,7 @@ struct s6_svstatus_s
   tain stamp ;
   tain readystamp ;
   pid_t pid ;
+  pid_t pgid ;
   int wstat ;
   unsigned int flagpaused : 1 ;
   unsigned int flagfinishing : 1 ;
@@ -38,6 +39,7 @@ struct s6_svstatus_s
   .stamp = TAIN_ZERO, \
   .readystamp = TAIN_ZERO, \
   .pid = 0, \
+  .pgid = 0, \
   .wstat = 0, \
   .flagpaused = 0, \
   .flagfinishing = 0, \

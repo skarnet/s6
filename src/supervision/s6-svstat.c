@@ -3,7 +3,9 @@
 #include <sys/wait.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <errno.h>
+
 #include <skalibs/uint64.h>
 #include <skalibs/types.h>
 #include <skalibs/bytestr.h>
@@ -13,9 +15,10 @@
 #include <skalibs/sig.h>
 #include <skalibs/tai.h>
 #include <skalibs/djbunix.h>
+
 #include <s6/supervise.h>
 
-#define USAGE "s6-svstat [ -uwNrpest | -o up,wantedup,normallyup,ready,paused,pid,exitcode,signal,signum,updownsince,readysince,updownfor,readyfor ] [ -n ] servicedir"
+#define USAGE "s6-svstat [ -uwNrpgest | -o up,wantedup,normallyup,ready,paused,pid,pgid,exitcode,signal,signum,updownsince,readysince,updownfor,readyfor ] [ -n ] servicedir"
 #define dieusage() strerr_dieusage(100, USAGE)
 
 #define MAXFIELDS 16
@@ -59,6 +62,16 @@ static void pr_pid (buffer *b, s6_svstatus_t const *st)
   {
     char fmt[PID_FMT] ;
     buffer_putnoflush(b, fmt, pid_fmt(fmt, st->pid)) ;
+  }
+  else buffer_putsnoflush(b, "-1") ;
+}
+
+static void pr_pgid (buffer *b, s6_svstatus_t const *st)
+{
+  if (st->pgid > 0)
+  {
+    char fmt[PID_FMT] ;
+    buffer_putnoflush(b, fmt, pid_fmt(fmt, st->pgid)) ;
   }
   else buffer_putsnoflush(b, "-1") ;
 }
@@ -133,38 +146,40 @@ static void pr_normallyup (buffer *b, s6_svstatus_t const *st)
 
 static funcmap_t const fmtable[] =
 {
-  { .s = "up", .f = &pr_up },
-  { .s = "wantedup", .f = &pr_wantedup },
-  { .s = "normallyup", .f = &pr_normallyup },
-  { .s = "ready", .f = &pr_ready },
-  { .s = "paused", .f = &pr_paused },
-  { .s = "pid", .f = &pr_pid },
   { .s = "exitcode", .f = &pr_exitcode },
+  { .s = "normallyup", .f = &pr_normallyup },
+  { .s = "paused", .f = &pr_paused },
+  { .s = "pgid", .f = &pr_pgid },
+  { .s = "pid", .f = &pr_pid },
+  { .s = "ready", .f = &pr_ready },
+  { .s = "readyfor", .f = &pr_readyseconds },
+  { .s = "readysince", .f = &pr_readystamp },
   { .s = "signal", .f = &pr_signal },
   { .s = "signum", .f = &pr_signum },
-  { .s = "updownsince", .f = &pr_stamp },
-  { .s = "readysince", .f = &pr_readystamp },
+  { .s = "up", .f = &pr_up },
   { .s = "updownfor", .f = &pr_upseconds },
-  { .s = "readyfor", .f = &pr_readyseconds },
-  { .s = 0, .f = 0 }
+  { .s = "updownsince", .f = &pr_stamp },
+  { .s = "wantedup", .f = &pr_wantedup },
 } ;
 
+static int funcmap_bcmp (void const *a, void const *b)
+{
+  return strcmp((char const *)a, ((funcmap_t const *)b)->s) ;
+}
+
+#define BSEARCH(key, array) bsearch(key, (array), sizeof(array)/sizeof(funcmap_t), sizeof(funcmap_t), &funcmap_bcmp)
 
 static unsigned int parse_options (char const *arg, pr_func_ref *fields, unsigned int n)
 {
   while (*arg)
   {
+    funcmap_t const *p ;
     size_t pos = str_chr(arg, ',') ;
-    funcmap_t const *p = fmtable ;
-    if (!pos) strerr_dief1x(100, "invalid null option field") ;
-    for (; p->s ; p++) if (!strncmp(arg, p->s, pos)) break ;
-    if (!p->s)
-    {
-      char blah[pos+1] ;
-      memcpy(blah, arg, pos) ;
-      blah[pos] = 0 ;
-      strerr_dief2x(100, "invalid option field: ", blah) ;
-    }
+    char blah[pos+1] ;
+    memcpy(blah, arg, pos) ;
+    blah[pos] = 0 ;
+    p = BSEARCH(blah, fmtable) ;
+    if (!p) strerr_dief2x(100, "invalid option field: ", blah) ;
     checkfields() ;
     fields[n++] = p->f ;
     arg += pos ; if (*arg) arg++ ;
@@ -182,6 +197,8 @@ static void legacy (s6_svstatus_t *st, int flagnum)
   {
     buffer_putnoflush(buffer_1small,"up (pid ", 8) ;
     buffer_putnoflush(buffer_1small, fmt, pid_fmt(fmt, status.pid)) ;
+    buffer_putnoflush(buffer_1small, " pgid ", 6) ;
+    buffer_putnoflush(buffer_1small, fmt, pid_fmt(fmt, status.pgid)) ;
     buffer_putnoflush(buffer_1small, ") ", 2) ;
   }
   else
@@ -242,7 +259,7 @@ int main (int argc, char const *const *argv)
     subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      int opt = subgetopt_r(argc, argv, "no:uwNrpest", &l) ;
+      int opt = subgetopt_r(argc, argv, "no:uwNrpgest", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -253,6 +270,7 @@ int main (int argc, char const *const *argv)
         case 'N' : checkfields() ; fields[n++] = &pr_normallyup ; break ;
         case 'r' : checkfields() ; fields[n++] = &pr_ready ; break ;
         case 'p' : checkfields() ; fields[n++] = &pr_pid ; break ;
+        case 'g' : checkfields() ; fields[n++] = &pr_pgid ; break ;
         case 'e' : checkfields() ; fields[n++] = &pr_exitcode ; break ;
         case 's' : checkfields() ; fields[n++] = &pr_signal ; break ;
         case 't' : checkfields() ; fields[n++] = &pr_upseconds ; break ;

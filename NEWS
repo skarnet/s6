@@ -1,9 +1,13 @@
 Changelog for s6.
 
-In 2.12.0.5
+In 2.13.0.0
 -----------
 
  - Bugfixes.
+ - s6-svstat -o pgid (or -g) prints the service's pgid
+ - s6-supervise now passes the service's pgid to ./finish
+ - New s6-svc -P/-C/-K sends SIGSTOP, SIGCONT or SIGKILL to
+the service's process group.
 
 
 In 2.12.0.4

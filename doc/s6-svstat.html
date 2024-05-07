@@ -27,7 +27,7 @@ summary of the state of a process monitored by
 <h2> Interface </h2>
 
 <pre>
-     s6-svstat [ -uwNrpest | -o up,wantedup,normallyup,ready,paused,pid,exitcode,signal,signum,updownsince,readysince,updownfor,readyfor ] [ -n ] <em>servicedir</em>
+     s6-svstat [ -uwNrpest | -o up,wantedup,normallyup,ready,paused,pid,pgid,exitcode,signal,signum,updownsince,readysince,updownfor,readyfor ] [ -n ] <em>servicedir</em>
 </pre>
 
 <p>
@@ -97,6 +97,8 @@ currently stopped) and <tt>false</tt> if it is not. It is a rare flag, you shoul
 need to use this option. </li>
    <li> <tt>pid</tt>: print the pid of the supervised process. If the service is currently down,
 <tt>-1</tt> is printed instead. </li>
+   <li> <tt>pgid</tt>: print the process group of the supervised process. If the service is
+currently down, print the process group of the last living instance of the service. </li>
    <li> <tt>exitcode</tt>: print the exit code of the last execution of <tt>./run</tt>. If the
 service is currently up, or the last <tt>./run</tt> process was killed by a signal,
 <tt>-1</tt> is printed instead. </li>
@@ -123,6 +125,7 @@ service last became ready (or ready to be started if it's currently not up and r
  <li> <tt>-N</tt>: equivalent to <tt>-o&nbsp;normallyup</tt>. </li>
  <li> <tt>-r</tt>: equivalent to <tt>-o&nbsp;ready</tt>. </li>
  <li> <tt>-p</tt>: equivalent to <tt>-o&nbsp;pid</tt>. </li>
+ <li> <tt>-g</tt>: equivalent to <tt>-o&nbsp;pgid</tt>. </li>
  <li> <tt>-e</tt>: equivalent to <tt>-o&nbsp;exitcode</tt>. </li>
  <li> <tt>-s</tt>: equivalent to <tt>-o&nbsp;signal</tt>. </li>
  <li> <tt>-t</tt>: equivalent to <tt>-o&nbsp;updownfor</tt>. </li>

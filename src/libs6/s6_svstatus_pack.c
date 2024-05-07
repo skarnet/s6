@@ -11,8 +11,9 @@ void s6_svstatus_pack (char *pack, s6_svstatus_t const *sv)
   tain_pack(pack, &sv->stamp) ;
   tain_pack(pack + 12, &sv->readystamp) ;
   uint64_pack_big(pack + 24, (uint64_t)sv->pid) ;
-  uint16_pack_big(pack + 32, (uint16_t)sv->wstat) ;
-  pack[34] =
+  uint64_pack_big(pack + 32, (uint64_t)sv->pgid) ;
+  uint16_pack_big(pack + 40, (uint16_t)sv->wstat) ;
+  pack[42] =
     sv->flagpaused |
     (sv->flagfinishing << 1) |
     (sv->flagwantup << 2) |

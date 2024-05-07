@@ -18,13 +18,20 @@
 
 <h1> What has changed in s6 </h1>
 
-<h2> in 2.12.0.5 </h2>
+<h2> in 2.13.0.0 </h2>
 
 <ul>
  <li> <a href="//skarnet.org/software/skalibs/">skalibs</a>
 dependency bumped to 2.14.2.0. </li>
  <li> <a href="//skarnet.org/software/execline/">execline</a>
 recommended dependency bumped to 2.9.5.1. </li>
+ <li> <a href="s6-svstat.html">s6-svstat</a> has new options,
+<tt>-g</tt> and <tt>-o pgid</tt>, to print the pgid of the service. </li>
+ <li> <a href="s6-supervise.html">s6-supervise</a> now passes the
+pgid of the defunct service as 4th argument to the finish script. </li>
+ <li> <a href="s6-svc.html">s6-svc</a> can now send SIGSTOP, SIGCONT
+and SIGKILL to the service's process group, via the <tt>-P</tt>, <tt>-C</tt>
+and <tt>-K</tt> options. </li>
 </ul>
 
 <h2> in 2.12.0.4 </h2>
