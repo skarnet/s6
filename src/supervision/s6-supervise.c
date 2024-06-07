@@ -780,11 +780,10 @@ int main (int argc, char const *const *argv)
   {
     size_t proglen = strlen(PROG) ;
     size_t namelen = strlen(argv[1]) ;
-    char progname[proglen + namelen + 10] ;
+    char progname[proglen + namelen + 2] ;
     memcpy(progname, PROG, proglen) ;
     progname[proglen] = ' ' ;
     memcpy(progname + proglen + 1, argv[1], namelen + 1) ;
-    memcpy(progname + proglen + 2 + namelen, "(child)", 8) ;
     PROG = progname ;
     if (!fd_sanitize()) strerr_diefu1sys(111, "sanitize stdin and stdout") ;
     {
