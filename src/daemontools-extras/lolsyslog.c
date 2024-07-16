@@ -75,17 +75,20 @@ size_t lolsyslog_string (char *out, char const *in)
   unsigned int fpr ;
   int fp ;
   CODE const *p = facilitynames ;
+  char const *x ;
 
   if (in[0] != '<' || !(i = uint_scan(in+1, &fpr)) || in[1+i] != '>') return 0 ;
   fp = LOG_FAC(fpr) << 3 ;
   for (; p->c_name ; p++) if (p->c_val == fp) break ;
-  out = stpcpy(out, p->c_name ? p->c_name : "unknown") ;
+  x = p->c_name ? p->c_name : "unknown" ;
+  strcpy(out, x) ; out += strlen(x) ;
   *out++ = '.' ;
 
   p = prioritynames ;
   fp = LOG_PRI(fpr) ;
   for (; p->c_name ; p++) if (p->c_val == fp) break ;
-  out = stpcpy(out, p->c_name ? p->c_name : "unknown") ;
+  x = p->c_name ? p->c_name : "unknown" ;
+  strcpy(out, x) ; out += strlen(x) ;
   *out++ = ':' ; *out++ = ' ' ; *out++ = 0 ;
   return i+2 ;
 }

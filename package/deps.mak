@@ -160,7 +160,7 @@ s6-ipcserver-access: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
 s6-ipcserver-access: src/conn-tools/s6-ipcserver-access.o ${LIBS6}
 s6-ipcserver-socketbinder: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
 s6-ipcserver-socketbinder: src/conn-tools/s6-ipcserver-socketbinder.o
-s6-ipcserverd: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SPAWN_LIB}
+s6-ipcserverd: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
 s6-ipcserverd: src/conn-tools/s6-ipcserverd.o
 s6-sudo: EXTRA_LIBS := -lskarnet
 s6-sudo: src/conn-tools/s6-sudo.o
@@ -214,9 +214,9 @@ s6-fdholderd: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
 s6-fdholderd: src/fdholder/s6-fdholderd.o ${LIBS6}
 s6-instance-control: EXTRA_LIBS := -lskarnet
 s6-instance-control: src/instance/s6-instance-control.o
-s6-instance-create: EXTRA_LIBS := -lskarnet
+s6-instance-create: EXTRA_LIBS := -lskarnet ${SYSCLOCK_LIB}
 s6-instance-create: src/instance/s6-instance-create.o ${LIBS6}
-s6-instance-delete: EXTRA_LIBS := -lskarnet
+s6-instance-delete: EXTRA_LIBS := -lskarnet ${SYSCLOCK_LIB}
 s6-instance-delete: src/instance/s6-instance-delete.o ${LIBS6}
 s6-instance-list: EXTRA_LIBS := -lskarnet
 s6-instance-list: src/instance/s6-instance-list.o ${LIBS6}
