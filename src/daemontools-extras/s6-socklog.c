@@ -194,7 +194,7 @@ int main (int argc, char const *const *argv)
             char fmt[IP46_FMT + UINT16_FMT + 3] ;
             size_t m = ip46_fmt(fmt, &ip) ;
             fmt[m++] = '_' ;
-            m += uint16_fmt(fmt, port) ;
+            m += uint16_fmt(fmt + m, port) ;
             fmt[m++] = ':' ; fmt[m++] = ' ' ;
             buffer_putnoflush(&b1, fmt, m) ;
           }
