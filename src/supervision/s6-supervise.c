@@ -142,15 +142,6 @@ static void set_down_and_ready (char const *s, unsigned int n)
   ftrigw_notifyb_nosig(S6_SUPERVISE_EVENTDIR, s, n) ;
 }
 
-static int check_available_fd (int fd, char const *name)
-{
-  int r = fd > maxfd ? (errno = EMFILE, -1) : fcntl(fd, F_GETFD) ;
-  if (r == -1 && errno == EBADF) return 1 ;
-  if (r == -1) strerr_warnwu3sys("check availability of ", name, " (waiting 60 seconds)") ;
-  else strerr_warnw3x(name, " already used internally, please modify its value!", " (waiting 60 seconds)") ;
-  return 0 ;
-}
-
 
 /* The action array. */
 
@@ -307,11 +298,7 @@ static void trystart (void)
 
   if (read_uint("lock-fd", &lk))
   {
-    if (!check_available_fd(lk, "lock-fd"))
-    {
-      settimeout(60) ;
-      return ;
-    }
+    if (lk > maxfd) strerr_warnw2x("invalid ", "lock-fd") ;
     else
     {
       struct stat st ;
@@ -319,14 +306,14 @@ static void trystart (void)
       int lfd = open_write(SLCK) ;
       if (lfd == -1)
       {
-        strerr_warnwu4sys("open ", SLCK, " for writing", " (waiting 60 seconds)") ;
         settimeout(60) ;
-        return ;
+        strerr_warnwu4sys("open ", SLCK, " for writing", " (waiting 60 seconds)") ;
+        goto errn ;
       }
       if (fstat(lfd, &st) == -1)
       {
-        strerr_warnwu3sys("stat ", SLCK, " (waiting 60 seconds)") ;
         settimeout(60) ;
+        strerr_warnwu3sys("stat ", SLCK, " (waiting 60 seconds)") ;
         fd_close(lfd) ;
         return ;
       }
@@ -338,13 +325,13 @@ static void trystart (void)
       islocked = fd_islocked(lfd) ;
       if (islocked == -1)
       {
-        strerr_warnwu3sys("read lock state on ", SLCK, " (waiting 60 seconds)") ;
         settimeout(60) ;
+        strerr_warnwu3sys("read lock state on ", SLCK, " (waiting 60 seconds)") ;
         fd_close(lfd) ;
         return ;
       }
       if (islocked)
-        strerr_warni1x("another instance of the service is already running, child will block") ;
+        strerr_warnw1x("another instance of the service is already running, child will block") ;
       fd_close(lfd) ;
       lkfmt[uint_fmt(lkfmt, lk)] = 0 ;
       orig = 0 ;
@@ -353,11 +340,11 @@ static void trystart (void)
 
   if (read_uint("notification-fd", &notif))
   {
-    if (!check_available_fd(notif, "notification-fd"))
+    if (notif > maxfd) strerr_warnw2x("invalid ", "notification-fd") ;
+    if (!orig && notif == lk)
     {
-      settimeout(60) ;
-      if (!orig && notif == lk)
-      strerr_warnw1x("notification-fd and lock-fd are the same") ;
+      settimeout_infinite() ;
+      strerr_warnwu1x("start service: notification-fd and lock-fd are the same") ;
       return ;
     }
     if (pipe(notifyp) == -1)
