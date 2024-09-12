@@ -291,8 +291,8 @@ static void trystart (void)
     [1] = { .type = CSPAWN_FA_MOVE },
   } ;
   char lkfmt[UINT_FMT] ;
-  char const *cargv[7] = { S6_BINPREFIX "s6-setlock", "-d", lkfmt, "--", "./run", servicename, 0 } ;
-  size_t orig = 4 ;
+  char const *cargv[8] = { S6_BINPREFIX "s6-setlock", "-d", lkfmt, "--", SLCK, "./run", servicename, 0 } ;
+  size_t orig = 5 ;
   int notifyp[2] = { -1, -1 } ;
   unsigned int lk = 0, notif = 0 ;
 
