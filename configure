@@ -21,11 +21,11 @@ Fine tuning of the installation directories:
   --dynlibdir=DIR               shared library files [PREFIX/lib]
   --bindir=BINDIR               user executables [EPREFIX/bin]
   --libexecdir=DIR              package-scoped executables [EPREFIX/libexec]
-  --libdir=DIR                  static library files [PREFIX/lib/$package]
+  --libdir=DIR                  static library files [PREFIX/lib]
   --includedir=DIR              C header files [PREFIX/include]
 
  If no --prefix option is given, by default libdir (but not dynlibdir) will be
- /usr/lib/$package, and includedir will be /usr/include.
+ /usr/lib, and includedir will be /usr/include.
 
 Dependencies:
   --with-sysdeps=DIR            use sysdeps in DIR [PREFIX/lib/skalibs/sysdeps]
@@ -140,7 +140,7 @@ exec_prefix='$prefix'
 dynlibdir='$prefix/lib'
 libexecdir='$exec_prefix/libexec'
 bindir='$exec_prefix/bin'
-libdir='$prefix/lib/$package'
+libdir='$prefix/lib'
 includedir='$prefix/include'
 sysdeps='$prefix/lib/skalibs/sysdeps'
 manualsysdeps=false
@@ -207,8 +207,8 @@ done
 
 # Add /usr in the default default case
 if test -z "$prefix" ; then
-  if test "$libdir" = '$prefix/lib/$package' ; then
-    libdir=/usr/lib/$package
+  if test "$libdir" = '$prefix/lib' ; then
+    libdir=/usr/lib
   fi
   if test "$includedir" = '$prefix/include' ; then
     includedir=/usr/include
@@ -364,14 +364,6 @@ if $shared ; then
 fi
 
 LDFLAGS_SHARED="${LDFLAGS_SHARED}${addlibdpath}"
-
-if test -z "$vpaths" ; then
-  while read dep ; do
-    base=$(basename $dep) ;
-    vpaths="$vpaths /usr/lib/$base"
-    addlibspath="$addlibspath -L/usr/lib/$base"
-  done < package/deps-build  
-fi
 
 if $allstatic ; then
   LDFLAGS_NOSHARED="${LDFLAGS_NOSHARED}${addlibspath}"

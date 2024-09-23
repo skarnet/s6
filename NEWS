@@ -4,6 +4,7 @@ In 2.13.0.1
 -----------
 
  - Bugfixes.
+ - Install static libraries in /usr/lib by default.
 
 
 In 2.13.0.0
