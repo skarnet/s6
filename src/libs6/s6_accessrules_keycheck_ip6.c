@@ -4,6 +4,8 @@
 #include <skalibs/types.h>
 #include <skalibs/bitarray.h>
 #include <skalibs/fmtscan.h>
+#include <skalibs/lolstdio.h>
+
 #include <s6/accessrules.h>
 
 s6_accessrules_result_t s6_accessrules_keycheck_ip6 (void const *key, void const *data, s6_accessrules_params_t *params, s6_accessrules_backend_func_ref check1)
@@ -20,6 +22,7 @@ s6_accessrules_result_t s6_accessrules_keycheck_ip6 (void const *key, void const
     len = 4 + ip6_fmt(fmt+4, ip6) ;
     fmt[len++] = '_' ;
     len += uint_fmt(fmt + len, 128 - i) ;
+    LOLDEBUG("s6_accessrules_keycheck_ip6: checking %.*s", (int)len, fmt) ;
     r = (*check1)(fmt, len, data, params) ;
     if (r != S6_ACCESSRULES_NOTFOUND) return r ;
   }
