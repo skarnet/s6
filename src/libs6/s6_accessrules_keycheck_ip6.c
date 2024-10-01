@@ -2,7 +2,6 @@
 
 #include <string.h>
 #include <skalibs/types.h>
-#include <skalibs/bitarray.h>
 #include <skalibs/fmtscan.h>
 #include <skalibs/lolstdio.h>
 
