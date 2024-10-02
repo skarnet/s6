@@ -17,7 +17,6 @@
 #define S6_SVFILE_EXECUTABLE 0x01
 #define S6_SVFILE_MANDATORY 0x02
 #define S6_SVFILE_ATOMIC 0x04
-#define S6_SVFILE_TEMPLATE 0x08
 
 typedef struct s6_servicedir_desc_s s6_servicedir_desc, *s6_servicedir_desc_ref ;
 struct s6_servicedir_desc_s
