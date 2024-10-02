@@ -17,7 +17,7 @@ s6_accessrules_result_t s6_accessrules_keycheck_ip6 (void const *key, void const
   {
     size_t len ;
     s6_accessrules_result_t r ;
-    if (i) ip6[(128-i) >> 3] &= ~(1 << (i&7)) ;
+    if (i) ip6[(128-i) >> 3] &= ~(1 << ((i-1)&7)) ;
     len = 4 + ip6_fmt(fmt+4, ip6) ;
     fmt[len++] = '_' ;
     len += uint_fmt(fmt + len, 128 - i) ;
