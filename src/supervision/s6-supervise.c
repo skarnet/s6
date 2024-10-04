@@ -95,6 +95,13 @@ static inline void announce (void)
     strerr_warnwu1sys("write status file") ;
 }
 
+static int check_file (char const *file)
+{
+  if (access(file, F_OK) == 0) return 1 ;
+  if (errno != ENOENT) strerr_warnwu2sys("access ", file) ;
+  return 0 ;
+}
+
 static int read_file (char const *file, char *buf, size_t n)
 {
   ssize_t r = openreadnclose_nb(file, buf, n) ;
@@ -295,6 +302,7 @@ static void trystart (void)
   size_t orig = 5 ;
   int notifyp[2] = { -1, -1 } ;
   unsigned int lk = 0, notif = 0 ;
+  uint16_t cspawnflags = CSPAWN_FLAGS_SELFPIPE_FINISH | CSPAWN_FLAGS_SETSID ;
 
   if (read_uint("lock-fd", &lk))
   {
@@ -358,7 +366,8 @@ static void trystart (void)
     fa[1].x.fd2[1] = notifyp[1] ;
   }
 
-  status.pid = cspawn(cargv[orig], cargv + orig, (char const *const *)environ, CSPAWN_FLAGS_SELFPIPE_FINISH | CSPAWN_FLAGS_SETSID, fa, notifyp[1] >= 0 ? 2 : 0) ;
+  if (check_file("flag-newpidns")) cspawnflags |= CSPAWN_FLAGS_NEWPIDNS ;
+  status.pid = cspawn(cargv[orig], cargv + orig, (char const *const *)environ, cspawnflags, fa, notifyp[1] >= 0 ? 2 : 0) ;
   if (!status.pid)
   {
     settimeout(60) ;

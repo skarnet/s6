@@ -1,10 +1,12 @@
 Changelog for s6.
 
-In 2.13.0.1
+In 2.13.1.0
 -----------
 
  - Bugfixes.
  - Install static libraries in /usr/lib by default.
+ - Support for starting the service in a new pid namespace, via the
+flag-newpidns file in the service directory. (Linux only.)
 
 
 In 2.13.0.0
