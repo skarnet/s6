@@ -208,6 +208,19 @@ newline. This signal will be used to kill the supervised process when a
 <a href="s6-svc.html">s6-svc -d</a> or <a href="s6-svc.html">s6-svc -r</a>
 command is used. If the file does not exist, SIGTERM will be used by default. </li>
 
+ <li style="margin-bottom:1em"> An optional regular file named <tt>flag-newpidns</tt>.
+If such a file exists:
+  <ul>
+   <li> On Linux (and potentially in the future, other systems that implement such
+functionality): at service starting time, the <tt>./run</tt> script will be spawned
+in a new PID namespace. It will be pid 1 in that namespace. </li>
+   <li> On systems that do not support the functionality: the service will fail to
+start, so do not create this file if you're unsure. (Yes, it is a better behaviour
+than ignoring the flag. Having the flag be silently ignored on some systems would
+be very bad.) </li>
+  </ul>
+</li>
+
  <li style="margin-bottom:1em"> A <a href="fifodir.html">fifodir</a> named <tt>event</tt>. It is automatically
 created by <a href="s6-supervise.html">s6-supervise</a> if it does not exist.
 <em>foo</em><tt>/event</tt>
