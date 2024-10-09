@@ -1,4 +1,4 @@
-#!/usr/xpg4/bin/sh
+#!/usr/xpg4/bin/sh -e
 
 patchit () {
   echo '#!/usr/xpg4/bin/sh' > $1.tmp
