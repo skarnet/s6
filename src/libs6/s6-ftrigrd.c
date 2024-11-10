@@ -85,7 +85,7 @@ static void answer (unsigned char c)
   }
 }
 
-static void remove (size_t i)
+static void ftrigio_remove (size_t i)
 {
   size_t n = genalloc_len(ftrigio, &g) ;
   ftrigio *a = genalloc_s(ftrigio, &g) ;
@@ -143,7 +143,7 @@ static int parse_protocol (struct iovec const *v, void *context)
       for (; i < n ; i++) if (genalloc_s(ftrigio, &g)[i].id == id) break ;
       if (i < n)
       {
-        remove(i) ;
+        ftrigio_remove(i) ;
         answer(0) ;
       }
       else answer(EINVAL) ;
@@ -274,7 +274,7 @@ int main (void)
     {
       ftrigio *p = genalloc_s(ftrigio, &g) + i ;
       if (x[p->xindex].revents & IOPAUSE_READ)
-        if (!ftrigio_read(p)) remove(i--) ;
+        if (!ftrigio_read(p)) ftrigio_remove(i--) ;
     }
 
    /* client is writing */
