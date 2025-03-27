@@ -58,7 +58,6 @@ exit 0
 # generally not a good idea to use echo.
 # See http://www.etalabs.net/sh_tricks.html
 echo () {
-  IFS=" "
   printf %s\\n "$*"
 }
 
