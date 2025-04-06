@@ -794,7 +794,8 @@ int main (int argc, char const *const *argv)
     progname[proglen] = ' ' ;
     memcpy(progname + proglen + 1, argv[1], namelen + 1) ;
     PROG = progname ;
-    if (!fd_sanitize()) strerr_diefu1sys(111, "sanitize stdin and stdout") ;
+    if (!fd_sanitize())
+      strerr_diefu1sys(111, "sanitize stdin and stdout") ;
     {
       struct rlimit rl ;
       if (getrlimit(RLIMIT_NOFILE, &rl) == -1)
@@ -804,7 +805,8 @@ int main (int argc, char const *const *argv)
     x[1].fd = control_init() ;
     x[0].fd = selfpipe_init() ;
     if (x[0].fd == -1) strerr_diefu1sys(111, "init selfpipe") ;
-    if (!sig_altignore(SIGPIPE)) strerr_diefu1sys(111, "ignore SIGPIPE") ;
+    if (!sig_altignore(SIGPIPE))
+      strerr_diefu1sys(111, "ignore SIGPIPE") ;
     {
       sigset_t set ;
       sigemptyset(&set) ;
