@@ -685,7 +685,7 @@ command-line tool around <a href="https://man7.org/linux/man-pages/man2/ioprio_s
  systemd gracefully turns off the sandboxing options on systems that
 do not support the necessary functionality, so all these options can
 be ignored (difficulty <strong>0</strong>) and the services will still
-work. However, in order to actually implementing the sandboxing, it is
+work. However, in order to actually implement the sandboxing, it is
 necessary to pair s6 with command-line tools that perform the required
 process state changes by interfacing with namespaces, cgroups, seccomp,
 or any other relevant feature of the Linux kernel, so for all these
