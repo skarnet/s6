@@ -1,0 +1,4 @@
+echo "#undef ${package_macro_name}_USE_EXECLINE"
+if $useexecline ; then
+  echo "#define ${package_macro_name}_USE_EXECLINE"
+fi

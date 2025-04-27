@@ -1,9 +1,11 @@
 Changelog for s6.
 
-In 2.13.1.1
+In 2.13.2.0
 -----------
 
  - Bugfixes.
+ - pkg-config support.
+ - s6-svstat now correctly reports services that haven't started yet.
 
 
 In 2.13.1.0

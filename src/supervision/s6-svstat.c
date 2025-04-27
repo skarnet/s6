@@ -24,6 +24,9 @@
 #define MAXFIELDS 16
 #define checkfields() if (n >= MAXFIELDS) strerr_dief1x(100, "too many option fields")
 
+#define notstartedyet(st) (!(st)->pid && !(st)->flagfinishing && (st)->flagpaused)
+#define isup(st) ((st)->pid && !(st)->flagfinishing)
+
 static int normallyup ;
 
 typedef void pr_func (buffer *, s6_svstatus_t const *) ;
@@ -53,12 +56,12 @@ static void pr_ready (buffer *b, s6_svstatus_t const *st)
 
 static void pr_paused (buffer *b, s6_svstatus_t const *st)
 {
-  buffer_putsnoflush(b, st->flagpaused ? "true" : "false") ;
+  buffer_putsnoflush(b, st->flagpaused && st->pid ? "true" : "false") ;
 }
 
 static void pr_pid (buffer *b, s6_svstatus_t const *st)
 {
-  if (st->pid && !st->flagfinishing)
+  if (isup(st) && !notstartedyet(st))
   {
     char fmt[PID_FMT] ;
     buffer_putnoflush(b, fmt, pid_fmt(fmt, st->pid)) ;
@@ -112,7 +115,7 @@ static void pr_readyseconds (buffer *b, s6_svstatus_t const *st)
 
 static void pr_exitcode (buffer *b, s6_svstatus_t const *st)
 {
-  int e = st->pid && !st->flagfinishing ? -1 :
+  int e = notstartedyet(st) || isup(st) ? -1 :
           WIFEXITED(st->wstat) ? WEXITSTATUS(st->wstat) : -1 ;
   char fmt[INT_FMT] ;
   buffer_putnoflush(b, fmt, int_fmt(fmt, e)) ;
@@ -120,7 +123,7 @@ static void pr_exitcode (buffer *b, s6_svstatus_t const *st)
 
 static void pr_signum (buffer *b, s6_svstatus_t const *st)
 {
-  int e = st->pid && !st->flagfinishing ? -1 :
+  int e = notstartedyet(st) || isup(st) ? -1 :
             WIFSIGNALED(st->wstat) ? WTERMSIG(st->wstat) : -1 ;
   char fmt[INT_FMT] ;
   buffer_putnoflush(b, fmt, int_fmt(fmt, e)) ;
@@ -128,7 +131,7 @@ static void pr_signum (buffer *b, s6_svstatus_t const *st)
 
 static void pr_signal (buffer *b, s6_svstatus_t const *st)
 {
-  int e = st->pid && !st->flagfinishing ? -1 :
+  int e = notstartedyet(st) || isup(st) ? -1 :
             WIFSIGNALED(st->wstat) ? WTERMSIG(st->wstat) : -1 ;
   if (e == -1) buffer_putsnoflush(b, "NA") ;
   else
@@ -190,10 +193,9 @@ static unsigned int parse_options (char const *arg, pr_func_ref *fields, unsigne
 static void legacy (s6_svstatus_t *st, int flagnum)
 {
   s6_svstatus_t status = *st ;
-  int isup = status.pid && !status.flagfinishing ;
   char fmt[UINT64_FMT] ;
 
-  if (isup)
+  if (isup(st))
   {
     buffer_putnoflush(buffer_1small,"up (pid ", 8) ;
     buffer_putnoflush(buffer_1small, fmt, pid_fmt(fmt, status.pid)) ;
@@ -204,7 +206,9 @@ static void legacy (s6_svstatus_t *st, int flagnum)
   else
   {
     buffer_putnoflush(buffer_1small, "down (", 6) ;
-    if (WIFSIGNALED(status.wstat))
+    if (notstartedyet(st))
+      buffer_putsnoflush(buffer_1small, "not started yet") ;
+    else if (WIFSIGNALED(status.wstat))
     {
       buffer_putnoflush(buffer_1small, "signal ", 7) ;
       if (flagnum)
@@ -223,22 +227,25 @@ static void legacy (s6_svstatus_t *st, int flagnum)
     buffer_putnoflush(buffer_1small, ") ", 2) ;
   }
 
-  tain_sub(&status.stamp, &STAMP, &status.stamp) ;
-  buffer_putnoflush(buffer_1small, fmt, uint64_fmt(fmt, status.stamp.sec.x)) ;
-  buffer_putnoflush(buffer_1small, " seconds", 8) ;
+  if (!notstartedyet(st))
+  {
+    tain_sub(&status.stamp, &STAMP, &status.stamp) ;
+    buffer_putnoflush(buffer_1small, fmt, uint64_fmt(fmt, status.stamp.sec.x)) ;
+    buffer_putnoflush(buffer_1small, " seconds", 8) ;
+  }
 
-  if (isup && !normallyup)
+  if (isup(st) && !normallyup)
     buffer_putnoflush(buffer_1small, ", normally down", 15) ;
-  if (!isup && normallyup)
+  if (!isup(st) && normallyup)
     buffer_putnoflush(buffer_1small, ", normally up", 13) ;
-  if (isup && status.flagpaused)
+  if (isup(st) && status.flagpaused)
     buffer_putnoflush(buffer_1small, ", paused", 8) ;
-  if (!isup && status.flagwantup)
+  if (!isup(st) && status.flagwantup)
     buffer_putnoflush(buffer_1small, ", want up", 9) ;
-  if (isup && !status.flagwantup)
+  if (isup(st) && !status.flagwantup)
     buffer_putnoflush(buffer_1small, ", want down", 11) ;
 
-  if (status.flagready)
+  if (status.flagready && !notstartedyet(st))
   {
     tain_sub(&status.readystamp, &STAMP, &status.readystamp) ;
     buffer_putnoflush(buffer_1small, ", ready ", 8) ;

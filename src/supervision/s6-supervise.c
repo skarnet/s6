@@ -834,7 +834,9 @@ int main (int argc, char const *const *argv)
     settimeout(0) ;
     tain_copynow(&status.stamp) ;
     status.readystamp = status.stamp ;
+    status.flagpaused = 1 ;
     announce() ;
+    status.flagpaused = 0 ;
     ftrigw_notifyb_nosig(S6_SUPERVISE_EVENTDIR, "s", 1) ;
 
     while (gflags.cont)

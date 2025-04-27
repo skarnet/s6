@@ -7,10 +7,10 @@ Build Instructions
   - A POSIX-compliant C development environment
   - GNU make version 3.81 or later
   - skalibs version 2.14.4.0 or later: https://skarnet.org/software/skalibs/
-  - Recommended: execline version 2.9.6.1 or later: https://skarnet.org/software/execline/
+  - Recommended: execline version 2.9.7.0 or later: https://skarnet.org/software/execline/
     (You can disable this requirement at configure time, but will
     lose some functionality.)
-  - Optional: nsss version 0.2.0.5 or later: https://skarnet.org/software/nsss/
+  - Optional: nsss version 0.2.1.0 or later: https://skarnet.org/software/nsss/
 
  This software will run on any operating system that implements
 POSIX.1-2008, available at:
@@ -29,6 +29,33 @@ POSIX.1-2008, available at:
  You can strip the binaries and libraries of their extra symbols via
 "make strip" before the "make install" phase. It will shave a few bytes
 off them.
+
+
+* pkg-config
+  ----------
+
+ pkg-config is a tool used by some Linux and BSD distributions, providing
+a registry to store policy information about libraries exported by a
+software package; that is supposed to make it easier to build software
+depending on these libraries, by having a tool to automatically extract
+the various flags to pass to the compiler and linker in order to correctly
+build against these libraries.
+ This package supports pkg-config, but you need to explicitly ask for it:
+ - To use the pkg-config tool to *read* information from the registry and
+use it to build *this* package: --with-pkgconfig[=PROG]. This assumes
+PROG supports the pkg-config interface (as the popular pkgconf
+implementation does). If PROG is not supplied, the PKG_CONFIG environment
+variable is used to find the program to use, and if empty/unset, it defaults
+to pkg-config.
+ - To build a .pc file for each library exported by this package, and then
+install it to the pkg-config registry, in other words to *write* information
+so that other software can use pkg-config to build against this package,
+use --enable-pkgconfig.
+
+ pkg-config and slashpackage (see below) configure options can be set
+together, but the slashpackage convention provides its own installation
+policies that generally make it unnecessary to use pkg-config. You
+probably should not mix both.
 
 
 * Customization

@@ -1,0 +1,4 @@
+    --enable-nsss|--enable-nsss=yes) usensss=true ;;
+    --disable-nsss|--enable-nsss=no) usensss=false ;;
+    --enable-execline|--enable-execline=yes) useexecline=true ;;
+    --disable-execline|--enable-execline=no) useexecline=false ;;
