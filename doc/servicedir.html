@@ -82,7 +82,7 @@ to log <em>stderr</em> as well, so the run script should make sure that its
 stderr goes into the log pipe. This
 is achieved by <tt><a href="//skarnet.org/software/execline/fdmove.html">fdmove</a>
 -c 2 1</tt> in <a href="//skarnet.org/software/execline/">execline</a>,
-and <tt>exec 2&gt;&amp;1</tt> in <a href="https://pubs.opengroup.org/onlinepubs/9699919799/utilities/sh.html">shell</a>.
+and <tt>exec 2&gt;&amp;1</tt> in <a href="https://pubs.opengroup.org/onlinepubs/9799919799/utilities/sh.html">shell</a>.
  </li>
 <li> adjust the environment for your <em>foo</em> daemon. Normally the run script
 inherits its environment from <a href="s6-supervise.html">s6-supervise</a>,

@@ -74,7 +74,7 @@ examples here involve TCP. Nevertheless, it can be used with connections
 across Unix domain sockets as well, and has its place in the s6
 package. </li>
  <li> If one of the endpoints is a socket, s6-ioconnect will call
-<a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/shutdown.html">shutdown()</a>
+<a href="https://pubs.opengroup.org/onlinepubs/9799919799/functions/shutdown.html">shutdown()</a>
 on it (for reading or writing, depending on the endpoint) when it
 needs to transmit EOF. This is a necessary workaround to a
 <a href="https://cr.yp.to/tcpip/twofd.html">misdesign</a> of the

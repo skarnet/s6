@@ -13,8 +13,8 @@ Build Instructions
   - Optional: nsss version 0.2.1.0 or later: https://skarnet.org/software/nsss/
 
  This software will run on any operating system that implements
-POSIX.1-2008, available at:
-  https://pubs.opengroup.org/onlinepubs/9699919799/
+POSIX.1-2024, available at:
+  https://pubs.opengroup.org/onlinepubs/9799919799/
 
 
 * Standard usage

@@ -85,7 +85,7 @@ echo "includedir=${includedir}"
 echo "libdir=${libdir}"
 echo "dynlibdir=${dynlibdir}"
 echo
-echo "Name: ${library}"
+echo "Name: lib${library}"
 echo "Version: ${version}"
 echo "Description: ${description:-The ${library} library.}"
 echo "URL: ${url:-https://skarnet.org/software/${package}/}"

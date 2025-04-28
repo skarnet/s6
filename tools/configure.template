@@ -23,6 +23,7 @@ Fine tuning of the installation directories:
   --libexecdir=DIR              package-scoped executables [EPREFIX/libexec]
   --libdir=DIR                  static library files [PREFIX/lib]
   --includedir=DIR              C header files [PREFIX/include]
+  --sysconfdir=DIR              global configuration files [PREFIX/etc]
   --pkgconfdir=DIR              pkg-config .pc files [PREFIX/lib/pkgconfig]
 ${configure_help_install}
  If no --prefix option is given, by default libdir (but not dynlibdir) will be
@@ -141,6 +142,7 @@ libexecdir='$exec_prefix/libexec'
 bindir='$exec_prefix/bin'
 libdir='$prefix/lib'
 includedir='$prefix/include'
+sysconfdir='$prefix/etc'
 pkgconfdir='$prefix/lib/pkgconfig'
 shebangdir='$bindir'
 sysdeps='$prefix/lib/skalibs/sysdeps'
@@ -177,10 +179,11 @@ for arg ; do
     --bindir=*) bindir=${arg#*=} ;;
     --libdir=*) libdir=${arg#*=} ;;
     --includedir=*) includedir=${arg#*=} ;;
+    --sysconfdir=*) sysconfdir=${arg#*=} ;;
     --pkgconfigdir=*) pkgconfigdir=${arg#*=} ;;
     --with-sysdeps=*) sysdeps=${arg#*=} manualsysdeps=true ;;
     --with-include=*) var=${arg#*=} ; stripdir var ; addincpath="$addincpath -I$var" ; depincpath="${depincpath}${depincpath:+ }-I$var" ;;
-    --with-lib=*) var=${arg#*=} ; stripdir var ; addlibspath="$addlibspath -L$var" ; deplibpath="${deplibpath}${deplibpath:+ }-I$var" ; vpaths="$vpaths $var" ;;
+    --with-lib=*) var=${arg#*=} ; stripdir var ; addlibspath="$addlibspath -L$var" ; deplibpath="${deplibpath}${deplibpath:+ }-L$var" ; vpaths="$vpaths $var" ;;
     --with-dynlib=*) var=${arg#*=} ; stripdir var ; addlibdpath="$addlibdpath -L$var" ; vpathd="$vpathd $var" ;;
     --with-pkgconfig=*) pkgconf=${arg#*=} ;;
     --with-pkgconfig) pkgconf=${PKG_CONFIG:-pkg-config} ;;
@@ -231,7 +234,7 @@ fi
 
 # Expand installation directories
 stripdir prefix
-for i in exec_prefix dynlibdir libexecdir bindir libdir includedir pkgconfdir sysdeps sproot ${configure_expand_dirs} ; do
+for i in exec_prefix dynlibdir libexecdir bindir libdir includedir sysconfdir pkgconfdir sysdeps sproot ${configure_expand_dirs} ; do
   eval tmp=\${$i}
   eval $i=$tmp
   stripdir $i
@@ -438,6 +441,7 @@ libexecdir := $libexecdir
 bindir := $bindir
 libdir := $libdir
 includedir := $includedir
+sysconfdir := $sysconfdir
 pkgconfdir := $pkgconfdir
 sysdeps := $sysdeps
 slashpackage := $slashpackage
@@ -526,6 +530,7 @@ else
   echo "#define ${package_macro_name}_EXTLIBEXECPREFIX \"$libexecdir/\""
 fi
 echo "#define ${package_macro_name}_LIBEXECPREFIX \"$libexecdir/\""
+echo "#define ${package_macro_name}_SYSCONFPREFIX \"$sysconfdir/\""
 ${configure_generate_configh}
 echo
 echo "#endif"

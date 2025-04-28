@@ -525,7 +525,7 @@ treacherous, because <tt>User=</tt> is a mash of two very different features:
 setting users <em>statically</em> (via numeric ID, which don't change meanings
 between two invocations) and setting users <em>dynamically</em> (via user name,
 which needs to be interpreted by
-<a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/getpwnam.html">getpwnam(3)</a>
+<a href="https://pubs.opengroup.org/onlinepubs/9799919799/functions/getpwnam.html">getpwnam(3)</a>
 on every invocation of the service. s6 supports both, but since these are two
 different things, the way to do them in s6 is different (statically setting the
 UID and GID variables and calling

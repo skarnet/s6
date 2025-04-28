@@ -84,7 +84,7 @@ It is impossible to set it higher than the number of files that can
 be opened by the s6-fdholderd process, minus a few descriptors
 needed for correct operation. Before running s6-fdholderd, make sure to
 <a href="s6-softlimit.html">properly adjust</a> the
-<a href="https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sys_resource.h.html">number
+<a href="https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/sys_resource.h.html">number
 of openable files</a> of the current process. </li>
  <li> <tt>-t&nbsp;<em>clienttimeout</em></tt>&nbsp;: disconnect a client
 if it's in the middle of an operation and it has not written or read any
@@ -210,7 +210,7 @@ file named <tt>S6_FDHOLDER_STORE_REGEX</tt> is found in the <tt>env/</tt>
 subdirectory of one of the subdirectories checked by
 <a href="libs6/accessrules.html#uidgid">s6_accessrules_keycheck_uidgid</a>.
 This file should contain a single line, which will be interpreted as an
-<a href="https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap09.html#tag_09_04">Extended
+<a href="https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/V1_chap09.html#tag_09_04">Extended
 Regular Expression</a> by s6-fdholderd; the regular expression describes the
 set of identifiers that the client is allowed to use to store file
 descriptors. For instance, <tt>^unix:/tmp/</tt> indicates that a client
@@ -222,7 +222,7 @@ file named <tt>S6_FDHOLDER_RETRIEVE_REGEX</tt> is found in the <tt>env/</tt>
 subdirectory of one of the subdirectories checked by
 <a href="libs6/accessrules.html#uidgid">s6_accessrules_keycheck_uidgid</a>.
 This file should contain a single line, which will be interpreted as an
-<a href="https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap09.html#tag_09_04">Extended
+<a href="https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/V1_chap09.html#tag_09_04">Extended
 Regular Expression</a> by s6-fdholderd; the regular expression describes the
 set of identifiers that the client is allowed to use to retrieve file
 descriptors. For instance, <tt>^unix:/tmp/</tt> indicates that a client

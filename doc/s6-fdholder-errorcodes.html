@@ -20,7 +20,7 @@
 
 <p>
  The following error messages (and corresponding
-<a href="https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/errno.h.html">errno codes</a>)
+<a href="https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/errno.h.html">errno codes</a>)
 can be returned by the
 <a href="s6-fdholderd.html">s6-fdholderd</a> daemon to its various clients.
 This page explains why they occur.
@@ -47,7 +47,7 @@ attempted to store more file descriptors than the server can hold.
 Or, the client attempted to retrieve more file descriptors than it
 can hold. You should check the <tt>-n</tt> option to
 <a href="s6-fdholderd.html">s6-fdholderd</a>, as well as the
-<a href="https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sys_resource.h.html">RLIMIT_NOFILE</a>
+<a href="https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/sys_resource.h.html">RLIMIT_NOFILE</a>
 resource limits used by the client and the server, and adjust them
 accordingly. </li>
  <li> <tt>Resource busy</tt> (EBUSY): the client attempted to store
