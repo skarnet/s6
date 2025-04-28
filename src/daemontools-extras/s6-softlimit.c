@@ -8,7 +8,7 @@
 #include <skalibs/uint64.h>
 #include <skalibs/exec.h>
 
-#define USAGE "s6-softlimit [ -a allbytes ] [ -c corebytes ] [ -d databytes ] [ -f filebytes ] [ -l lockbytes ] [ -m membytes ] [ -o openfiles ] [ -p processes ] [ -r residentbytes ] [ -s stackbytes ] [ -t cpusecs ] prog..."
+#define USAGE "s6-softlimit [ -H | -h ] [ -a allbytes ] [ -c corebytes ] [ -d databytes ] [ -f filebytes ] [ -l lockbytes ] [ -m membytes ] [ -o openfiles ] [ -p processes ] [ -r residentbytes ] [ -s stackbytes ] [ -t cpusecs ] prog..."
 
 static int what = 1 ;
 

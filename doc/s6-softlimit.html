@@ -25,7 +25,7 @@ s6-softlimit changes its process limits, then executes into another program.
 <h2> Interface </h2>
 
 <pre>
-     s6-softlimit [ -a <em>allmem</em> ] [ -c <em>core</em> ] [ -d <em>data</em> ] [ -f <em>fsize</em> ] [ -l <em>lock</em> ] [ -m <em>mem</em> ] [ -o <em>ofiles</em> ] [ -p <em>proc</em> ] [ -r <em>res</em> ] [ -s <em>stack</em> ] [ -t <em>cpusecs</em> ] <em>prog...</em>
+     s6-softlimit [ -H | -h ] [ -a <em>allmem</em> ] [ -c <em>core</em> ] [ -d <em>data</em> ] [ -f <em>fsize</em> ] [ -l <em>lock</em> ] [ -m <em>mem</em> ] [ -o <em>ofiles</em> ] [ -p <em>proc</em> ] [ -r <em>res</em> ] [ -s <em>stack</em> ] [ -t <em>cpusecs</em> ] <em>prog...</em>
 </pre>
 
 <ul>
@@ -36,6 +36,19 @@ s6-softlimit changes its process limits, then executes into another program.
 </ul>
 
 <h2> Options </h2>
+
+<h3> Hard limit options </h3>
+
+<ul>
+ <li> <tt>-H</tt>&nbsp;: set the hard limit (as well as the soft limit). This is only usable by root
+if you're raising the limit, and should generally <em>not</em> be used, except once at boot time.
+The "hard limit" should be a system-wide setting that is never touched after being set once. </li>
+ <li> <tt>-h</tt>&nbsp;: set the hard limit, without touching the soft limit.
+If you're lowering the hard limit to a value that's lower than the current soft limit, it will fail
+and s6-softlimit will die. There is virtually no reason to ever use this. </li>
+</ul>
+
+<h3> Resource selection options </h3>
 
 <ul>
  <li> <tt>-a&nbsp;<em>allmem</em></tt>&nbsp;: limit the total available memory to <em>allmem</em> bytes. </li>

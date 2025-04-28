@@ -16,6 +16,7 @@ multisubstitute
   importas -uS configure_case_lines
   importas -uS configure_expand_dirs
   importas -uS configure_slashpackage_other
+  importas -uS configure_extra_checks
   importas -uS configure_generate_make
   importas -uS configure_generate_configh
 }

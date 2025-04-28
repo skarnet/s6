@@ -240,7 +240,7 @@ done
 # Process deps-build
 if test -n "$pkgconf" || $pcw || $slashpackage ; then
   oldifs="$IFS"
-  while IFS="	" read cond usedinlibs pkg ver libs ; do
+  while IFS=" 	" read cond usedinlibs pkg ver libs ; do
     IFS="$oldifs"
     eval "cond=$cond; usedinlibs=$usedinlibs"
     if $cond ; then
@@ -418,6 +418,8 @@ else
   LDFLAGS_NOSHARED="${LDFLAGS_NOSHARED}${addlibdpath}"
 fi
 
+${configure_extra_checks}
+
 echo "Creating config.mak..."
 cmdline=$(quote "$0")
 for i ; do cmdline="$cmdline $(quote "$i")" ; done
@@ -513,12 +515,15 @@ EOF
 if $slashpackage ; then
   echo "#define ${package_macro_name}_BINPREFIX \"$bindir/\""
   echo "#define ${package_macro_name}_EXTBINPREFIX \"$extbinprefix/\""
+  echo "#define ${package_macro_name}_EXTLIBEXECPREFIX \"$extbinprefix/\""
 elif $abspath ; then
   echo "#define ${package_macro_name}_BINPREFIX \"$bindir/\""
   echo "#define ${package_macro_name}_EXTBINPREFIX \"$bindir/\""
+  echo "#define ${package_macro_name}_EXTLIBEXECPREFIX \"$libexecdir/\""
 else
   echo "#define ${package_macro_name}_BINPREFIX \"\""
   echo "#define ${package_macro_name}_EXTBINPREFIX \"\""
+  echo "#define ${package_macro_name}_EXTLIBEXECPREFIX \"$libexecdir/\""
 fi
 echo "#define ${package_macro_name}_LIBEXECPREFIX \"$libexecdir/\""
 ${configure_generate_configh}
