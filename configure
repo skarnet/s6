@@ -23,6 +23,7 @@ Fine tuning of the installation directories:
   --libexecdir=DIR              package-scoped executables [EPREFIX/libexec]
   --libdir=DIR                  static library files [PREFIX/lib]
   --includedir=DIR              C header files [PREFIX/include]
+  --sysconfdir=DIR              global configuration files [PREFIX/etc]
   --pkgconfdir=DIR              pkg-config .pc files [PREFIX/lib/pkgconfig]
 
  If no --prefix option is given, by default libdir (but not dynlibdir) will be
@@ -143,6 +144,7 @@ libexecdir='$exec_prefix/libexec'
 bindir='$exec_prefix/bin'
 libdir='$prefix/lib'
 includedir='$prefix/include'
+sysconfdir='$prefix/etc'
 pkgconfdir='$prefix/lib/pkgconfig'
 shebangdir='$bindir'
 sysdeps='$prefix/lib/skalibs/sysdeps'
@@ -180,10 +182,11 @@ for arg ; do
     --bindir=*) bindir=${arg#*=} ;;
     --libdir=*) libdir=${arg#*=} ;;
     --includedir=*) includedir=${arg#*=} ;;
+    --sysconfdir=*) sysconfdir=${arg#*=} ;;
     --pkgconfigdir=*) pkgconfigdir=${arg#*=} ;;
     --with-sysdeps=*) sysdeps=${arg#*=} manualsysdeps=true ;;
     --with-include=*) var=${arg#*=} ; stripdir var ; addincpath="$addincpath -I$var" ; depincpath="${depincpath}${depincpath:+ }-I$var" ;;
-    --with-lib=*) var=${arg#*=} ; stripdir var ; addlibspath="$addlibspath -L$var" ; deplibpath="${deplibpath}${deplibpath:+ }-I$var" ; vpaths="$vpaths $var" ;;
+    --with-lib=*) var=${arg#*=} ; stripdir var ; addlibspath="$addlibspath -L$var" ; deplibpath="${deplibpath}${deplibpath:+ }-L$var" ; vpaths="$vpaths $var" ;;
     --with-dynlib=*) var=${arg#*=} ; stripdir var ; addlibdpath="$addlibdpath -L$var" ; vpathd="$vpathd $var" ;;
     --with-pkgconfig=*) pkgconf=${arg#*=} ;;
     --with-pkgconfig) pkgconf=${PKG_CONFIG:-pkg-config} ;;
@@ -237,7 +240,7 @@ fi
 
 # Expand installation directories
 stripdir prefix
-for i in exec_prefix dynlibdir libexecdir bindir libdir includedir pkgconfdir sysdeps sproot  ; do
+for i in exec_prefix dynlibdir libexecdir bindir libdir includedir sysconfdir pkgconfdir sysdeps sproot  ; do
   eval tmp=\${$i}
   eval $i=$tmp
   stripdir $i
@@ -246,7 +249,7 @@ done
 # Process deps-build
 if test -n "$pkgconf" || $pcw || $slashpackage ; then
   oldifs="$IFS"
-  while IFS="	" read cond usedinlibs pkg ver libs ; do
+  while IFS=" 	" read cond usedinlibs pkg ver libs ; do
     IFS="$oldifs"
     eval "cond=$cond; usedinlibs=$usedinlibs"
     if $cond ; then
@@ -408,7 +411,7 @@ tryldflag LDFLAGS_AUTO -Wl,--sort-common
 CPPFLAGS_AUTO="${CPPFLAGS_AUTO}${addincpath}"
 
 if $evenmorestatic ; then
-  LDFLAGS_NOSHARED=-static
+  LDFLAGS_NOSHARED=" -static"
 fi
 
 if $shared ; then
@@ -423,6 +426,8 @@ if $allstatic ; then
 else
   LDFLAGS_NOSHARED="${LDFLAGS_NOSHARED}${addlibdpath}"
 fi
+
+
 
 echo "Creating config.mak..."
 cmdline=$(quote "$0")
@@ -442,6 +447,7 @@ libexecdir := $libexecdir
 bindir := $bindir
 libdir := $libdir
 includedir := $includedir
+sysconfdir := $sysconfdir
 pkgconfdir := $pkgconfdir
 sysdeps := $sysdeps
 slashpackage := $slashpackage
@@ -465,7 +471,7 @@ CFLAGS := ${CFLAGS}${CFLAGS_POST:+ }$CFLAGS_POST
 LDFLAGS_AUTO := $LDFLAGS_AUTO
 LDFLAGS := ${LDFLAGS}${LDFLAGS_POST:+ }$LDFLAGS_POST
 LDFLAGS_SHARED := $LDFLAGS_SHARED
-LDFLAGS_NOSHARED := $LDFLAGS_NOSHARED
+LDFLAGS_NOSHARED :=$LDFLAGS_NOSHARED
 CROSS_COMPILE := $cross
 
 vpath lib%.a$vpaths
@@ -530,14 +536,18 @@ EOF
 if $slashpackage ; then
   echo "#define ${package_macro_name}_BINPREFIX \"$bindir/\""
   echo "#define ${package_macro_name}_EXTBINPREFIX \"$extbinprefix/\""
+  echo "#define ${package_macro_name}_EXTLIBEXECPREFIX \"$extbinprefix/\""
 elif $abspath ; then
   echo "#define ${package_macro_name}_BINPREFIX \"$bindir/\""
   echo "#define ${package_macro_name}_EXTBINPREFIX \"$bindir/\""
+  echo "#define ${package_macro_name}_EXTLIBEXECPREFIX \"$libexecdir/\""
 else
   echo "#define ${package_macro_name}_BINPREFIX \"\""
   echo "#define ${package_macro_name}_EXTBINPREFIX \"\""
+  echo "#define ${package_macro_name}_EXTLIBEXECPREFIX \"$libexecdir/\""
 fi
 echo "#define ${package_macro_name}_LIBEXECPREFIX \"$libexecdir/\""
+echo "#define ${package_macro_name}_SYSCONFPREFIX \"$sysconfdir/\""
 echo "#undef ${package_macro_name}_USE_EXECLINE"
 if $useexecline ; then
   echo "#define ${package_macro_name}_USE_EXECLINE"

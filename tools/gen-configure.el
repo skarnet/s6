@@ -23,9 +23,9 @@ multisubstitute
 
 if
 {
-  heredoc 0 ${TEMPLATE}
   redirfd -w 1 configure.new
-  s6-cat
+  if { heredoc 0 ${TEMPLATE} s6-cat }
+  s6-echo
 }
 
 if { s6-chmod 0755 configure.new }
