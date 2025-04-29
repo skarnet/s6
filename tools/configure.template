@@ -180,7 +180,7 @@ for arg ; do
     --libdir=*) libdir=${arg#*=} ;;
     --includedir=*) includedir=${arg#*=} ;;
     --sysconfdir=*) sysconfdir=${arg#*=} ;;
-    --pkgconfigdir=*) pkgconfigdir=${arg#*=} ;;
+    --pkgconfdir=*) pkgconfdir=${arg#*=} ;;
     --with-sysdeps=*) sysdeps=${arg#*=} manualsysdeps=true ;;
     --with-include=*) var=${arg#*=} ; stripdir var ; addincpath="$addincpath -I$var" ; depincpath="${depincpath}${depincpath:+ }-I$var" ;;
     --with-lib=*) var=${arg#*=} ; stripdir var ; addlibspath="$addlibspath -L$var" ; deplibpath="${deplibpath}${deplibpath:+ }-L$var" ; vpaths="$vpaths $var" ;;
