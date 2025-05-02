@@ -112,6 +112,7 @@ tgz: distclean
 	cp -a . /tmp/$$package-$$version && \
 	cd /tmp && \
 	tar -zpcv --owner=0 --group=0 --numeric-owner --exclude=.git* -f /tmp/$$package-$$version.tar.gz $$package-$$version && \
+	sha256sum $$package-$$version.tar.gz > $$package-$$version.tar.gz.sha256 && \
 	exec rm -rf /tmp/$$package-$$version
 
 strip: $(ALL_LIBS) $(ALL_BINS)
