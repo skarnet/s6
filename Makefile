@@ -25,10 +25,13 @@ LIB_DEFS :=
 BIN_SYMLINKS :=
 TEST_BINS :=
 
+-include config.mak
+include package/targets.mak
+
 define library_definition
-LIB$(1) := lib$(2).$(if $(DO_ALLSTATIC),a,so).xyzzy
+LIB$(1) := lib$(2).$(if $(DO_ALLSTATIC),a,$(SHLIB_EXT)).xyzzy
 ifdef DO_SHARED
-SHARED_LIBS += lib$(2).so.xyzzy
+SHARED_LIBS += lib$(2).$(SHLIB_EXT).xyzzy
 endif
 ifdef DO_STATIC
 STATIC_LIBS += lib$(2).a.xyzzy
@@ -66,9 +69,6 @@ define symlink_installation_rule
 $(DESTDIR)$(1)/$(2): $(DESTDIR)$(1)/$(SYMLINK_TARGET_$(2))
 	exec $(INSTALL) -l $$(<F) $$@
 endef
-
--include config.mak
-include package/targets.mak
 
 $(foreach var,$(LIB_DEFS),$(eval $(call library_definition,$(firstword $(subst =, ,$(var))),$(lastword $(subst =, ,$(var))))))
 
@@ -124,7 +124,7 @@ ifneq ($(strip $(ALL_BINS)$(SHARED_LIBS)),)
 endif
 
 install: install-dynlib install-libexec install-bin install-symlinks install-lib install-include install-pkgconfig
-install-dynlib: $(SHARED_LIBS:lib%.so.xyzzy=$(DESTDIR)$(dynlibdir)/lib%.so)
+install-dynlib: $(SHARED_LIBS:lib%.$(SHLIB_EXT).xyzzy=$(DESTDIR)$(dynlibdir)/lib%.$(SHLIB_EXT))
 install-libexec: $(LIBEXEC_TARGETS:%=$(DESTDIR)$(libexecdir)/%)
 install-bin: $(BIN_TARGETS:%=$(DESTDIR)$(bindir)/%)
 install-symlinks: $(BIN_SYMLINKS:%=$(DESTDIR)$(bindir)/%)
@@ -156,10 +156,10 @@ $(DESTDIR)$(sproot)/library.so/lib%.so.$(version_M): $(DESTDIR)$(dynlibdir)/lib%
 
 endif
 
-$(DESTDIR)$(dynlibdir)/lib%.so $(DESTDIR)$(dynlibdir)/lib%.so.$(version_M): lib%.so.xyzzy
-	$(INSTALL) -D -m 755 $< $@.$(version) && \
-	$(INSTALL) -l $(@F).$(version) $@.$(version_M) && \
-	exec $(INSTALL) -l $(@F).$(version_M) $@
+$(DESTDIR)$(dynlibdir)/lib%.so $(DESTDIR)$(dynlibdir)/lib%.so.$(version_M) $(DESTDIR)$(dynlibdir)/lib%.so.$(version): lib%.so.xyzzy
+	$(INSTALL) -D -m 755 $< $(@D)/lib$(*F).so.$(version) && \
+	$(INSTALL) -l lib$(*F).so.$(version) $(@D)/lib$(*F).so.$(version_M) && \
+	exec $(INSTALL) -l lib$(*F).so.$(version_M) $(@D)/lib$(*F).so
 
 $(DESTDIR)$(libdir)/lib%.a: lib%.a.xyzzy
 	exec $(INSTALL) -D -m 644 $< $@
@@ -192,3 +192,27 @@ lib%.so.xyzzy:
 .PHONY: it all clean distclean tests check tgz strip install install-dynlib install-bin install-lib install-include install-pkgconfig
 
 .DELETE_ON_ERROR:
+
+ifeq ($(SHLIB_EXT),dylib)
+
+version_X := $(shell exec expr 256 '*' $(version_l) + $(subst .,,$(suffix $(version_M))))
+version_XY := $(version_X)$(suffix $(version_m))
+version_XYZ := $(version_XY)$(suffix $(version))
+
+ifneq ($(exthome),)
+global-links: $(SHARED_LIBS:lib%.dylib.xyzzy=$(DESTDIR)$(sproot)/library.so/lib%.$(version_X).dylib)
+
+$(DESTDIR)$(sproot)/library.so/lib%.$(version_X).dylib: $(DESTDIR)$(sproot)/library.so/lib%.$(version_M).dylib
+	exec $(INSTALL) -l $(<F) $@
+endif
+
+$(DESTDIR)$(dynlibdir)/lib%.dylib $(DESTDIR)$(dynlibdir)/lib%.$(version_X).dylib $(DESTDIR)$(dynlibdir)/lib%.$(version_M).dylib $(DESTDIR)$(dynlibdir)/lib%.$(version).dylib: lib%.dylib.xyzzy
+	$(INSTALL) -D -m 755 $< $(@D)/lib$(*F).$(version).dylib && \
+	$(INSTALL) -l lib$(*F).$(version).dylib $(@D)/lib$(*F).$(version_M).dylib && \
+	$(INSTALL) -l lib$(*F).$(version_M).dylib $(@D)/lib$(*F).$(version_X).dylib && \
+	exec $(INSTALL) -l lib$(*F).$(version_X).dylib $(@D)/lib$(*F).dylib
+
+lib%.dylib.xyzzy: $(ALL_DOBJS)
+	exec $(CC) -o $@ $(CFLAGS_ALL) $(CFLAGS_SHARED) $(LDFLAGS_ALL) $(LDFLAGS_SHARED) -Wl,-dylib_install_name,$(dynlibdir)/lib$(*F).$(version_M).dylib -Wl,-dylib_compatibility_version,$(version_XY) -Wl,-dylib_current_version,$(version_XYZ) -undefined dynamic_lookup $^ $(EXTRA_LIBS) $(SOCKET_LIB) $(SPAWN_LIB) $(SYSCLOCK_LIB) $(TAINNOW_LIB) $(TIMER_LIB) $(UTIL_LIB) $(LDLIBS)
+endif
+

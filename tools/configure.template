@@ -147,6 +147,7 @@ pkgconfdir='$prefix/lib/pkgconfig'
 shebangdir='$bindir'
 sysdeps='$prefix/lib/skalibs/sysdeps'
 manualsysdeps=false
+shlibext=so
 shared=false
 static=true
 allpic=true
@@ -192,9 +193,9 @@ for arg ; do
     --disable-shared|--enable-shared=no) shared=false ;;
     --enable-static|--enable-static=yes) static=true ;;
     --disable-static|--enable-static=no) static=false ;;
-    --enable-allstatic|--enable-allstatic=yes) allstatic=true ;;
-    --disable-allstatic|--enable-allstatic=no) allstatic=false ; evenmorestatic=false ;;
-    --enable-static-libc|--enable-static-libc=yes) allstatic=true ; evenmorestatic=true ;;
+    --enable-allstatic|--enable-allstatic=yes) static=true ; allstatic=true ;;
+    --disable-allstatic|--enable-allstatic=no) allstatic=false ; evenmorestatic=false ; shared=true ;;
+    --enable-static-libc|--enable-static-libc=yes) static=true ; allstatic=true ; evenmorestatic=true ;;
     --disable-static-libc|--enable-static-libc=no) evenmorestatic=false ;;
     --enable-all-pic|--enable-all-pic=yes) allpic=true ;;
     --disable-all-pic|--enable-all-pic=no) allpic=false ;;
@@ -373,10 +374,17 @@ if test ! -d $sysdeps || test ! -f $sysdeps/target ; then
   echo "$0: error: $sysdeps is not a valid sysdeps directory"
   exit 1
 fi
-if [ "x$target" != "x$(cat $sysdeps/target)" ] ; then
+if test "$target" != "$(cat $sysdeps/target)" ; then
   echo "$0: error: target $target does not match the contents of $sysdeps/target"
   exit 1
 fi
+
+echo "Shared libraries will be named ..."
+libc="${target##*-}"
+if test "${libc##darwin}" != "$libc" ; then
+  shlibext=dylib
+fi
+echo "  ... *.$shlibext"
 
 if $allpic ; then
   tryflag CPPFLAGS_AUTO -fPIC
@@ -467,16 +475,17 @@ LDFLAGS := ${LDFLAGS}${LDFLAGS_POST:+ }$LDFLAGS_POST
 LDFLAGS_SHARED := $LDFLAGS_SHARED
 LDFLAGS_NOSHARED :=$LDFLAGS_NOSHARED
 CROSS_COMPILE := $cross
+SHLIB_EXT := ${shlibext}
 
 vpath lib%.a$vpaths
-vpath lib%.so$vpathd
+vpath lib%.${shlibext}$vpathd
 
 EOF
 if $allstatic ; then
   echo ".LIBPATTERNS := lib%.a"
   echo "DO_ALLSTATIC := 1"
 else
-  echo ".LIBPATTERNS := lib%.so"
+  echo ".LIBPATTERNS := lib%.${shlibext}"
   echo "DO_ALLSTATIC :="
 fi
 if $static ; then

@@ -1,3 +1,0 @@
- This package will compile and run on Darwin (MacOS), but the building of
-shared libraries is not supported.
- Make sure you use the --disable-shared option to configure.
