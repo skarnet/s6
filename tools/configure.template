@@ -389,8 +389,10 @@ echo "  ... *.$shlibext"
 if $allpic ; then
   tryflag CPPFLAGS_AUTO -fPIC
 fi
-spawn_lib=$(cat $sysdeps/spawn.lib)
+
+pthread_lib=$(cat $sysdeps/pthread.lib)
 socket_lib=$(cat $sysdeps/socket.lib)
+spawn_lib=$(cat $sysdeps/spawn.lib)
 sysclock_lib=$(cat $sysdeps/sysclock.lib)
 timer_lib=$(cat $sysdeps/timer.lib)
 util_lib=$(cat $sysdeps/util.lib)
@@ -459,8 +461,10 @@ home := $home
 exthome := $exthome
 extra_includedirs :=$depincpath
 extra_libdirs :=$deplibpath
-SPAWN_LIB := ${spawn_lib}
+
+PTHREAD_LIB := ${pthread_lib}
 SOCKET_LIB := ${socket_lib}
+SPAWN_LIB := ${spawn_lib}
 SYSCLOCK_LIB := ${sysclock_lib}
 TIMER_LIB := ${timer_lib}
 UTIL_LIB := ${util_lib}
