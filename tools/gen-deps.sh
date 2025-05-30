@@ -78,6 +78,8 @@ for dir in $(ls -1 src | grep -v ^include) ; do
       echo "lib${file}.pc: EXTRA_LIBS :=${libs}"
       echo "lib${file}.so.xyzzy: EXTRA_LIBS :=$libs"
       echo "lib${file}.so.xyzzy:$(echo ${deps} | sed 's/\.o/.lo/g')"
+      echo "lib${file}.dylib.xyzzy: EXTRA_LIBS :=$libs"
+      echo "lib${file}.dylib.xyzzy:$(echo ${deps} | sed 's/\.o/.lo/g')"
     else
       internal_libs="$internal_libs lib${file}.a.xyzzy"
     fi
