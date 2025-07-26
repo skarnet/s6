@@ -63,6 +63,7 @@ typedef enum rotstate_e rotstate_t, *rotstate_t_ref ;
 enum rotstate_e
 {
   ROTSTATE_WRITABLE,
+  ROTSTATE_FLUSHING,
   ROTSTATE_START,
   ROTSTATE_RENAME,
   ROTSTATE_NEWCURRENT,
@@ -151,8 +152,10 @@ struct logdir_s
   bufalloc out ;
   unsigned int xindex ;
   tain retrytto ;
-  tain deadline ;
+  tain rotdeadline ;
+  tain retrydeadline ;
   uint64_t maxdirsize ;
+  uint32_t rotsecs ;
   uint32_t b ;
   uint32_t n ;
   uint32_t s ;
@@ -170,8 +173,9 @@ struct logdir_s
   .out = BUFALLOC_ZERO, \
   .xindex = 0, \
   .retrytto = TAIN_ZERO, \
-  .deadline = TAIN_ZERO, \
+  .deadline = TAIN_INFINITE, \
   .maxdirsize = 0, \
+  .rotsecs = 0, \
   .b = 0, \
   .n = 0, \
   .s = 0, \
@@ -290,6 +294,12 @@ static inline int logdir_trim (logdir_t *ldp)
   return n ;
 }
 
+static void logdir_set_writable (logdir_t *ldp)
+{
+  ldp->rstate = ROTSTATE_WRITABLE ;
+  tain_add_g(&ldp->retrydeadline, &tain_infinite_relative) ;
+}
+
 static int finish (logdir_t *ldp, char const *name, char suffix)
 {
   struct stat st ;
@@ -300,7 +310,7 @@ static int finish (logdir_t *ldp, char const *name, char suffix)
   x[dirlen] = '/' ;
   memcpy(x + dirlen + 1, name, namelen + 1) ;
   if (stat(x, &st) < 0) return errno == ENOENT ? 0 : -1 ;
-  if (st.st_nlink == 1)
+  if (st.st_nlink == 1 && st.st_size)
   {
     char y[dirlen + 29] ;
     memcpy(y, ldp->dir, dirlen) ;
@@ -379,8 +389,7 @@ static int rotator (logdir_t *ldp)
         if (verbosity) strerr_warnwu2sys("finish previous .s to logdir ", ldp->dir) ;
         goto fail ;
       }
-      tain_copynow(&ldp->deadline) ;
-      ldp->rstate = ROTSTATE_WRITABLE ;
+      logdir_set_writable(ldp) ;
       break ;
    runprocessor:
       ldp->rstate = ROTSTATE_RUNPROCESSOR ;
@@ -406,7 +415,7 @@ static int rotator (logdir_t *ldp)
         goto fail ;
       }
       ldp->pid = pid ;
-      tain_add_g(&ldp->deadline, &tain_infinite_relative) ;
+      tain_add_g(&ldp->retrydeadline, &tain_infinite_relative) ;
       ldp->rstate = ROTSTATE_WAITPROCESSOR ;
     }
     case ROTSTATE_WAITPROCESSOR :
@@ -493,15 +502,37 @@ static int rotator (logdir_t *ldp)
         if (verbosity) strerr_warnwu2sys("finish processed .s to logdir ", ldp->dir) ;
         goto fail ;
       }
-      tain_copynow(&ldp->deadline) ;
-      ldp->rstate = ROTSTATE_WRITABLE ;
+      logdir_set_writable(ldp) ;
       break ;
     default : strerr_dief1x(101, "inconsistent state in rotator()") ;
   }
   return 1 ;
  fail:
-   tain_add_g(&ldp->deadline, &ldp->retrytto) ;
+   tain_add_g(&ldp->retrydeadline, &ldp->retrytto) ;
    return 0 ;
+}
+
+static void logdir_flush (logdir_t *ldp)
+{
+  if (bufalloc_flush(&ldp->out)) logdir_set_writable(ldp) ;
+}
+
+static void logdir_rotate (logdir_t *ldp)
+{
+  enum rotstate_e oldstate = ldp->rstate ;
+  if (ldp->rstate == ROTSTATE_FLUSHING || ldp->rstate == ROTSTATE_WRITABLE) ldp->rstate = ROTSTATE_START ;
+  if (!rotator(ldp)) return ;
+  if (oldstate == ROTSTATE_FLUSHING)
+  {
+    tain_add_g(&ldp->retrydeadline, &ldp->retrytto) ;
+    ldp->rstate = ROTSTATE_FLUSHING ;
+  }
+}
+
+static void logdir_retry (logdir_t *ldp)
+{
+  if (ldp->rstate == ROTSTATE_FLUSHING) logdir_flush(ldp) ;
+  else rotator(ldp) ;
 }
 
 static ssize_t logdir_write (int i, char const *s, size_t len)
@@ -514,36 +545,22 @@ static ssize_t logdir_write (int i, char const *s, size_t len)
     if (m < n) n = m+1 ;
   }
   r = fd_write(ldp->fd, s, n) ;
-  if (r < 0)
+  if (r <= 0)
   {
-    if (!error_isagain(errno))
-    {
-      tain_add_g(&ldp->deadline, &ldp->retrytto) ;
-      if (verbosity) strerr_warnwu3sys("write to ", ldp->dir, "/current") ;
-    }
-    return r ;
+    ldp->rstate = ROTSTATE_FLUSHING ;
+    tain_add_g(&ldp->retrydeadline, &ldp->retrytto) ;
+    return -1 ;
   }
   ldp->b += r ;
-  if ((ldp->b + ldp->tolerance >= ldp->s) && (s[r-1] == '\n'))
+  if (ldp->b + ldp->tolerance >= ldp->s && s[r-1] == '\n')
   {
     ldp->rstate = ROTSTATE_START ;
-    rotator(ldp) ;
+    return rotator(ldp) ? r : -1 ;
   }
-  return r ;
+  else return r ;
 }
 
-static inline void rotate_or_flush (logdir_t *ldp)
-{
-  if ((ldp->rstate != ROTSTATE_WRITABLE) && !rotator(ldp)) return ;
-  if (ldp->b >= ldp->s)
-  {
-    ldp->rstate = ROTSTATE_START ;
-    if (!rotator(ldp)) return ;
-  }
-  bufalloc_flush(&ldp->out) ;
-}
-
-static inline void logdir_init (unsigned int index, uint32_t s, uint32_t n, uint32_t tolerance, uint64_t maxdirsize, tain const *retrytto, char const *processor, char const *name, unsigned int flags)
+static inline void logdir_init (unsigned int index, uint32_t s, uint32_t n, uint32_t tolerance, uint64_t maxdirsize, uint32_t rotsecs, tain const *retrytto, char const *processor, char const *name, unsigned int flags)
 {
   logdir_t *ldp = logdirs + index ;
   struct stat st ;
@@ -555,12 +572,12 @@ static inline void logdir_init (unsigned int index, uint32_t s, uint32_t n, uint
   ldp->pid = 0 ;
   ldp->tolerance = tolerance ;
   ldp->maxdirsize = maxdirsize ;
+  ldp->rotsecs = rotsecs ;
   ldp->retrytto = *retrytto ;
   ldp->processor = processor ;
   ldp->flags = flags ;
   ldp->dir = name ;
   ldp->fd = -1 ;
-  ldp->rstate = ROTSTATE_WRITABLE ;
   r = mkdir(ldp->dir, S_IRWXU | S_ISGID) ;
   if (r < 0 && errno != EEXIST) strerr_diefu2sys(111, "mkdir ", name) ;
   memcpy(x, name, dirlen) ;
@@ -613,10 +630,14 @@ static inline void logdir_init (unsigned int index, uint32_t s, uint32_t n, uint
  opencurrent:
   ldp->fd = openc_append(x) ;
   if (ldp->fd < 0) strerr_diefu2sys(111, "open_append ", x) ;
+  if (ndelay_off(ldp->fd) == -1)
+    strerr_diefu2sys(111, "ndelay_off ", x) ;
   if (fd_chmod(ldp->fd, mask) == -1)
     strerr_diefu2sys(111, "fd_chmod ", x) ;
   ldp->b = st.st_size ;
-  tain_copynow(&ldp->deadline) ;
+  if (rotsecs) tain_addsec_g(&ldp->rotdeadline, rotsecs) ;
+  else tain_add_g(&ldp->rotdeadline, &tain_infinite_relative) ;
+  logdir_set_writable(ldp) ;
   bufalloc_init(&ldp->out, &logdir_write, index) ;
 }
 
@@ -648,7 +669,7 @@ static inline int logdir_finalize (logdir_t *ldp)
   }
   return 1 ;
  fail:
-  tain_add_g(&ldp->deadline, &ldp->retrytto) ;
+  tain_add_g(&ldp->retrydeadline, &ldp->retrytto) ;
   return 0 ;
 }
 
@@ -664,8 +685,8 @@ static inline void finalize (void)
       if (logdirs[i].rstate != ROTSTATE_END)
       {
         if (logdir_finalize(logdirs + i)) n-- ;
-        else if (tain_less(&logdirs[i].deadline, &deadline))
-          deadline = logdirs[i].deadline ;
+        else if (tain_less(&logdirs[i].retrydeadline, &deadline))
+          deadline = logdirs[i].retrydeadline ;
       }
     if (!n) break ;
     {
@@ -701,6 +722,7 @@ static inline void script_firstpass (char const *const *argv, unsigned int *sell
       case 'S' :
       case 'l' :
       case 'r' :
+      case 'R' :
       case 'E' :
       case '^' :
       case 'p' :
@@ -758,6 +780,7 @@ static inline void script_secondpass (char const *const *argv, scriptelem_t *scr
   tain retrytto ;
   unsigned int fd2_size = 200 ;
   unsigned int status_size = 1001 ;
+  uint32_t rotsecs = 0 ;
   uint32_t s = 99999 ;
   uint32_t n = 10 ;
   uint32_t tolerance = 2000 ;
@@ -825,6 +848,9 @@ static inline void script_secondpass (char const *const *argv, scriptelem_t *scr
         if (!tain_from_millisecs(&retrytto, t)) goto fail ;
         break ;
       }
+      case 'R' :
+        if (!uint320_scan(*argv + 1, &rotsecs)) goto fail ;
+        break ;
       case 'E' :
         if (!uint0_scan(*argv + 1, &fd2_size)) goto fail ;
         break ;
@@ -873,7 +899,7 @@ static inline void script_secondpass (char const *const *argv, scriptelem_t *scr
       case '/' :
       {
         act_t a = { .type = ACTTYPE_DIR, .flags = flags, .prefix = prefix, .prefixlen = prefixlen, .data = { .ld = lidx } } ;
-        logdir_init(lidx, s, n, tolerance, maxdirsize, &retrytto, processor, *argv, flags) ;
+        logdir_init(lidx, s, n, tolerance, maxdirsize, rotsecs, &retrytto, processor, *argv, flags) ;
         lidx++ ;
         actions[act++] = a ; flagacted = 1 ; flags = 0 ;
         break ;
@@ -1121,13 +1147,13 @@ static inline void processor_died (logdir_t *ldp, int wstat)
   if (WIFSIGNALED(wstat))
   {
     if (verbosity) strerr_warnw2x("processor crashed in ", ldp->dir) ;
-    tain_add_g(&ldp->deadline, &ldp->retrytto) ;
+    tain_add_g(&ldp->retrydeadline, &ldp->retrytto) ;
     ldp->rstate = ROTSTATE_RUNPROCESSOR ;
   }
   else if (WEXITSTATUS(wstat))
   {
     if (verbosity) strerr_warnw2x("processor failed in ", ldp->dir) ;
-    tain_add_g(&ldp->deadline, &ldp->retrytto) ;
+    tain_add_g(&ldp->retrydeadline, &ldp->retrytto) ;
     ldp->rstate = ROTSTATE_RUNPROCESSOR ;
   }
   else
@@ -1147,16 +1173,8 @@ static inline int handle_signals (void)
       case -1 : strerr_diefu1sys(111, "selfpipe_read") ;
       case 0 : return e ;
       case SIGALRM :
-      {
-        unsigned int i = 0 ;
-        for (; i < llen ; i++)
-          if ((logdirs[i].rstate == ROTSTATE_WRITABLE) && logdirs[i].b)
-          {
-            logdirs[i].rstate = ROTSTATE_START ;
-            rotator(logdirs + i) ;
-          }
+        for (unsigned int i = 0 ; i < llen ; i++) logdir_rotate(logdirs + i) ;
         break ;
-      }
       case SIGTERM :
         if (flagprotect) break ;
       case SIGHUP :
@@ -1232,11 +1250,11 @@ int main (int argc, char const *const *argv)
   mask = ~mask & 0666 ;
   script_firstpass(argv, &sellen, &actlen, &scriptlen, &gflags) ;
   {
+    iopause_fd x[3] = { { .events = IOPAUSE_READ } } ;
     sel_t selections[sellen ? sellen : 1] ;
     act_t actions[actlen] ;
     scriptelem_t script[scriptlen] ;
     logdir_t logdirblob[llen] ;
-    iopause_fd x[3 + llen] ;
     logdirs = logdirblob ;
     script_secondpass(argv, script, selections, actions) ;
     x[0].fd = selfpipe_init() ;
@@ -1252,7 +1270,6 @@ int main (int argc, char const *const *argv)
       if (!selfpipe_trapset(&set))
         strerr_diefu1sys(111, "selfpipe_trapset") ;
     }
-    x[0].events = IOPAUSE_READ ;
     if (notif)
     {
       fd_write(notif, "\n", 1) ;
@@ -1264,26 +1281,27 @@ int main (int argc, char const *const *argv)
       tain deadline = exit_deadline ;
       int r = 0 ;
       unsigned int xindex0, xindex1 ;
-      unsigned int i = 0, j = 1 ;
+      unsigned int j = 1 ;
       if (bufalloc_1->fd == 1 && bufalloc_len(bufalloc_1))
       {
         r = 1 ;
         x[j].fd = 1 ;
-        x[j].events = IOPAUSE_EXCEPT | (bufalloc_len(bufalloc_1) ? IOPAUSE_WRITE : 0) ;
+        x[j].events = bufalloc_len(bufalloc_1) ? IOPAUSE_WRITE : 0 ;
         xindex1 = j++ ;
       }
       else xindex1 = 0 ;
 
-      for (; i < llen ; i++)
+      for (unsigned int i = 0 ; i < llen ; i++)
       {
-        logdirs[i].xindex = 0 ;
-        if (bufalloc_len(&logdirs[i].out) || (logdirs[i].rstate != ROTSTATE_WRITABLE))
+        if (bufalloc_len(&logdirs[i].out))
         {
-          r = 1 ;
-          if (tain_less(&logdirs[i].deadline, &deadline))
-            deadline = logdirs[i].deadline ;
+          if (logdirs[i].rstate == ROTSTATE_WRITABLE) logdir_flush(logdirs + i) ;
+          if (logdirs[i].rstate != ROTSTATE_WRITABLE) r = 1 ;
         }
+        if (tain_less(&logdirs[i].retrydeadline, &deadline)) deadline = logdirs[i].retrydeadline ;
+        if (tain_less(&logdirs[i].rotdeadline, &deadline)) deadline = logdirs[i].rotdeadline ;
       }
+
       if (!flagexiting && !(flagblock && r))
       {
         x[j].fd = 0 ;
@@ -1303,13 +1321,20 @@ int main (int argc, char const *const *argv)
           if (indata.len) process_partial_line(script, scriptlen, gflags) ;
           prepare_to_exit() ;
         }
-        for (i = 0 ; i < llen ; i++)
-          if (!tain_future(&logdirs[i].deadline))
-            rotate_or_flush(logdirs + i) ;
+        for (unsigned int i = 0 ; i < llen ; i++)
+        {
+          if (!tain_future(&logdirs[i].retrydeadline)) logdir_retry(logdirs + i) ;
+          if (!tain_future(&logdirs[i].rotdeadline))
+          {
+            if (logdirs[i].rotsecs) tain_addsec_g(&logdirs[i].rotdeadline, logdirs[i].rotsecs) ;
+            else tain_add_g(&logdirs[i].rotdeadline, &tain_infinite_relative) ;
+            logdir_rotate(logdirs + i) ;
+          }
+        }
         continue ;
       }
 
-      if (x[0].revents & (IOPAUSE_READ | IOPAUSE_EXCEPT) && handle_signals()) continue ;
+      if (x[0].revents & IOPAUSE_READ && handle_signals()) continue ;
 
       if (xindex1 && x[xindex1].revents)
       {
@@ -1325,10 +1350,6 @@ int main (int argc, char const *const *argv)
               actions[i].type = ACTTYPE_NOTHING ;
         }
       }
-
-      for (i = 0 ; i < llen ; i++)
-       if (logdirs[i].xindex && x[logdirs[i].xindex].revents & IOPAUSE_WRITE)
-           rotate_or_flush(logdirs + i) ;
 
       if (xindex0 && x[xindex0].revents)
       {

@@ -228,6 +228,11 @@ when the size of <tt>current</tt> goes higher than <em>filesize</em> minus
 on the next logdirs, retry every <em>cooldown</em> milliseconds. By default,
 <em>cooldown</em> is 2000; it's strongly discouraged to set it to a value
 under 50. </li>
+ <li> <strong>R<em>period</em></strong>: if <em>period</em> is not zero,
+the next logdirs will be automatically rotated every <em>period</em> seconds,
+even if the <tt>current</tt> file has not reached the size limit. If
+<em>period</em> is zero (the default), the next logdirs will not be
+periodically rotated. </li>
  <li> <strong>E<em>alertsize</em></strong>: only the first <em>alertsize</em>
 bytes of the selected lines will be used in the next alerts. An
 <em>alertsize</em> of 0 means no limit. By default, <em>alertsize</em> is
