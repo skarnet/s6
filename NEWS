@@ -1,5 +1,13 @@
 Changelog for s6.
 
+In 2.13.3.0
+-----------
+
+ - Bugfixes.
+ - Support for shared libraries on MacOS.
+ - New Rperiod directive for s6-log periodic rotations.
+
+
 In 2.13.2.0
 -----------
 
