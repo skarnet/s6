@@ -37,6 +37,6 @@ int main (int argc, char const *const *argv)
   if (!s6_fdholder_start_g(&a, argv[0], &deadline))
     strerr_diefu2sys(111, "connect to a fd-holder daemon at ", argv[0]) ;
   if (!s6_fdholder_delete_g(&a, argv[1], &deadline))
-    strerr_diefu2sys(1, "delete fd for id ", argv[0]) ;
+    strerr_diefu2sys(1, "delete fd for id ", argv[1]) ;
   return 0 ;
 }
