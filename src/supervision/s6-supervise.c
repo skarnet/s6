@@ -311,7 +311,7 @@ static void trystart (void)
     {
       struct stat st ;
       int islocked ;
-      int lfd = open_write(SLCK) ;
+      int lfd = open_trunc(SLCK) ;
       if (lfd == -1)
       {
         settimeout(60) ;
