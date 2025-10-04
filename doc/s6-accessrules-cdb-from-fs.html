@@ -29,7 +29,7 @@ containing a ruleset suitable for
 <h2> Interface </h2>
 
 <pre>
-     s6-accessrules-cdb-from-fs <em>cdbfile</em> <em>dir</em>
+     s6-accessrules-cdb-from-fs [ -m <em>mode</em> ] <em>cdbfile</em> <em>dir</em>
 </pre>
 
 <ul>
@@ -37,6 +37,13 @@ containing a ruleset suitable for
 directory containing a ruleset into a
 <a href="https://en.wikipedia.org/wiki/Cdb_(software)">CDB file</a>
 <em>cdbfile</em> then exits 0. </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-m&nbsp;<em>mode</em></tt>&nbsp;: create <em>cdbfile</em> with
+permissions <em>mode</em> (an octal number). </li>
 </ul>
 
 <h2> Ruleset directory format </h2>

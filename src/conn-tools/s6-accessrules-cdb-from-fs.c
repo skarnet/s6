@@ -7,8 +7,11 @@
 #include <stdio.h>
 
 #include <skalibs/posixplz.h>
+#include <skalibs/stat.h>
 #include <skalibs/types.h>
 #include <skalibs/cdbmake.h>
+#include <skalibs/gol.h>
+#include <skalibs/prog.h>
 #include <skalibs/strerr.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/env.h>
@@ -16,7 +19,7 @@
 #include <skalibs/djbunix.h>
 #include <skalibs/skamisc.h>
 
-#define USAGE "s6-accessrules-cdb-from-fs cdbfile dir"
+#define USAGE "s6-accessrules-cdb-from-fs [ -m mode ] cdbfile dir"
 #define SUFFIX ":s6-accessrules-cdb-from-fs:XXXXXX"
 
 static stralloc tmp = STRALLOC_ZERO ;
@@ -102,6 +105,17 @@ static void doit (cdbmaker *c, stralloc *sa, size_t start)
   }
 }
 
+enum gola_e
+{
+  GOLA_MODE,
+  GOLA_N
+} ;
+
+static gol_arg const rgola[] =
+{
+  { .so = 'm', .lo = "mode", .i = GOLA_MODE }
+} ;
+
 int main (int argc, char const *const *argv)
 {
   stralloc sa = STRALLOC_ZERO ;
@@ -109,8 +123,17 @@ int main (int argc, char const *const *argv)
   DIR *dir ;
   size_t start ;
   int fd ;
+  unsigned int mode ;
+  char const *wgola[GOLA_N] = { 0 } ;
+  unsigned int golc ;
   PROG = "s6-accessrules-cdb-from-fs" ;
+
+  golc = gol_main(argc, argv, 0, 0, rgola, 1, 0, wgola) ;
+  argc -= golc ; argv += golc ;
   if (argc < 3) strerr_dieusage(100, USAGE) ;
+
+  if (wgola[GOLA_MODE] && !uint0_oscan(wgola[GOLA_MODE], &mode))
+    strerr_dief1x(100, "mode needs to be an unsigned integer (in octal)") ;
   if (!stralloc_cats(&tmp, argv[1])) return 0 ;
   if (!stralloc_readyplus(&tmp, 8210))
     strerr_diefu1sys(111, "stralloc_catb") ;
@@ -185,6 +208,11 @@ int main (int argc, char const *const *argv)
     strerr_diefu1sys(111, "fd_sync") ;
   }
   fd_close(fd) ;
+  if (wgola[GOLA_MODE] && chmod(tmp.s, mode) == -1)
+  {
+    cleanup() ;
+    strerr_diefu2sys(111, "chmod ", tmp.s) ;
+  }
   if (rename(tmp.s, argv[1]) < 0)
   {
     cleanup() ;
