@@ -60,10 +60,20 @@ s6-instance-create \
 s6-instance-delete \
 s6-instance-control \
 s6-instance-status \
-s6-instance-list
+s6-instance-list \
+
+LIBEXEC_TARGETS := \
+s6-background-watch \
 
 LIB_DEFS := S6=s6
 S6_DESCRIPTION :=
+
+$(shell grep -qFx "kevent: yes" $(sysdeps)/sysdeps)
+ifeq ($(.SHELLSTATUS),0)
+KEVENTPTHREAD_LIB := $(PTHREAD_LIB)
+else
+KEVENTPTHREAD_LIB :=
+endif
 
 ifneq ($(EXECLINE_LIB),)
 LIB_DEFS += S6AUTO=s6auto

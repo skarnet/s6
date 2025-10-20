@@ -1,0 +1,3 @@
+-lskarnet
+${SPAWN_LIB}
+${KEVENTPTHREAD_LIB}
