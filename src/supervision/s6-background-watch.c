@@ -136,6 +136,8 @@ struct thinfo_s
   pid_t pid ;
 } ;
 
+static struct thinfo_s thinfo ;
+
 static void *keventwait (void *arg)
 {
   struct thinfo_s *t = arg ;
@@ -152,23 +154,22 @@ static void *keventwait (void *arg)
 
 static void keventstart (pid_t pid, int *fd, pthread_t *th)
 {
-  struct thinfo_s t ;
   int p[2] ;
   pthread_attr_t attr ;
   struct kevent ke ;
   int e ;
 
-  t.kq = kqueue() ;
-  if (t.kq == -1) strerr_diefu1sys(111, "kqueue") ;
+  thinfo.kq = kqueue() ;
+  if (thinfo.kq == -1) strerr_diefu1sys(111, "kqueue") ;
   EV_SET(&ke, pid, EVFILT_PROC, EV_ADD | EV_ONESHOT, NOTE_EXIT, 0, 0) ;
-  if (kevent(t.kq, &ke, 1, 0, 0, 0) == -1) strerr_diefu1sys(111, "register kevent") ;
+  if (kevent(thinfo.kq, &ke, 1, 0, 0, 0) == -1) strerr_diefu1sys(111, "register kevent") ;
   if (pipe(p) == -1) strerr_diefu2sys(111, "pipe") ;
-  t.fdw = p[1] ;
-  t.pid = pid ;
+  thinfo.fdw = p[1] ;
+  thinfo.pid = pid ;
   e = pthread_attr_init(&attr) ;
   if (e) { errno = e ; strerr_diefu1sys(111, "pthread_attr_init") ; }
   pthread_attr_setstacksize(&attr, PTHREAD_STACK_MIN) ;
-  e = pthread_create(th, &attr, &keventwait, &t) ;
+  e = pthread_create(th, &attr, &keventwait, &thinfo) ;
   if (e) { errno = e ; strerr_diefu1sys(111, "pthread_create") ; }
   *fd = p[0] ;
 }
