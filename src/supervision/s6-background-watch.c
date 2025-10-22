@@ -209,7 +209,8 @@ int main (int argc, char const *const *argv)
 #if NEEDS_KEVENT
   keventbridge kb = KEVENTBRIDGE_ZERO ;
   x[1].events = IOPAUSE_READ ;
-  if (!keventbridge_start(&kb)) strerr_diefu1sys(111, "keventbridge_start") ;
+  x[1].fd = keventbridge_start(&kb) ;
+  if (x[1].fd == -1) strerr_diefu1sys(111, "keventbridge_start") ;
   {
     struct kevent ke ;
     EV_SET(&ke, pid, EVFILT_PROC, EV_ADD | EV_ONESHOT, NOTE_EXIT, 0, 0) ;
