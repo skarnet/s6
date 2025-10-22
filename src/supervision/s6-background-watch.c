@@ -208,14 +208,12 @@ int main (int argc, char const *const *argv)
 
 #if NEEDS_KEVENT
   keventbridge kb = KEVENTBRIDGE_ZERO ;
+  struct kevent ke ;
   x[1].events = IOPAUSE_READ ;
   x[1].fd = keventbridge_start(&kb) ;
   if (x[1].fd == -1) strerr_diefu1sys(111, "keventbridge_start") ;
-  {
-    struct kevent ke ;
-    EV_SET(&ke, pid, EVFILT_PROC, EV_ADD | EV_ONESHOT, NOTE_EXIT, 0, 0) ;
-    if (keventbridge_write(&kb, &ke, 1) == -1) strerr_diefu1sys(111, "keventbridge_write") ;
-  }
+  EV_SET(&ke, pid, EVFILT_PROC, EV_ADD | EV_ONESHOT, NOTE_EXIT, 0, 0) ;
+  if (keventbridge_write(&kb, &ke, 1) == -1) strerr_diefu1sys(111, "keventbridge_write") ;
 #endif
 
   if (notif)
@@ -236,7 +234,6 @@ int main (int argc, char const *const *argv)
 #if NEEDS_KEVENT
     else if (x[1].revents & IOPAUSE_READ)
     {
-      struct kevent ke ;
       int r = keventbridge_read(&kb, &ke) ;
       if (r == -1) strerr_diefu1sys(111, "keventbridge_read") ;
       else if (r && (pid_t)ke.ident == pid && ke.filter == EVFILT_PROC && ke.fflags & NOTE_EXIT)
