@@ -66,7 +66,7 @@ s6-background-watch \
 LIB_DEFS := S6=s6
 S6_DESCRIPTION :=
 
-$(shell grep -qFx "kevent: yes" $(sysdeps)/sysdeps)
+$(shell grep -qFx "prctl: no" $(sysdeps)/sysdeps && grep -qFx "procctl: no" $(sysdeps)/sysdeps && grep -qFx "kevent: yes" $(sysdeps)/sysdeps)
 ifeq ($(.SHELLSTATUS),0)
 KEVENTPTHREAD_LIB := $(PTHREAD_LIB)
 else

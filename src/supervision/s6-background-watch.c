@@ -2,21 +2,28 @@
 
 #include <skalibs/sysdeps.h>
 
-#if defined(SKALIBS_HASPRSETCHILDSUBREAPER) || defined(SKALIBS_HASKEVENT)
+#if defined(SKALIBS_HASPRCTL) || defined(SKALIBS_HASPROCCTL) || defined(SKALIBS_HASKEVENT)
 
 #include <unistd.h>
 #include <signal.h>
 #include <sys/wait.h>
 #include <errno.h>
-#ifdef SKALIBS_HASPRSETCHILDSUBREAPER
+
+#undef NEEDS_KEVENT
+#if defined(SKALIBS_HASPRCTL)
 # include <sys/prctl.h>
-#else
+# define NEEDS_KEVENT 0
+#elif defined(SKALIBS_HASPROCCTL)
+# include <sys/procctl.h>
+# define NEEDS_KEVENT 0
+#elif defined (SKALIBS_HASKEVENT)
 # include <sys/types.h>
 # include <sys/event.h>
 # include <sys/time.h>
 # include <pthread.h>
 # include <fcntl.h>
 # include <limits.h>
+# define NEEDS_KEVENT 1
 #endif
 
 #include <skalibs/posixplz.h>
@@ -99,7 +106,7 @@ static inline pid_t get_pid_from_pidfile (char const *pidfile, char const *prog)
   return pid ;
 }
 
-static inline int handle_signals (pid_t pid, int issr, int *code)
+static inline int handle_signals (pid_t pid, int iske, int *code)
 {
   int sig ;
   for (;;) switch (sig = selfpipe_read())
@@ -111,7 +118,7 @@ static inline int handle_signals (pid_t pid, int issr, int *code)
       int wstat ;
       pid_t r = wait_pid_nohang(pid, &wstat) ;
       if (r == -1)
-        if (errno != ECHILD || issr) strerr_diefu1sys(111, "wait") ;
+        if (errno != ECHILD || !iske) strerr_diefu1sys(111, "wait") ;
         else break ;
       else if (!r) break ;
       *code = wait_estatus(wstat) ;
@@ -127,7 +134,7 @@ static inline int handle_signals (pid_t pid, int issr, int *code)
 /* BSD part. kevent is a unique dildo-shaped snowflake, so we need to run it
    in its own thread for it to play nicely with our regular iopause loop. */
 
-#ifdef SKALIBS_HASKEVENT
+#if NEEDS_KEVENT
 
 struct thinfo_s
 {
@@ -149,6 +156,7 @@ static void *keventwait (void *arg)
     else if (r && (pid_t)ke.ident == t->pid && ke.filter == EVFILT_PROC && ke.fflags & NOTE_EXIT) break ;
   }
   close(t->fdw) ;
+  close(t->kq) ;
   return (void *)(intptr_t)ke.data ;
 }
 
@@ -202,7 +210,7 @@ static gol_arg const rgola[GOLA_N] =
 
 int main (int argc, char const *const *argv)
 {
-  iopause_fd x[2] = { { .events = IOPAUSE_READ }, { .fd = -2, .events = IOPAUSE_READ, .revents = 0 } } ;
+  iopause_fd x[1 + NEEDS_KEVENT] = { { .events = IOPAUSE_READ } } ;
   tain tto = TAIN_INFINITE_RELATIVE ;
   tain deadline ;
   unsigned int notif = 0 ;
@@ -236,9 +244,12 @@ int main (int argc, char const *const *argv)
     x[0].fd = selfpipe_fd() ;
   }
 
-#ifdef SKALIBS_HASPRSETCHILDSUBREAPER
+#if defined(SKALIBS_HASPRCTL)
   if (prctl(PR_SET_CHILD_SUBREAPER, 1) == -1)
-    strerr_diefu1sys(111, "prctl to become a subreaper") ;
+    strerr_diefu1sys(111, "prctl with PR_SET_CHILD_SUBREAPER") ;
+#elif defined(SKALIBS_HASPROCCTL)
+  if (procctl(P_PID, 0, PROC_REAP_ACQUIRE, 0) == -1)
+    strerr_diefu1sys(111, "procctl with PROC_REAP_ACQUIRE") ;
 #endif
 
   pid = cspawn(argv[1], argv + 1, (char const *const *)environ, CSPAWN_FLAGS_SELFPIPE_FINISH, 0, 0) ;
@@ -261,8 +272,9 @@ int main (int argc, char const *const *argv)
   pid = get_pid_from_pidfile(argv[0], argv[1]) ;
   if (kill(pid, 0) == -1) strerr_diefu1sys(111, "check daemon with a null signal") ;
 
-#ifdef SKALIBS_HASKEVENT
+#if NEEDS_KEVENT
   pthread_t th = PTHREAD_NULL ;
+  x[1].events = IOPAUSE_READ ;
   keventstart(pid, &x[1].fd, &th) ;
 #endif
   if (notif)
@@ -273,14 +285,14 @@ int main (int argc, char const *const *argv)
 
   for (;;)
   {
-    int r = iopause_g(x, 1 + (x[1].fd >= 0), 0) ;
+    int r = iopause_g(x, 1 + NEEDS_KEVENT, 0) ;
     if (r == -1) strerr_diefu1sys(111, "iopause") ;
     if (x[0].revents & IOPAUSE_READ)
     {
       int code = 0 ;
-      if (handle_signals(pid, x[1].fd == -2, &code)) _exit(code) ;
+      if (handle_signals(pid, NEEDS_KEVENT, &code)) _exit(code) ;
     }
-#ifdef SKALIBS_KEVENT
+#if NEEDS_KEVENT
     else if (x[1].revents & IOPAUSE_READ) _exit(getexitcode(th)) ;
 #endif
   }

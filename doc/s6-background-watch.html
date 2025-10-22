@@ -36,11 +36,11 @@ daemon.
 
 <p>
  s6-background-watch only works on Linux (or any systems implementing
-<a href="https://man7.org/linux/man-pages/man2/PR_SET_CHILD_SUBREAPER.2const.html">PR_SET_CHILD_SUBREAPER</a>)
+<a href="https://man7.org/linux/man-pages/man2/PR_SET_CHILD_SUBREAPER.2const.html">prctl with PR_SET_CHILD_SUBREAPER</a>)
 and the BSDs (or any system implementing
+<a href="https://man.freebsd.org/cgi/man.cgi?query=procctl&sektion=2">procctl with PROC_REAP_ACQUIRE</a> or
 <a href="https://man.freebsd.org/cgi/man.cgi?query=kevent&apropos=0&sektion=0&manpath=FreeBSD+16.0-CURRENT&arch=default&format=html">kevent
-with the EVFILT_PROC filter and the NOTE_EXIT fflag</a>). Most modern systems will
-implement one of these.
+with EVFILT_PROC and NOTE_EXIT fflag</a>). Most modern systems will implement one of these.
 </p>
 
 <h2> Interface </h2>
