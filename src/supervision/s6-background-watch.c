@@ -23,6 +23,7 @@
 # include <pthread.h>
 # include <fcntl.h>
 # include <limits.h>
+# include <skalibs/keventbridge.h>
 # define NEEDS_KEVENT 1
 #endif
 
@@ -38,8 +39,6 @@
 #include <skalibs/cspawn.h>
 #include <skalibs/djbunix.h>
 
-
- /* portable parts */
 
 #define USAGE "s6-background-watch [ -t timeout ] [ -d notif ] pidfile prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
@@ -130,71 +129,6 @@ static inline int handle_signals (pid_t pid, int iske, int *code)
   }
 }
 
-
-/* BSD part. kevent is a unique dildo-shaped snowflake, so we need to run it
-   in its own thread for it to play nicely with our regular iopause loop. */
-
-#if NEEDS_KEVENT
-
-struct thinfo_s
-{
-  int kq ;
-  int fdw ;
-  pid_t pid ;
-} ;
-
-static struct thinfo_s thinfo ;
-
-static void *keventwait (void *arg)
-{
-  struct thinfo_s *t = arg ;
-  struct kevent ke ;
-  for (;;)
-  {
-    int r = kevent(t->kq, 0, 0, &ke, 1, 0) ;
-    if (r == -1 && errno != EINTR) strerr_diefu2sys(111, "read ", "kevent") ;
-    else if (r && (pid_t)ke.ident == t->pid && ke.filter == EVFILT_PROC && ke.fflags & NOTE_EXIT) break ;
-  }
-  close(t->fdw) ;
-  close(t->kq) ;
-  return (void *)(intptr_t)ke.data ;
-}
-
-static void keventstart (pid_t pid, int *fd, pthread_t *th)
-{
-  int p[2] ;
-  pthread_attr_t attr ;
-  struct kevent ke ;
-  int e ;
-
-  thinfo.kq = kqueue() ;
-  if (thinfo.kq == -1) strerr_diefu1sys(111, "kqueue") ;
-  EV_SET(&ke, pid, EVFILT_PROC, EV_ADD | EV_ONESHOT, NOTE_EXIT, 0, 0) ;
-  if (kevent(thinfo.kq, &ke, 1, 0, 0, 0) == -1) strerr_diefu1sys(111, "register kevent") ;
-  if (pipe(p) == -1) strerr_diefu2sys(111, "pipe") ;
-  thinfo.fdw = p[1] ;
-  thinfo.pid = pid ;
-  e = pthread_attr_init(&attr) ;
-  if (e) { errno = e ; strerr_diefu1sys(111, "pthread_attr_init") ; }
-  pthread_attr_setstacksize(&attr, PTHREAD_STACK_MIN) ;
-  e = pthread_create(th, &attr, &keventwait, &thinfo) ;
-  if (e) { errno = e ; strerr_diefu1sys(111, "pthread_create") ; }
-  *fd = p[0] ;
-}
-
-static int getexitcode (pthread_t th)
-{
-  void *ptr ;
-  int e = pthread_join(th, &ptr) ;
-  if (e) { errno = e ; strerr_diefu1sys(111, "pthread_join") ; }
-  return (int)(intptr_t)ptr ;
-}
-
-#endif
-
-
- /* main */
-
 enum rgola_e
 {
   GOLA_TIMEOUT,
@@ -273,10 +207,16 @@ int main (int argc, char const *const *argv)
   if (kill(pid, 0) == -1) strerr_diefu1sys(111, "check daemon with a null signal") ;
 
 #if NEEDS_KEVENT
-  pthread_t th = PTHREAD_NULL ;
+  keventbridge kb = KEVENTBRIDGE_ZERO ;
   x[1].events = IOPAUSE_READ ;
-  keventstart(pid, &x[1].fd, &th) ;
+  if (!keventbridge_start(&kb)) strerr_diefu1sys(111, "keventbridge_start") ;
+  {
+    struct kevent ke ;
+    EV_SET(&ke, pid, EVFILT_PROC, EV_ADD | EV_ONESHOT, NOTE_EXIT, 0, 0) ;
+    if (keventbridge_write(&kb, &ke, 1) == -1) strerr_diefu1sys(111, "keventbridge_write") ;
+  }
 #endif
+
   if (notif)
   {
     write(notif, "\n", 1) ;
@@ -293,7 +233,14 @@ int main (int argc, char const *const *argv)
       if (handle_signals(pid, NEEDS_KEVENT, &code)) _exit(code) ;
     }
 #if NEEDS_KEVENT
-    else if (x[1].revents & IOPAUSE_READ) _exit(getexitcode(th)) ;
+    else if (x[1].revents & IOPAUSE_READ)
+    {
+      struct kevent ke ;
+      int r = keventbridge_read(&kb, &ke) ;
+      if (r == -1) strerr_diefu1sys(111, "keventbridge_read") ;
+      else if (r && (pid_t)ke.ident == pid && ke.filter == EVFILT_PROC && ke.fflags & NOTE_EXIT)
+        _exit(wait_estatus(ke.data)) ;
+    }
 #endif
   }
 }
