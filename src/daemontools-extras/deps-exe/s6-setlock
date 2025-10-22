@@ -1,3 +1,2 @@
 -lskarnet
 ${TIMER_LIB}
-${PTHREAD_LIB}
