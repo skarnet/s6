@@ -179,7 +179,7 @@ s6-fghack: EXTRA_LIBS := ${SPAWN_LIB}
 s6-fghack: src/daemontools-extras/s6-fghack.o -lskarnet
 s6-log: EXTRA_LIBS := ${SPAWN_LIB} ${SYSCLOCK_LIB}
 s6-log: src/daemontools-extras/s6-log.o -lskarnet
-s6-setlock: EXTRA_LIBS := ${TIMER_LIB}
+s6-setlock: EXTRA_LIBS := ${TIMER_LIB} ${PTHREAD_LIB}
 s6-setlock: src/daemontools-extras/s6-setlock.o -lskarnet
 s6-setsid: EXTRA_LIBS :=
 s6-setsid: src/daemontools-extras/s6-setsid.o -lskarnet
