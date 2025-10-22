@@ -61,8 +61,6 @@ s6-instance-delete \
 s6-instance-control \
 s6-instance-status \
 s6-instance-list \
-
-LIBEXEC_TARGETS := \
 s6-background-watch \
 
 LIB_DEFS := S6=s6

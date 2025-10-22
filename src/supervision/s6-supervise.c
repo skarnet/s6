@@ -297,16 +297,18 @@ static void trystart (void)
     [0] = { .type = CSPAWN_FA_CLOSE },
     [1] = { .type = CSPAWN_FA_MOVE },
   } ;
-  char lkfmt[UINT_FMT] ;
-  char const *cargv[8] = { S6_BINPREFIX "s6-setlock", "-d", lkfmt, "--", SLCK, "./run", servicename, 0 } ;
-  size_t orig = 5 ;
+  char const *cargv[8] ;
   int notifyp[2] = { -1, -1 } ;
   unsigned int lk = 0, notif = 0 ;
   uint16_t cspawnflags = CSPAWN_FLAGS_SELFPIPE_FINISH | CSPAWN_FLAGS_SETSID ;
+  uint8_t m = 0 ;
+  char lkfmt[UINT_FMT] ;
+
+  if (check_file("flag-newpidns")) cspawnflags |= CSPAWN_FLAGS_NEWPIDNS ;
 
   if (read_uint("lock-fd", &lk))
   {
-    if (lk > maxfd) strerr_warnw2x("invalid ", "lock-fd") ;
+    if (!lk || lk > maxfd) strerr_warnw2x("invalid ", "lock-fd") ;
     else
     {
       struct stat st ;
@@ -342,14 +344,18 @@ static void trystart (void)
         strerr_warnw1x("another instance of the service is already running, child will block") ;
       fd_close(lfd) ;
       lkfmt[uint_fmt(lkfmt, lk)] = 0 ;
-      orig = 0 ;
+      cargv[m++] = S6_BINPREFIX "s6-setlock" ;
+      cargv[m++] = "-d" ;
+      cargv[m++] = lkfmt ;
+      cargv[m++] = "--" ;
+      cargv[m++] = SLCK ;
     }
   }
 
   if (read_uint("notification-fd", &notif))
   {
-    if (notif > maxfd) strerr_warnw2x("invalid ", "notification-fd") ;
-    if (!orig && notif == lk)
+    if (!notif || notif > maxfd) strerr_warnw2x("invalid ", "notification-fd") ;
+    if (notif == lk)
     {
       settimeout_infinite() ;
       strerr_warnwu1x("start service: notification-fd and lock-fd are the same") ;
@@ -366,12 +372,14 @@ static void trystart (void)
     fa[1].x.fd2[1] = notifyp[1] ;
   }
 
-  if (check_file("flag-newpidns")) cspawnflags |= CSPAWN_FLAGS_NEWPIDNS ;
-  status.pid = cspawn(cargv[orig], cargv + orig, (char const *const *)environ, cspawnflags, fa, notifyp[1] >= 0 ? 2 : 0) ;
+  cargv[m++] = "./run" ;
+  cargv[m++] = servicename ;
+  cargv[m++] = 0 ;
+  status.pid = cspawn(cargv[0], cargv, (char const *const *)environ, cspawnflags, fa, notifyp[1] >= 0 ? 2 : 0) ;
   if (!status.pid)
   {
     settimeout(60) ;
-    strerr_warnwu3sys("spawn ", cargv[orig], " (waiting 60 seconds)") ;
+    strerr_warnwu3sys("spawn ", cargv[0], " (waiting 60 seconds)") ;
     goto errn ;
   }
 
@@ -382,7 +390,7 @@ static void trystart (void)
   }
   status.pgid = getpgid(status.pid) ;
   if (status.pgid == -1)
-    strerr_warnwu1sys("getpgid() (process group control commands will have no effect)") ;
+    strerr_warnwu1sys("getpgid (process group control commands will have no effect)") ;
   settimeout_infinite() ;
   nextstart = tain_zero ;
   state = UP ;

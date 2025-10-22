@@ -78,3 +78,4 @@
 /s6-instance-control
 /s6-instance-status
 /s6-instance-list
+/s6-background-watch

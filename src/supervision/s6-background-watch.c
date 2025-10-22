@@ -124,7 +124,8 @@ static inline int handle_signals (pid_t pid, int issr, int *code)
 }
 
 
-/* BSD part. kevent is a unique snowflake in the shape of a dildo */
+/* BSD part. kevent is a unique dildo-shaped snowflake, so we need to run it
+   in its own thread for it to play nicely with our regular iopause loop. */
 
 #ifdef SKALIBS_HASKEVENT
 
@@ -162,7 +163,6 @@ static void keventstart (pid_t pid, int *fd, pthread_t *th)
   EV_SET(&ke, pid, EVFILT_PROC, EV_ADD | EV_ONESHOT, NOTE_EXIT, 0, 0) ;
   if (kevent(t.kq, &ke, 1, 0, 0, 0) == -1) strerr_diefu1sys(111, "register kevent") ;
   if (pipe(p) == -1) strerr_diefu2sys(111, "pipe") ;
-  if (coe(p[0]) 
   t.fdw = p[1] ;
   t.pid = pid ;
   e = pthread_attr_init(&attr) ;
@@ -201,7 +201,7 @@ static gol_arg const rgola[GOLA_N] =
 
 int main (int argc, char const *const *argv)
 {
-  iopause_fd x[2] = { { .events = IOPAUSE_READ }, { .events = IOPAUSE_READ, .revents = 0 } } ;
+  iopause_fd x[2] = { { .events = IOPAUSE_READ }, { .fd = -2, .events = IOPAUSE_READ, .revents = 0 } } ;
   tain tto = TAIN_INFINITE_RELATIVE ;
   tain deadline ;
   unsigned int notif = 0 ;
@@ -238,7 +238,6 @@ int main (int argc, char const *const *argv)
 #ifdef SKALIBS_HASPRSETCHILDSUBREAPER
   if (prctl(PR_SET_CHILD_SUBREAPER, 1) == -1)
     strerr_diefu1sys(111, "prctl to become a subreaper") ;
-  x[1].fd = -2 ;
 #endif
 
   pid = cspawn(argv[1], argv + 1, (char const *const *)environ, CSPAWN_FLAGS_SELFPIPE_FINISH, 0, 0) ;
@@ -259,8 +258,10 @@ int main (int argc, char const *const *argv)
   }
 
   pid = get_pid_from_pidfile(argv[0], argv[1]) ;
+  if (kill(pid, 0) == -1) strerr_diefu1sys(111, "check daemon with a null signal") ;
+
 #ifdef SKALIBS_HASKEVENT
-  pthread_t th ;
+  pthread_t th = PTHREAD_NULL ;
   keventstart(pid, &x[1].fd, &th) ;
 #endif
   if (notif)

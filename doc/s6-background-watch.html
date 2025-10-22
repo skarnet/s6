@@ -1,0 +1,128 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-background-watch program</title>
+    <meta name="Description" content="s6: the s6-background-watch program" />
+    <meta name="Keywords" content="s6 command s6-background-watch fork supervision auto-backgrounding daemon bg fg fghack s6-fghack" />
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-background-watch program </h1>
+
+<p>
+ s6-background-watch spawns an auto-backgrounding daemon that writes a pidfile.
+It reads the pidfile then transmits the signals it receives to the corresponding
+process. It dies when the corresponding process dies, with an
+<a href="//skarnet.org/software/execline/exitcodes.html">approximation</a> of
+its exit code.
+</p>
+
+<p>
+ s6-background-watch is meant as a <em>workaround</em> to auto-backgrounding
+daemons. (Not a <em>solution</em>, because the <em>solution</em> is to fix
+the daemon so it runs without backgrounding itself!) It should be run on the
+command line of a run script, right before the invocation of the auto-backgrounding
+daemon.
+</p>
+
+<p>
+ s6-background-watch only works on Linux (or any systems implementing
+<a href="https://man7.org/linux/man-pages/man2/PR_SET_CHILD_SUBREAPER.2const.html">PR_SET_CHILD_SUBREAPER</a>)
+and the BSDs (or any system implementing
+<a href="https://man.freebsd.org/cgi/man.cgi?query=kevent&apropos=0&sektion=0&manpath=FreeBSD+16.0-CURRENT&arch=default&format=html">kevent
+with the EVFILT_PROC filter and the NOTE_EXIT fflag</a>). Most modern systems will
+implement one of these.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-background-watch [ -t <em>timeout</em> ] [ -d <em>notif</em> ] <em>pidfile</em> <em>prog...</em>
+</pre>
+
+<ul>
+ <li> s6-background-watch spawns <em>prog...</em> as a child. </li>
+ <li> <em>prog...</em> is expected to fork. The child process is supposed to be
+long-lived, i.e. the child the daemon that is to be supervised. </li>
+ <li> The parent is expected to write the child's pid to the <em>pidfile</em> file. </li>
+ <li> The parent is expected to exit 0 when the child is ready. </li>
+ <li> Once the parent has exited, s6-background-watch reads <em>pidfile</em> to get
+the pid of the daemon. </li>
+ <li> s6-background-watch transmits all the signals it receives to the daemon.
+Non-catchable signals, such as SIGKILL, will obviously not work, so, don't do this. </li>
+ <li> s6-background-watch exits when the daemon exits, with an
+<a href="//skarnet.org/software/execline/exitcodes.html">approximation</a> of the
+daemon's exit code. (In most cases it will be the exact same exit code.) </li>
+</ul>
+
+<h2> Options </h2>
+
+<dl>
+ <dt> <tt>-t&nbsp;<em>timeout</em></tt>, <tt>--timeout-ready=<em>timeout</em></tt> </dt>
+  <dd> If the parent daemon has not exited after <em>timeout</em> milliseconds,
+kill it and exit. By default, there is no timeout, s6-background-watch will wait as
+long as needed. </dd>
+ <dt> <tt>-d&nbsp;<em>notif</em></tt>, <tt>--notification-fd=<em>notif</em></tt> </dt>
+  <dd> Write a newline to file descriptor <em>notif</em> when the parent has
+exited 0 and s6-background-watch has successfully read <em>pidfile</em>. This
+is useful when the daemon follows the convention that the child is ready when
+the parent exits: use the <tt>-d</tt> option in conjunction with the
+<tt>notification-fd</tt> file, and <a href="s6-supervise.html">s6-supervise</a>
+will accurately report the daemon's readiness. </dd>
+</dl>
+
+<h2> Exit codes </h2>
+
+<dl>
+ <dt> 100 </dt> <dd> Bad usage. </dd>
+ <dt> 111 </dt> <dd> System call failed. This is generally a temporary error,
+or indicates a problem with the underlying system. </dd>
+ <dt> 112 </dt> <dd> Functionality not supported. You cannot run
+s6-background-watch on this OS, because it lacks the necessary features. </dt>
+ <dt> 128+<em>n</em> </dt> <dd> The parent daemon was killed with signal <em>n</em>.
+In particular, 137 can happen if the <tt>-t</tt> option has been given and
+the parent daemon times out: s6-background-watch kills it with SIGKILL. </dd>
+ <dt> <em>n</em> </dt> <dd> The child daemon exited with code <em>n</em>. </dd>
+</dl>
+
+<h2> Notes </h2>
+
+<p>
+ s6-background-watch acts as a proxy between <a href="s6-supervise.html">s6-supervise</a>
+and the forking daemon. It stays in the foreground, keeping s6-supervise happy; and it
+keeps track of the daemon as best as it can, transmitting it signals. It is a better
+iteration of <a href="s6-fghack.html">s6-fghack</a>, which is obsolescent. However, it
+is not perfect, because it cannot be:
+</p>
+
+<ul>
+ <li> <a href="s6-svc.html"><tt>s6-svc -k</tt></a>, i.e. SIGKILL, is very bad.
+It will kill s6-background-watch without killing the backgrounded daemon, and
+all links to the daemon are lost. If the service restarts, it will probably fail,
+because the previous instance of the daemon is still alive. You may be able to
+mitigate that with the use of a <a href="servicedir.html">lock-fd</a> file. </li>
+ <li> The race condition inherent to pidfiles is there: between the moment
+the daemon writes its pidfile and the moment s6-background-watch reads it and
+attempts to track it, the daemon could have died and another pid taken its place.
+The design of s6-background-watch makes this race window minimal (the system has
+to loop over the whole pid space between the moment the pidfile is written and
+the moment s6-background-watch reads it, which is <em>right afterwards</em>, so
+it's not as bad as most uses of pidfiles, but the race theoretically still exists. </li>
+ <li> In order to detect the death of a process that isn't a direct child,
+which isn't a functionality guaranteed by POSIX, OS-specific mechanisms have to
+be used, and not all the supported OSes have such mechanisms. If the OS has no usable
+mechanism for this, s6-background-watch will immediately exit with an error message.
+</ul>
+
+
+</body>
+</html>
