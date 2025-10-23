@@ -4,6 +4,8 @@
 
 #if defined(SKALIBS_HASPRCTL) || defined(SKALIBS_HASPROCCTL) || defined(SKALIBS_HASKEVENT)
 
+#include <skalibs/nonposix.h>
+
 #include <unistd.h>
 #include <signal.h>
 #include <sys/wait.h>
