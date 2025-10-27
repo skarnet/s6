@@ -175,6 +175,8 @@ int main (int argc, char const *const *argv)
   {
     sigset_t full ;
     sigfillset(&full) ;
+    if (selfpipe_init() == -1)
+      strerr_diefu1sys(111, "init selfpipe") ;
     if (!selfpipe_trapset(&full))
       strerr_diefu1sys(111, "trap all signals") ;
     x[0].fd = selfpipe_fd() ;
