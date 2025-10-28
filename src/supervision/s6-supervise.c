@@ -388,9 +388,9 @@ static void trystart (void)
     fd_close(notifyp[1]) ;
     notifyfd = notifyp[0] ;
   }
-  status.pgid = getpgid(status.pid) ;
+  status.pgid = getsid(status.pid) ;
   if (status.pgid == -1)
-    strerr_warnwu1sys("getpgid (process group control commands will have no effect)") ;
+    strerr_warnwu1sys("getsid (process group control commands will have no effect)") ;
   settimeout_infinite() ;
   nextstart = tain_zero ;
   state = UP ;
