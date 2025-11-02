@@ -28,14 +28,19 @@ knowing their PIDs, and without using horrible hacks such as .pid files.
 <h2> Interface </h2>
 
 <pre>
-     s6-svc [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T <em>timeout</em> ] [ -s <em>signal</em> | -abqhkti12pcyrPCK ] [ -oduDUxO ] <em>servicedir</em>
+     s6-svc [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T <em>timeout</em> ] [ -s <em>signal</em> | -abqhkti12pcyrPCK ] [ -oduDUxO ] <em>servicedirs...</em>
 </pre>
 
 <p>
 s6-svc sends the given series of commands to the
-<a href="s6-supervise.html">s6-supervise</a> process monitoring the
-<em>servicedir</em> directory, then exits 0. It exits 111 if it cannot send
-a command, or 100 if no s6-supervise process is running on <em>servicedir</em>.
+<a href="s6-supervise.html">s6-supervise</a> processes monitoring the
+<em>servicedirs</em> directories, then exits 0.
+</p>
+
+<p>
+ If an error occurs, s6-svc prints an error message and keeps processing
+<em>servicedirs</em>. It then exits with an error code corresponding to
+the last directory in <em>servicedir</em> that caused an error.
 </p>
 
 <h2> Options </h2>
@@ -124,43 +129,54 @@ started or restarted and has notified readiness. </li>
  <li> <tt>-K</tt>&nbsp;: send a SIGKILL to the <em>process group</em> of the supervised process </li>
 </ul>
 
+<h2> Exit codes </h2>
+
+<dl>
+ <dt> 0 </dt> <dd> Success. </dd>
+ <dt> 100 </dt> <dd> Usage error. </dd>
+ <dt> 102 </dt> <dd> One of the arguments in <em>servicedirs</em> is not a
+currently supervised service directory. </dd>
+ <dt> 111 </dt> <dd> System call failure. </ff>
+</dl>
+
 <h2> Usage examples </h2>
 
-<pre> s6-svc -h /service/httpd </pre>
+<pre> s6-svc -h /run/service/httpd </pre>
 <p>
- Send a SIGHUP to the process represented by the <tt>/service/httpd</tt>
+ Send a SIGHUP to the process represented by the <tt>/run/service/httpd</tt>
 service directory. Traditionally, this makes web servers reload their
 configuration file.
 </p>
 
-<pre> s6-svc -r /service/sshd </pre>
+<pre> s6-svc -r /run/service/sshd /run/service/httpd </pre>
 <p>
  Kill (and automatically restart, if the wanted state of the service is up)
-the process represented by the <tt>/service/sshd</tt> service directory -
-typically the sshd server.
+the process represented by the <tt>/run/service/sshd</tt> service directory
+&mdash; typically the sshd server &mdash; as well as the process represented
+by the <tt>/run/service/httpd</tt> directory &mdash; typically the Web server.
 </p>
 
-<pre> s6-svc -wD -d /service/ftpd </pre>
+<pre> s6-svc -wD -d /run/service/ftpd </pre>
 <p>
  Take down the ftpd server and block until the process is down and
 the finish script has completed.
 </p>
 
-<pre> s6-svc -wU -T 5000 -u /service/ftpd </pre>
+<pre> s6-svc -wU -T 5000 -u /run/service/ftpd </pre>
 <p>
  Bring up the ftpd server and block until it has sent notification that it
 is ready. Exit 1 if it is still not ready after 5 seconds.
 </p>
 
-<pre> s6-svc -wR -t /service/ftpd </pre>
+<pre> s6-svc -twR /run/service/ftpd /run/service/gitd </pre>
 <p>
- Send a SIGTERM to the ftpd server; wait for
-<a href="s6-supervise.html">s6-supervise</a> to restart it, and block
-until it has notified that it is ready to serve again. See the NOTES
-section below for a caveat.
+ Send a SIGTERM to the ftpd server and the git server; wait for their
+respective <a href="s6-supervise.html">supervisors</a> to restart them, and block
+until they both have notified that they are ready to serve again. See the NOTES
+section below.
 </p>
 
-<pre> s6-svc -a /service/httpd/log </pre>
+<pre> s6-svc -a /run/service/httpd/log </pre>
 <p>
  Send a SIGALRM to the logger process for the httpd server. If this logger
 process is <a href="s6-log.html">s6-log</a>, this triggers a log rotation.
@@ -169,32 +185,33 @@ process is <a href="s6-log.html">s6-log</a>, this triggers a log rotation.
 <h2> Internals </h2>
 
 <ul>
- <li> s6-svc writes control commands into the <tt><em>servicedir</em>/supervise/control</tt>
-FIFO. An s6-supervise process running on <em>servicedir</em> will be listening to this FIFO,
+ <li> s6-svc writes control commands into the <tt><em>x</em>/supervise/control</tt>
+FIFO for every service directory <em>x</em> listed in <em>servicedirs</em>.
+An s6-supervise process running on <em>x</em> will be listening to this FIFO,
 and will read and interpret those commands. </li>
  <li> When invoked with one of the <tt>-w</tt> options, s6-svc executes into
-<a href="s6-svlisten1.html">s6-svlisten1</a>, which will listen to service state
+<a href="s6-svlisten.html">s6-svlisten</a>, which will listen to service state
 changes and spawn another s6-svc instance (without the <tt>-w</tt> option)
-that will send the commands to the service. Any error message written during
-the waiting period will mention it is being written by s6-svlisten1; this is normal. </li>
+that will send the commands to the services. Any error message written during
+the waiting period will mention it is being written by s6-svlisten; this is normal. </li>
 </ul>
 
 <h2> Notes </h2>
 
 <ul>
  <li> The <tt>-t</tt> and <tt>-r</tt> options make <a href="s6-supervise.html">s6-supervise</a>
-send a signal to the service if it is up; but if the service is currently down,
+send a signal to the service it's supervisiing if it is up; but if the service is currently down,
 they do nothing, and in particular they do not instruct s6-supervise to bring the
-service up. Consequently, <tt>s6-svc -rwr <em>servicedir</em></tt> may wait forever
-for the service to be up, if it is currently wanted down. To avoid that, make sure
-your service is wanted up by using <tt>s6-svc -ruwr <em>servicedir</em></tt> instead. </li>
+service up. Consequently, <tt>s6-svc -rwr <em>servicedirs</em></tt> may wait forever
+for one of the services to be up, if it is currently wanted down. To avoid that, make sure
+your services are wanted up by using <tt>s6-svc -ruwr <em>servicedirs</em></tt> instead. </li>
  <li> The <tt>U</tt> and <tt>D</tt> letters, which convey the same idea as <tt>u</tt>
 and <tt>d</tt> (<em>up</em> and <em>down</em>) but with added emphasis, do not have the
 same meaning in the <tt>-U</tt>/<tt>-D</tt> and <tt>-wU</tt>/<tt>-wD</tt> options.
-In the <tt>-U</tt>/<tt>-D</tt> case, they mean "change the external service configuration
-to match what the supervisor has been instructed that the starting state of the service
-should be". In the <tt>-wU</tt>/<tt>-wD</tt> case, they mean "wait until the service
-has reached the wanted state <em>and also</em> is ready" (or "ready to be started again"
+In the <tt>-U</tt>/<tt>-D</tt> case, they mean "change the external service configurations
+to match what the supervisors have been instructed that the starting state of the services
+should be". In the <tt>-wU</tt>/<tt>-wD</tt> case, they mean "wait until the services
+havee reached the wanted state <em>and also</em> are ready" (or "ready to be started again"
 for <tt>-wD</tt>). The thing to remember is "it's up/down, with something more", but
 the "something" isn't the same. </li>
 </ul>

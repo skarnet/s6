@@ -18,7 +18,7 @@
 #include <s6/config.h>
 #include <s6/supervise.h>
 
-#define USAGE "s6-svc [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T timeout ] [ -s signal | -abqhkti12pcyrPCK ] [ -oduDUxOQ ] servicedir"
+#define USAGE "s6-svc [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T timeout ] [ -s signal | -abqhkti12pcyrPCK ] [ -oduDUxOQ ] servicedirs..."
 #define dieusage() strerr_dieusage(100, USAGE)
 
 #define DATASIZE 63
@@ -103,7 +103,6 @@ int main (int argc, char const *const *argv)
     argc -= l.ind ; argv += l.ind ;
   }
   if (!argc) dieusage() ;
-  if (argc > 1) strerr_warnw1x("ignoring extra arguments") ;
   len = strlen(argv[0]) ;
   if (!len) strerr_dief1x(100, "invalid service path") ;
 
@@ -122,10 +121,10 @@ int main (int argc, char const *const *argv)
 
   if (updown[1])
   {
-    char const *newargv[11] ;
+    char const *newargv[6 + argc + (datalen > 1 ? 4 + argc : 0)] ;
     unsigned int m = 0 ;
     char fmt[UINT_FMT] ;
-    newargv[m++] = datalen > 1 ? S6_BINPREFIX "s6-svlisten1" : S6_BINPREFIX "s6-svwait" ;
+    newargv[m++] = datalen > 1 ? S6_BINPREFIX "s6-svlisten" : S6_BINPREFIX "s6-svwait" ;
     newargv[m++] = updown ;
     if (timeout)
     {
@@ -134,22 +133,30 @@ int main (int argc, char const *const *argv)
       newargv[m++] = fmt ;
     }
     newargv[m++] = "--" ;
-    newargv[m++] = argv[0] ;
+    for (unsigned int i = 0 ; i < argc ; i++) newargv[m++] = argv[i] ;
     if (datalen > 1)
     {
+      newargv[m++] = "" ;
       newargv[m++] = S6_BINPREFIX "s6-svc" ;
       newargv[m++] = data ;
       newargv[m++] = "--" ;
-      newargv[m++] = argv[0] ;
+      for (unsigned int i = 0 ; i < argc ; i++) newargv[m++] = argv[i] ;
     }
     newargv[m++] = 0 ;
-    xexec(newargv) ;
+    xmexec_n(newargv, "EXECLINE_STRICT", sizeof("EXECLINE_STRICT"), 1) ;
   }
-  else switch (s6_svc_writectl(argv[0], S6_SUPERVISE_CTLDIR, data + 1, datalen - 1))
+  else
   {
-    case -1 : strerr_diefu2sys(111, "control ", argv[0]) ;
-    case -2 : strerr_dief3sys(100, "something is wrong with the ", argv[0], "/" S6_SUPERVISE_CTLDIR " directory") ;
-    case 0 : strerr_diefu3x(100, "control ", argv[0], ": supervisor not listening") ;
+    int e = 0 ;
+    for (unsigned int i = 0 ; i < argc ; i++)
+    {
+      switch (s6_svc_writectl(argv[0], S6_SUPERVISE_CTLDIR, data + 1, datalen - 1))
+      {
+        case -1 : { strerr_warnwu2sys("control ", argv[i]) ; e = 111 ; break ; }
+        case -2 : { strerr_warnw3sys("something is wrong with the ", argv[i], "/" S6_SUPERVISE_CTLDIR " directory") ; e = 1 ; break ; }
+        case 0 : { strerr_warnwu3x("control ", argv[i], ": supervisor not listening") ; e = 102 ; break ; }
+      }
+    }
+    _exit(e) ;
   }
-  return 0 ;
 }

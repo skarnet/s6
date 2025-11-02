@@ -1,11 +1,13 @@
 Changelog for s6.
 
-In 2.13.3.0
+In 2.14.0.0
 -----------
 
  - Bugfixes.
  - Support for shared libraries on MacOS.
  - New Rperiod directive for s6-log periodic rotations.
+ - s6-svc now accepts several service directory arguments.
+ - s6-svc now exits 102 on unsupervised directory argument.
 
 
 In 2.13.2.0
