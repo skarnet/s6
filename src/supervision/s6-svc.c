@@ -150,7 +150,7 @@ int main (int argc, char const *const *argv)
     int e = 0 ;
     for (unsigned int i = 0 ; i < argc ; i++)
     {
-      switch (s6_svc_writectl(argv[0], S6_SUPERVISE_CTLDIR, data + 1, datalen - 1))
+      switch (s6_svc_writectl(argv[i], S6_SUPERVISE_CTLDIR, data + 1, datalen - 1))
       {
         case -1 : { strerr_warnwu2sys("control ", argv[i]) ; e = 111 ; break ; }
         case -2 : { strerr_warnw3sys("something is wrong with the ", argv[i], "/" S6_SUPERVISE_CTLDIR " directory") ; e = 1 ; break ; }
