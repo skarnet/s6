@@ -50,6 +50,9 @@ Optional features:
   --enable-absolute-paths       hardcode absolute BINDIR/foobar paths in binaries [disabled]
   --enable-nsss                 use the nsss library for user information [disabled]
   --disable-execline            don't use the execline library [enabled]
+  --enable-aliases-daemontools  build emulation of daemontools programs [disabled]
+  --enable-aliases-runit        build emulation of runit programs [disabled]
+  --disable-aliases-symlinks    do not create daemontools/runit multicall symlinks [enabled]
 
 EOF
 exit 0
@@ -172,6 +175,9 @@ vpathd=''
 build=
 usensss=false
 useexecline=true
+adaemontools=false
+arunit=false
+asymlinks=true
 
 for arg ; do
   case "$arg" in
@@ -213,6 +219,12 @@ for arg ; do
     --disable-nsss|--enable-nsss=no) usensss=false ;;
     --enable-execline|--enable-execline=yes) useexecline=true ;;
     --disable-execline|--enable-execline=no) useexecline=false ;;
+    --enable-aliases-daemontools|--enable-aliases-daemontools=yes) adaemontools=true ;;
+    --disable-aliases-daemontools|--enable-aliases-daemontools=no) adaemontools=false ;;
+    --enable-aliases-runit|--enable-aliases-runit=yes) arunit=true ;;
+    --disable-aliases-runit|--enable-aliases-runit=no) arunit=false ;;
+    --enable-aliases-symlinks|--enable-aliases-symlinks=yes) asymlinks=true ;;
+    --disable-aliases-symlinks|--enable-aliases-symlinks=no) asymlinks=false ;;
     --enable-*|--disable-*|--with-*|--without-*|--*dir=*) ;;
     --enable-*|--disable-*|--with-*|--without-*|--*dir=*) ;;
     --host=*|--target=*) target=${arg#*=} ;;
@@ -530,6 +542,22 @@ if $useexecline ; then
 else
   echo "EXECLINE_LIB :="
 fi
+
+if $adaemontools ; then
+  echo "WRAP_DAEMONTOOLS := 1"
+else
+  echo "WRAP_DAEMONTOOLS :="
+fi
+if $arunit ; then
+  echo "WRAP_RUNIT := 1"
+else
+  echo "WRAP_RUNIT :="
+fi
+if $asymlinks ; then
+  echo "WRAP_SYMLINKS := 1"
+else
+  echo "WRAP_SYMLINKS :="
+fi
 exec 1>&3 3>&-
 echo "  ... done."
 
@@ -565,6 +593,17 @@ echo "#undef ${package_macro_name}_USE_EXECLINE"
 if $useexecline ; then
   echo "#define ${package_macro_name}_USE_EXECLINE"
 fi
+
+echo "#undef ${package_macro_name}_WRAP_DAEMONTOOLS"
+if $adaemontools ; then
+  echo "#define ${package_macro_name}_WRAP_DAEMONTOOLS"
+fi
+
+echo "#undef ${package_macro_name}_WRAP_RUNIT"
+if $arunit ; then
+  echo "#define ${package_macro_name}_WRAP_RUNIT"
+fi
+
 echo
 echo "#endif"
 exec 1>&3 3>&-

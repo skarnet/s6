@@ -10,3 +10,19 @@ if $useexecline ; then
 else
   echo "EXECLINE_LIB :="
 fi
+
+if $adaemontools ; then
+  echo "WRAP_DAEMONTOOLS := 1"
+else
+  echo "WRAP_DAEMONTOOLS :="
+fi
+if $arunit ; then
+  echo "WRAP_RUNIT := 1"
+else
+  echo "WRAP_RUNIT :="
+fi
+if $asymlinks ; then
+  echo "WRAP_SYMLINKS := 1"
+else
+  echo "WRAP_SYMLINKS :="
+fi

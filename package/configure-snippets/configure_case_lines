@@ -2,3 +2,9 @@
     --disable-nsss|--enable-nsss=no) usensss=false ;;
     --enable-execline|--enable-execline=yes) useexecline=true ;;
     --disable-execline|--enable-execline=no) useexecline=false ;;
+    --enable-aliases-daemontools|--enable-aliases-daemontools=yes) adaemontools=true ;;
+    --disable-aliases-daemontools|--enable-aliases-daemontools=no) adaemontools=false ;;
+    --enable-aliases-runit|--enable-aliases-runit=yes) arunit=true ;;
+    --disable-aliases-runit|--enable-aliases-runit=no) arunit=false ;;
+    --enable-aliases-symlinks|--enable-aliases-symlinks=yes) asymlinks=true ;;
+    --disable-aliases-symlinks|--enable-aliases-symlinks=no) asymlinks=false ;;

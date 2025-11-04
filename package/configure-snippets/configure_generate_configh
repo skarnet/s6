@@ -2,3 +2,14 @@ echo "#undef ${package_macro_name}_USE_EXECLINE"
 if $useexecline ; then
   echo "#define ${package_macro_name}_USE_EXECLINE"
 fi
+
+echo "#undef ${package_macro_name}_WRAP_DAEMONTOOLS"
+if $adaemontools ; then
+  echo "#define ${package_macro_name}_WRAP_DAEMONTOOLS"
+fi
+
+echo "#undef ${package_macro_name}_WRAP_RUNIT"
+if $arunit ; then
+  echo "#define ${package_macro_name}_WRAP_RUNIT"
+fi
+

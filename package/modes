@@ -1,4 +1,7 @@
 ucspilogd			0755
+s6-alias			0755
+s6-alias-chpst			0755
+s6-alias-sv			0755
 s6-ftrigrd			0755
 s6-ftrig-listen1		0755
 s6-ftrig-listen			0755

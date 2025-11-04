@@ -1,2 +1,5 @@
 usensss=false
 useexecline=true
+adaemontools=false
+arunit=false
+asymlinks=true

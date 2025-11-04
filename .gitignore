@@ -6,6 +6,9 @@
 /config.mak
 /src/include/s6/config.h
 /ucspilogd
+/s6-alias
+/s6-alias-chpst
+/s6-alias-sv
 /s6-ftrigrd
 /s6-ftrig-listen1
 /s6-ftrig-listen

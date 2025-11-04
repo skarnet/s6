@@ -78,3 +78,91 @@ LIB_DEFS += S6AUTO=s6auto
 S6AUTO_DESCRIPTION := The s6auto library (C helpers to create service directories)
 BIN_TARGETS += s6-usertree-maker s6-instance-maker
 endif
+
+WRAP_ANY :=
+
+ifdef WRAP_DAEMONTOOLS
+
+WRAP_ANY := 1
+
+ifdef WRAP_SYMLINKS
+
+DAEMONTOOLS_TARGETS := \
+envdir \
+envuidgid \
+fghack \
+multilog \
+pgrphack \
+readproctitle \
+setlock \
+setuidgid \
+softlimit \
+supervise \
+svc \
+svok \
+svscan \
+svscanboot \
+svstat \
+tai64n \
+tai64nlocal \
+
+else
+
+DAEMONTOOLS_TARGETS :=
+
+endif
+
+install-bin: $(DAEMONTOOLS_TARGETS:%=$(DESTDIR)$(bindir)/%)
+
+ifneq ($(exthome),)
+global-links: $(DAEMONTOOLS_TARGETS:%=$(DESTDIR)$(sproot)/command/%)
+endif
+
+endif
+
+ifdef WRAP_RUNIT
+
+WRAP_ANY := 1
+
+ifdef WRAP_SYMLINKS
+
+RUNIT_TARGETS := \
+runit \
+runit-init \
+runsv \
+runsvchdir \
+runsvdir \
+svlogd \
+utmpset
+RUNIT_SPECIAL_TARGETS := chpst sv
+
+else
+
+RUNIT_TARGETS :=
+RUNIT_SPECIAL_TARGETS :=
+
+endif
+
+BIN_TARGETS += s6-alias-sv s6-alias-chpst
+
+install-bin: $(RUNIT_TARGETS:%=$(DESTDIR)$(bindir)/%) $(RUNIT_SPECIAL_TARGETS:%=$(DESTDIR)$(bindir)/%)
+
+ifneq ($(exthome),)
+global-links: $(RUNIT_TARGETS:%=$(DESTDIR)$(sproot)/command/%) $(RUNIT_SPECIAL_TARGETS:%=$(DESTDIR)$(sproot)/command/%)
+endif
+
+$(DESTDIR)$(bindir)/chpst: $(DESTDIR)$(bindir)/s6-alias-chpst
+	exec $(INSTALL) -D -l s6-alias-chpst $@
+$(DESTDIR)$(bindir)/sv: $(DESTDIR)$(bindir)/s6-alias-sv
+	exec $(INSTALL) -D -l s6-alias-sv $@
+
+endif
+
+ifdef WRAP_ANY
+
+BIN_TARGETS += s6-alias
+
+$(DAEMONTOOLS_TARGETS:%=$(DESTDIR)$(bindir)/%) $(RUNIT_TARGETS:%=$(DESTDIR)$(bindir)/%): $(DESTDIR)$(bindir)/s6-alias
+	exec $(INSTALL) -D -l s6-alias $@
+
+endif

@@ -7,6 +7,9 @@ src/include/s6/ftrigr.h: src/include/s6/config.h
 src/include/s6/lock.h: src/include/s6/config.h
 src/include/s6/s6.h: src/include/s6/accessrules.h src/include/s6/auto.h src/include/s6/compat.h src/include/s6/ftrigr.h src/include/s6/ftrigw.h src/include/s6/lock.h src/include/s6/supervise.h
 src/supervision/s6-svlisten.h: src/include/s6/ftrigr.h
+src/alias/s6-alias-chpst.o src/alias/s6-alias-chpst.lo: src/alias/s6-alias-chpst.c src/include/s6/config.h
+src/alias/s6-alias-sv.o src/alias/s6-alias-sv.lo: src/alias/s6-alias-sv.c src/include/s6/config.h src/include/s6/supervise.h
+src/alias/s6-alias.o src/alias/s6-alias.lo: src/alias/s6-alias.c src/include/s6/config.h
 src/conn-tools/s6-accessrules-cdb-from-fs.o src/conn-tools/s6-accessrules-cdb-from-fs.lo: src/conn-tools/s6-accessrules-cdb-from-fs.c
 src/conn-tools/s6-accessrules-fs-from-cdb.o src/conn-tools/s6-accessrules-fs-from-cdb.lo: src/conn-tools/s6-accessrules-fs-from-cdb.c
 src/conn-tools/s6-connlimit.o src/conn-tools/s6-connlimit.lo: src/conn-tools/s6-connlimit.c
@@ -145,6 +148,12 @@ src/supervision/s6_svlisten_loop.o src/supervision/s6_svlisten_loop.lo: src/supe
 src/supervision/s6_svlisten_signal_handler.o src/supervision/s6_svlisten_signal_handler.lo: src/supervision/s6_svlisten_signal_handler.c src/supervision/s6-svlisten.h
 src/usertree/s6-usertree-maker.o src/usertree/s6-usertree-maker.lo: src/usertree/s6-usertree-maker.c src/include/s6/auto.h src/include/s6/config.h
 
+s6-alias: EXTRA_LIBS :=
+s6-alias: src/alias/s6-alias.o -lskarnet
+s6-alias-chpst: EXTRA_LIBS := ${MAYBEPTHREAD_LIB}
+s6-alias-chpst: src/alias/s6-alias-chpst.o ${LIBNSSS} -lskarnet
+s6-alias-sv: EXTRA_LIBS := ${SPAWN_LIB}
+s6-alias-sv: src/alias/s6-alias-sv.o ${LIBS6} -lskarnet
 s6-accessrules-cdb-from-fs: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
 s6-accessrules-cdb-from-fs: src/conn-tools/s6-accessrules-cdb-from-fs.o -lskarnet
 s6-accessrules-fs-from-cdb: EXTRA_LIBS :=
