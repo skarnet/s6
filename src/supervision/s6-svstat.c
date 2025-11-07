@@ -69,16 +69,6 @@ static void pr_pid (buffer *b, s6_svstatus_t const *st)
   else buffer_putsnoflush(b, "-1") ;
 }
 
-static void pr_pgid (buffer *b, s6_svstatus_t const *st)
-{
-  if (st->pgid > 0)
-  {
-    char fmt[PID_FMT] ;
-    buffer_putnoflush(b, fmt, pid_fmt(fmt, st->pgid)) ;
-  }
-  else buffer_putsnoflush(b, "-1") ;
-}
-
 static void pr_tain (buffer *b, tain const *a)
 {
   char fmt[TIMESTAMP] ;
@@ -152,7 +142,7 @@ static funcmap_t const fmtable[] =
   { .s = "exitcode", .f = &pr_exitcode },
   { .s = "normallyup", .f = &pr_normallyup },
   { .s = "paused", .f = &pr_paused },
-  { .s = "pgid", .f = &pr_pgid },
+  { .s = "pgid", .f = &pr_pid },
   { .s = "pid", .f = &pr_pid },
   { .s = "ready", .f = &pr_ready },
   { .s = "readyfor", .f = &pr_readyseconds },
@@ -200,7 +190,7 @@ static void legacy (s6_svstatus_t *st, int flagnum)
     buffer_putnoflush(buffer_1small,"up (pid ", 8) ;
     buffer_putnoflush(buffer_1small, fmt, pid_fmt(fmt, status.pid)) ;
     buffer_putnoflush(buffer_1small, " pgid ", 6) ;
-    buffer_putnoflush(buffer_1small, fmt, pid_fmt(fmt, status.pgid)) ;
+    buffer_putnoflush(buffer_1small, fmt, pid_fmt(fmt, status.pid)) ;
     buffer_putnoflush(buffer_1small, ") ", 2) ;
   }
   else
@@ -277,7 +267,7 @@ int main (int argc, char const *const *argv)
         case 'N' : checkfields() ; fields[n++] = &pr_normallyup ; break ;
         case 'r' : checkfields() ; fields[n++] = &pr_ready ; break ;
         case 'p' : checkfields() ; fields[n++] = &pr_pid ; break ;
-        case 'g' : checkfields() ; fields[n++] = &pr_pgid ; break ;
+        case 'g' : checkfields() ; fields[n++] = &pr_pid ; break ;
         case 'e' : checkfields() ; fields[n++] = &pr_exitcode ; break ;
         case 's' : checkfields() ; fields[n++] = &pr_signal ; break ;
         case 't' : checkfields() ; fields[n++] = &pr_upseconds ; break ;

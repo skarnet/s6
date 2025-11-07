@@ -138,7 +138,6 @@ static inline int read_downsig (void)
 static void set_down_and_ready (char const *s, unsigned int n)
 {
   status.pid = 0 ;
-  status.pgid = 0 ;
   status.flagfinishing = 0 ;
   status.flagready = 1 ;
   state = DOWN ;
@@ -163,7 +162,7 @@ static void bail (void)
 
 static void killI (void)
 {
-  if (status.pgid > 0) killpg(status.pgid, SIGINT) ;
+  killpg(status.pid, SIGINT) ;
 }
 
 static void sigint (void)
@@ -267,27 +266,21 @@ static void killr (void)
 
 static void killP (void)
 {
-  if (status.pgid > 0)
-  {
-    killpg(status.pgid, SIGSTOP) ;
-    status.flagpaused = 1 ;
-    announce() ;
-  }
+  killpg(status.pid, SIGSTOP) ;
+  status.flagpaused = 1 ;
+  announce() ;
 }
 
 static void killC (void)
 {
-  if (status.pgid > 0)
-  {
-    killpg(status.pgid, SIGCONT) ;
-    status.flagpaused = 0 ;
-    announce() ;
-  }
+  killpg(status.pid, SIGCONT) ;
+  status.flagpaused = 0 ;
+  announce() ;
 }
 
 static void killK (void)
 {
-  if (status.pgid > 0) killpg(status.pgid, SIGKILL) ;
+  killpg(status.pid, SIGKILL) ;
 }
 
 static void trystart (void)
@@ -388,9 +381,6 @@ static void trystart (void)
     fd_close(notifyp[1]) ;
     notifyfd = notifyp[0] ;
   }
-  status.pgid = getsid(status.pid) ;
-  if (status.pgid == -1)
-    strerr_warnwu1sys("getsid (process group control commands will have no effect)") ;
   settimeout_infinite() ;
   nextstart = tain_zero ;
   state = UP ;
@@ -462,7 +452,7 @@ static int uplastup_z (void)
   char fmt0[UINT_FMT] ;
   char fmt1[UINT_FMT] ;
   char fmt2[PID_FMT] ;
-  char const *cargv[6] = { "finish", fmt0, fmt1, servicename, status.pgid > 0 ? fmt2 : "-1", 0 } ;
+  char const *cargv[6] = { "finish", fmt0, fmt1, servicename, fmt2, 0 } ;
 
   status.flagpaused = 0 ;
   status.flagready = 0 ;
@@ -475,7 +465,7 @@ static int uplastup_z (void)
   }
   fmt0[uint_fmt(fmt0, WIFSIGNALED(status.wstat) ? 256 : WEXITSTATUS(status.wstat))] = 0 ;
   fmt1[uint_fmt(fmt1, WTERMSIG(status.wstat))] = 0 ;
-  if (status.pgid > 0) fmt2[pid_fmt(fmt2, status.pgid)] = 0 ;
+  fmt2[pid_fmt(fmt2, status.pid)] = 0 ;
 
   if (!read_uint("max-death-tally", &n)) n = 100 ;
   if (n > S6_MAX_DEATH_TALLY) n = S6_MAX_DEATH_TALLY ;
@@ -509,7 +499,6 @@ static int uplastup_z (void)
       tain_add_g(&deadline, &tto) ;
     else settimeout_infinite() ;
   }
-  status.pgid = getpgid(status.pid) ;
   status.flagfinishing = 1 ;
   announce() ;
   ftrigw_notifyb_nosig(S6_SUPERVISE_EVENTDIR, "d", 1) ;
