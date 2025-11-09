@@ -41,7 +41,7 @@ int main (int argc, char const *const *argv)
   PROG = "s6-softlimit" ;
   for (;;)
   {
-    int opt = subgetopt_r(argc, argv, "hHa:c:d:f:l:m:o:p:r:s:t:", &l) ;
+    int opt = subgetopt_r(argc, argv, "hHa:c:d:f:l:m:o:P:p:r:s:t:", &l) ;
     if (opt == -1) break ;
     switch (opt)
     {
@@ -103,6 +103,11 @@ int main (int argc, char const *const *argv)
       case 'p' :
 #ifdef RLIMIT_NPROC
         doit(RLIMIT_NPROC, l.arg) ;
+#endif
+        break ;
+      case 'P' :
+#ifdef RLIMIT_RTPRIO
+        doit(RLIMIT_RTPRIO, l.arg) ;
 #endif
         break ;
       case 'r' :

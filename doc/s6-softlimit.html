@@ -25,7 +25,7 @@ s6-softlimit changes its process limits, then executes into another program.
 <h2> Interface </h2>
 
 <pre>
-     s6-softlimit [ -H | -h ] [ -a <em>allmem</em> ] [ -c <em>core</em> ] [ -d <em>data</em> ] [ -f <em>fsize</em> ] [ -l <em>lock</em> ] [ -m <em>mem</em> ] [ -o <em>ofiles</em> ] [ -p <em>proc</em> ] [ -r <em>res</em> ] [ -s <em>stack</em> ] [ -t <em>cpusecs</em> ] <em>prog...</em>
+     s6-softlimit [ -H | -h ] [ -a <em>allmem</em> ] [ -c <em>core</em> ] [ -d <em>data</em> ] [ -f <em>fsize</em> ] [ -l <em>lock</em> ] [ -m <em>mem</em> ] [ -o <em>ofiles</em> ] [ -P <em>prio</em> ] [ -p <em>proc</em> ] [ -r <em>res</em> ] [ -s <em>stack</em> ] [ -t <em>cpusecs</em> ] <em>prog...</em>
 </pre>
 
 <ul>
@@ -58,6 +58,7 @@ and s6-softlimit will die. There is virtually no reason to ever use this. </li>
  <li> <tt>-l&nbsp;<em>lock</em></tt>&nbsp;: limit the available locked memory to <em>lock</em> bytes. </li>
  <li> <tt>-m&nbsp;<em>mem</em></tt>&nbsp;: limit all types of memory to <em>mem</em> bytes. </li>
  <li> <tt>-o&nbsp;<em>ofiles</em></tt>&nbsp;: limit the number of open fds to <em>ofiles</em>. </li>
+ <li> <tt>-P&nbsp;<em>prio</em></tt>&nbsp;: limit the real-time priority to <em>prio</em>. </li>
  <li> <tt>-p&nbsp;<em>proc</em></tt>&nbsp;: limit the number of processes to <em>proc</em> (per user). </li>
  <li> <tt>-r&nbsp;<em>res</em></tt>&nbsp;: limit the available physical memory to <em>res</em> bytes. </li>
  <li> <tt>-s&nbsp;<em>stack</em></tt>&nbsp;: limit the available stack memory to <em>stack</em> bytes. </li>
