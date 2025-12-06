@@ -44,8 +44,8 @@ s6-softlimit changes its process limits, then executes into another program.
 if you're raising the limit, and should generally <em>not</em> be used, except once at boot time.
 The "hard limit" should be a system-wide setting that is never touched after being set once. </li>
  <li> <tt>-h</tt>&nbsp;: set the hard limit, without touching the soft limit.
-If you're lowering the hard limit to a value that's lower than the current soft limit, it will fail
-and s6-softlimit will die. There is virtually no reason to ever use this. </li>
+If you're lowering the hard limit to a value that's lower than the current soft limit, the soft limit
+will be lowered to the new value of the hard limit. </li>
 </ul>
 
 <h3> Resource selection options </h3>
