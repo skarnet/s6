@@ -5,9 +5,13 @@ In 2.14.0.0
 
  - Bugfixes.
  - Support for shared libraries on MacOS.
+ - New -m option to s6-accessrules-cdb-from-fs.
  - New Rperiod directive for s6-log periodic rotations.
  - s6-svc now accepts several service directory arguments.
  - s6-svc now exits 102 on unsupervised directory argument.
+ - New s6-background-watch binary, to counter auto-backgrounding.
+ - s6-fghack is now obsolescent.
+ - New -P prio option to s6-softlimit.
 
 
 In 2.13.2.0

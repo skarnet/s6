@@ -23,6 +23,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
 
   PROG = "s6-fghack" ;
   if (argc < 2) strerr_dieusage(100, USAGE) ;
+  strerr_warnw("this program is obsolescent, please use s6-background-watch instead") ;
   if (pipe(p) == -1) strerr_diefu1sys(111, "create hackpipe") ;
   for (size_t i = 0 ; i < N ; i++)
     fds[i] = dup(p[1]) ;
