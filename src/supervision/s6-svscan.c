@@ -573,7 +573,7 @@ static int start_iter (void *data, void *aux)
     j++ ;
   }
   
-  sv->pid = cspawn(S6_BINPREFIX "s6-supervise", cargv, (char const *const *)environ, CSPAWN_FLAGS_SELFPIPE_FINISH, fa, j) ;
+  sv->pid = cspawn(S6_EXTBINPREFIX "s6-supervise", cargv, (char const *const *)environ, CSPAWN_FLAGS_SELFPIPE_FINISH, fa, j) ;
   if (!sv->pid)
   {
     strerr_warnwu2sys("spawn s6-supervise for ", NAME(i)) ;
