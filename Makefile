@@ -42,6 +42,7 @@ endif
 
 lib$(2).pc:
 	exec env \
+	  prefix="$(prefix)" \
 	  library="$(2)" \
 	  includedir="$(includedir)" \
 	  dynlibdir="$(dynlibdir)" \
