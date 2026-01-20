@@ -6,8 +6,8 @@ Build Instructions
 
   - A POSIX-compliant C development environment
   - GNU make version 3.81 or later
-  - skalibs version 2.14.5.0 or later: https://skarnet.org/software/skalibs/
-  - Recommended: execline version 2.9.8.0 or later: https://skarnet.org/software/execline/
+  - skalibs version 2.14.5.1 or later: https://skarnet.org/software/skalibs/
+  - Recommended: execline version 2.9.8.1 or later: https://skarnet.org/software/execline/
     (You can disable this requirement at configure time, but will
     lose some functionality.)
   - Optional: nsss version 0.2.1.1 or later: https://skarnet.org/software/nsss/
