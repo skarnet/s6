@@ -4,7 +4,7 @@ patchit () {
   echo '#!/usr/xpg4/bin/sh' > $1.tmp
   tail -n +2 $1 >> $1.tmp
   mv -f $1.tmp $1
-  chmod 0755 $1
+  chmod 755 $1
 }
 
 # Solaris doesn't understand POSIX.1-2008 either.
@@ -14,6 +14,8 @@ mv -f configure.tmp configure
 patchit ./configure
 patchit ./tools/install.sh
 patchit ./tools/gen-deps.sh
+patchit ./tools/gen-dotpc.sh
+patchit ./tools/run-test.sh
 
 echo 'SHELL := /usr/xpg4/bin/sh' > Makefile.tmp
 echo >> Makefile.tmp
