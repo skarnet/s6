@@ -475,6 +475,23 @@ static int remove_deadinactive_iter (void *data, void *aux)
   return 1 ;
 }
 
+static inline void initial_cleanup (void)
+{
+  DIR *dir = opendir(".") ;
+  if (!dir) strerr_diefu1sys(111, "opendir .") ;
+  for (;;)
+  {
+    direntry *d ;
+    errno = 0 ;
+    d = readdir(dir) ;
+    if (!d) break ;
+    if (d->d_name[0] == '.') continue ;
+    if (access(d->d_name, X_OK) == -1 && errno == ENOENT) unlink_void(d->d_name) ;
+  }
+  if (errno) strerr_diefu1sys(111, "readdir .") ;
+  dir_close(dir) ;
+}
+
 static void scan (unsigned int *what)
 {
   DIR *dir = opendir(".") ;
@@ -688,8 +705,8 @@ int main (int argc, char const *const *argv)
     x[1].fd = control_init() ;
     x[0].fd = selfpipe_init() ;
     if (x[0].fd < 0) strerr_diefu1sys(111, "selfpipe_init") ;
-
     if (!sig_altignore(SIGPIPE)) strerr_diefu1sys(111, "ignore SIGPIPE") ;
+
     {
       sigset_t set ;
       sigemptyset(&set) ;
@@ -710,6 +727,8 @@ int main (int argc, char const *const *argv)
 #endif
       if (!selfpipe_trapset(&set)) strerr_diefu1sys(111, "trap signals") ;
     }
+
+    initial_cleanup() ;
     if (notif)
     {
       write(notif, "\n", 1) ;
@@ -751,7 +770,7 @@ int main (int argc, char const *const *argv)
       tain deadline = scan_deadline ;
       tain_earliest1(&deadline, &start_deadline) ;
       r = iopause_g(x, 2, &deadline) ;
-      if (r < 0) panic("iopause") ;
+      if (r == -1) panic("iopause") ;
       else if (!r)
       {
         if (!tain_future(&scan_deadline)) scan(&what) ;
