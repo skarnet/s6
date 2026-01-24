@@ -87,7 +87,7 @@ will accurately report the daemon's readiness. </dd>
  <dt> 111 </dt> <dd> System call failed. This is generally a temporary error,
 or indicates a problem with the underlying system. </dd>
  <dt> 112 </dt> <dd> Functionality not supported. You cannot run
-s6-background-watch on this OS, because it lacks the necessary features. </dt>
+s6-background-watch on this OS, because it lacks the necessary features. </dd>
  <dt> 128+<em>n</em> </dt> <dd> The parent daemon was killed with signal <em>n</em>.
 In particular, 137 can happen if the <tt>-t</tt> option has been given and
 the parent daemon times out: s6-background-watch kills it with SIGKILL. </dd>
