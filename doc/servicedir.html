@@ -221,30 +221,6 @@ be very bad.) </li>
   </ul>
 </li>
 
- <li style="margin-bottom:1em"> An optional regular file named <tt>pidfile</tt>.
-Creating such a file is not recommended, but is a workaround &mdash; and <em>only</em>
-a workaround &mdash; for daemons that background themselves. If this file
-exists, it must contain the path (either absolute or relative to the service
-directory) to a <em>pid file</em>, followed by a newline; the path must be shorter than
-512 bytes. The following behaviour is then expected:
-  <ul>
-   <li> On startup, the daemon must fork. </li>
-   <li> The child then becomes the long-running process. </li>
-   <li> The parent must write the pid of the child, followed by a newline, to the
-<em>pid file</em> whose path is written in the <tt>pidfile</tt> file in the service
-directory. For instance, if the daemon writes its pid to <tt>/var/run/foo.pid</tt>,
-then you would configure s6-supervise with <code> echo <tt>/var/run/foo.pid</tt>
-&gt; pidfile</code>. </li>
-   <li> After writing the pid file, the parent must exit 0. </li>
-   <li> If the <tt>notification-fd</tt> file is present in the service directory,
-<a href="s6-supervise.html">s6-supervise</a> will report the daemon to be <em>ready</em>
-once the parent has exited. </li>
-   <li> <a href="s6-supervise.html">s6-supervise</a> will then supervise the child
-as if it had not forked. </li>
-  </ul>
-If the file does not exist, <a href="s6-supervise.html">s6-supervise</a> only
-supervises daemons that do not background themselves, which is the normal case. </li>
-
  <li style="margin-bottom:1em"> A <a href="fifodir.html">fifodir</a> named <tt>event</tt>. It is automatically
 created by <a href="s6-supervise.html">s6-supervise</a> if it does not exist.
 <em>foo</em><tt>/event</tt>
@@ -256,7 +232,6 @@ and <tt>instances</tt>. Those are internal subdirectories created by
 <a href="s6-instance-maker.html">s6-instance maker</a> in a templated service
 directory. Outside of instanced services, these directories should never
 appear, and you should never create them manually. </li>
-
 
  <li style="margin-bottom:1em"> An optional service directory named <tt>log</tt>. If it exists and <em>foo</em>
 is in a <a href="scandir.html">scandir</a>, and <a href="s6-svscan.html">s6-svscan</a>
