@@ -4,7 +4,6 @@
 
 src/include/s6/compat.h: src/include/s6/config.h
 src/include/s6/ftrigr.h: src/include/s6/config.h
-src/include/s6/lock.h: src/include/s6/config.h
 src/include/s6/s6.h: src/include/s6/accessrules.h src/include/s6/auto.h src/include/s6/compat.h src/include/s6/ftrigr.h src/include/s6/ftrigw.h src/include/s6/lock.h src/include/s6/supervise.h
 src/supervision/s6-svlisten.h: src/include/s6/ftrigr.h
 src/alias/s6-alias-chpst.o src/alias/s6-alias-chpst.lo: src/alias/s6-alias-chpst.c src/include/s6/config.h
@@ -256,10 +255,6 @@ libs6auto.dylib.xyzzy: EXTRA_LIBS := -lexecline -lskarnet
 libs6auto.dylib.xyzzy:src/libs6/s6_auto_write_logger.lo src/libs6/s6_auto_write_logger_tmp.lo src/libs6/s6_auto_write_logrun.lo src/libs6/s6_auto_write_logrun_tmp.lo src/libs6/s6_auto_write_service.lo
 s6-ftrigrd: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
 s6-ftrigrd: src/libs6/s6-ftrigrd.o src/libs6/ftrig1_free.o src/libs6/ftrig1_make.o -lskarnet
-s6lockd: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
-s6lockd: src/libs6/s6lockd.o -lskarnet
-s6lockd-helper: EXTRA_LIBS :=
-s6lockd-helper: src/libs6/s6lockd-helper.o libs6lockd.a.xyzzy -lskarnet
 s6-cleanfifodir: EXTRA_LIBS :=
 s6-cleanfifodir: src/pipe-tools/s6-cleanfifodir.o ${LIBS6} -lskarnet
 s6-ftrig-listen: EXTRA_LIBS := ${EXECLINE_LIB} ${SOCKET_LIB} ${SYSCLOCK_LIB} ${SPAWN_LIB}
