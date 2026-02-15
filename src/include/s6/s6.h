@@ -8,7 +8,6 @@
 #include <s6/ftrigr.h>
 #include <s6/ftrigw.h>
 #include <s6/accessrules.h>
-#include <s6/lock.h>
 #include <s6/auto.h>
 
 #endif
