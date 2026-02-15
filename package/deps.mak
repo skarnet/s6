@@ -4,7 +4,7 @@
 
 src/include/s6/compat.h: src/include/s6/config.h
 src/include/s6/ftrigr.h: src/include/s6/config.h
-src/include/s6/s6.h: src/include/s6/accessrules.h src/include/s6/auto.h src/include/s6/compat.h src/include/s6/ftrigr.h src/include/s6/ftrigw.h src/include/s6/lock.h src/include/s6/supervise.h
+src/include/s6/s6.h: src/include/s6/accessrules.h src/include/s6/auto.h src/include/s6/compat.h src/include/s6/ftrigr.h src/include/s6/ftrigw.h src/include/s6/supervise.h
 src/supervision/s6-svlisten.h: src/include/s6/ftrigr.h
 src/alias/s6-alias-chpst.o src/alias/s6-alias-chpst.lo: src/alias/s6-alias-chpst.c src/include/s6/config.h
 src/alias/s6-alias-sv.o src/alias/s6-alias-sv.lo: src/alias/s6-alias-sv.c src/include/s6/config.h src/include/s6/supervise.h
