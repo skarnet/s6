@@ -466,12 +466,8 @@ static void set_scan_timeout (unsigned int n)
 static int remove_deadinactive_iter (void *data, void *aux)
 {
   service *sv = data ;
-  uint32_t *n = aux ;
-  if (!bitarray_peek(active, sv - SERVICE(0)))
-  {
-    if (!sv->pid) remove_service(sv) ;
-    if (!--n) return 0 ;
-  }
+  if (!bitarray_peek(active, sv - SERVICE(0)) && !sv->pid) remove_service(sv) ;
+  (void)aux ;
   return 1 ;
 }
 
@@ -548,11 +544,7 @@ static void scan (unsigned int *what)
     return ;
   }
   memcpy(active, tmpactive, bitarray_div8(max)) ;
-
-  {
-    uint32_t n = genset_n(services) - avltreen_len(by_devino) ;
-    if (n) genset_iter(services, &remove_deadinactive_iter, &n) ;
-  }
+  genset_iter(services, &remove_deadinactive_iter, 0) ;
   *what &= ~16 ;
 }
 
