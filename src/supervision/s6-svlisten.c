@@ -1,7 +1,9 @@
 /* ISC license. */
 
 #include <stdint.h>
+#include <unistd.h>
 
+#include <skalibs/posixplz.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/types.h>
 #include <skalibs/bitarray.h>
@@ -17,7 +19,7 @@
 #define USAGE "s6-svlisten [ -U | -u | -d | -D | -r | -R ] [ -a | -o ] [ -t timeout ] servicedir... \"\" prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 
-int main (int argc, char const **argv, char const *const *envp)
+int main (int argc, char const **argv)
 {
   tain deadline, tto ;
   int argc1 ;
@@ -67,11 +69,11 @@ int main (int argc, char const **argv, char const *const *envp)
     s6_svlisten_t foo = S6_SVLISTEN_ZERO ;
     pid_t pid ;
     unsigned int e ;
-    uint16_t ids[argc1] ;
+    uint32_t ids[argc1] ;
     unsigned char upstate[bitarray_div8(argc1)] ;
     unsigned char readystate[bitarray_div8(argc1)] ;
     s6_svlisten_init(argc1, argv, &foo, ids, upstate, readystate, &deadline) ;
-    pid = cspawn(argv[argc1 + 1], argv + argc1 + 1, envp, CSPAWN_FLAGS_SELFPIPE_FINISH, 0, 0) ;
+    pid = cspawn(argv[argc1 + 1], argv + argc1 + 1, (char const *const *)environ, CSPAWN_FLAGS_SELFPIPE_FINISH, 0, 0) ;
     if (!pid) strerr_diefu2sys(111, "spawn ", argv[argc1 + 1]) ;
     if (wantup == 2)
     {
@@ -82,5 +84,5 @@ int main (int argc, char const **argv, char const *const *envp)
     e = s6_svlisten_loop(&foo, wantup, wantready, or, &deadline, selfpipe_fd(), &s6_svlisten_signal_handler) ;
     if (e) strerr_dief1x(e, "some services reported permanent failure or their supervisor died") ;
   }
-  return 0 ;
+  _exit(0) ;
 }

@@ -1,27 +1,29 @@
 /* ISC license. */
 
+#include <sys/uio.h>
 #include <errno.h>
+
 #include <skalibs/iopause.h>
+
 #include <s6/ftrigr.h>
 
-int ftrigr_wait_and (ftrigr_t *a, uint16_t const *idlist, unsigned int n, tain const *deadline, tain *stamp)
+int ftrigr_wait_and (ftrigr *a, uint32_t const *list, unsigned int n, tain const *deadline, tain *stamp)
 {
-  iopause_fd x = { -1, IOPAUSE_READ, 0 } ;
-  x.fd = ftrigr_fd(a) ;
-  for (; n ; n--, idlist++)
+  iopause_fd x = { .fd = ftrigr_fd(a), .events = IOPAUSE_READ } ;
+  for (unsigned int i = 0 ; i < n ; i++)
   {
     for (;;)
     {
-      char dummy ;
-      int r = ftrigr_check(a, *idlist, &dummy) ;
-      if (r < 0) return r ;
-      else if (r) break ;
+      struct iovec v ;
+      int r = ftrigr_peek(a, list[i], &v) ;
+      if (r == -1) return -1 ;
+      if (r) break ;
       r = iopause_stamp(&x, 1, deadline, stamp) ;
-      if (r < 0) return r ;
-      else if (!r) return (errno = ETIMEDOUT, -1) ;
-      else if (ftrigr_updateb(a) < 0) return -1 ;
+      if (r == -1) return -1 ;
+      if (!r) return (errno = ETIMEDOUT, -1) ;
+      if (ftrigr_update(a) == -1) return -1 ;
     }
+    ftrigr_ack(a, list[i]) ;
   }
-
-  return 1 ;
+  return 0 ;
 }

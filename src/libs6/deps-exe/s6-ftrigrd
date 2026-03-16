@@ -1,5 +1,2 @@
-ftrig1_free.o
-ftrig1_make.o
 -lskarnet
-${SOCKET_LIB}
 ${SYSCLOCK_LIB}

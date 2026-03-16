@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <signal.h>
+#include <unistd.h>
 
 #include <skalibs/sgetopt.h>
 #include <skalibs/types.h>
@@ -52,7 +53,7 @@ int main (int argc, char const *const *argv)
   {
     s6_svlisten_t foo = S6_SVLISTEN_ZERO ;
     unsigned int e ;
-    uint16_t ids[argc] ;
+    uint32_t ids[argc] ;
     unsigned char upstate[bitarray_div8(argc)] ;
     unsigned char readystate[bitarray_div8(argc)] ;
     if (!sig_ignore(SIGPIPE)) strerr_diefu1sys(111, "ignore SIGPIPE") ;
@@ -66,5 +67,5 @@ int main (int argc, char const *const *argv)
     e = s6_svlisten_loop(&foo, wantup, wantready, or, &deadline, -1, 0) ;
     if (e) strerr_dief1x(e, "some services reported permanent failure or their supervisor died") ; 
   }
-  return 0 ;
+  _exit(0) ;
 }

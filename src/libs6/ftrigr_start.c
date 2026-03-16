@@ -1,9 +1,13 @@
 /* ISC license. */
 
-#include <skalibs/textclient.h>
+#include <skalibs/tai.h>
+
 #include <s6/ftrigr.h>
 
-int ftrigr_start (ftrigr_t *a, char const *path, tain const *deadline, tain *stamp)
+int ftrigr_start (ftrigr *a, unsigned int sec)
 {
-  return textclient_start(&a->connection, path, 0, FTRIGR_BANNER1, FTRIGR_BANNER1_LEN, FTRIGR_BANNER2, FTRIGR_BANNER2_LEN, deadline, stamp) ;
+  tain deadline = TAIN_INFINITE ;
+  if (!tain_now_set_stopwatch_g()) return 0 ;
+  if (sec) tain_addsec_g(&deadline, sec) ;
+  return ftrigr_startf_g(a, &deadline) ;
 }

@@ -13,9 +13,9 @@ typedef action_func *action_func_ref ;
 typedef struct s6_svlisten_s s6_svlisten_t, *s6_svlisten_t_ref ;
 struct s6_svlisten_s
 {
-  ftrigr_t a ;
+  ftrigr a ;
   unsigned int n ;
-  uint16_t *ids ;
+  uint32_t *ids ;
   unsigned char *upstate ;
   unsigned char *readystate ;
 } ;
@@ -23,7 +23,7 @@ struct s6_svlisten_s
 
 extern void s6_svlisten_signal_handler (void) ;
 extern void s6_svlisten_selfpipe_init (void) ;
-extern void s6_svlisten_init (int, char const *const *, s6_svlisten_t *, uint16_t *, unsigned char *, unsigned char *, tain const *) ;
+extern void s6_svlisten_init (int, char const *const *, s6_svlisten_t *, uint32_t *, unsigned char *, unsigned char *, tain const *) ;
 extern unsigned int s6_svlisten_loop (s6_svlisten_t *, int, int, int, tain const *, int, action_func_ref) ;
 
 #endif

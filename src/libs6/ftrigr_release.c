@@ -1,16 +1,18 @@
 /* ISC license. */
 
+#include <stdint.h>
 #include <errno.h>
 
 #include <skalibs/genalloc.h>
+#include <skalibs/sassclient.h>
 
 #include <s6/ftrigr.h>
 #include "ftrigr-internal.h"
 
-int ftrigr_ack (ftrigr *a, uint32_t id)
+void ftrigr_release (ftrigr *a, uint32_t id)
 {
   ftrigr_data *p = genalloc_s(ftrigr_data, &a->data) + id ;
-  if (p->status && p->status != EAGAIN) return (errno = p->status, 0) ;
+  sassclient_release(&a->client, id) ;
+  p->status = EINVAL ;
   p->sa.len = 0 ;
-  return 1 ;
 }

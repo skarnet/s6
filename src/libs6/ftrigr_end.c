@@ -1,15 +1,21 @@
 /* ISC license. */
 
-#include <stdint.h>
+#include <skalibs/stralloc.h>
 #include <skalibs/genalloc.h>
-#include <skalibs/gensetdyn.h>
-#include <skalibs/textclient.h>
-#include <s6/ftrigr.h>
+#include <skalibs/sassclient.h>
 
-void ftrigr_end (ftrigr_ref a)
+#include <s6/ftrigr.h>
+#include "ftrigr-internal.h"
+
+static void ftrigr_data_free (void *x)
 {
-  gensetdyn_free(&a->data) ;
-  genalloc_free(uint16_t, &a->list) ;
-  textclient_end(&a->connection) ;
-  *a = ftrigr_zero ;
+  ftrigr_data *p = x ;
+  stralloc_free(&p->sa) ;
+}
+
+void ftrigr_end (ftrigr *a)
+{
+  sassclient_end(&a->client) ;
+  a->data.len = a->data.a ;
+  genalloc_deepfree(ftrigr_data, &a->data, &ftrigr_data_free) ;
 }

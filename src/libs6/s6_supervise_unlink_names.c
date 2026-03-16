@@ -12,10 +12,10 @@
 #include <s6/ftrigr.h>
 #include <s6/supervise.h>
 
-static uint16_t registerit (ftrigr_t *a, char *fn, size_t len, tain const *deadline, tain *stamp)
+static int registerit (ftrigr *a, uint32_t *id, char *fn, size_t len, tain const *deadline, tain *stamp)
 {
   memcpy(fn + len, "/" S6_SUPERVISE_EVENTDIR, sizeof(S6_SUPERVISE_EVENTDIR) + 1) ;
-  return ftrigr_subscribe(a, fn, "x", 0, deadline, stamp) ;
+  return ftrigr_subscribe(a, id, 0, 0, fn, "x", deadline, stamp) ;
 }
 
 /*
@@ -62,9 +62,9 @@ int s6_supervise_unlink_names (char const *scdir, char const *const *names, size
   } 
 
   {
-    ftrigr_t a = FTRIGR_ZERO ;
+    ftrigr a = FTRIGR_ZERO ;
     unsigned int m = 0 ;
-    uint16_t ids[ntotal] ;
+    uint32_t ids[ntotal] ;
     if (options & 1 && !ftrigr_startf(&a, deadline, stamp)) return -1 ;
     for (size_t i = 0 ; i < n ; i++)
     {
@@ -75,13 +75,11 @@ int s6_supervise_unlink_names (char const *scdir, char const *const *names, size
       memcpy(fn + scdirlen + 1, names[i], nlen) ;
       if (options & 1 && bitarray_peek(locked, i))
       {
-        ids[m] = registerit(&a, fn, scdirlen + 1 + nlen, deadline, stamp) ;
-        if (ids[m]) m++ ;
+        if (registerit(&a, ids + m, fn, scdirlen + 1 + nlen, deadline, stamp)) m++ ;
         if (bitarray_peek(logged, i))
         {
           memcpy(fn + scdirlen + 1 + nlen, "/log", 4) ;
-          ids[m] = registerit(&a, fn, scdirlen + 5 + nlen, deadline, stamp) ;
-          if (ids[m]) m++ ;
+          if (registerit(&a, ids + m, fn, scdirlen + 5 + nlen, deadline, stamp)) m++ ;
         }
       }
       fn[scdirlen + 1 + nlen] = 0 ;

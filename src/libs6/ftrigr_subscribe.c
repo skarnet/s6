@@ -2,41 +2,42 @@
 
 #include <sys/uio.h>
 #include <string.h>
-#include <stdint.h>
 #include <errno.h>
-#include <skalibs/uint16.h>
-#include <skalibs/uint32.h>
-#include <skalibs/tai.h>
-#include <skalibs/stralloc.h>
-#include <skalibs/gensetdyn.h>
-#include <skalibs/textclient.h>
-#include <s6/ftrigr.h>
 
-uint16_t ftrigr_subscribe (ftrigr_t *a, char const *path, char const *re, uint32_t options, tain const *deadline, tain *stamp)
+#include <s6/ftrigr.h>
+#include "ftrigr-internal.h"
+
+static int ftrigr_cb (char const *s, size_t len, uint32_t id, void *x)
 {
+  ftrigr_data *p = genalloc_s(ftrigr_data, (genalloc *)x) + id ;
+  if (!stralloc_catb(&p->sa, s, len)) return errno ;
+  p->status = 0 ;
+  return 0 ;
+}
+
+int ftrigr_subscribe (ftrigr *a, uint32_t *i, uint32_t flags, uint32_t timeout, char const *path, char const *re, tain const *deadline, tain *stamp)
+{
+  ftrigr_data *p ;
+  uint32_t id ;
   size_t pathlen = strlen(path) ;
   size_t relen = strlen(re) ;
-  ftrigr1_t ft = { .options = options, .state = FR1STATE_LISTENING, .what = STRALLOC_ZERO } ;
-  uint32_t i ;
-  char tmp[15] = "--L" ;
-  struct iovec v[3] = { { .iov_base = tmp, .iov_len = 15 }, { .iov_base = (char *)path, .iov_len = pathlen + 1 }, { .iov_base = (char *)re, .iov_len = relen + 1 } } ;
-  if (!gensetdyn_new(&a->data, &i)) return 0 ;
-  if (i >= UINT16_MAX)
+
+  struct iovec v[2] =
   {
-    gensetdyn_delete(&a->data, i) ;
-    return (errno = EMFILE, 0) ;
-  }
-  uint16_pack_big(tmp, (uint16_t)i) ;
-  uint32_pack_big(tmp+3, options) ;
-  uint32_pack_big(tmp+7, (uint32_t)pathlen) ;
-  uint32_pack_big(tmp+11, (uint32_t)relen) ;
-  if (!textclient_commandv(&a->connection, v, 3, deadline, stamp))
+    { .iov_base = (char *)path, .iov_len = pathlen + 1 },
+    { .iov_base = (char *)re, .iov_len = relen + 1 }
+  } ;
+  if (!sassclient_sendv(&a->client, &id, flags, timeout, 0, v, 2, &ftrigr_cb, &a->data, deadline, stamp)) return 0 ;
+  if (!genalloc_ready(ftrigr_data, &a->data, id + 1))
   {
     int e = errno ;
-    gensetdyn_delete(&a->data, i) ;
+    sassclient_cancel(&a->client, id, deadline, stamp) ;
     errno = e ;
     return 0 ;
   }
-  *GENSETDYN_P(ftrigr1_t, &a->data, i) = ft ;
-  return (uint16_t)(i+1) ;
+  p = genalloc_s(ftrigr_data, &a->data) + id ;
+  p->sa.len = 0 ;
+  p->status = EAGAIN ;
+  *i = id ;
+  return 1 ;
 }

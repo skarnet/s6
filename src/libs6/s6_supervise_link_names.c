@@ -22,19 +22,19 @@ static inline void do_unlink (char const *scdir, char const *const *names, size_
     s6_supervise_unlink(scdir, names[i], killopts) ;
 }
 
-static uint16_t registerit (ftrigr_t *a, char *fn, size_t len, gid_t gid, uint32_t options, tain const *deadline, tain *stamp)
+static int registerit (ftrigr *a, uint32_t *id, char *fn, size_t len, gid_t gid, uint32_t options, tain const *deadline, tain *stamp)
 {
   if (options & 4)
   {
     int fd ;
     memcpy(fn + len, "/down", 6) ;
     fd = open_trunc(fn) ;
-    if (fd < 0) return 0 ;
+    if (fd == -1) return 0 ;
     fd_close(fd) ;
   }
   memcpy(fn + len, "/" S6_SUPERVISE_EVENTDIR, 1 + sizeof(S6_SUPERVISE_EVENTDIR)) ;
   if (!ftrigw_fifodir_make(fn, gid, options & 1)) return 0 ;
-  return ftrigr_subscribe(a, fn, "s", 0, deadline, stamp) ;
+  return ftrigr_subscribe(a, id, 0, 0, fn, "s", deadline, stamp) ;
 }
 
 /*
@@ -86,7 +86,7 @@ int s6_supervise_link_names (char const *scdir, char const *const *servicedirs, 
   } 
 
   {
-    ftrigr_t a = FTRIGR_ZERO ;
+    ftrigr a = FTRIGR_ZERO ;
     stralloc rpsa = STRALLOC_ZERO ;
     gid_t gid = options & 2 ? -1 : getegid() ;
     size_t scdirlen = strlen(scdir) ;
@@ -94,7 +94,7 @@ int s6_supervise_link_names (char const *scdir, char const *const *servicedirs, 
     size_t i = 0 ;
     uint32_t killopts = 0 ;
     int r ;
-    uint16_t ids[ntotal] ;
+    uint32_t ids[ntotal] ;
     char lname[scdirlen + maxnlen + 7] ;
     char fn[maxlen + 5 + (sizeof(S6_SUPERVISE_EVENTDIR) > 5 ? sizeof(S6_SUPERVISE_EVENTDIR) : 5)] ;
     if (!ftrigr_startf(&a, deadline, stamp)) return -1 ;
@@ -108,13 +108,11 @@ int s6_supervise_link_names (char const *scdir, char const *const *servicedirs, 
       memcpy(fn, servicedirs[i], len) ;
       if (!h)
       {
-        ids[m] = registerit(&a, fn, len, gid, options, deadline, stamp) ;
-        if (!ids[m++]) goto err ;
+        if (!registerit(&a, ids + m++, fn, len, gid, options, deadline, stamp)) goto err ;
         if (bitarray_peek(logged, i))
         {
           memcpy(fn + len, "/log", 4) ;
-          ids[m] = registerit(&a, fn, len + 4, gid, options, deadline, stamp) ;
-          if (!ids[m++]) goto err ;
+          if (!registerit(&a, ids + m++, fn, len + 4, gid, options, deadline, stamp)) goto err ;
         }
       }
       fn[len] = 0 ;

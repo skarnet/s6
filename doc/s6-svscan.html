@@ -27,12 +27,12 @@ the root or a branch of a <em>supervision tree</em>.
 <h2> Interface </h2>
 
 <pre>
-     s6-svscan [ -d <em>notif</em> ] [ -X <em>consoleholder</em> ] [ -c max | -C services_max ] [ -L name_max ] [ -t <em>rescan</em> ] [ <em>scandir</em> ]
+     s6-svscan [ -d <em>notif</em> ] [ -X <em>consoleholder</em> ] [ -C services_max ] [ -L name_max ] [ -t <em>rescan</em> ] <em>scandir</em>
 </pre>
 
 <ul>
- <li> If given a <em>scandir</em> argument, s6-svscan switches to it. Else it uses
-its current directory as the <a href="scandir.html">scan directory</a>. </li>
+ <li> s6-svscan changes its working directory to <em>scandir</em>, which will serve
+as its <a href="scandir.html">scan directory</a>. </li>
  <li> It exits 100 if another s6-svscan process is already monitoring this
 <a href="scandir.html">scan directory</a>. </li>
  <li> If the <tt>./.s6-svscan</tt> control directory does not exist,
@@ -88,14 +88,6 @@ up to 200 bytes per service, also depending on the value of <em>name_max</em>. <
  It is the admin's responsibility to make sure that s6-svscan has enough available
 descriptors to function properly and does not exceed its stack limit. The default
 of 1000 is safe and provides enough room for every reasonable system. </li>
-
- <li> <tt>-c&nbsp;<em>max</em></tt>&nbsp;: a deprecated way of setting <em>services_max</em>.
-If the <tt>-c</tt> option is given, the value of <em>max</em> is doubled, and the result
-is used as <em>services_max</em>. The reason for the change is that previous versions
-of s6-svscan handled services+loggers as a single entity; but this version of s6-svscan
-handles services and loggers in the same way, so with the default values it's now possible
-to handle e.g. 600 unlogged services, whereas previously you were limited to 500 because
-s6-svscan was reserving room for the loggers. </li>
 
  <li> <tt>-L&nbsp;<em>name_max</em></tt>&nbsp;: the maximum length of a name in the
 scan directory. Names longer than <em>name_max</em> won't be taken into account.

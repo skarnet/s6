@@ -10,10 +10,9 @@
 
 #include <skalibs/posixplz.h>
 #include <skalibs/uint32.h>
-#include <skalibs/allreadwrite.h>
-#include <skalibs/sgetopt.h>
 #include <skalibs/types.h>
-#include <skalibs/strerr.h>
+#include <skalibs/allreadwrite.h>
+#include <skalibs/envexec.h>
 #include <skalibs/tai.h>
 #include <skalibs/iopause.h>
 #include <skalibs/devino.h>
@@ -22,7 +21,6 @@
 #include <skalibs/direntry.h>
 #include <skalibs/sig.h>
 #include <skalibs/selfpipe.h>
-#include <skalibs/exec.h>
 #include <skalibs/bitarray.h>
 #include <skalibs/genset.h>
 #include <skalibs/avltreen.h>
@@ -32,7 +30,7 @@
 
 #include <skalibs/posixishard.h>
 
-#define USAGE "s6-svscan [ -c services_max | -C services_max ] [ -L name_max ] [ -t timeout ] [ -d notif ] [ -X consoleholder ] [ dir ]"
+#define USAGE "s6-svscan [ -C services_max ] [ -L name_max ] [ -t timeout ] [ -d notif ] [ -X consoleholder ] scandir"
 #define dieusage() strerr_dieusage(100, USAGE)
 
 #define CTL S6_SVSCAN_CTLDIR "/control"
@@ -42,6 +40,16 @@
 #define SIGNAL_PROG S6_SVSCAN_CTLDIR "/SIG"
 #define SIGNAL_PROG_LEN (sizeof(SIGNAL_PROG) - 1)
 #define SPECIAL_LOGGER_SERVICE "s6-svscan-log"
+
+enum gola_e
+{
+  GOLA_MAX,
+  GOLA_NAMEMAX,
+  GOLA_TIMEOUT,
+  GOLA_NOTIF,
+  GOLA_CONSOLE,
+  GOLA_N
+} ;
 
 typedef struct service_s service, *service_ref ;
 struct service_s
@@ -658,82 +666,92 @@ static inline int control_init (void)
 
 int main (int argc, char const *const *argv)
 {
-  iopause_fd x[2] = { { .fd = -1, .events = IOPAUSE_READ }, { .fd = -1, .events = IOPAUSE_READ } } ;
-  PROG = "s6-svscan" ;
-
+  static gol_arg const rgola[GOLA_N] =
   {
-    subgetopt l = SUBGETOPT_ZERO ;
-    unsigned int notif = 0 ;
-    unsigned int t = 0 ;
-    for (;;)
-    {
-      int opt = subgetopt_r(argc, argv, "c:C:L:t:d:X:", &l) ;
-      if (opt == -1) break ;
-      switch (opt)
-      {
-        case 'c' : if (!uint320_scan(l.arg, &max)) dieusage() ; max <<= 1 ; break ;
-        case 'C' : if (!uint320_scan(l.arg, &max)) dieusage() ; break ;
-        case 'L' : if (!uint320_scan(l.arg, &namemax)) dieusage() ; break ;
-        case 't' : if (!uint0_scan(l.arg, &t)) dieusage() ; break ;
-        case 'd' : if (!uint0_scan(l.arg, &notif)) dieusage() ; break ;
-        case 'X' : if (!uint0_scan(l.arg, &consoleholder)) dieusage() ; break ;
-        default : dieusage() ;
-      }
-    }
-    argc -= l.ind ; argv += l.ind ;
-    if (t) tain_from_millisecs(&scantto, t) ;
+    { .so = 'C', .lo = "services-max", .i = GOLA_MAX },
+    { .so = 'L', .lo = "name-max", .i = GOLA_NAMEMAX },
+    { .so = 't', .lo = "timeout", .i = GOLA_TIMEOUT },
+    { .so = 'd', .lo = "notification-fd", .i = GOLA_NOTIF },
+    { .so = 'X', .lo = "console-holder", .i = GOLA_CONSOLE },
+  } ;
+  iopause_fd x[2] = { { .fd = -1, .events = IOPAUSE_READ }, { .fd = -1, .events = IOPAUSE_READ } } ;
+  unsigned int notif = 0 ;
+  sigset_t set ;
+  char const *wgola[GOLA_N] = { 0 } ;
+  unsigned int golc ;
+
+  PROG = "s6-svscan" ;
+  golc = gol_main(argc, argv, 0, 0, rgola, GOLA_N, 0, wgola) ;
+  argc -= golc ; argv += golc ;
+  if (argc < 2) dieusage() ;
+  if (wgola[GOLA_MAX])
+  {
+    if (!uint320_scan(wgola[GOLA_MAX], &max))
+      strerr_dief2x(100, "services_max", " must be an unsigned integer") ;
     if (max < 4) max = 4 ;
     if (max > 160000) max = 160000 ;
-    special = max ;
+  }
+  if (wgola[GOLA_NAMEMAX])
+  {
+    if (!uint320_scan(wgola[GOLA_NAMEMAX], &max))
+      strerr_dief2x(100, "name_max", " must be an unsigned integer") ;
     if (namemax < 11) namemax = 11 ;
     if (namemax > 1019) namemax = 1019 ;
+  }
+  if (wgola[GOLA_TIMEOUT])
+  {
+    unsigned int t = 0 ;
+    if (!uint0_scan(wgola[GOLA_TIMEOUT], &t))
+      strerr_dief2x(100, "timeout", " must be an unsigned integer") ;
+    if (t) tain_from_millisecs(&scantto, t) ;
+  }
+  if (wgola[GOLA_NOTIF])
+  {
+    if (!uint0_scan(wgola[GOLA_NOTIF], &notif))
+      strerr_dief2x(100, "notif", " must be an unsigned integer") ;
+    if (notif < 3) strerr_dief2x(100, "notif", " must be 3 or more") ;
+    if (fcntl(notif, F_GETFD) == -1) strerr_dief1sys(100, "invalid notification fd") ;
+  }
+  if (wgola[GOLA_CONSOLE])
+  {
+    if (!uint0_scan(wgola[GOLA_CONSOLE], &consoleholder))
+      strerr_dief2x(100, "consoleholder", " must be an unsigned integer") ;
+    if (consoleholder < 3) strerr_dief2x(100, "consoleholder", " must be 3 or more") ;
+    if (fcntl(consoleholder, F_GETFD) == -1) strerr_dief1sys(100, "invalid console holder fd") ;
+    if (coe(consoleholder) == -1) strerr_diefu1sys(111, "coe console holder") ;
+  }
 
-    if (notif)
-    {
-      if (notif < 3) strerr_dief1x(100, "notification fd must be 3 or more") ;
-      if (fcntl(notif, F_GETFD) == -1) strerr_dief1sys(100, "invalid notification fd") ;
-    }
-    if (consoleholder)
-    {
-      if (consoleholder < 3) strerr_dief1x(100, "console holder fd must be 3 or more") ;
-      if (fcntl(consoleholder, F_GETFD) < 0) strerr_dief1sys(100, "invalid console holder fd") ;
-      if (coe(consoleholder) == -1) strerr_diefu1sys(111, "coe console holder") ;
-    }
-    if (!fd_sanitize()) strerr_diefu1x(100, "sanitize standard fds") ;
+  special = max ;
+  if (!fd_sanitize()) strerr_diefu1x(100, "sanitize standard fds") ;
+  if (chdir(argv[0]) == -1) strerr_diefu2sys(111, "chdir to ", argv[0]) ;
+  x[1].fd = control_init() ;
+  x[0].fd = selfpipe_init() ;
+  if (x[0].fd == -1) strerr_diefu1sys(111, "selfpipe_init") ;
+  if (!sig_altignore(SIGPIPE)) strerr_diefu1sys(111, "ignore SIGPIPE") ;
 
-    if (argc && (chdir(argv[0]) == -1)) strerr_diefu1sys(111, "chdir") ;
-    x[1].fd = control_init() ;
-    x[0].fd = selfpipe_init() ;
-    if (x[0].fd < 0) strerr_diefu1sys(111, "selfpipe_init") ;
-    if (!sig_altignore(SIGPIPE)) strerr_diefu1sys(111, "ignore SIGPIPE") ;
-
-    {
-      sigset_t set ;
-      sigemptyset(&set) ;
-      sigaddset(&set, SIGCHLD) ;
-      sigaddset(&set, SIGALRM) ;
-      sigaddset(&set, SIGABRT) ;
-      sigaddset(&set, SIGHUP) ;
-      sigaddset(&set, SIGINT) ;
-      sigaddset(&set, SIGTERM) ;
-      sigaddset(&set, SIGQUIT) ;
-      sigaddset(&set, SIGUSR1) ;
-      sigaddset(&set, SIGUSR2) ;
+  sigemptyset(&set) ;
+  sigaddset(&set, SIGCHLD) ;
+  sigaddset(&set, SIGALRM) ;
+  sigaddset(&set, SIGABRT) ;
+  sigaddset(&set, SIGHUP) ;
+  sigaddset(&set, SIGINT) ;
+  sigaddset(&set, SIGTERM) ;
+  sigaddset(&set, SIGQUIT) ;
+  sigaddset(&set, SIGUSR1) ;
+  sigaddset(&set, SIGUSR2) ;
 #ifdef SIGPWR
-      sigaddset(&set, SIGPWR) ;
+  sigaddset(&set, SIGPWR) ;
 #endif
 #ifdef SIGWINCH
-      sigaddset(&set, SIGWINCH) ;
+  sigaddset(&set, SIGWINCH) ;
 #endif
-      if (!selfpipe_trapset(&set)) strerr_diefu1sys(111, "trap signals") ;
-    }
+  if (!selfpipe_trapset(&set)) strerr_diefu1sys(111, "trap signals") ;
 
-    initial_cleanup() ;
-    if (notif)
-    {
-      write(notif, "\n", 1) ;
-      close(notif) ;
-    }
+  initial_cleanup() ;
+  if (notif)
+  {
+    write(notif, "\n", 1) ;
+    close(notif) ;
   }
 
   {
@@ -802,5 +820,5 @@ int main (int argc, char const *const *argv)
     execv(eargv[0], (char **)eargv) ;
     if (errno != ENOENT) panicnosp("exec finish script " FINISH_PROG) ;
   }
-  return 0 ;
+  _exit(0) ;
 }
