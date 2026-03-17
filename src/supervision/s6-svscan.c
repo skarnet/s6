@@ -683,7 +683,7 @@ int main (int argc, char const *const *argv)
   PROG = "s6-svscan" ;
   golc = gol_main(argc, argv, 0, 0, rgola, GOLA_N, 0, wgola) ;
   argc -= golc ; argv += golc ;
-  if (argc < 2) dieusage() ;
+  if (!argc) dieusage() ;
   if (wgola[GOLA_MAX])
   {
     if (!uint320_scan(wgola[GOLA_MAX], &max))

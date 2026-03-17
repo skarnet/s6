@@ -8,14 +8,18 @@
 
 #include <skalibs/posixplz.h>
 #include <skalibs/bitarray.h>
+#include <skalibs/stralloc.h>
+#include <skalibs/djbunix.h>
 
 #include <s6/ftrigr.h>
 #include <s6/supervise.h>
 
-static int registerit (ftrigr *a, uint32_t *id, char *fn, size_t len, tain const *deadline, tain *stamp)
+static int registerit (ftrigr *a, uint32_t *id, char *fn, size_t len, stralloc *sa, tain const *deadline, tain *stamp)
 {
   memcpy(fn + len, "/" S6_SUPERVISE_EVENTDIR, sizeof(S6_SUPERVISE_EVENTDIR) + 1) ;
-  return ftrigr_subscribe(a, id, 0, 0, fn, "x", deadline, stamp) ;
+  sa->len = 0 ;
+  if (sarealpath(sa, fn) == -1) return 0 ;
+  return ftrigr_subscribe(a, id, 0, 0, sa->s, "x", deadline, stamp) ;
 }
 
 /*
@@ -63,6 +67,7 @@ int s6_supervise_unlink_names (char const *scdir, char const *const *names, size
 
   {
     ftrigr a = FTRIGR_ZERO ;
+    stralloc sa = STRALLOC_ZERO ;
     unsigned int m = 0 ;
     uint32_t ids[ntotal] ;
     if (options & 1 && !ftrigr_startf(&a, deadline, stamp)) return -1 ;
@@ -75,11 +80,11 @@ int s6_supervise_unlink_names (char const *scdir, char const *const *names, size
       memcpy(fn + scdirlen + 1, names[i], nlen) ;
       if (options & 1 && bitarray_peek(locked, i))
       {
-        if (registerit(&a, ids + m, fn, scdirlen + 1 + nlen, deadline, stamp)) m++ ;
+        if (registerit(&a, ids + m, fn, scdirlen + 1 + nlen, &sa, deadline, stamp)) m++ ;
         if (bitarray_peek(logged, i))
         {
           memcpy(fn + scdirlen + 1 + nlen, "/log", 4) ;
-          if (registerit(&a, ids + m, fn, scdirlen + 5 + nlen, deadline, stamp)) m++ ;
+          if (registerit(&a, ids + m, fn, scdirlen + 5 + nlen, &sa, deadline, stamp)) m++ ;
         }
       }
       fn[scdirlen + 1 + nlen] = 0 ;
@@ -88,6 +93,7 @@ int s6_supervise_unlink_names (char const *scdir, char const *const *names, size
     s6_svc_writectl(scdir, S6_SVSCAN_CTLDIR, "an", 2) ;
     if (options & 1)
     {
+      stralloc_free(&sa) ;
       ftrigr_wait_and(&a, ids, m, deadline, stamp) ;
       ftrigr_end(&a) ;
     }
