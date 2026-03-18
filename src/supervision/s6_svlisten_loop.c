@@ -70,15 +70,14 @@ unsigned int s6_svlisten_loop (s6_svlisten_t *foo, int wantup, int wantready, in
       if (ftrigr_update(&foo->a) < 0) strerr_diefu1sys(111, "ftrigr_update") ;
       for (unsigned int i = 0 ; i < foo->n ; i++)
       {
-        struct iovec v ;
-        r = ftrigr_peek(&foo->a, foo->ids[i], &v) ;
+        ftrigr_string fs ;
+        r = ftrigr_peek(&foo->a, foo->ids[i], &fs) ;
         if (r == -1) strerr_diefu1sys(111, "ftrigr_check") ;
         else if (r)
         {
-          char const *s = v.iov_base ;
-          for (size_t j = 0 ; j < v.iov_len ; j++)
+          for (uint32_t j = 0 ; j < fs.len ; j++)
           {
-            if (s[j] == 'x')
+            if (fs.s[j] == 'x')
             {
               if (bitarray_peek(foo->upstate, i) != wantup
                || bitarray_peek(foo->readystate, i) != wantready)
@@ -86,7 +85,7 @@ unsigned int s6_svlisten_loop (s6_svlisten_t *foo, int wantup, int wantready, in
               bitarray_poke(foo->upstate, i, wantup) ;
               bitarray_poke(foo->readystate, i, wantready) ;
             }
-            else if (s[j] == 'O')
+            else if (fs.s[j] == 'O')
             {
               if (wantup)
               {
@@ -97,7 +96,7 @@ unsigned int s6_svlisten_loop (s6_svlisten_t *foo, int wantup, int wantready, in
             }
             else
             {
-              unsigned int d = byte_chr("dDuU", 4, s[j]) ;
+              unsigned int d = byte_chr("dDuU", 4, fs.s[j]) ;
               bitarray_poke(foo->upstate, i, d & 2) ;
               bitarray_poke(foo->readystate, i, d & 1) ;
             }

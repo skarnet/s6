@@ -3,7 +3,6 @@
 #ifndef S6_FTRIGR_H
 #define S6_FTRIGR_H
 
-#include <sys/uio.h>
 #include <stdint.h>
 
 #include <skalibs/tai.h>
@@ -21,6 +20,13 @@ struct ftrigr_s
 } ;
 #define FTRIGR_ZERO { .client = SASSCLIENT_ZERO, .data = GENALLOC_ZERO }
 
+typedef struct ftrigr_string_s ftrigr_string, *ftrigr_string_ref ;
+struct ftrigr_string_s
+{
+  char *s ;
+  uint32_t len ;
+} ;
+
 extern int ftrigr_startf (ftrigr *, tain const *, tain *) ;
 #define ftrigr_startf_g(a, deadline) ftrigr_startf(a, (deadline), &STAMP)
 extern int ftrigr_start (ftrigr *, unsigned int) ;
@@ -28,8 +34,7 @@ extern void ftrigr_end (ftrigr *) ;
 
 #define ftrigr_fd(a) sassclient_fd(&(a)->client)
 extern int ftrigr_update (ftrigr *) ;
-extern int ftrigr_peek (ftrigr *, uint32_t, struct iovec *) ;
-extern int ftrigr_peek1 (ftrigr *, uint32_t, char *) ;
+extern int ftrigr_peek (ftrigr *, uint32_t, ftrigr_string *) ;
 extern int ftrigr_ack (ftrigr *, uint32_t) ;
 extern void ftrigr_release (ftrigr *, uint32_t) ;
 
@@ -41,7 +46,7 @@ extern int ftrigr_unsubscribe (ftrigr *, uint32_t, tain const *, tain *) ;
 
 extern int ftrigr_wait_and (ftrigr *, uint32_t const *, unsigned int, tain const *, tain *) ;
 #define ftrigr_wait_and_g(a, list, len, deadline) ftrigr_wait_and(a, list, len, (deadline), &STAMP)
-extern int ftrigr_wait_or  (ftrigr *, uint32_t const *, unsigned int, struct iovec *, tain const *, tain *) ;
+extern int ftrigr_wait_or  (ftrigr *, uint32_t const *, unsigned int, ftrigr_string *, tain const *, tain *) ;
 #define ftrigr_wait_or_g(a, list, n, v, deadline) ftrigr_wait_or(a, list, n, v, (deadline), &STAMP)
 
 #endif

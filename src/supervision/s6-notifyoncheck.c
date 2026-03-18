@@ -85,13 +85,13 @@ static inline int handle_signals (pid_t pid, int *w)
 static int handle_event (ftrigr *a, uint32_t id, pid_t pid)
 {
   int r ;
-  struct iovec v ;
+  ftrigr_string fs ;
   if (ftrigr_update(a) == -1) strerr_diefu1sys(111, "ftrigr_update") ;
-  r = ftrigr_peek(a, id, &v) ;
+  r = ftrigr_peek(a, id, &fs) ;
   if (r == -1) strerr_diefu1sys(111, "ftrigr_check") ;
   if (r)
   {
-    if (memchr(v.iov_base, 'd', v.iov_len))
+    if (memchr(fs.s, 'd', fs.len))
     {
       if (pid) kill(pid, SIGTERM) ;
       ftrigr_ack(a, id) ;

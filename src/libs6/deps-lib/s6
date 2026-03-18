@@ -1,7 +1,6 @@
 ftrigr_ack.o
 ftrigr_end.o
 ftrigr_peek.o
-ftrigr_peek1.o
 ftrigr_release.o
 ftrigr_start.o
 ftrigr_startf.o

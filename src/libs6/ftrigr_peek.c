@@ -1,6 +1,5 @@
 /* ISC license. */
 
-#include <sys/uio.h>
 #include <errno.h>
 
 #include <skalibs/genalloc.h>
@@ -8,7 +7,7 @@
 #include <s6/ftrigr.h>
 #include "ftrigr-internal.h"
 
-int ftrigr_peek (ftrigr *a, uint32_t id, struct iovec *v)
+int ftrigr_peek (ftrigr *a, uint32_t id, ftrigr_string *fs)
 {
   ftrigr_data *p = genalloc_s(ftrigr_data, &a->data) + id ;
   switch (p->status)
@@ -16,8 +15,8 @@ int ftrigr_peek (ftrigr *a, uint32_t id, struct iovec *v)
     case EAGAIN : return 0 ;
     case 0 :
     {
-      v->iov_base = p->sa.s ;
-      v->iov_len = p->sa.len ;
+      fs->s = p->sa.s ;
+      fs->len = p->sa.len ;
       return 1 ;
     }
     default: break ;

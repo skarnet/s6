@@ -32,9 +32,9 @@ int main (int argc, char const *const *argv)
   tain deadline ;
   tain tto = TAIN_INFINITE_RELATIVE ;
   ftrigr a = FTRIGR_ZERO ;
+  ftrigr_string fs ;
   uint32_t id ;
   unsigned int golc ;
-  struct iovec v[2] = { [1] = { .iov_base = "\n", .iov_len = 1 } } ;
 
   PROG = "s6-ftrig-wait" ;
   golc = gol_main(argc, argv, 0, 0, rgola, GOLA_N, 0, wgola) ;
@@ -54,8 +54,10 @@ int main (int argc, char const *const *argv)
   if (!ftrigr_startf_g(&a, &deadline)) strerr_diefu1sys(111, "ftrigr_startf") ;
   if (!ftrigr_subscribe_g(&a, &id, 0, 0, argv[0], argv[1], &deadline))
     strerr_diefu4sys(111, "subscribe to ", argv[0], " with regexp ", argv[1]) ;
-  if (ftrigr_wait_or_g(&a, &id, 1, &v[0], &deadline) == -1)
+  if (ftrigr_wait_or_g(&a, &id, 1, &fs, &deadline) == -1)
     strerr_diefu2sys((errno == ETIMEDOUT) ? 99 : 111, "match regexp on ", argv[1]) ;
+
+  struct iovec v[2] = { { .iov_base = fs.s, .iov_len = fs.len }, { .iov_base = "\n", .iov_len = 1 } } ;
   if (allwritev(1, v, 2) < siovec_len(v, 2)) strerr_diefu1sys(111, "write to stdout") ;
   _exit(0) ;
 }

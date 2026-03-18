@@ -1,5 +1,6 @@
 /* ISC license. */
 
+#include <sys/uio.h>
 #include <stdint.h>
 #include <errno.h>
 #include <signal.h>
@@ -51,7 +52,7 @@ int main (int argc, char const *const *argv)
   ftrigr a = FTRIGR_ZERO ;
   pid_t pid ;
   uint32_t id ;
-  struct iovec v[2] = { [1] = { .iov_base = "\n", .iov_len = 1 } } ;
+  ftrigr_string fs ;
   unsigned int golc ;
 
   PROG = "s6-ftrig-listen1" ;
@@ -84,7 +85,7 @@ int main (int argc, char const *const *argv)
 
   for (;;)
   {
-    int r = ftrigr_peek(&a, id, &v[0]) ;
+    int r = ftrigr_peek(&a, id, &fs) ;
     if (r == -1) strerr_diefu1sys(111, "ftrigr_peek") ;
     if (r) break ;
     r = iopause_g(x, 2, &deadline) ;
@@ -99,6 +100,7 @@ int main (int argc, char const *const *argv)
       if (ftrigr_update(&a) == -1) strerr_diefu1sys(111, "ftrigr_update") ;
   }
 
+  struct iovec v[2] = { { .iov_base = fs.s, .iov_len = fs.len }, { .iov_base = "\n", .iov_len = 1 } } ;
   if (allwritev(1, v, 2) < 2) strerr_diefu1sys(111, "write to stdout") ;
   _exit(0) ;
 }

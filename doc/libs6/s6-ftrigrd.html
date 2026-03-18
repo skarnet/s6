@@ -17,7 +17,7 @@
 <a href="//skarnet.org/">skarnet.org</a>
 </p>
 
-<h1> The s6-ftrigrd program </h1>
+<h1> The s6-ftrigrd internal program </h1>
 
 <p>
 s6-ftrigrd is a helper program that manages a set of subscriptions to fifodirs as well
@@ -29,24 +29,17 @@ events happen.
 <h2> Interface </h2>
 
 <p>
- s6-ftrigrd is not meant to be called directly.
-</p>
-
-<ul>
- <li> If the client program uses <tt>ftrigr_startf()</tt>, it spawns an instance of
+ s6-ftrigrd is not meant to be called directly. When the client calls
+<tt>ftrigr_start()</tt> or <tt>ftrigr_startf</tt>, it spawns an instance of
 s6-ftrigrd as a child. s6-ftrigrd's stdin is a pipe reading from the client; its
 stdout is a pipe writing to the client; its stderr is the same as the client's; and
 there's an additional pipe from s6-ftrigrd to the client, used for asynchronous
-notifications. </li>
- <li> If the client program uses <tt>ftrigr_start()</tt>, then it tries to connect
-to a Unix domain socket. An ftrigrd <a href="../localservice.html">local service</a> should be listening to that
-socket, i.e. a Unix domain super-server such as
-<a href="s6-ipcserver.html">s6-ipcserver</a>
-spawning an s6-ftrigrd program on every connection. Then an s6-ftrigrd instance is created
-for the client. </li>
- <li> When the client uses <tt>ftrigr_end()</tt>, or closes s6-ftrigrd's stdin in
-any way, s6-ftrigrd exits 0. </li>
-</ul>
+notifications.
+</p>
+
+<p> When the client uses <tt>ftrigr_end()</tt>, or closes s6-ftrigrd's stdin in
+any way, s6-ftrigrd exits 0.
+</p>
 
 <p>
  s6-ftrigrd handles the grunt work of creating fifos in a
@@ -60,7 +53,7 @@ the client.
 
 <p>
  The connection management between the client and s6-ftrigrd is entirely done
-by the <em>textclient</em> library from skalibs.
+by the <em>sassclient</em> library from skalibs.
 </p>
 
 <p>
@@ -71,9 +64,13 @@ to read them. To avoid uncontrolled growth, make sure your client calls
 </p>
 
 <p>
- An s6-ftrigrd instance can only handle up to FTRIGRD_MAX (defined in <tt>s6/ftrigr.h</tt>)
-subscriptions at once. By default, this number is 1000, which is more than enough for
-any reasonable system.
+ The number of concurrent subscriptions that an s6-ftrigrd instance can handle is
+only limited by RAM and open file descriptors. It is likely that the latter is the
+bottleneck: s6-ftrigrd uses two file descriptors per fifodir. With a default
+limit of 1024 open file descriptors per process, it means that s6-ftrigrd can
+handle around 500 concurrent fifodirs, which is reasonable for most systems, but
+make sure to increase the open files resource limit before starting an ftrigr
+session if you need more.
 </p>
 
 </body>

@@ -14,8 +14,8 @@ int ftrigr_wait_and (ftrigr *a, uint32_t const *list, unsigned int n, tain const
   {
     for (;;)
     {
-      struct iovec v ;
-      int r = ftrigr_peek(a, list[i], &v) ;
+      ftrigr_string fs ;
+      int r = ftrigr_peek(a, list[i], &fs) ;
       if (r == -1) return -1 ;
       if (r) break ;
       r = iopause_stamp(&x, 1, deadline, stamp) ;

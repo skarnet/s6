@@ -107,8 +107,8 @@ int main (int argc, char const **argv)
       unsigned int i = 0 ;
       while (i < n)
       {
-        struct iovec v ;
-        r = ftrigr_peek(&a, ids[i], &v) ;
+        ftrigr_string fs ;
+        r = ftrigr_peek(&a, ids[i], &fs) ;
         if (r == -1) strerr_diefu1sys(111, "ftrigr_check") ;
         else if (!r) i++ ;
         else if (wgolb & GOLB_OR) n = 0 ;
