@@ -1,6 +1,7 @@
 /* ISC license. */
 
 #include <string.h>
+#include <sys/uio.h>
 #include <unistd.h>
 
 #include <skalibs/bytestr.h>
@@ -16,7 +17,7 @@
 #include <s6/supervise.h>
 #include "s6-svlisten.h"
 
-void s6_svlisten_init (int argc, char const *const *argv, s6_svlisten_t *foo, uint16_t *ids, unsigned char *upstate, unsigned char *readystate, tain const *deadline)
+void s6_svlisten_init (int argc, char const *const *argv, s6_svlisten_t *foo, uint32_t *ids, unsigned char *upstate, unsigned char *readystate, tain const *deadline)
 {
   gid_t gid = getegid() ;
   unsigned int i = 0 ;
@@ -34,8 +35,8 @@ void s6_svlisten_init (int argc, char const *const *argv, s6_svlisten_t *foo, ui
     s[len] = '/' ;
     memcpy(s + len + 1, S6_SUPERVISE_EVENTDIR, sizeof(S6_SUPERVISE_EVENTDIR)) ;
     ftrigw_fifodir_make(s, gid, 0) ;
-    foo->ids[i] = ftrigr_subscribe_g(&foo->a, s, "[DuUdOx]", FTRIGR_REPEAT, deadline) ;
-    if (!foo->ids[i]) strerr_diefu2sys(111, "subscribe to events for ", argv[i]) ;
+    if (!ftrigr_subscribe_g(&foo->a, foo->ids + i, FTRIGR_REPEAT, 0, s, "[DuUdOx]", deadline))
+      strerr_diefu2sys(111, "subscribe to events for ", argv[i]) ;
     if (!s6_svstatus_read(argv[i], &status)) strerr_diefu1sys(111, "s6_svstatus_read") ;
     bitarray_poke(foo->upstate, i, status.pid && !status.flagfinishing) ;
     bitarray_poke(foo->readystate, i, status.flagready) ;
@@ -56,7 +57,6 @@ unsigned int s6_svlisten_loop (s6_svlisten_t *foo, int wantup, int wantready, in
 {
   iopause_fd x[2] = { { .fd = ftrigr_fd(&foo->a), .events = IOPAUSE_READ }, { .fd = spfd, .events = IOPAUSE_READ, .revents = 0 } } ;
   unsigned int e = 0 ;
-  stralloc sa = STRALLOC_ZERO ;
 
   if (got(foo, wantup, wantready, or)) return 0 ;
   for (;;)
@@ -67,19 +67,17 @@ unsigned int s6_svlisten_loop (s6_svlisten_t *foo, int wantup, int wantready, in
     if (x[1].revents & IOPAUSE_READ) (*handler)() ;
     if (x[0].revents & IOPAUSE_READ)
     {
-      unsigned int i = 0 ;
       if (ftrigr_update(&foo->a) < 0) strerr_diefu1sys(111, "ftrigr_update") ;
-      for (; i < foo->n ; i++)
+      for (unsigned int i = 0 ; i < foo->n ; i++)
       {
-        sa.len = 0 ;
-        r = ftrigr_checksa(&foo->a, foo->ids[i], &sa) ;
-        if (r < 0) strerr_diefu1sys(111, "ftrigr_check") ;
+        ftrigr_string fs ;
+        r = ftrigr_peek(&foo->a, foo->ids[i], &fs) ;
+        if (r == -1) strerr_diefu1sys(111, "ftrigr_check") ;
         else if (r)
         {
-          size_t j = 0 ;
-          for (; j < sa.len ; j++)
+          for (uint32_t j = 0 ; j < fs.len ; j++)
           {
-            if (sa.s[j] == 'x')
+            if (fs.s[j] == 'x')
             {
               if (bitarray_peek(foo->upstate, i) != wantup
                || bitarray_peek(foo->readystate, i) != wantready)
@@ -87,7 +85,7 @@ unsigned int s6_svlisten_loop (s6_svlisten_t *foo, int wantup, int wantready, in
               bitarray_poke(foo->upstate, i, wantup) ;
               bitarray_poke(foo->readystate, i, wantready) ;
             }
-            else if (sa.s[j] == 'O')
+            else if (fs.s[j] == 'O')
             {
               if (wantup)
               {
@@ -98,17 +96,21 @@ unsigned int s6_svlisten_loop (s6_svlisten_t *foo, int wantup, int wantready, in
             }
             else
             {
-              unsigned int d = byte_chr("dDuU", 4, sa.s[j]) ;
+              unsigned int d = byte_chr("dDuU", 4, fs.s[j]) ;
               bitarray_poke(foo->upstate, i, d & 2) ;
               bitarray_poke(foo->readystate, i, d & 1) ;
             }
-            if (got(foo, wantup, wantready, or)) goto gotit ;
+            if (got(foo, wantup, wantready, or))
+            {
+              ftrigr_ack(&foo->a, foo->ids[i]) ;
+              goto gotit ;
+            }
           }
+          ftrigr_ack(&foo->a, foo->ids[i]) ;
         }
       }
     }
   }
  gotit:
-  stralloc_free(&sa) ;
   return e ;
 }

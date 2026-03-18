@@ -69,7 +69,8 @@ message; it will exec into <em>prog</em> even if it cannot perform the
 operations. </li>
  <li> <tt>-d&nbsp;<em>ctty</em></tt>&nbsp;: assume file descriptor
 number <em>ctty</em> is
-the controlling terminal for the current session. Default is 0.
+the controlling terminal for the current session. (By default, the
+value is obtained from <tt>/dev/tty</tt>.)
 This is only useful when used with the <tt>-f</tt> or
 <tt>-g</tt> options. </li>
 </ul>

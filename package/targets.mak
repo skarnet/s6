@@ -1,6 +1,5 @@
 BIN_TARGETS := \
 ucspilogd \
-s6-ftrigrd \
 s6-ftrig-listen1 \
 s6-ftrig-listen \
 s6-ftrig-notify \
@@ -62,6 +61,9 @@ s6-instance-control \
 s6-instance-status \
 s6-instance-list \
 s6-background-watch \
+
+LIBEXEC_TARGETS := \
+s6-ftrigrd \
 
 LIB_DEFS := S6=s6
 S6_DESCRIPTION :=

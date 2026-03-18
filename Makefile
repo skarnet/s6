@@ -190,6 +190,9 @@ lib%.a.xyzzy:
 lib%.so.xyzzy:
 	exec $(CC) -o $@ $(CFLAGS_ALL) $(CFLAGS_SHARED) $(LDFLAGS_ALL) $(LDFLAGS_SHARED) -Wl,-soname,$(patsubst lib%.so.xyzzy,lib%.so.$(version_M),$@) -Wl,-rpath=$(dynlibdir) $^ $(EXTRA_LIBS) $(LDLIBS)
 
+-lskarnet:
+	$(error Unable to link against skalibs. Check that you are using the correct --with-lib or --with-dynlib options; see ./configure --help)
+
 .PHONY: it all clean distclean tests check tgz strip install install-dynlib install-bin install-lib install-include install-pkgconfig
 
 .DELETE_ON_ERROR:

@@ -43,11 +43,6 @@ and to <em>always</em> use <tt>wait_nohang()</tt> to reap children,
 simply ignoring pids you don't know.
 </p>
 
-<p>
- If your application has trouble handling unknown
-children, consider using an ftrigrd service. (And fix your application!)
-</p>
-
 <h3> A programming example </h3>
 
 <p>
@@ -61,8 +56,8 @@ for instance, illustrate how to use the ftrigr library.
 </a>
 
 <ul>
- <li> Synchronous functions take a <tt>tain_t const *</tt>
-(<em>deadline</em>) parameter and a <tt>tain_t *</tt> (<em>stamp</em>)
+ <li> Synchronous functions take a <tt>tain const *</tt>
+(<em>deadline</em>) parameter and a <tt>tain *</tt> (<em>stamp</em>)
 parameter. Those are pointers to tain_t structures containing absolute times;
 the former represents a deadline (in most cases, this time will be in the
 future) and the latter must be an accurate enough timestamp. These
@@ -100,28 +95,25 @@ control on. </li>
 <h3> Starting and ending a session </h3>
 
 <pre>
-ftrigr_t a = FTRIGR_ZERO ;
+ftrigr a = FTRIGR_ZERO ;
 tain_t deadline, stamp ;
 
 tain_now(&amp;stamp) ;
 tain_addsec(&amp;deadline, &amp;stamp, 2)
 
-// char const *path = FTRIGR_IPCPATH ;
-// ftrigr_start(&amp;a, path, &amp;deadline, &amp;stamp) ;
 ftrigr_startf(&amp;a, &amp;deadline, &amp;stamp) ;
 </pre>
 
 <p>
-<tt>ftrigr_start</tt> starts a session with an ftrigrd service listening on
-<em>path</em>. <br />
 <tt>ftrigr_startf</tt> starts a session with an ftrigrd process as a child
 (which is the simplest usage). <br />
-<tt>a</tt> is an ftrigr_t structure that must be declared in the stack and
-initialized to FTRIGR_ZERO.
+<tt>a</tt> is an ftrigr structure that can be declared in the stack and
+must be initialized to FTRIGR_ZERO.
 <tt>stamp</tt> must be an accurate enough timestamp. <br />
 If the session initialization fails, the function returns 0 and errno is set;
 else the function returns 1.
 </p>
+
 <p>
 If the absolute time <tt>deadline</tt> is reached and the function
 has not returned yet, it immediately returns 0 with errno set to ETIMEDOUT.
@@ -135,8 +127,8 @@ problem with the underlying processes.
 
 <p>
  You can have more than one session open in parallel, by declaring
-several distinct <tt>ftrigr_t</tt> structures and calling
-<tt>ftrigr_startf</tt> (or <tt>ftrigr_start</tt>) more than once.
+several distinct <tt>ftrigr</tt> structures and calling
+<tt>ftrigr_startf</tt> more than once.
 However, this is useless, since one single session can handle
 virtually as many concurrent fifodirs as your application needs.
 </p>
@@ -156,8 +148,10 @@ ftrigr_end(&amp;a) ;
 char const *path = "/var/lib/myservice/fifodir" ;
 char const *re = "a.*b|c*d" ;
 uint32_t options = 0 ;
+uint32_t timeout = 60000 ;
+uint32_t id ;
 
-uint16_t id = ftrigr_subscribe (&amp;a, path, re, options, &amp;deadline, &amp;stamp) ;
+int r = ftrigr_subscribe(&amp;a, &amp;id, options, timeout, path, re, options, &amp;deadline, &amp;stamp) ;
 </pre>
 
 <p>
@@ -165,7 +159,9 @@ uint16_t id = ftrigr_subscribe (&amp;a, path, re, options, &amp;deadline, &amp;s
 <a href="s6-ftrigrd.html">s6-ftrigrd daemon</a>, related to the open
 session represented by the <tt>a</tt> structure, to subscribe to the
 <tt>path</tt> fifodir, and to notify the application when it receives
-a series of events that matches the <tt>re</tt> regexp.
+a series of events that matches the <tt>re</tt> regexp. </p>
+
+<p>
 <tt>options</tt> can be 0 or FTRIGR_REPEAT. If it is 0, the daemon will
 automatically unsubscribe from <tt>path</tt> once <tt>re</tt> has been
 matched by a series of events. If it is FTRIGR_REPEAT, it will remain
@@ -173,8 +169,16 @@ subscribed until told otherwise.
 </p>
 
 <p>
- <tt>ftrigr_subscribe()</tt> returns 0 and sets errno in case of failure, or
-a nonzero 16-bit number identifying the subscription in case of success.
+ If <tt>timeout</tt> is nonzero, it represents a number of milliseconds;
+after this delay, the daemon will automatically unsubscribe from
+<tt>path</tt> and report an ETIMEDOUT error to the client. It is not
+advised to use a nonzero timeout along with the FTRIGR_REPEAT option.
+</p>
+
+<p>
+ If it fails, <tt>ftrigr_subscribe()</tt> returns 0 and sets errno. If
+it succeeds, it returns 1 and stores a number identifying the subscription
+into <tt>id</tt>.
 </p>
 
 <p>
@@ -188,26 +192,29 @@ and events can be sent without the risk of a race condition.
 <h3> Synchronously waiting for events </h3>
 
 <pre>
-uint16_t list[1] ;
+uint32_t list[1] = { id } ;
 unsigned int n = 1 ;
-char trigger ;
-list[0] = id ;
+ftrigr_string fs ;
 
 // r = ftrigr_wait_and(&amp;a, list, n, &amp;deadline, &amp;stamp) ;
-r = ftrigr_wait_or(&amp;a, list, n, &amp;deadline, &amp;stamp, &amp;trigger) ;
+r = ftrigr_wait_or(&amp;a, list, n, &amp;deadline, &amp;stamp, &amp;fs) ;
 </pre>
 
 <p>
  <tt>ftrigr_wait_and()</tt> waits for <em>all</em> the <tt>n</tt> fifodirs
 whose ids are listed in <tt>list</tt> to receive an event. It returns -1
-in case of error or timeout, or a non-negative integer in case of success. <br />
+in case of error or timeout, or a non-negative integer in case of success.
+</p>
+
+<p>
  <tt>ftrigr_wait_or()</tt> waits for <em>one</em> of the <tt>n</tt> fifodirs
 whose ids are listed in <tt>list</tt> to receive an event. It returns -1
 in case of error or timeout; if it succeeds, the return value is the
 position in <tt>list</tt>, starting at 0, of the identifier that received
-an event; and <tt>trigger</tt> is set to the character that triggered that
-event, i.e. the last character of a sequence that matched the regular
-expression <tt>re</tt> used in the subscription.
+an event; and <tt>fs</tt> is the list of events that were received
+since the subscription and matched the <tt>re</tt> regular expression.
+<tt>fs.s</tt> is a <tt>char *</tt> pointing to the (not null-terminated)
+string of events, and <tt>fs.len</tt> is its length.
 </p>
 
 <h3> Asynchronously waiting for events </h3>
@@ -218,7 +225,7 @@ of usage examples.) </em>
 </p>
 
 <pre>
-int ftrigr_fd (ftrigr_t const *a)
+int ftrigr_fd (ftrigr const *a)
 </pre>
 
 <p>
@@ -227,30 +234,19 @@ int ftrigr_fd (ftrigr_t const *a)
 </p>
 
 <pre>
-int ftrigr_updateb (ftrigr_t *a)
+int ftrigr_update (ftrigr *a)
 </pre>
 
 <p>
  Call this function whenever the fd checks readability: it will
 update <em>a</em>'s internal structures with information from the
-<a href="s6-ftrigrd.html">s6-ftrigrd</a> daemon. It returns -1 if an error
-occurs; in case of success, it returns the number of identifiers for
-which something happened.
-</p>
-
-<p>
- When <tt>ftrigr_updateb</tt> returns,
-<tt>genalloc_s(uint16_t, &amp;a-&gt;list)</tt> points to an array of
-<tt>genalloc_len(uint16_t, &amp;a-&gt;list)</tt> 16-bit unsigned
-integers. Those integers are ids waiting to be passed to
-<tt>ftrigr_check</tt> or <tt>ftrigr_checksa</tt>.
-The number of ids already acknowledged is stored in
-<tt>a-&gt;head</tt>, so the first unacknowledged id is
-<tt>genalloc_s(uint16_t, &amp;a-&gt;list)[a-&gt;head]</tt>.
+<a href="s6-ftrigrd.html">s6-ftrigrd</a> daemon. It returns -1 (and sets
+errno) if an error occurs, 0 if there were no events, and 1 if events
+were received.
 </p>
 
 <pre>
-int ftrigr_check (ftrigr_t *a, uint16_t id, char *what)
+int ftrigr_peek (ftrigr *a, uint32_t id, ftrigr_string *fs)
 </pre>
 
 <p>
@@ -263,49 +259,39 @@ call to <tt>ftrigr_updateb()</tt>.
 number may have been transmitted from
 <a href="s6-ftrigrd.html">s6-ftrigrd</a>. </li>
  <li> If no notification happened yet, returns 0. </li>
- <li> If something happened, writes the character that triggered the
-latest notification into <em>what</em> and returns the number of
-times that an event happened to this identifier since the last
-call to <tt>ftrigr_check()</tt>. </li>
+ <li> If something happened, returns 1, and <tt>fs</tt> contains
+the string of events that were received since the subscription or
+since the last call to <tt>ftrigr_ack</tt> (see below).
+<tt>fs-&gt;s</tt> is a pointer to the non-null-terminated string,
+and <tt>fs-&gt;len</tt> is its length. </li>
 </ul>
 
 <pre>
-int ftrigr_checksa (ftrigr_t *a, uint16_t id, stralloc *what)
+void ftrigr_ack (ftrigr *a, uint32_t id)
 </pre>
 
 <p>
- Checks whether an event happened to <em>id</em>. Use after a
-call to <tt>ftrigr_update()</tt>, as an alternative to <tt>ftrigr_check()</tt>.
-</p>
-
-<ul>
- <li> If an error occurred, returns -1 and sets errno. The error
-number may have been transmitted from
-<a href="s6-ftrigrd.html">s6-ftrigrd</a>. </li>
- <li> If no notification happened yet, returns 0. </li>
- <li> If something happened, appends one character to the end of the <em>what</em>
-<a href="//skarnet.org/software/skalibs/libstddjb/stralloc.html">stralloc</a>
-for every time a notification was triggered since the last call
-to <tt>ftrigr_check()</tt>. Each character is the one that triggered
-a notification. The function then returns 1. </li>
-</ul>
-
-<pre>
-void ftrigr_ack (ftrigr_t *a, size_t n)
-</pre>
-
-<p>
- Acknowledges reading <em>n</em> ids from the id list updated by
-<tt>ftrigr_updateb</tt>.
+ Resets the stored string of events. The next invocation of
+<tt>ftrigr_peek()</tt> will only show new events, if any.
 </p>
 
 <pre>
-int ftrigr_update (ftrigr_t *a)
+int ftrigr_release (ftrigr *a, uint32_t id)
 </pre>
 
 <p>
- Acknowledges all the pending ids (i.e. clears the stored id list)
-then calls <tt>ftrigr_updateb()</tt>.
+ Frees the resources used by subscription <tt>id</tt>. Use this
+after getting an event from a subscription done without the
+FTRIGR_REPEAT flag and reading its results, if you want to
+keep the session open and perform more subscriptions.
+</p>
+
+<p>
+ If subscription <tt>id</tt> was given the FTRIGR_REPEAT flag,
+use <tt>ftrigr_unsubscribe()</tt> instead. If you're not going
+to perform other subscriptions, <tt>ftrigr_end()</tt> will
+free all the resources without you needing to call
+<tt>ftrigr_release()</tt> first.
 </p>
 
 </body>

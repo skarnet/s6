@@ -1,12 +1,13 @@
 /* ISC license. */
 
-#include <skalibs/posixplz.h>
-#include <skalibs/textclient.h>
+#include <skalibs/sassclient.h>
 
+#include <s6/config.h>
 #include <s6/ftrigr.h>
+#include "ftrigr-internal.h"
 
-int ftrigr_startf (ftrigr_t *a, tain const *deadline, tain *stamp)
+int ftrigr_startf (ftrigr *a, tain const *deadline, tain *stamp)
 {
-  static char const *const cargv[2] = { FTRIGRD_PROG, 0 } ;
-  return textclient_startf(&a->connection, cargv, (char const *const *)environ, TEXTCLIENT_OPTION_WAITPID, FTRIGR_BANNER1, FTRIGR_BANNER1_LEN, FTRIGR_BANNER2, FTRIGR_BANNER2_LEN, deadline, stamp) ;
+  char const *argv[2] = { S6_LIBEXECPREFIX "s6-ftrigrd", 0 } ;
+  return sassclient_start(&a->client, argv, FTRIGR_BANNER1, FTRIGR_BANNER2, deadline, stamp) ;
 }

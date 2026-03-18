@@ -7,10 +7,11 @@
 #include <limits.h>
 #include <sys/wait.h>
 
+#include <skalibs/posixplz.h>
 #include <skalibs/types.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/bytestr.h>
-#include <skalibs/sgetopt.h>
+#include <skalibs/gol.h>
 #include <skalibs/strerr.h>
 #include <skalibs/tai.h>
 #include <skalibs/cspawn.h>
@@ -23,15 +24,31 @@
 
 #ifdef S6_USE_EXECLINE
 #include <execline/config.h>
-#define USAGE "s6-notifyoncheck [ -d ] [ -3 fd ] [ -s initialsleep ] [ -T globaltimeout ] [ -t localtimeout ] [ -w waitingtime ] [ -n tries ] [ -c \"checkprog...\" ] prog..."
-#define OPTIONS "d3:s:T:t:w:n:c:"
+# define USAGE "s6-notifyoncheck [ -d ] [ -3 fd ] [ -s initialsleep ] [ -T globaltimeout ] [ -t localtimeout ] [ -w waitingtime ] [ -n tries ] [ -c \"checkprog...\" ] prog..."
 #else
-#define USAGE "s6-notifyoncheck [ -d ] [ -3 fd ] [ -s initialsleep ] [ -T globaltimeout ] [ -t localtimeout ] [ -w waitingtime ] [ -n tries ] prog..."
-#define OPTIONS "d3:s:T:t:w:n:"
+# define USAGE "s6-notifyoncheck [ -d ] [ -3 fd ] [ -s initialsleep ] [ -T globaltimeout ] [ -t localtimeout ] [ -w waitingtime ] [ -n tries ] prog..."
 #endif
 
 #define dieusage() strerr_dieusage(100, USAGE)
 
+enum golb_e
+{
+  GOLB_DOUBLEFORK = 0x01,
+} ;
+
+enum gola_e
+{
+  GOLA_NOTIF,
+  GOLA_INITIALSLEEP,
+  GOLA_GLOBALTIMEOUT,
+  GOLA_LOCALTIMEOUT,
+  GOLA_WAITINGTIME,
+  GOLA_TRIES,
+#ifdef S6_USE_EXECLINE
+  GOLA_CHECKPROG,
+#endif
+  GOLA_N
+} ;
 
 static inline int read_uint (char const *file, unsigned int *fd)
 {
@@ -65,88 +82,70 @@ static inline int handle_signals (pid_t pid, int *w)
   }
 }
 
-static int handle_event (ftrigr_t *a, uint16_t id, pid_t pid)
+static int handle_event (ftrigr *a, uint32_t id, pid_t pid)
 {
   int r ;
-  char what ;
-  if (ftrigr_update(a) < 0) strerr_diefu1sys(111, "ftrigr_update") ;
-  r = ftrigr_check(a, id, &what) ;
-  if (r < 0) strerr_diefu1sys(111, "ftrigr_check") ;
-  if (r && what == 'd')
+  ftrigr_string fs ;
+  if (ftrigr_update(a) == -1) strerr_diefu1sys(111, "ftrigr_update") ;
+  r = ftrigr_peek(a, id, &fs) ;
+  if (r == -1) strerr_diefu1sys(111, "ftrigr_check") ;
+  if (r)
   {
-    if (pid) kill(pid, SIGTERM) ;
-    return 1 ;
+    if (memchr(fs.s, 'd', fs.len))
+    {
+      if (pid) kill(pid, SIGTERM) ;
+      ftrigr_ack(a, id) ;
+      return 1 ;
+    }
+    ftrigr_ack(a, id) ;
   }
   return 0 ;
 }
 
-int main (int argc, char const *const *argv, char const *const *envp)
+int main (int argc, char const *const *argv)
 {
-  ftrigr_t a = FTRIGR_ZERO ;
+  static gol_bool rgolb[] =
+  {
+    { .so = 'd', .lo = "doublefork", .clear = 0, .set = GOLB_DOUBLEFORK },
+  } ;
+  static gol_arg rgola[] =
+  {
+    { .so = '3', .lo = "notification-fd", .i = GOLA_NOTIF },
+    { .so = 's', .lo = "initial-sleep", .i = GOLA_INITIALSLEEP },
+    { .so = 'T', .lo = "global-timeout", .i = GOLA_GLOBALTIMEOUT },
+    { .so = 't', .lo = "local-timeout", .i = GOLA_LOCALTIMEOUT },
+    { .so = 'w', .lo = "waiting-time", .i = GOLA_WAITINGTIME },
+    { .so = 'n', .lo = "tries", .i = GOLA_TRIES },
+#ifdef S6_USE_EXECLINE
+    { .so = 'c', .lo = "check-program", .i = GOLA_CHECKPROG },
+#endif
+  } ;
+  uint64_t wgolb = 0 ;
+  char const *wgola[GOLA_N] = { 0 } ;
+  ftrigr a = FTRIGR_ZERO ;
   iopause_fd x[2] = { { .events = IOPAUSE_READ }, { .events = IOPAUSE_READ } } ;
   char const *childargv[4] = { "./data/check", 0, 0, 0 } ;
-#ifdef S6_USE_EXECLINE
-  char const *checkprog = 0 ;
-#endif
   unsigned int fd ;
-  int df = 0 ;
-  int autodetect = 1 ;
   int p[2] ;
-  tain globaldeadline, sleeptto, localtto, waittto ;
-  unsigned int tries = 7 ;
-  uint16_t id ;
+  tain sleeptto ;
+  tain globaldeadline = TAIN_INFINITE_RELATIVE ;
+  tain localtto = TAIN_INFINITE_RELATIVE ;
+  tain waittto = TAIN_INFINITE_RELATIVE ;
+  unsigned int tries ;
+  uint32_t id ;
+  unsigned int golc ;
+
   PROG = "s6-notifyoncheck" ;
+  golc = GOL_main(argc, argv, rgolb, rgola, &wgolb, wgola) ;
+  argc -= golc ; argv += golc ;
+  if (!argc) dieusage() ;
 
+  if (wgola[GOLA_NOTIF])
   {
-    subgetopt l = SUBGETOPT_ZERO ;
-    unsigned int initialsleep = 10, globaltimeout = 0, localtimeout = 0, waitingtime = 1000 ;
-    for (;;)
-    {
-      int opt = subgetopt_r(argc, argv, OPTIONS, &l) ;
-      if (opt == -1) break ;
-      switch (opt)
-      {
-        case 'd' : df = 1 ; break ;
-        case '3' : if (!uint0_scan(l.arg, &fd)) dieusage() ; autodetect = 0 ; break ;
-        case 's' : if (!uint0_scan(l.arg, &initialsleep)) dieusage() ; break ;
-        case 'T' : if (!uint0_scan(l.arg, &globaltimeout)) dieusage() ; break ;
-        case 't' : if (!uint0_scan(l.arg, &localtimeout)) dieusage() ; break ;
-        case 'w' : if (!uint0_scan(l.arg, &waitingtime)) dieusage() ; break ;
-        case 'n' : if (!uint0_scan(l.arg, &tries)) dieusage() ; break ;
-#ifdef S6_USE_EXECLINE
-        case 'c' : checkprog = l.arg ; break ;
-#endif
-        default : dieusage() ;
-      }
-    }
-    argc -= l.ind ; argv += l.ind ;
-    if (!argc) dieusage() ;
-
-    if (!tain_from_millisecs(&sleeptto, initialsleep)) dieusage() ;
-    if (globaltimeout) tain_from_millisecs(&globaldeadline, globaltimeout) ;
-    else globaldeadline = tain_infinite_relative ;
-    if (localtimeout) tain_from_millisecs(&localtto, localtimeout) ;
-    else localtto = tain_infinite_relative ;
-    if (waitingtime) tain_from_millisecs(&waittto, waitingtime) ;
-    else waittto = tain_infinite_relative ;
-    if (!tries) tries = UINT_MAX ;
+    if (!uint0_scan(wgola[GOLA_NOTIF], &fd))
+      strerr_dief2x(100, "notification-fd", " must be an unsigned integer") ;
   }
-
-  {
-    int r = s6_svc_ok(".") ;
-    if (r < 0) strerr_diefu1sys(111, "sanity-check current service directory") ;
-    if (!r) strerr_dief1x(100, "s6-supervise not running.") ;
-  }
-#ifdef S6_USE_EXECLINE
-  if (checkprog)
-  {
-    childargv[0] = EXECLINE_EXTBINPREFIX "execlineb" ;
-    childargv[1] = "-Pc" ;
-    childargv[2] = checkprog ;
-  }
-#endif
-
-  if (autodetect)
+  else
   {
     int r = read_uint("notification-fd", &fd) ;
     if (r < 0) strerr_diefu2sys(111, "read ", "./notification-fd") ;
@@ -154,8 +153,57 @@ int main (int argc, char const *const *argv, char const *const *envp)
   }
   if (fcntl(fd, F_GETFD) < 0)
     strerr_dief2sys(111, "notification-fd", " sanity check failed") ;
+  if (wgola[GOLA_INITIALSLEEP])
+  {
+    if (!uint0_scan(wgola[GOLA_INITIALSLEEP], &tries))
+      strerr_dief2x(100, "initial-sleep", " must be an unsigned integer") ;
+  }
+  else tries = 10 ;
+  if (!tain_from_millisecs(&sleeptto, tries)) dieusage() ;
 
-  tain_now_set_stopwatch_g() ;
+  if (wgola[GOLA_GLOBALTIMEOUT])
+  {
+    if (!uint0_scan(wgola[GOLA_GLOBALTIMEOUT], &tries))
+      strerr_dief2x(100, "global-timeout", " must be an unsigned integer") ;
+    if (tries) tain_from_millisecs(&globaldeadline, tries) ;
+  }
+  if (wgola[GOLA_LOCALTIMEOUT])
+  {
+    if (!uint0_scan(wgola[GOLA_LOCALTIMEOUT], &tries))
+      strerr_dief2x(100, "local-timeout", " must be an unsigned integer") ;
+    if (tries) tain_from_millisecs(&localtto, tries) ;
+  }
+  if (wgola[GOLA_WAITINGTIME])
+  {
+    if (!uint0_scan(wgola[GOLA_WAITINGTIME], &tries))
+      strerr_dief2x(100, "waiting-time", " must be an unsigned integer") ;
+  }
+  else tries = 1000 ;
+  if (!tain_from_millisecs(&waittto, tries)) dieusage() ;
+  if (wgola[GOLA_TRIES])
+  {
+    if (!uint0_scan(wgola[GOLA_TRIES], &tries))
+      strerr_dief2x(100, "waiting-time", " must be an unsigned integer") ;
+    if (!tries) tries = UINT_MAX ;
+  }
+  else tries = 7 ;
+
+#ifdef S6_USE_EXECLINE
+  if (wgola[GOLA_CHECKPROG])
+  {
+    childargv[0] = EXECLINE_EXTBINPREFIX "execlineb" ;
+    childargv[1] = "-Pc" ;
+    childargv[2] = wgola[GOLA_CHECKPROG] ;
+  }
+#endif
+
+  {
+    int r = s6_svc_ok(".") ;
+    if (r < 0) strerr_diefu1sys(111, "sanity-check current service directory") ;
+    if (!r) strerr_dief1x(100, "s6-supervise not running.") ;
+  }
+
+  if (!tain_now_set_stopwatch_g()) strerr_diefu1sys(111, "tain_now") ;
   tain_add_g(&globaldeadline, &globaldeadline) ;
 
 
@@ -179,16 +227,16 @@ int main (int argc, char const *const *argv, char const *const *envp)
  */
 
   if (pipecoe(p) < 0) strerr_diefu1sys(111, "pipe") ;
-  switch (df ? doublefork() : fork())
+  switch (wgolb & GOLB_DOUBLEFORK ? doublefork() : fork())
   {
-    case -1: strerr_diefu1sys(111, df ? "doublefork" : "fork") ;
+    case -1 : strerr_diefu1sys(111, wgolb & GOLB_DOUBLEFORK ? "doublefork" : "fork") ;
     case 0 : break ;
     default:
     {
       char c ;
-      close((int)fd) ;
+      close(fd) ;
       if (read(p[0], &c, 1) < 1) strerr_diefu1x(111, "synchronize with child") ;
-      xexec_e(argv, envp) ;
+      xexec(argv) ;
     }
   }
 
@@ -197,11 +245,11 @@ int main (int argc, char const *const *argv, char const *const *envp)
   close(p[0]) ;
   if (!ftrigr_startf_g(&a, &globaldeadline))
     strerr_diefu1sys(111, "ftrigr_startf") ;
-  id = ftrigr_subscribe_g(&a, "event", "d", 0, &globaldeadline) ;
-  if (!id) strerr_diefu1sys(111, "ftrigr_subscribe to event fifodir") ;
+  if (!ftrigr_subscribe_g(&a, &id, 0, 0, "event", "d", &globaldeadline))
+    strerr_diefu1sys(111, "ftrigr_subscribe to event fifodir") ;
 
   x[0].fd = selfpipe_init() ;
-  if (x[0].fd < 0) strerr_diefu1sys(111, "selfpipe_init") ;
+  if (x[0].fd == -1) strerr_diefu1sys(111, "selfpipe_init") ;
   if (selfpipe_trap(SIGCHLD) < 0) strerr_diefu1sys(111, "trap SIGCHLD") ;
   x[1].fd = ftrigr_fd(&a) ;
 
@@ -225,13 +273,13 @@ int main (int argc, char const *const *argv, char const *const *envp)
       if (r < 0) strerr_diefu1sys(111, "iopause") ;
       if (!r)
       {
-        if (!tain_future(&globaldeadline)) return 3 ;
+        if (!tain_future(&globaldeadline)) _exit(3) ;
         else break ;
       }
-      if (handle_event(&a, id, 0)) return 2 ;
+      if (handle_event(&a, id, 0)) _exit(2) ;
     }
 
-    pid = cspawn(childargv[0], childargv, envp, CSPAWN_FLAGS_SELFPIPE_FINISH, 0, 0) ;
+    pid = cspawn(childargv[0], childargv, (char const *const *)environ, CSPAWN_FLAGS_SELFPIPE_FINISH, 0, 0) ;
     if (!pid)
     {
       strerr_warnwu2sys("spawn ", childargv[0]) ;
@@ -249,7 +297,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
         if (!tain_future(&globaldeadline))
         {
           kill(pid, SIGTERM) ;
-          return 3 ;
+          _exit(3) ;
         }
         else break ;
       }
@@ -261,14 +309,14 @@ int main (int argc, char const *const *argv, char const *const *envp)
           if (WIFEXITED(wstat) && !WEXITSTATUS(wstat))
           {
             fd_write((int)fd, "\n", 1) ;
-            return 0 ;
+            _exit(0) ;
           }
           else break ;
         }
       }
-      if (x[1].revents & IOPAUSE_READ && handle_event(&a, id, pid)) return 2 ;
+      if (x[1].revents & IOPAUSE_READ && handle_event(&a, id, pid)) _exit(2) ;
     }
   }
 
-  return 1 ;
+  _exit(1) ;
 }
