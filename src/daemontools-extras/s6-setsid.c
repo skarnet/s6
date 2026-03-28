@@ -60,7 +60,7 @@ int main (int argc, char const *const *argv)
   {
     if (!uint0_scan(wgola[GOLA_CTTY], &ctty)) dieusage() ;
   }
-  else if (wgolb & GOLB_PGRP & GOLB_FG)
+  else if (wgolb & (GOLB_PGRP | GOLB_FG) == GOLB_PGRP | GOLB_FG)
   {
     int fd = openc_read("/dev/tty") ;
     if (fd == -1) strerr_diefu2sys(111, "open ", "/dev/tty") ;
