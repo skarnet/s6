@@ -685,7 +685,7 @@ int main (int argc, char const *const *argv)
   }
   if (wgola[GOLA_NAMEMAX])
   {
-    if (!uint320_scan(wgola[GOLA_NAMEMAX], &max))
+    if (!uint320_scan(wgola[GOLA_NAMEMAX], &namemax))
       strerr_dief2x(100, "name_max", " must be an unsigned integer") ;
     if (namemax < 11) namemax = 11 ;
     if (namemax > 1019) namemax = 1019 ;
