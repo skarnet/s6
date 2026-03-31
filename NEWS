@@ -4,6 +4,7 @@ In 2.15.0.0
 -----------
 
  - Bugfixes.
+ - Adaptation to skalibs-2.15.0.0.
  - s6-svscan's scandir argument is now mandatory.
  - s6-setsid now autodetects its controlling terminal by default.
  - Complete ftrigr refactor. This doesn't impact CLI programs,

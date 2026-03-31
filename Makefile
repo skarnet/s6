@@ -188,7 +188,7 @@ lib%.a.xyzzy:
 	exec $(RANLIB) $@
 
 lib%.so.xyzzy:
-	exec $(CC) -o $@ $(CFLAGS_ALL) $(CFLAGS_SHARED) $(LDFLAGS_ALL) $(LDFLAGS_SHARED) -Wl,-soname,$(patsubst lib%.so.xyzzy,lib%.so.$(version_M),$@) -Wl,-rpath=$(dynlibdir) $^ $(EXTRA_LIBS) $(LDLIBS)
+	exec $(CC) -o $@ $(CFLAGS_ALL) $(CFLAGS_SHARED) $(LDFLAGS_ALL) $(LDFLAGS_SHARED) -Wl,-soname,$(patsubst lib%.so.xyzzy,lib%.so.$(version_M),$@) $(LDFLAGS_RPATH) $^ $(EXTRA_LIBS) $(LDLIBS)
 
 -lskarnet:
 	$(error Unable to link against skalibs. Check that you are using the correct --with-lib or --with-dynlib options; see ./configure --help)
