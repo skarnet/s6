@@ -162,7 +162,7 @@ ports the s6 documentation to a set of man pages.
 Short-lived commands exit 0 on success.
 </p>
 
-<h4> Supervision system </h4>
+<h4 id="supervision"> Supervision system </h4>
 
 <p>
  <a href="s6-svscan.html">s6-svscan</a> and <a href="s6-supervise.html">s6-supervise</a>
@@ -180,17 +180,24 @@ a user interface to control those processes and monitor service states.
 <li><a href="s6-svperms.html">The <tt>s6-svperms</tt> program</a></li>
 <li><a href="s6-svlink.html">The <tt>s6-svlink</tt> program</a></li>
 <li><a href="s6-svunlink.html">The <tt>s6-svunlink</tt> program</a></li>
-<li><a href="s6-svwait.html">The <tt>s6-svwait</tt> program</a></li>
-<li><a href="s6-svlisten1.html">The <tt>s6-svlisten1</tt> program</a></li>
-<li><a href="s6-svlisten.html">The <tt>s6-svlisten</tt> program</a></li>
-<li><a href="s6-notifyoncheck.html">The <tt>s6-notifyoncheck</tt> program</a></li>
 <li><a href="s6-svdt.html">The <tt>s6-svdt</tt> program</a></li>
 <li><a href="s6-svdt-clear.html">The <tt>s6-svdt-clear</tt> program</a></li>
 <li><a href="s6-permafailon.html">The <tt>s6-permafailon</tt> program</a></li>
 <li><a href="s6-background-watch.html">The <tt>s6-background-watch</tt> program</a></li>
 </ul>
 
-<h4> Daemontools-like utilities </h4>
+<h4 id="notification"> Readiness notification for supervised services </h4>
+
+<ul>
+ <li><a href="s6-svwait.html">The <tt>s6-svwait</tt> program</a></li>
+ <li><a href="s6-svlisten1.html">The <tt>s6-svlisten1</tt> program</a></li>
+ <li><a href="s6-svlisten.html">The <tt>s6-svlisten</tt> program</a></li>
+ <li><a href="s6-notifyoncheck.html">The <tt>s6-notifyoncheck</tt> program</a></li>
+ <li><a href="s6-notify-fd-from-socket.html">The <tt>s6-notify-fd-from-socket</tt> program</a></li>
+ <li><a href="s6-notify-socket-from-fd.html">The <tt>s6-notify-socket-from-fd</tt> program</a></li>
+</ul>
+
+<h4 id="daemontools"> Misc utilities for run scripts </h4>
 
 <p>
  These programs are a rewrite of the corresponding utilities from
@@ -211,14 +218,13 @@ a few extras.
 <li><a href="s6-tai64nlocal.html">The <tt>s6-tai64nlocal</tt> program</a></li>
 </ul>
 
-<h4> Fifodir management, notification and subscription </h4>
+<h4 id="fifodir"> Fifodir management, notification and subscription </h4>
 
 <p>
-These programs are a clean rewrite of the obsolete "pipe-tools" package; they
-are now based on a properly designed notification library.
-They provide a command-line interface to
+These programs provide a command-line interface to
 <a href="ftrig.html#notification">inter-process notification and
-synchronization</a>.
+synchronization</a>. They're a generalized interface to the same
+mechanisms used by tools like <a href="s6-svwait.html">s6-svwait</a>.
 </p>
 
 <ul>
@@ -237,7 +243,7 @@ synchronization</a>.
 <li><a href="libs6/s6-ftrigrd.html">The <tt>s6-ftrigrd</tt> internal program</a></li>
 </ul>
 
-<h4> Local service management and access control </h4>
+<h4 id="unixsocket"> Unix domain super-server, local service management and access control </h4>
 
 <ul>
 <li><a href="s6-ipcclient.html">The <tt>s6-ipcclient</tt> program</a></li>
@@ -255,7 +261,7 @@ synchronization</a>.
 <li><a href="s6-accessrules-fs-from-cdb.html">The <tt>s6-accessrules-fs-from-cdb</tt> program</a></li>
 </ul>
 
-<h4> suidless privilege gain </h4>
+<h4 id="nosuid"> suidless privilege gain </h4>
 
 <ul>
 <li><a href="s6-sudo.html">The <tt>s6-sudo</tt> program</a></li>
@@ -263,7 +269,7 @@ synchronization</a>.
 <li><a href="s6-sudod.html">The <tt>s6-sudod</tt> program</a></li>
 </ul>
 
-<h4> Logging </h4>
+<h4 id="log"> Logging </h4>
 
 <ul>
 <li><a href="s6-log.html">The <tt>s6-log</tt> program</a></li>
@@ -271,13 +277,13 @@ synchronization</a>.
 <li><a href="ucspilogd.html">The <tt>ucspilogd</tt> program</a></li>
 </ul>
 
-<h4> Management of user supervision trees </h4>
+<h4 id="usertree"> Management of user supervision trees </h4>
 
 <ul>
 <li><a href="s6-usertree-maker.html">The <tt>s6-usertree-maker</tt> program</a></li>
 </ul>
 
-<h4> Management of dynamic instances </h4>
+<h4 id="instance"> Management of dynamic instances </h4>
 
 <ul>
 <li>An <a href="instances.html">overview</a> of dynamic instantiation in s6</li>
@@ -289,7 +295,7 @@ synchronization</a>.
 <li><a href="s6-instance-list.html">The <tt>s6-instance-list</tt> program</a></li>
 </ul>
 
-<h4> fd-holding, a.k.a. the sensible part of socket activation </h4>
+<h4 id="fdholder"> fd-holding, a.k.a. the sensible part of socket activation </h4>
 
 <ul>
 <li><a href="s6-fdholder-daemon.html">The <tt>s6-fdholder-daemon</tt> program</a></li>
@@ -334,10 +340,9 @@ synchronization</a>.
 <h3> s6 manual pages </h3>
 
 <ul>
- <li> <a href="https://github.com/flexibeast">flexibeast</a> is doing the ungrateful
-but valuable work of
-<a href="https://github.com/flexibeast/s6-man-pages">providing the s6 documentation
-as a set of man pages</a>. </li>
+ <li> <a href="https://git.sr.ht/~humm/">Lennart Jablonka</a> is doing the ungrateful
+but valuable work of providing the s6 documentation
+<a href="https://git.sr.ht/~humm/s6-man-pages">as a set of man pages</a>. </li>
 </ul>
 
 <h3> Other components for s6-based init systems </h3>
@@ -346,10 +351,13 @@ as a set of man pages</a>. </li>
  <li> <a href="//skarnet.org/software/s6-linux-init/">s6-linux-init</a>
 is a package to help you create a <tt>/sbin/init</tt> binary booting a
 Linux system with s6-svscan as process 1. </li>
- <li> <a href="https://github.com/just-containers/s6-overlay">s6-overlay</a>
-is a project that automates integration of s6 into Docker images. </li>
  <li> <a href="//skarnet.org/software/s6-rc/">s6-rc</a> is a
 dependency-based service manager for s6. </li>
+ <li> <a href="//skarnet.org/software/s6-frontend/">s6-frontend</a> is
+a friendlier user interface to address the complete s6 ecosystem (this
+package, s6-linux-init and s6-rc). </li>
+ <li> <a href="https://github.com/just-containers/s6-overlay">s6-overlay</a>
+is a project that automates integration of s6 into Docker images. </li>
  <li> <a href="https://jjacky.com/anopa">anopa</a> is another dependency-based
 service manager for s6. </li>
  <li> <a href="https://web.obarun.org/software/66/latest/">66</a> is another
@@ -362,8 +370,8 @@ service manager working on top of s6. </li>
 <ul>
  <li> <tt>s6</tt> is discussed on the
 <a href="//skarnet.org/lists/#supervision">supervision</a> mailing-list. </li>
- <li> There is a <tt>#s6</tt> IRC channel on OFTC. Sometimes people are there
-and answer questions. </li>
+ <li> There is a <tt>#s6</tt> IRC channel on OFTC. It hosts most discussions
+around supervision topics, and skaware in general. </li>
 </ul>
 
 <h3> Similar work </h3>

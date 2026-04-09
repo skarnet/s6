@@ -12,6 +12,7 @@ except the next point.
  - s6-ftrig-wait and s6-ftrig-listen1 now print the whole
 sequence of events (followed by a newline) to stdout, rather than
 just the triggering event.
+ - New binaries: s6-notify-fd-from-socket, s6-notify-socket-from-fd
 
 
 In 2.14.0.1

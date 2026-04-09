@@ -25,6 +25,8 @@ s6-svlisten			0755
 s6-background-watch		0755
 s6-svperms			0755
 s6-notifyoncheck		0755
+s6-notify-fd-from-socket	0755
+s6-notify-socket-from-fd	0755
 s6-permafailon			0755
 s6-applyuidgid			0755
 s6-envdir			0755

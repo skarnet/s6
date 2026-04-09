@@ -1,0 +1,110 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-notify-fd-from-socket program</title>
+    <meta name="Description" content="s6: the s6-notify-fd-from-socket program" />
+    <meta name="Keywords" content="s6 command s6-notify-fd-from-socket NOTIFY_SOCKET systemd notification service check" />
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The s6-notify-fd-from-socket </h1>
+
+<p>
+<tt>s6-notify-fd-from-socket</tt> is meant to be used in a run script,
+when you want to use s6 to supervise a program that follows systemd's
+<a href="https://www.freedesktop.org/software/systemd/man/latest/sd_notify.html">NOTIFY_SOCKET</a>
+protocol. It converts a readiness notification sent via that protocol
+into s6's <a href="notifywhenup.html">native format</a>.
+</p>
+
+<h2 id="interface"> Interface </h2>
+
+<pre>
+     s6-notify-fd-from-socket [ -3 <em>fd</em> ] [ -f ] [ -t <em>timeout</em> ] <em>prog...</em>
+</pre>
+
+<ul>
+ <li> <tt>s6-notify-fd-from-socket</tt> doubleforks and runs as the grandchild;
+the parent immediately execs into <em>prog...</em>, which is expected to use the
+NOTIFY_SOCKET protocol. </li>
+ <li> If <em>prog</em> dies before sending its notification, or if the timeout
+(if any) expires, <tt>s6-notify-fd-from-socket</tt> just exits. </li>
+ <li> If <em>prog</em> notifies readiness, <tt>s6-notify-fd-from-socket</tt>
+writes a newline to the file descriptor configured for the service,
+then it exits. </li>
+</ul>
+
+<h2 id="exitcodes"> Exit codes </h2>
+
+<p>
+ <tt>s6-notify-fd-from-socket</tt> can exit before executing into <em>prog</em>:
+</p>
+
+<ul>
+ <li> 100: wrong usage </li>
+ <li> 111: system call failed </li>
+</ul>
+
+<p>
+ After forking, <tt>s6-notify-fd-from-socket</tt> (running as a child or
+grandchild) can
+exit with the following exit codes, but those are meaningless
+because no process will, or should, check them. They are only
+differentiated for clarity in the source code:
+</p>
+
+<ul>
+ <li> 0: service readiness achieved and notification sent </li>
+ <li> 99: timed out before readiness was achieved </li>
+ <li> 111: system call failed </li>
+</ul>
+
+<h2 id="options"> Options </h2>
+
+<dl>
+ <dt> <tt>-3 <em>fd</em></tt>, <tt>--notification-fd=<em>fd</em></tt> </dt>
+ <dd> Force writing the readiness notification to descriptor <em>fd</em>. By default,
+the notification is sent to the descriptor written in the <tt>notification-fd</tt>
+file of the service directory, and it is an error if this file does not exist
+(because the <a href="s6-supervise.html">supervisor</a> needs to be prepared to
+receive the notification). </dd>
+
+ <dt> <tt>-t <em>timeout</em></tt>, <tt>--timeout=<em>timeout</em></tt> </dt>
+ <dd> Exit without notifying the supervisor if <em>prog</em> hasn't notified
+readiness after <em>timeout</em> milliseconds. Default is <strong>0</strong>,
+meaning infinite: <tt>s6-notify-fd-from-socket</tt> will wait forever for
+a notification, up to when <em>prog</em> exits. </dd>
+
+ <dt> <tt>-f</tt>, <tt>--no-doublefork</tt> </dt>
+ <dd> Make <tt>s6-notify-fd-from-socket</tt> live as a direct child of
+<em>prog</em> rather than doubleforking. It is less costly (it might
+save a millisecond), but it will leave a zombie around if <em>prog</em>
+does not know how to reap its bastards (children it doesn't know it has).
+If <em>prog</em> reaps everything, you can safely use this option;
+otherwise, leave it alone. </dd>
+</dl>
+
+<h2 id="notes"> Notes </h2>
+
+<ul>
+ <li> <tt>s6-notify-fd-from-socket</tt> is for daemons using the systemd
+protocol that you want to run under s6. If you want to do the opposite, i.e.
+run under systemd a daemon that uses the s6 notification protocol, use the
+<a href="s6-notify-socket-from-fd.html">s6-notify-socket-from-fd</a> program
+instead. </li>
+</ul>
+
+
+
+</body>
+</html>

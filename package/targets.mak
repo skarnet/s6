@@ -61,6 +61,8 @@ s6-instance-control \
 s6-instance-status \
 s6-instance-list \
 s6-background-watch \
+s6-notify-fd-from-socket \
+s6-notify-socket-from-fd \
 
 LIBEXEC_TARGETS := \
 s6-ftrigrd \

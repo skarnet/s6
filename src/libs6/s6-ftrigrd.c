@@ -159,7 +159,7 @@ int main (void)
   {
     tain deadline ;
     tain_addsec_g(&deadline, 5) ;
-    sassserver_init_g(&a, FTRIGR_BANNER1, FTRIGR_BANNER2, &ftrigio_add, &ftrigio_remove, sizeof(ftrigio), &cleanup, 0, &deadline) ;
+    sassserver_init_frompipe_g(&a, FTRIGR_BANNER1, FTRIGR_BANNER2, &ftrigio_add, &ftrigio_remove, sizeof(ftrigio), &cleanup, 0, &deadline) ;
   }
 
   while (!r)
