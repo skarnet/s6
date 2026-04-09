@@ -116,6 +116,13 @@ not using the systemd notification protocol, normally has no use for it. </dd>
 <h2 id="notes"> Notes </h2>
 
 <ul>
+ <li> <tt>s6-notify-socket-from-fd</tt> sends its notification as a subprocess
+with a different pid from <em>prog</em>, so the unit file running the service
+needs the <tt>NotifyAccess=all</tt> directive. </li>
+ <li> Despite <em>building</em> on every OS supported by s6,
+<tt>s6-notify-socket-from-fd</tt> will only <em>work</em> on systems implementing
+abstract sockets with autobind, which in practice means Linux 2.3.15 and later.
+This is okay, because it is only useful to systemd users. </li>
  <li> This program was previously available on skarnet.org outside of any
 package, under the name <tt>sdnotify-wrapper</tt>. </li>
  <li> <tt>s6-notify-socket-from-fd</tt> is for s6-style daemons that you
