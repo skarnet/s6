@@ -97,14 +97,20 @@ otherwise, leave it alone. </dd>
 <h2 id="notes"> Notes </h2>
 
 <ul>
+ <li> <tt>s6-notify-fd-from-socket</tt> only understands the <tt>READY=1</tt>
+line of the <tt>NOTIFY_SOCKET</tt> protocol. It will ignore any other line,
+and extensions will not be added. It will only work for readiness notification,
+and not for generic communication with the supervisor, fd transmission, or
+anything of the kind. There is a way to store file descriptors with s6:
+<a href="s6-fdholder-store.html">s6-fdholder-store</a>, which can be used in
+a run script, and is entirely independent from the readiness notification
+protocol. </li>
  <li> <tt>s6-notify-fd-from-socket</tt> is for daemons using the systemd
 protocol that you want to run under s6. If you want to do the opposite, i.e.
 run under systemd a daemon that uses the s6 notification protocol, use the
 <a href="s6-notify-socket-from-fd.html">s6-notify-socket-from-fd</a> program
 instead. </li>
 </ul>
-
-
 
 </body>
 </html>
