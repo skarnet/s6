@@ -1,5 +1,7 @@
 /* ISC license. */
 
+#include <skalibs/nonposix.h>
+
 #include <sys/types.h>
 #include <string.h>
 #include <unistd.h>
@@ -8,6 +10,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
+#include <skalibs/gccattributes.h>
 #include <skalibs/uint64.h>
 #include <skalibs/types.h>
 #include <skalibs/bytestr.h>
@@ -36,32 +39,75 @@ enum gola_e
   GOLA_N
 } ;
 
-static inline int ipc_sendto (int fd, char const *s, size_t len, char const *path)
+union aligner_u
 {
-  struct sockaddr_un sa ;
-  size_t l = strlen(path) ;
-  if (l > IPCPATH_MAX) return (errno = ENAMETOOLONG, 0) ;
-  memset(&sa, 0, sizeof sa) ;
-  sa.sun_family = AF_UNIX ;
-  memcpy(sa.sun_path, path, l+1) ;
-  if (path[0] == '@') sa.sun_path[0] = 0 ;
-  return sendto(fd, s, len, MSG_NOSIGNAL, (struct sockaddr *)&sa, sizeof sa) >= 0 ;
+  struct cmsghdr cmsghdr ;
+  int i ;
+} ;
+
+static inline ssize_t fd_sendmsg (int fd, struct msghdr const *hdr)
+{
+  ssize_t r ;
+  int e = errno ;
+  do r = sendmsg(fd, hdr, MSG_NOSIGNAL) ;
+  while (r == -1 && errno == EINTR) ;
+  if (r <= 0) return 0 ;
+  errno = e ;
+  return 1 ;
 }
 
-static inline void notify_systemd (pid_t pid, char const *socketpath)
+static inline void notify_systemd (pid_t pid, char const *path, tain const *deadline) gccattr_noreturn ;
+static inline void notify_systemd (pid_t pid, char const *path, tain const *deadline)
 {
-  size_t n = 16 ;
-  char fmt[16 + PID_FMT] = "READY=1\nMAINPID=" ;
-  int fd = ipc_datagram_b() ;
+  iopause_fd x = { .events = IOPAUSE_READ } ;
+  int p[2] ;
+  int fd ;
+  size_t n = 26 ;
+  char fmt[26 + PID_FMT] = "READY=1\nBARRIER=1\nMAINPID=" ;
+  struct sockaddr_un addr = { 0 } ;
+  size_t l = strlen(path) ;
+  struct iovec v = { .iov_base = fmt, .iov_len = n } ;
+  union aligner_u ancilbuf[1 + (CMSG_SPACE(sizeof(int)) - 1) / sizeof(union aligner_u)] ;
+  struct msghdr hdr =
+  {
+    .msg_name = &addr,
+    .msg_namelen = sizeof addr,
+    .msg_iov = &v,
+    .msg_iovlen = 1,
+    .msg_control = ancilbuf,
+    .msg_controllen = CMSG_SPACE(sizeof(int))
+  } ;
+  struct cmsghdr *c = CMSG_FIRSTHDR(&hdr) ;
+  if (l > IPCPATH_MAX)
+  {
+    errno = ENAMETOOLONG ;
+    strerr_diefu2sys(111, "send a message to ", path) ;
+  }
+  fd = ipc_datagram_b() ;
   if (fd == -1) strerr_diefu1sys(111, "create socket") ;
+  if (pipecoe(p) == -1) strerr_diefu1sys(111, "pipe") ;
+  addr.sun_family = AF_UNIX ;
+  memcpy(addr.sun_path, path, l+1) ;
+  if (path[0] == '@') addr.sun_path[0] = 0 ;
   n += pid_fmt(fmt + n, pid) ;
   fmt[n++] = '\n' ;
-  if (!ipc_sendto(fd, fmt, n, socketpath))
-    strerr_diefu2sys(111, "send notification message to ", socketpath) ;
+  memset(hdr.msg_control, 0, hdr.msg_controllen) ;
+  c->cmsg_level = SOL_SOCKET ;
+  c->cmsg_type = SCM_RIGHTS ;
+  c->cmsg_len = CMSG_LEN(sizeof(int)) ;
+  memcpy(CMSG_DATA(c), p+1, sizeof(int)) ;
+
+  if (!fd_sendmsg(fd, &hdr)) strerr_diefu2sys(111, "send notification message to ", path) ;
   fd_close(fd) ;
+  fd_close(p[1]) ;
+  x.fd = p[0] ;
+  fd = iopause_g(&x, 1, deadline) ;
+  if (fd == -1) strerr_diefu1sys(111, "iopause") ;
+  _exit(fd ? 0 : 99) ;
 }
 
-static inline int run_child (int fd, unsigned int timeout, pid_t pid, char const *s)
+static inline void run_child (int fd, unsigned int timeout, pid_t pid, char const *s) gccattr_noreturn ;
+static inline void run_child (int fd, unsigned int timeout, pid_t pid, char const *s)
 {
   char dummy[4096] ;
   iopause_fd x = { .fd = fd, .events = IOPAUSE_READ } ;
@@ -73,16 +119,15 @@ static inline int run_child (int fd, unsigned int timeout, pid_t pid, char const
   {
     int r = iopause_g(&x, 1, &deadline) ;
     if (r == -1) strerr_diefu1sys(111, "iopause") ;
-    if (!r) return 99 ;
+    if (!r) _exit(99) ;
     r = sanitize_read(fd_read(fd, dummy, 4096)) ;
     if (r < 0)
-      if (errno == EPIPE) return 1 ;
+      if (errno == EPIPE) _exit(1) ;
       else strerr_diefu1sys(111, "read from parent") ;
     else if (r && memchr(dummy, '\n', r)) break ;
   }
   fd_close(fd) ;
-  notify_systemd(pid, s) ;
-  return 0 ;
+  notify_systemd(pid, s, &deadline) ;
 }
 
 int main (int argc, char const *const *argv)
@@ -128,7 +173,7 @@ int main (int argc, char const *const *argv)
     {
       PROG = "s6-notify-socket-from-fd (child)" ;
       fd_close(p[1]) ;
-      return run_child(p[0], timeout, parent, s) ;
+      run_child(p[0], timeout, parent, s) ;
     }
     fd_close(p[0]) ;
     if (fd_move(fd, p[1]) == -1) strerr_diefu1sys(111, "fd_move") ;
