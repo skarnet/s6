@@ -313,7 +313,7 @@ order. Very often, a run script can be reduced to a single command line -
 likely a long one, but still a single one. (That is the main reason why
 using the
 <a href="//skarnet.org/software/execline/">execline</a> language
-to write run scripts is recommended: execline makes it natural to handle
+to write run scripts is a good idea: execline makes it natural to handle
 long command lines made of massive amounts of chain loading. This is by no
 means mandatory, though: a run script can be any executable file you want,
 provided that running it eventually results in a long-lived process with
@@ -383,6 +383,9 @@ to check whether they're ready or not:
 <a href="s6-notifyoncheck.html">s6-notifyoncheck</a>.
  This is polling, which is bad, but unfortunately necessary for
 many daemons as of 2019. </li>
+ <li> The <a href="s6-notify-fd-from-socket.html">s6-notify-fd-from-socket</a>
+program is the s6 way of supporting programs that use systemd's <tt>sd_notify()</tt>
+notification mechanism. </li>
 </ul>
 
 <p>

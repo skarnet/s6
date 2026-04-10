@@ -237,12 +237,10 @@ init a script.
 
 <p>
  Of course, most people will use the <em>shell</em> as scripting
-language; however, I advocate the use of
-<a href="//skarnet.org/software/execline/">execline</a>
-for this, and not only for the obvious reasons. Piping s6-svscan's
+language; however, they will find that piping s6-svscan's
 stderr to a logging service before said service is even up requires
-some <a href="#log">tricky fifo handling</a> that execline can do
-and the shell cannot.
+some <a href="#log">tricky fifo handling</a> that the shell cannot
+do portably. See below for more details.
 </p>
 
 <a name="stage3">
@@ -254,8 +252,7 @@ and the shell cannot.
 stage 3 init is naturally the <tt>/run/service/.s6-svscan/finish</tt> program.
 Of course, <tt>/run/service/.s6-svscan/finish</tt> can be a symbolic link
 to anything else; just make sure it points to something in the root
-filesystem (unless your program is an execline script, in which case
-it is not even necessary).
+filesystem.
 </p>
 
 <h3> What stage 3-4 init must do </h3>
@@ -382,15 +379,15 @@ that will provide such a reader process. </li>
 </ul>
 
 <p>
- This second point cannot be solved in a shell script, and that is why
-you are discouraged to write your stage 1 init script in the shell
+ This second point cannot be portably solved in a shell script, and that is why
+it's a deceptively bad idea to write your stage 1 init script in the shell
 language: you cannot properly set up a FIFO output for s6-svscan without
 resorting to horrible and unreliable hacks involving a temporary background
 FIFO reader process.
 </p>
 
 <p>
- Instead, you are encouraged to use the
+ Instead, I suggest using the
 <a href="//skarnet.org/software/execline/">execline</a> language -
 or, at least,
 the <a href="//skarnet.org/software/execline/redirfd.html">redirfd</a>
