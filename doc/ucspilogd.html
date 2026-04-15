@@ -27,7 +27,7 @@ numbers and alert levels into names.
 <h2> Interface </h2>
 
 <pre>
-     ucspilogd [ -d <em>undef</em> ] [ <em>var</em> ... ]
+     ucspilogd [ -D <em>undef</em> ] [ <em>var</em> ... ]
 </pre>
 
 <ul>
@@ -45,7 +45,7 @@ human-readable name in the syslogd fashion. </li>
 <h2> Options </h2>
 
 <ul>
- <li> <tt>-d&nbsp;<em>undef</em></tt>&nbsp;: when a variable
+ <li> <tt>-D&nbsp;<em>undef</em></tt>&nbsp;: when a variable
 <em>var</em> given on the command line is actually undefined at
 ucspilogd execution time, print <em>undef</em> in place of what
 would be the variable's value on every line. Default is the
@@ -77,14 +77,6 @@ to ensure ease of use and reliability of the whole chain. </li>
 <p>
  The resulting suite of programs is still smaller, and way more reliable,
 than a standard <em>syslogd</em>.
-</p>
-
-<p>
- In the <tt>examples/syslogd-linux</tt> subdirectory of the s6 package, you will
-find a suitable ucspilogd <a href="servicedir.html">service directory</a>.
-The run scripts are written in the
-<a href="//skarnet.org/software/execline/">execline</a>
-language.
 </p>
 
 <h2> Using <tt>ucspilogd</tt> as a <em>klogd</em> replacement </h2>
