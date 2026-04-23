@@ -66,10 +66,15 @@ of certain files in the service directory.
 
 <p>
  s6-supervise does not support options, because it is normally not run
-manually via a command line; it is usually launched by its own
-supervisor, <a href="s6-svscan.html">s6-svscan</a>. The way to
-tune s6-supervise's behaviour is via files in the
-<a href="servicedir.html">service directory</a>.
+manually via a command line; it is usually launched by
+<a href="s6-svscan.html">s6-svscan</a> as part of a supervision tree.
+</p>
+
+<p>
+ The way to tune s6-supervise's behaviour is via
+<a href="servicedir.html">files in the service directory</a>. There
+are a lot of configuration knobs there; if you want to get the most
+out of your supervisor, reading this page is strongly advised.
 </p>
 
 <h2> Readiness notification support </h2>

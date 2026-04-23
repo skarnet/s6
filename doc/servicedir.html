@@ -188,6 +188,11 @@ exist, or contains 0 or an invalid value, then the service is never
 forcibly killed (unless, of course, an <a href="s6-svc.html">s6-svc -k</a>
 command is sent). </li>
 
+ <li style="margin-bottom:1em"> An optional regular file named <tt>flag-timeout-killpg</tt>. If such a file
+exists <em>and</em> a nonzero <tt>timeout-kill</tt> is defined, then at the end of the
+timeout, the SIGKILL is sent to the whole process group of the service, instead of to
+the pid of the service only. </li>
+
  <li style="margin-bottom:1em"> An optional regular file named <tt>timeout-finish</tt>. If such a file
 exists, it must only contain an unsigned integer, which is the number of
 milliseconds after which the <tt>./finish</tt> script, if it exists, will
