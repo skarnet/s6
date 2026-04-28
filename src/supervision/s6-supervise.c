@@ -520,8 +520,16 @@ static void uptimeout (void)
 {
   if (gflags.dying)
   {
-    if (check_file("flag-timeout-killpg")) killK() ;
-    else killk() ;
+    if (check_file("flag-timeout-killpg"))
+    {
+      killK() ;
+      killC() ;
+    }
+    else
+    {
+      killk() ;
+      killc() ;
+    }
     settimeout(5) ;
   }
   else
