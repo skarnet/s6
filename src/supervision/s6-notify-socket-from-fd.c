@@ -21,6 +21,8 @@
 #include <skalibs/djbunix.h>
 #include <skalibs/socket.h>
 
+#include <skalibs/posixishard.h>
+
 #define USAGE "s6-notify-socket-from-fd [ -d fd ] [ -f ] [ -t timeout ] [ -k ] prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 
