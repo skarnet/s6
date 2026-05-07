@@ -7,7 +7,7 @@
 
 #include <skalibs/stralloc.h>
 
-#define S6_SERVICEDIR_FILE_MAXLEN 16
+#define S6_SERVICEDIR_FILE_MAXLEN 20
 
 #define S6_FILETYPE_NORMAL 0
 #define S6_FILETYPE_EMPTY 1
