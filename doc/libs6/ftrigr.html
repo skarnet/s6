@@ -59,7 +59,7 @@ for instance, illustrate how to use the ftrigr library.
 <ul>
  <li> Synchronous functions take a <tt>tain const *</tt>
 (<em>deadline</em>) parameter and a <tt>tain *</tt> (<em>stamp</em>)
-parameter. Those are pointers to tain_t structures containing absolute times;
+parameter. Those are pointers to tain structures containing absolute times;
 the former represents a deadline (in most cases, this time will be in the
 future) and the latter must be an accurate enough timestamp. These
 structures can be filled using the <tt>tain_</tt> primitives declared in
@@ -74,7 +74,7 @@ frequently is unnecessary.) </li>
  <li> If such a synchronous function still hasn't returned when the deadline
 occurs, then it will immediately return a failure code and set errno to ETIMEDOUT.
 It is possible to pass null pointers to the function instead of pointers to
-tain_t structures, in which case the function will never timeout. </li>
+tain structures, in which case the function will never timeout. </li>
  <li> If a timeout occurs, the library does not guarantee proper interprocess
 communication later on; the application should either die, or at least close
 the communication channel and open a new one. </li>
@@ -97,7 +97,7 @@ control on. </li>
 
 <pre>
 ftrigr a = FTRIGR_ZERO ;
-tain_t deadline, stamp ;
+tain deadline, stamp ;
 
 tain_now(&amp;stamp) ;
 tain_addsec(&amp;deadline, &amp;stamp, 2)
@@ -106,7 +106,7 @@ ftrigr_startf(&amp;a, &amp;deadline, &amp;stamp) ;
 </pre>
 
 <p>
-<tt>ftrigr_startf</tt> starts a session with an ftrigrd process as a child
+<tt>ftrigr_startf()</tt> starts a session with an ftrigrd process as a child
 (which is the simplest usage). <br />
 <tt>a</tt> is an ftrigr structure that can be declared in the stack and
 must be initialized to FTRIGR_ZERO.
@@ -129,7 +129,7 @@ problem with the underlying processes.
 <p>
  You can have more than one session open in parallel, by declaring
 several distinct <tt>ftrigr</tt> structures and calling
-<tt>ftrigr_startf</tt> more than once.
+<tt>ftrigr_startf()</tt> more than once.
 However, this is useless, since one single session can handle
 virtually as many concurrent fifodirs as your application needs.
 </p>
@@ -139,7 +139,7 @@ ftrigr_end(&amp;a) ;
 </pre>
 
 <p>
-<tt>ftrigr_end</tt> frees all the resources used by the session. The
+<tt>ftrigr_end()</tt> frees all the resources used by the session. The
 <tt>a</tt> structure is then reusable for another session.
 </p>
 
@@ -152,11 +152,11 @@ uint32_t options = 0 ;
 uint32_t timeout = 60000 ;
 uint32_t id ;
 
-int r = ftrigr_subscribe(&amp;a, &amp;id, options, timeout, path, re, options, &amp;deadline, &amp;stamp) ;
+int r = ftrigr_subscribe(&amp;a, &amp;id, options, timeout, path, re, &amp;deadline, &amp;stamp) ;
 </pre>
 
 <p>
-<tt>ftrigr_subscribe</tt> instructs the
+<tt>ftrigr_subscribe()</tt> instructs the
 <a href="s6-ftrigrd.html">s6-ftrigrd daemon</a>, related to the open
 session represented by the <tt>a</tt> structure, to subscribe to the
 <tt>path</tt> fifodir, and to notify the application when it receives
@@ -183,9 +183,9 @@ into <tt>id</tt>.
 </p>
 
 <p>
-<tt>ftrigr_subscribe</tt> should return near-instantly, but if
+<tt>ftrigr_subscribe()</tt> should return near-instantly, but if
 <em>deadline</em> is reached, it will return 0 ETIMEDOUT. If
-<tt>ftrigr_subscribe</tt> returns successfully, then the
+<tt>ftrigr_subscribe()</tt> returns successfully, then the
 s6-ftrigrd daemon is guaranteed to be listening on <tt>path</tt>,
 and events can be sent without the risk of a race condition.
 </p>
@@ -252,7 +252,7 @@ int ftrigr_peek (ftrigr *a, uint32_t id, ftrigr_string *fs)
 
 <p>
  Checks whether an event happened to <em>id</em>. Use after a
-call to <tt>ftrigr_updateb()</tt>.
+call to <tt>ftrigr_update()</tt>.
 </p>
 
 <ul>
@@ -262,7 +262,7 @@ number may have been transmitted from
  <li> If no notification happened yet, returns 0. </li>
  <li> If something happened, returns 1, and <tt>fs</tt> contains
 the string of events that were received since the subscription or
-since the last call to <tt>ftrigr_ack</tt> (see below).
+since the last call to <tt>ftrigr_ack()</tt> (see below).
 <tt>fs-&gt;s</tt> is a pointer to the non-null-terminated string,
 and <tt>fs-&gt;len</tt> is its length. </li>
 </ul>

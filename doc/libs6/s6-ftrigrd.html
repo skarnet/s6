@@ -31,7 +31,7 @@ events happen.
 
 <p>
  s6-ftrigrd is not meant to be called directly. When the client calls
-<tt>ftrigr_start()</tt> or <tt>ftrigr_startf</tt>, it spawns an instance of
+<tt>ftrigr_start()</tt> or <tt>ftrigr_startf()</tt>, it spawns an instance of
 s6-ftrigrd as a child. s6-ftrigrd's stdin is a pipe reading from the client; its
 stdout is a pipe writing to the client; its stderr is the same as the client's; and
 there's an additional pipe from s6-ftrigrd to the client, used for asynchronous
