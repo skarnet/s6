@@ -130,11 +130,11 @@ int main (int argc, char const *const *argv)
 
   golc = gol_main(argc, argv, 0, 0, rgola, 1, 0, wgola) ;
   argc -= golc ; argv += golc ;
-  if (argc < 3) strerr_dieusage(100, USAGE) ;
+  if (argc < 2) strerr_dieusage(100, USAGE) ;
 
   if (wgola[GOLA_MODE] && !uint0_oscan(wgola[GOLA_MODE], &mode))
     strerr_dief1x(100, "mode needs to be an unsigned integer (in octal)") ;
-  if (!stralloc_cats(&tmp, argv[1])) return 0 ;
+  if (!stralloc_cats(&tmp, argv[0])) return 0 ;
   if (!stralloc_readyplus(&tmp, 8210))
     strerr_diefu1sys(111, "stralloc_catb") ;
   stralloc_catb(&tmp, SUFFIX, sizeof(SUFFIX)) ;
@@ -145,13 +145,13 @@ int main (int argc, char const *const *argv)
     cleanup() ;
     strerr_diefu1sys(111, "cdbmake_start") ;
   }
-  dir = opendir(argv[2]) ;
+  dir = opendir(argv[1]) ;
   if (!dir)
   {
     cleanup() ;
-    strerr_diefu2sys(111, "opendir ", argv[2]) ;
+    strerr_diefu2sys(111, "opendir ", argv[1]) ;
   }
-  if (!stralloc_cats(&sa, argv[2]) || !stralloc_catb(&sa, "/", 1)) dienomem() ;
+  if (!stralloc_cats(&sa, argv[1]) || !stralloc_catb(&sa, "/", 1)) dienomem() ;
   start = sa.len ;
 
   for (;;)
@@ -173,6 +173,7 @@ int main (int argc, char const *const *argv)
       strerr_diefu2sys(111, "opendir ", sa.s) ;
     }
     sa.s[base-1] = '/' ;
+
     for (;;)
     {
       errno = 0 ;
@@ -194,9 +195,10 @@ int main (int argc, char const *const *argv)
   if (errno)
   {
     cleanup() ;
-    strerr_diefu2sys(111, "readdir ", argv[2]) ;
+    strerr_diefu2sys(111, "readdir ", argv[1]) ;
   }
   dir_close(dir) ;
+
   if (!cdbmake_finish(&c))
   {
     cleanup() ;
@@ -213,10 +215,10 @@ int main (int argc, char const *const *argv)
     cleanup() ;
     strerr_diefu2sys(111, "chmod ", tmp.s) ;
   }
-  if (rename(tmp.s, argv[1]) < 0)
+  if (rename(tmp.s, argv[0]) < 0)
   {
     cleanup() ;
-    strerr_diefu4sys(111, "rename ", tmp.s, " to ", argv[1]) ;
+    strerr_diefu4sys(111, "rename ", tmp.s, " to ", argv[0]) ;
   }
   return 0 ;
 }

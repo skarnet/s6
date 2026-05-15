@@ -1,3 +1,3 @@
-true		true		/package/prog/skalibs	2.15.0.0	libskarnet
+true		true		/package/prog/skalibs	2.15.0.1	libskarnet
 $usensss	false		/package/admin/nsss	0.2.1.2		libnsss
-$useexecline	$useexecline	/package/admin/execline	2.9.9.0		libexecline
+$useexecline	$useexecline	/package/admin/execline	2.9.9.1		libexecline
