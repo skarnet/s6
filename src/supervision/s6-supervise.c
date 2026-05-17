@@ -854,8 +854,6 @@ int main (int argc, char const *const *argv)
       else if (!r) (*actions[state][V_TIMEOUT])() ;
       else
       {
-        if ((x[0].revents | x[1].revents) & IOPAUSE_EXCEPT)
-          strerr_diefu1x(111, "iopause: trouble with pipes") ;
         if (notifyfd >= 0 && x[2].revents & IOPAUSE_READ) handle_notifyfd() ;
         if (x[0].revents & IOPAUSE_READ) handle_signals() ;
         else if (x[1].revents & IOPAUSE_READ) handle_control(x[1].fd) ;
