@@ -17,7 +17,7 @@
 static int registerit (ftrigr *a, uint32_t *id, char *fn, size_t len, stralloc *sa, tain const *deadline, tain *stamp)
 {
   memcpy(fn + len, "/" S6_SUPERVISE_EVENTDIR, sizeof(S6_SUPERVISE_EVENTDIR) + 1) ;
-  if (sarealpath(sa, fn) == -1) return 0 ;
+  if (sarealpath(sa, fn) == -1 || !stralloc_0(sa)) return 0 ;
   sa->len = 0 ;
   return ftrigr_subscribe(a, id, 0, 0, sa->s, "x", deadline, stamp) ;
 }
