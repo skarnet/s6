@@ -64,47 +64,53 @@ static inline void notify_systemd (pid_t pid, char const *path, tain const *dead
   iopause_fd x = { .events = IOPAUSE_READ } ;
   int p[2] ;
   int fd ;
-  size_t n = 26 ;
-  char fmt[26 + PID_FMT] = "READY=1\nBARRIER=1\nMAINPID=" ;
   struct sockaddr_un addr = { 0 } ;
   size_t l = strlen(path) ;
-  struct iovec v = { .iov_base = fmt, .iov_len = n } ;
+  struct cmsghdr *c ;
   union aligner_u ancilbuf[1 + (CMSG_SPACE(sizeof(int)) - 1) / sizeof(union aligner_u)] ;
+  char fmt[16 + PID_FMT] = "READY=1\nMAINPID=" ;
+  struct iovec v = { .iov_base = fmt, .iov_len = 16 } ;
   struct msghdr hdr =
   {
     .msg_name = &addr,
     .msg_namelen = sizeof addr,
     .msg_iov = &v,
     .msg_iovlen = 1,
-    .msg_control = ancilbuf,
-    .msg_controllen = CMSG_SPACE(sizeof(int))
+    .msg_control = 0,
+    .msg_controllen = 0
   } ;
-  struct cmsghdr *c = CMSG_FIRSTHDR(&hdr) ;
   if (l > IPCPATH_MAX)
   {
     errno = ENAMETOOLONG ;
-    strerr_diefu2sys(111, "send a message to ", path) ;
+    strerr_diefusys(111, "send a message to ", path) ;
   }
   fd = ipc_datagram_b() ;
-  if (fd == -1) strerr_diefu1sys(111, "create socket") ;
-  if (pipecoe(p) == -1) strerr_diefu1sys(111, "pipe") ;
+  if (fd == -1) strerr_diefusys(111, "create socket") ;
+  if (pipecoe(p) == -1) strerr_diefusys(111, "pipe") ;
   addr.sun_family = AF_UNIX ;
   memcpy(addr.sun_path, path, l+1) ;
   if (path[0] == '@') addr.sun_path[0] = 0 ;
-  n += pid_fmt(fmt + n, pid) ;
-  fmt[n++] = '\n' ;
+
+  v.iov_len += pid_fmt(fmt + v.iov_len, pid) ;
+  fmt[v.iov_len++] = '\n' ;
+  if (!fd_sendmsg(fd, &hdr)) strerr_diefusys(111, "send notification ", "message to ", path) ;
+
+  memcpy(fmt, "BARRIER=1\n", 10) ; v.iov_len = 10 ;
+  hdr.msg_control = ancilbuf ;
+  hdr.msg_controllen = CMSG_SPACE(sizeof(int)) ;
   memset(hdr.msg_control, 0, hdr.msg_controllen) ;
+  c = CMSG_FIRSTHDR(&hdr) ;
   c->cmsg_level = SOL_SOCKET ;
   c->cmsg_type = SCM_RIGHTS ;
   c->cmsg_len = CMSG_LEN(sizeof(int)) ;
   memcpy(CMSG_DATA(c), p+1, sizeof(int)) ;
 
-  if (!fd_sendmsg(fd, &hdr)) strerr_diefu2sys(111, "send notification message to ", path) ;
+  if (!fd_sendmsg(fd, &hdr)) strerr_diefusys(111, "send notification ", "barrier message to ", path) ;
   fd_close(fd) ;
   fd_close(p[1]) ;
   x.fd = p[0] ;
   fd = iopause_g(&x, 1, deadline) ;
-  if (fd == -1) strerr_diefu1sys(111, "iopause") ;
+  if (fd == -1) strerr_diefusys(111, "iopause") ;
   _exit(fd ? 0 : 99) ;
 }
 
@@ -125,7 +131,7 @@ static inline void run_child (int fd, unsigned int timeout, pid_t pid, char cons
     r = sanitize_read(fd_read(fd, dummy, 4096)) ;
     if (r < 0)
       if (errno == EPIPE) _exit(1) ;
-      else strerr_diefu1sys(111, "read from parent") ;
+      else strerr_diefusys(111, "read from parent") ;
     else if (r && memchr(dummy, '\n', r)) break ;
   }
   fd_close(fd) ;
@@ -168,9 +174,9 @@ int main (int argc, char const *const *argv)
     pid_t parent = getpid() ;
     pid_t child ;
     int p[2] ;
-    if (pipe(p) == -1) strerr_diefu1sys(111, "pipe") ;
+    if (pipe(p) == -1) strerr_diefusys(111, "pipe") ;
     child = wgolb & GOLB_SINGLEFORK ? fork() : doublefork() ;
-    if (child == -1) strerr_diefu1sys(111, wgolb & GOLB_SINGLEFORK ? "fork" : "doublefork") ;
+    if (child == -1) strerr_diefusys(111, wgolb & GOLB_SINGLEFORK ? "fork" : "doublefork") ;
     else if (!child)
     {
       PROG = "s6-notify-socket-from-fd (child)" ;
@@ -178,7 +184,7 @@ int main (int argc, char const *const *argv)
       run_child(p[0], timeout, parent, s) ;
     }
     fd_close(p[0]) ;
-    if (fd_move(fd, p[1]) == -1) strerr_diefu1sys(111, "fd_move") ;
+    if (fd_move(fd, p[1]) == -1) strerr_diefusys(111, "fd_move") ;
     if (wgolb & GOLB_KEEP) xexec(argv) ;
     else xmexec_n(argv, VAR, sizeof(VAR), 1) ;
   }
