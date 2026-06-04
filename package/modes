@@ -10,6 +10,7 @@ s6-ftrig-wait			0755
 s6-cleanfifodir			0755
 s6-mkfifodir			0755
 s6-svscan			0755
+s6-svscanboot			0755
 s6-supervise			0755
 s6-svc				0755
 s6-svlink			0755

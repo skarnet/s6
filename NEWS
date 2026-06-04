@@ -1,9 +1,11 @@
 Changelog for s6.
 
-In 2.15.0.1
+In 2.15.1.0
 -----------
 
  - Bugfixes.
+ - New command: s6-svscanboot, for a self-logging s6-svscan
+that is not pid 1.
 
 
 In 2.15.0.0

@@ -80,7 +80,7 @@ endif
 ifneq ($(EXECLINE_LIB),)
 LIB_DEFS += S6AUTO=s6auto
 S6AUTO_DESCRIPTION := The s6auto library (C helpers to create service directories)
-BIN_TARGETS += s6-usertree-maker s6-instance-maker
+BIN_TARGETS += s6-usertree-maker s6-instance-maker s6-svscanboot
 endif
 
 WRAP_ANY :=

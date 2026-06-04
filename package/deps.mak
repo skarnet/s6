@@ -135,6 +135,7 @@ src/supervision/s6-svlisten1.o src/supervision/s6-svlisten1.lo: src/supervision/
 src/supervision/s6-svok.o src/supervision/s6-svok.lo: src/supervision/s6-svok.c src/include/s6/supervise.h
 src/supervision/s6-svperms.o src/supervision/s6-svperms.lo: src/supervision/s6-svperms.c src/include/s6/supervise.h
 src/supervision/s6-svscan.o src/supervision/s6-svscan.lo: src/supervision/s6-svscan.c src/include/s6/config.h src/include/s6/supervise.h
+src/supervision/s6-svscanboot.o src/supervision/s6-svscanboot.lo: src/supervision/s6-svscanboot.c src/include/s6/config.h
 src/supervision/s6-svscanctl.o src/supervision/s6-svscanctl.lo: src/supervision/s6-svscanctl.c src/include/s6/supervise.h
 src/supervision/s6-svstat.o src/supervision/s6-svstat.lo: src/supervision/s6-svstat.c src/include/s6/supervise.h
 src/supervision/s6-svunlink.o src/supervision/s6-svunlink.lo: src/supervision/s6-svunlink.c src/include/s6/supervise.h
@@ -293,6 +294,8 @@ s6-svperms: EXTRA_LIBS :=
 s6-svperms: src/supervision/s6-svperms.o ${LIBNSSS} -lskarnet
 s6-svscan: EXTRA_LIBS := ${SYSCLOCK_LIB} ${SPAWN_LIB}
 s6-svscan: src/supervision/s6-svscan.o -lskarnet
+s6-svscanboot: EXTRA_LIBS :=
+s6-svscanboot: src/supervision/s6-svscanboot.o -lskarnet
 s6-svscanctl: EXTRA_LIBS :=
 s6-svscanctl: src/supervision/s6-svscanctl.o ${LIBS6} -lskarnet
 s6-svstat: EXTRA_LIBS := ${SYSCLOCK_LIB}

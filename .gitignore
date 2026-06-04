@@ -17,6 +17,7 @@
 /s6-cleanfifodir
 /s6-mkfifodir
 /s6-svscan
+/s6-svscanboot
 /s6-supervise
 /s6-svc
 /s6-svscanctl

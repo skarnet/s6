@@ -50,17 +50,15 @@ of by the logging tools. </li>
  <li> You can use a trick similar to the <a href="s6-svscan-1.html#log">process
 1 output logging trick</a> so the supervision tree's messages are logged via
 a service that's maintained by the supervision tree itself. Then your init
-system should not launch s6-svscan directly, but a wrapper script that performs
-the proper redirections. The
-<tt>examples/s6-svscanboot</tt> file in the s6 distribution gives an example of
-such a script. Make sure that your initial <a href="scandir.html">scan
-directory</a> contains a <a href="servicedir.html">service directory</a> for your
-initial logging service, that must read on the logging FIFO. </li>
+system should not launch s6-svscan directly, but a wrapper script, or a binary,
+ that performs the proper redirections. The
+<a href="s6-svscanboot.html">s6-svscanboot</a> binary is an example of such
+a program, and it is recommended that you use it. </li>
 </ul>
 
 <p>
  In some of the following examples, we'll assume that <tt>/command/s6-svscanboot</tt>
-is the name of the script you are using to start s6-svscan. We will also assume
+is the name of the program you are using to start s6-svscan. We will also assume
 that all of the s6 executables are available through the <tt>/command</tt> path.
 Adjust this accordingly.
 </p>
@@ -76,7 +74,7 @@ config file with <tt>telinit q</tt>.
 
 <h3> Example </h3>
 
-<pre> SV:123456:respawn:/command/s6-svscanboot </pre>
+<pre>SV:123456:respawn:/command/s6-svscanboot -c /dev/console /run/service</pre>
 
 
 <a name="upstart">
@@ -97,7 +95,7 @@ stop on runlevel [!2345]
 
 oom never
 respawn
-exec /command/s6-svscanboot
+exec /command/s6-svscanboot -c /dev/console /run/service
 </pre>
 
 <a name="systemd">
@@ -149,7 +147,7 @@ file with <tt>kill -s HUP 1</tt>.
 
 <h3> Example </h3>
 
-<pre> sv /command/s6-svscanboot "" on </pre>
+<pre> sv "/command/s6-svscanboot -c /dev/console /run/service" "" on </pre>
 
 <a name="launchd">
 <h2> MacOS launchd </h2>

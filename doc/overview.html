@@ -219,7 +219,17 @@ context entirely. </li>
 on an empty scan directory, then populate it step by step and send an
 update command to s6-svscan via
 <a href="s6-svscanctl.html">s6-svscanctl</a> whenever the supervision
-tree should pick up the differences and start the services you added. </li>
+tree should pick up the differences and start the services you added.
+  <ul>
+   <li> If you're running Linux and want the smallest possible amount
+of overhead, you should check the
+<a href="//skarnet.org/software/s6-linux-init/">s6-linux-init</a> companion
+package, which will start <a href="s6-svscan.html">s6-svscan</a> as process
+1 for you, no need for another initialization system. </li>
+   <li> If you have an init system you're happy with and just want to run
+a self-sufficient supervision tree, the
+<a href="s6-svscanboot.html">s6-svscanboot</a> program is a good option. </li>
+  </ul> </li>
  <li> That's it, your services are running. To control them manually,
 you can use the <a href="s6-svc.html">s6-svc</a> command. </li>
  <li> At the end of the system's lifetime, you can use

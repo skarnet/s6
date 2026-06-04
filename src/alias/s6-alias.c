@@ -56,9 +56,17 @@ static void readproctitle (int argc, char const *const *argv)
 
 static void svscanboot (int argc, char const *const *argv)
 {
+  char const *newargv[6] ;
+  unsigned int m = 0 ;
+  newargv[m++] = S6_BINPREFIX "s6-svscanboot" ;
+  newargv[m++] = "-c" ;
+  newargv[m++] = "/dev/console" ;
+  newargv[m++] = "--" ;
+  newargv[m++] = "/service" ;
+  newargv[m++] = 0 ;
   (void)argc ;
   (void)argv ;
-  noboot("svscanboot") ;
+  xexec(newargv) ;
 }
 
 #endif
