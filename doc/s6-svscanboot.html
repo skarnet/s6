@@ -1,0 +1,131 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6: the s6-svscanboot program</title>
+    <meta name="Description" content="s6: the s6-svscanboot program" />
+    <meta name="Keywords" content="s6 command s6-svscanboot scandir supervision supervise svscan logging catch-all directory" />
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6</a><br />
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">www.skarnet.org</a>
+</p>
+
+<h1> The s6-svscanboot program </h1>
+
+<p>
+<tt>s6-svscanboot</tt> starts a supervision tree, spearheaded by
+<a href="s6-svscan.html">s6-svscan</a>, while logging its own output,
+as well as the output of the tree's <a href="s6-supervise.html">s6-supervise</a>
+processes, into a catch-all logger that it itself supervises.
+</p>
+
+<p>
+In other words, it starts a self-sufficient, self-contained supervision tree,
+that does not leak logs &emdash; apart from exceptionally rare error messages
+from the catch-all logger itself.
+</p>
+
+<p>
+<tt>s6-svscanboot</tt> is meant to be used when an external service manager
+needs to start an s6 supervision tree. It prevents the supervision tree's logs
+from either flooding the upper service manager or being lost entirely.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-svscanboot [ -c <em>devconsole</em> ] [ -D <em>catchalldir</em> ] [ -m <em>catchallmode</em> ] [ -l <em>catchalluser</em> ] [ -o <em>catchalloptions</em> ] [ -d <em>notif</em> ] [ -X <em>consoleholder</em> ] [ -C <em>services_max</em> ] [ -L <em>name_max</em> ] [ -t <em>rescan</em> ] <em>scandir</em>
+</pre>
+
+<ul>
+ <li> <tt>s6-svscanboot</tt> creates the <tt>/run/uncaught-logs</tt> directory
+if it does not already exist, and changes its mode to 02750. </li>
+ <li> It creates the <em>scandir</em> directory if it does not exist yet.
+ <li> It deletes any pre-existing <tt><em>scandir</em>/s6-svscan-log</tt>
+directory, then recreates it as a suitable
+<a href="servicedir.html">service directory</a> running
+<a href="s6-log.html">s6-log</a> to log to <tt>/run/uncaught-logs</tt>. This
+is the service that will serve as the catch-all logger. </li>
+ <li> It redirects its standard input to <tt>/dev/null</tt>, and its standard
+output and error to a named pipe that will be read by the catch-all logger.
+It performs the necessary magic so that the redirection happens even though
+that named pipe has no reader yet. </li>
+ <li> It execs into <a href="s6-svscan.html">s6-svscan</a>, running on
+<em>scandir</em>. </li>
+</ul>
+
+<h2> Exit codes </h2>
+
+<dl>
+<dt> 100 </dt> <dd> Wrong usage </dd>
+<dt> 111 </dt> <dd> System call failure </dd>
+</dl>
+
+<p>
+On success, <tt>s6-svscanboot</tt> does not exit, but execs into
+<a href="s6-svscan.html">s6-svscan</a> instead, which is supposed to remain
+running until the administrator decides to stop it or the machine shuts down.
+</p>
+
+
+<h2> Options </h2>
+
+<dl>
+ <dt> <tt>-c&nbsp;<em>console</em></tt>, <tt>--console=<em>console</em></tt> </dt>
+ <dd> Send the catch-all logger's error messages to device <em>console</em>. These
+will be the only error messages from the supervision tree that will not go into
+the catch-all logger. By default, this device is whatever <tt>s6-svscanboot</tt>
+stderr points to at invocation time. </dd>
+
+ <dt> <tt>-D&nbsp;<em>dir</em></tt>, <tt>--catchall-directory=<em>dir</em></tt> </dt>
+ <dd> The directory where the <a href="s6-log.html">s6-log</a> catch-all will write
+and rotate the supervision tree's logs. Default is <strong><tt>/run/uncaught-logs</tt></strong>. </dd>
+
+ <dt> <tt>-m&nbsp;<em>mode</em></tt>, <tt>--catchall-mode=<em>mode</em></tt> <dt>
+ <dd> What permissions the catch-all directory shall have. Default is <strong>02750</strong>. </dd>
+
+ <dt> <tt>-l&nbsp;<em>user</em></tt>, <tt>--catchall-user=<em>user</em></tt> <dt>
+ <dd> What user the catch-all logger shall run as. Default is the same user as
+the supervision tree, i.e. the user that launched <tt>s6-svscanboot</tt>. This
+option should only be used by root. </dd>
+
+ <dt> <tt>-o&nbsp;<em>options</em></tt>, <tt>--catchall-options=<em>options</em></tt> <dt>
+ <dd> What control and selection directives the <a href="s6-log.html">s6-log</a> program
+shall use for logging its input. Directives should be separated by spaces. The
+<em>options</em> string will appear verbatim in the <tt><em>scandir</em>/s6-svscan-log/run</tt>
+script, so caution should be used when using this option. Default is <strong><tt>t</tt></strong>. </dd>
+
+ <dt> <tt>-d&nbsp;<em>notif</em></tt>, <tt>--notification-fd=<em>notif</em></tt> </dt>
+ <dd> Notify file descriptor <em>notif</em> when <a href="s6-svscan.html">s6-svscan</a> is ready.
+This option is passed directly to <a href="s6-svscan.html">s6-svscan</a>. </dd>
+
+ <dt> <tt>-C&nbsp;<em>services_max</em></tt>, <tt>--services-max=<em>services_max</em></tt> </dt>
+ <dd> Maintain services for up to <em>services_max</em> service directories, including loggers.
+This option is passed directly to <a href="s6-svscan.html">s6-svscan</a>. </dd>
+
+ <dt> <tt>-L&nbsp;<em>name_max</em></tt>, <tt>--name-max=<em>name_max</em></tt> </dt>
+ <dd> The maximum length of a name in the scan directory.
+This option is passed directly to <a href="s6-svscan.html">s6-svscan</a>. </dd>
+
+ <dt> <tt>-t&nbsp;<em>rescan</em></tt>, <tt>--timeout=<em>rescan</em></tt> </dt>
+ <dd> Perform a scan every <em>rescan</em> milliseconds.
+This option is passed directly to <a href="s6-svscan.html">s6-svscan</a>. </dd>
+</dl>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> <tt>s6-svscanboot</tt> is only useful in situations where it is
+beneficial for a supervision tree to log its own output. In other situations,
+it is better to launch <a href="s6-svscan.html">s6-svscan</a> directly. </li>
+</ul>
+
+</body>
+</html>

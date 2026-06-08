@@ -62,7 +62,7 @@ int main (int argc, char const *const *argv)
     { .so = 'L', .lo = "name-max", .i = GOLA_MAXLEN },
     { .so = 't', .lo = "timeout", .i = GOLA_TIMEOUT },
   } ;
-  unsigned int catchall_mode = 02700 ;
+  unsigned int catchall_mode = 02750 ;
   unsigned int fdconsole = 3 ;
   unsigned int fdnotif = 0 ;
   unsigned int servicesmax = 0 ;
@@ -218,9 +218,9 @@ int main (int argc, char const *const *argv)
   if (fd_move(0, fd) == -1) strerr_diefusys(111, "fd_move ", "/dev/null", " to ", "stdin") ;
   if (wgola[GOLA_CONSOLE])
   {
-    fd = open2("/dev/console", O_WRONLY) ;
-    if (fd == -1) strerr_diefusys(111, "open ", "/dev/console") ;
-    if (fd_move(fdconsole, fd) == -1) strerr_diefusys(111, "fd_move ", "/dev/console") ;
+    fd = open2(wgola[GOLA_CONSOLE], O_WRONLY) ;
+    if (fd == -1) strerr_diefusys(111, "open ", wgola[GOLA_CONSOLE]) ;
+    if (fd_move(fdconsole, fd) == -1) strerr_diefusys(111, "fd_move ", wgola[GOLA_CONSOLE]) ;
   }
   else if (fd_copy(fdconsole, 2) == -1) strerr_diefusys(111, "fd_copy ", "stderr") ;
   b.fd = open2(fn, O_RDONLY | O_NONBLOCK) ;
@@ -230,7 +230,7 @@ int main (int argc, char const *const *argv)
   fd_close(b.fd) ;
   if (ndelay_off(fd) == -1) strerr_diefusys(111, "ndelay_off ", fn) ;
   if (fd_move(1, fd) == -1) strerr_diefusys(111, "fd_move ", fn, " to ", "stdout") ;
-  if (fd_copy(2, 1) == -1) strerr_diefusys(111, "copy ", "stdout", " to ", "stderr") ;
+  if (fd_copy(2, 1) == -1) strerr_diefusys(111, "fd_copy ", "stdout", " to ", "stderr") ;
 
   fmtc[uint_fmt(fmtc, fdconsole)] = 0 ;
 
@@ -266,5 +266,6 @@ int main (int argc, char const *const *argv)
   newargv[m++] = 0 ;
 
   exec(newargv) ;
-  _exit(111) ;
+  if (fd_move(2, fdconsole) == -1) _exit(111) ;
+  strerr_diefusys(111, "exec ", newargv[0]) ;
 }
