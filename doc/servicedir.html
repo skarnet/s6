@@ -214,6 +214,12 @@ newline. This signal will be used to kill the supervised process when a
 <a href="s6-svc.html">s6-svc -d</a> or <a href="s6-svc.html">s6-svc -r</a>
 command is used. If the file does not exist, SIGTERM will be used by default. </li>
 
+ <li style="margin-bottom:1em"> An optional regular file named <tt>reload-signal</tt>. If such a file
+exists, it must only contain the name or number of a signal, followed by a
+newline. This signal will be sent to the supervised process when a
+<a href="s6-svc.html">s6-svc -l</a> command is used. If the file does not exist,
+SIGHUP will be used by default. </li>
+
  <li style="margin-bottom:1em"> An optional regular file named <tt>flag-newpidns</tt>.
 If such a file exists:
   <ul>

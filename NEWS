@@ -6,6 +6,9 @@ In 2.15.1.0
  - Bugfixes.
  - New command: s6-svscanboot, for a self-logging s6-svscan
 that is not pid 1.
+ - New service directory file: reload-signal
+ - New s6-svc control: s6-svc -l, to send the signal defined
+in reload-signal, or a SIGHUP by default.
 
 
 In 2.15.0.0

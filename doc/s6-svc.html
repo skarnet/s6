@@ -29,7 +29,7 @@ knowing their PIDs, and without using horrible hacks such as .pid files.
 <h2> Interface </h2>
 
 <pre>
-     s6-svc [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T <em>timeout</em> ] [ -s <em>signal</em> | -abqhkti12pcyrPCK ] [ -oduDUxO ] <em>servicedirs...</em>
+     s6-svc [ -wu | -wU | -wd | -wD | -wr | -wR ] [ -T <em>timeout</em> ] [ -s <em>signal</em> | -abqhkti12pcyrlPCK ] [ -oduDUxO ] <em>servicedirs...</em>
 </pre>
 
 <p>
@@ -100,6 +100,13 @@ signal to kill it and letting <a href="s6-supervise.html">s6-supervise</a>
 start it again. By default, the signal is a SIGTERM; this can be configured
 via the <tt>./down-signal</tt> file in the <a href="servicedir.html">service
 directory</a>. </li>
+ <li> <tt>-l</tt>&nbsp;: If the service is up, reload it, by sending it a
+signal that should make it reload its configuration. (Not all services support
+this feature, in which case <tt>-l</tt> will be equivalent to <tt>-r</tt>.)
+By default, the signal is a SIGHUP; this can be configured
+via the <tt>./reload-signal</tt> file in the <a href="servicedir.html">service
+directory</a>. </li>
+
  <li> <tt>-T&nbsp;<em>timeout</em></tt>&nbsp;: if the <tt>-w<em>state</em></tt>
 option has been given, <tt>-T</tt> specifies a timeout
 (in milliseconds) after which s6-svc will exit 1 with an error message if

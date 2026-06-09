@@ -43,7 +43,7 @@ typedef enum trans_e trans_t, *trans_t_ref ;
 enum trans_e
 {
   V_TIMEOUT, V_CHLD, V_TERM, V_HUP, V_QUIT, V_INT,
-  V_a, V_b, V_q, V_h, V_k, V_t, V_i, V_1, V_2, V_p, V_c, V_y, V_r, V_P, V_C, V_K,
+  V_a, V_b, V_q, V_h, V_k, V_t, V_i, V_1, V_2, V_p, V_c, V_y, V_r, V_l, V_P, V_C, V_K,
   V_o, V_d, V_u, V_D, V_U, V_x, V_O, V_Q
 } ;
 
@@ -131,7 +131,16 @@ static inline int read_downsig (void)
   int sig = SIGTERM ;
   char buf[16] ;
   if (read_file("down-signal", buf, 15) && !sig0_scan(buf, &sig))
-    strerr_warnw1x("invalid down-signal") ;
+    strerr_warnw("invalid ", "down-signal") ;
+  return sig ;
+}
+
+static inline int read_reloadsig (void)
+{
+  int sig = SIGHUP ;
+  char buf[16] ;
+  if (read_file("reload-signal", buf, 15) && !sig0_scan(buf, &sig))
+    strerr_warnw("invalid ", "reload-signal") ;
   return sig ;
 }
 
@@ -262,6 +271,11 @@ static void killy (void)
 static void killr (void)
 {
   kill(status.pid, read_downsig()) ;
+}
+
+static void killl (void)
+{
+  kill(status.pid, read_reloadsig()) ;
 }
 
 static void killP (void)
@@ -602,22 +616,22 @@ static void lastfinish_z (void)
   bail() ;
 }
 
-static action_t_ref const actions[5][30] =
+static action_t_ref const actions[5][31] =
 {
   { &downtimeout, &nop, &bail, &bail, &bail, &bail,
-    &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop,
+    &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop,
     &down_o, &wantdown, &down_u, &wantDOWN, &down_U, &bail, &wantdown, &wantDOWN },
   { &uptimeout, &up_z, &up_term, &up_x, &bail, &sigint,
-    &killa, &killb, &killq, &killh, &killk, &killt, &killi, &kill1, &kill2, &killp, &killc, &killy, &killr, &killP, &killC, &killK,
+    &killa, &killb, &killq, &killh, &killk, &killt, &killi, &kill1, &kill2, &killp, &killc, &killy, &killr, &killl, &killP, &killC, &killK,
     &wantdown, &up_d, &wantup, &up_D, &wantUP, &up_x, &wantdown, &wantDOWN },
   { &finishtimeout, &finish_z, &finish_x, &finish_x, &bail, &sigint,
-    &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop,
+    &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop,
     &wantdown, &wantdown, &wantup, &wantDOWN, &wantUP, &finish_x, &wantdown, &wantDOWN },
   { &uptimeout, &lastup_z, &up_d, &closethem, &bail, &sigint,
-    &killa, &killb, &killq, &killh, &killk, &killt, &killi, &kill1, &kill2, &killp, &killc, &killy, &killr, &killP, &killC, &killK,
+    &killa, &killb, &killq, &killh, &killk, &killt, &killi, &kill1, &kill2, &killp, &killc, &killy, &killr, &killl, &killP, &killC, &killK,
     &wantdown, &up_d, &wantup, &up_D, &wantUP, &closethem, &wantdown, &wantDOWN },
   { &finishtimeout, &lastfinish_z, &nop, &closethem, &bail, &sigint,
-    &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop,
+    &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop, &nop,
     &wantdown, &wantdown, &wantup, &wantDOWN, &wantUP, &closethem, &wantdown, &wantDOWN }
 } ;
 
@@ -702,7 +716,7 @@ static inline void handle_control (int fd)
     else if (!r) break ;
     else
     {
-      size_t pos = byte_chr("abqhkti12pcyrPCKoduDUxOQ", 24, c) ;
+      size_t pos = byte_chr("abqhkti12pcyrlPCKoduDUxOQ", 25, c) ;
       if (pos < 24) (*actions[state][V_a + pos])() ;
     }
   }
