@@ -47,7 +47,7 @@ static int write_run (buffer *b, void *data)
      || buffer_put(b, "\n", 1) < 0) goto err ;
     sa.len = 0 ;
   }
-  if (buffer_puts(b, S6_EXTBINPREFIX "s6-svscan -d3 -c") < 0
+  if (buffer_puts(b, S6_EXTBINPREFIX "s6-svscan -d3 -C") < 0
    || buffer_put(b, fmt, l) < 0
    || buffer_putsflush(b, " -- instance\n") < 0) return 0 ;
   return 1 ;
@@ -124,6 +124,7 @@ int main (int argc, char const *const *argv)
     strerr_dief1x(100, "invalid user") ;
   if (maxinstances < 1) maxinstances = 1 ;
   if (maxinstances > 90000) maxinstances = 90000 ;
+  if (logdir && !rcinfo[0]) maxinstances <<= 1 ;
   if (rcinfo[0])
   {
     if (strchr(rcinfo[0], '\n'))
@@ -137,7 +138,7 @@ int main (int argc, char const *const *argv)
       if (!rcinfo[1][0]) strerr_dief1x(100, "argument to -r must be: service or service/logger or service/logger/pipeline") ;
       if (rcinfo[1][0] == '/')
         strerr_dief2x(100, "logger", " name cannot be empty") ;
-      if (!logdir) strerr_dief1x(100, "logger specifiec (-r) but logdir not specified (-L)") ;
+      if (!logdir) strerr_dief1x(100, "logger specified (-r) but logdir not specified (-L)") ;
       rcinfo[2] = strchr(rcinfo[1], '/') ;
       if (rcinfo[2])
       {
