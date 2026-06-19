@@ -294,8 +294,8 @@ s6-svperms: EXTRA_LIBS :=
 s6-svperms: src/supervision/s6-svperms.o ${LIBNSSS} -lskarnet
 s6-svscan: EXTRA_LIBS := ${SYSCLOCK_LIB} ${SPAWN_LIB}
 s6-svscan: src/supervision/s6-svscan.o -lskarnet
-s6-svscanboot: EXTRA_LIBS :=
-s6-svscanboot: src/supervision/s6-svscanboot.o -lskarnet
+s6-svscanboot: EXTRA_LIBS := ${MAYBEPTHREAD_LIB}
+s6-svscanboot: src/supervision/s6-svscanboot.o ${LIBNSSS} -lskarnet
 s6-svscanctl: EXTRA_LIBS :=
 s6-svscanctl: src/supervision/s6-svscanctl.o ${LIBS6} -lskarnet
 s6-svstat: EXTRA_LIBS := ${SYSCLOCK_LIB}
