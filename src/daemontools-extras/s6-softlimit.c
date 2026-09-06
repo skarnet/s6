@@ -26,6 +26,7 @@ static void doit (int res, char const *arg)
     uint64_t n ;
     if (!uint640_scan(arg, &n)) strerr_dieusage(100, USAGE) ;
     if (what & 2) r.rlim_max = n ;
+    if (2 == what && n < r.rlim_cur) r.rlim_cur = n;
     if (what & 1)
     {
       if (n > r.rlim_max) n = r.rlim_max ;
