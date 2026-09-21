@@ -1,5 +1,7 @@
 /* ISC license. */
 
+#include <skalibs/nonposix.h>
+
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -731,11 +733,9 @@ int main (int argc, char const *const *argv)
   sigaddset(&set, SIGQUIT) ;
   sigaddset(&set, SIGUSR1) ;
   sigaddset(&set, SIGUSR2) ;
+  sigaddset(&set, SIGWINCH) ;
 #ifdef SIGPWR
   sigaddset(&set, SIGPWR) ;
-#endif
-#ifdef SIGWINCH
-  sigaddset(&set, SIGWINCH) ;
 #endif
   if (!selfpipe_trapset(&set)) strerr_diefu1sys(111, "trap signals") ;
 
