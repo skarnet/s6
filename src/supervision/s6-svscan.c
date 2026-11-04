@@ -788,11 +788,6 @@ int main (int argc, char const *const *argv)
       }
       else
       {
-        if ((x[0].revents | x[1].revents) & IOPAUSE_EXCEPT)
-        {
-          errno = EIO ;
-          panic("check internal pipes") ;
-        }
         if (x[0].revents & IOPAUSE_READ) handle_signals(&what) ;
         if (x[1].revents & IOPAUSE_READ) handle_control(x[1].fd, &what) ;
       }

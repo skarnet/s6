@@ -287,7 +287,7 @@ static void new_connection (int s, char const *remotepath, char const *const *ar
 
 int main (int argc, char const *const *argv)
 {
-  iopause_fd x[2] = { { .events = IOPAUSE_READ }, { .fd = 0, .events = IOPAUSE_READ | IOPAUSE_EXCEPT } } ;
+  iopause_fd x[2] = { { .events = IOPAUSE_READ }, { .fd = 0, .events = IOPAUSE_READ } } ;
   PROG = "s6-ipcserverd" ;
   {
     subgetopt l = SUBGETOPT_ZERO ;
@@ -365,17 +365,15 @@ int main (int argc, char const *const *argv)
       if (iopause_g(x, 1 + (numconn < maxconn), 0) < 0)
         strerr_diefu1sys(111, "iopause") ;
 
-      if (x[0].revents & IOPAUSE_EXCEPT) strerr_dief1x(111, "trouble with selfpipe") ;
       if (x[0].revents & IOPAUSE_READ) { handle_signals() ; continue ; }
       if (numconn < maxconn)
       {
-        if (x[1].revents & IOPAUSE_EXCEPT) strerr_dief1x(111, "trouble with socket") ;
         if (x[1].revents & IOPAUSE_READ)
         {
           int dummy ;
           char remotepath[IPCPATH_MAX+1] ;
           int sock = ipc_accept(x[1].fd, remotepath, IPCPATH_MAX+1, &dummy) ;
-          if (sock < 0)
+          if (sock == -1)
           {
             if (verbosity) strerr_warnwu1sys("accept") ;
           }

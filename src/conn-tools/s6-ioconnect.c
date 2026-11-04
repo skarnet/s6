@@ -62,8 +62,8 @@ static void handle_signals (void)
       case 0 : return ;
       case SIGTERM :
       {
-        if (a[0][0].xindex < 5) x[a[0][0].xindex].revents |= IOPAUSE_EXCEPT ;
-        if (a[1][0].xindex < 5) x[a[1][0].xindex].revents |= IOPAUSE_EXCEPT ;
+        if (a[0][0].xindex < 5) x[a[0][0].xindex].revents |= POLLHUP ;
+        if (a[1][0].xindex < 5) x[a[1][0].xindex].revents |= POLLHUP ;
         break ;
       }
       default :
@@ -203,7 +203,7 @@ int main (int argc, char const *const *argv)
 
     for (i = 0 ; i < 2 ; i++) if (a[i][0].xindex < 5)
     {
-      if (x[a[i][0].xindex].revents & (IOPAUSE_READ | IOPAUSE_EXCEPT))
+      if (x[a[i][0].xindex].revents & IOPAUSE_READ)
       {
         if (!fillit(i))
         {
