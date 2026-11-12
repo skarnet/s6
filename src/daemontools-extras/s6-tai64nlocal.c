@@ -1,7 +1,9 @@
 /* ISC license. */
 
 #include <sys/types.h>
+#include <unistd.h>
 #include <errno.h>
+
 #include <skalibs/buffer.h>
 #include <skalibs/strerr.h>
 #include <skalibs/sgetopt.h>
@@ -61,5 +63,5 @@ int main (int argc, char const *const *argv)
       strerr_diefu1sys(111, "write to stdout") ;
     satmp.len = 0 ;
   }
-  return 0 ;
+  _exit(0) ;
 }
